@@ -14,6 +14,7 @@ import { PluginWithDb, TrailInfoBaseDto } from './abstract-plugin-with-db';
 import { TrailSourceType } from 'src/app/model/dto/trail';
 import { TrailActivity } from 'src/app/model/dto/trail-activity';
 import { PendingRequests } from 'src/app/utils/pending-requests';
+import { OfflineMapService } from '../map/offline-map.service';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   keyNumber: string;
@@ -413,7 +414,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
   private fetchGpx(idTrail: string, idGpx: string, info: TrailInfo) {
     return globalThis.fetch('https://www.visorando.com/visorando-' + idGpx + '.gpx')
     .then(response => response.arrayBuffer())
-    .then(gpx => GpxFormat.importGpx(gpx, 'visorando', 'visorando', this.injector.get(PreferencesService), TrailSourceType.EXTERNAL, info.externalUrl, Date.now()))
+    .then(gpx => GpxFormat.importGpx(gpx, 'visorando', 'visorando', this.injector.get(PreferencesService), this.injector.get(OfflineMapService), TrailSourceType.EXTERNAL, info.externalUrl, Date.now()))
     .then(gpx => {
       if (info.description && info.description.length > 0 && (gpx.trail.description ?? '').length === 0)
         gpx.trail.description = info.description;

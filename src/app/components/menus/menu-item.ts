@@ -50,7 +50,7 @@ export class MenuItem {
   public childrenProvider?: () => Observable<MenuItem[]>;
   public customContentSelector?: string;
   public selected: Attribute<boolean>;
-  public action?: () => void;
+  public action?: (event: Event) => void;
   public data?: any;
 
   public setIcon(icon: Attribute<string>): this {
@@ -78,7 +78,7 @@ export class MenuItem {
     return this;
   }
 
-  public setAction(action?: () => void): this {
+  public setAction(action?: (event: Event) => void): this {
     this.action = action;
     return this;
   }

@@ -1087,10 +1087,10 @@ export class TrailsListComponent extends AbstractComponent {
     })).then(p => p.present());
   }
 
-  enlargeSearchArea(): void {
+  enlargeSearchArea(event: Event): void {
     this.map?.getMap()?.zoomOut();
     this.map?.toolbars?.forEach(tb => {
-      tb.computed.items.find(i => i.icon === 'search-map')?.item.action?.();
+      tb.computed.items.find(i => i.icon === 'search-map')?.item.action?.(event);
     })
   }
 }

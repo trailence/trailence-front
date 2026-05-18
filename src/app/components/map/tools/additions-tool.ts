@@ -10,6 +10,7 @@ import { ModalController } from '@ionic/angular/standalone';
 import { POI } from 'src/app/services/geolocation/geo.service';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
 import { BadgesConfig } from '../../menus/menu-item';
+import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 
 export class AdditionsTool extends MapTool {
 
@@ -146,7 +147,7 @@ export class AdditionsTool extends MapTool {
       tooltip.setContent(span.outerHTML);
     }
     tooltip.setOpacity(0.75);
-    injector.get(AssetsService).getIcon('poi-' + poi.type, true).subscribe(svg => {
+    injector.get(OfflineMapService).getPoiIcon$(poi.type).subscribe(svg => {
       tooltip.setContent(svg.outerHTML + tooltip.getContent());
     });
     return tooltip;

@@ -95,7 +95,8 @@ export class MenuContentComponent implements OnInit, OnChanges {
 
   clicked(item: ComputedMenuItem, $event: Event): void {
     if (item.item.action) {
-      item.item.action();
+      item.item.action($event);
+      if ($event.defaultPrevented) this.setMenu(this.menu, false);
     } else {
       $event.preventDefault();
       $event.stopPropagation()

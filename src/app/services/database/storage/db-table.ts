@@ -316,6 +316,15 @@ export class DbTable<DTO> {
     );
   }
 
+  public deleteWhere$(where: DbTableWhere<DTO>): Observable<number> {
+    return this.onceReady$().pipe(
+      switchMap(status => {
+        let collection = where.toDexie(status.table);
+        return collection.delete();
+      }),
+    );
+  }
+
   public replaceAll$(itemsProvider: () => DTO[]): Observable<boolean> {
     return this.onceReady$().pipe(
       switchMap(info => {

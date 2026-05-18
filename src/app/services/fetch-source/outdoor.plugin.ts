@@ -13,6 +13,7 @@ import { Arrays } from 'src/app/utils/arrays';
 import { TrailSourceType } from 'src/app/model/dto/trail';
 import { Console } from 'src/app/utils/console';
 import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { OfflineMapService } from '../map/offline-map.service';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   id: string;
@@ -167,7 +168,7 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
           const track = new Track({
             owner: this.owner,
             uuid: ot.id,
-          }, this.injector.get(PreferencesService));
+          }, this.injector.get(PreferencesService), this.injector.get(OfflineMapService));
           const segment = track.newSegment();
           segment.appendMany(ot.points.map((p, index) => ({pos: { lat: p.lat, lng: p.lng }, ele: p.ele, time: p.time ?? (index === 0 ? ot.date ?? undefined : undefined) })));
 

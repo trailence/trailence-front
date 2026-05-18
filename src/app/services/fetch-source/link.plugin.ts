@@ -11,6 +11,7 @@ import { PreferencesService } from '../preferences/preferences.service';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { TrackDatabase } from '../database/track-database';
 import { PointDtoMapper } from 'src/app/model/point-dto-mapper';
+import { OfflineMapService } from '../map/offline-map.service';
 
 export class LinkPlugin extends FetchSourcePlugin {
 
@@ -93,7 +94,7 @@ export class LinkPlugin extends FetchSourcePlugin {
       version: 1,
       owner: this.owner,
       uuid: link,
-    }, this.injector.get(PreferencesService));
+    }, this.injector.get(PreferencesService), this.injector.get(OfflineMapService));
   }
 
   private toMetadata(link: string, cache: LinkCache): TrackMetadataSnapshot {

@@ -1,4 +1,4 @@
-import { catchError, combineLatest, concat, firstValueFrom, from, map, Observable, of, switchMap } from 'rxjs';
+import { catchError, combineLatest, concat, debounceTime, firstValueFrom, from, map, Observable, of, switchMap } from 'rxjs';
 import { POI, POIType } from '../geolocation/geo.service';
 import { DbTableWithBlob } from '../database/storage/db-table-with-blob';
 import { Injector } from '@angular/core';
@@ -9,6 +9,7 @@ import { environment } from 'src/environments/environment';
 import { Console } from 'src/app/utils/console';
 import { ApiError } from '../http/api-error';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { DbTableWhereLessThan } from '../database/storage/db-table';
 
 export class Pois {
 
@@ -20,10 +21,10 @@ export class Pois {
   constructor(
     injector: Injector,
   ) {
-    this.table = new DbTableWithBlob<DbDto>(injector, 'osm-data-pois', 'tile', 'tile', 'blob');
+    this.table = new DbTableWithBlob<DbDto>(injector, 'osm-data-pois', 'tile, lastUsed, version', 'tile', 'blob');
     this.http = injector.get(HttpService);
     this.network = injector.get(NetworkService);
-    // TODO cleaning
+    this.table.whenReady$().pipe(debounceTime(120000)).subscribe(() => this.clean());
   }
 
   public getPois(bounds: L.LatLngBounds, types: POIType[]): Observable<PoisResponse> {
@@ -122,6 +123,11 @@ export class Pois {
       }
     }
     return tiles;
+  }
+
+  private clean(): void {
+    this.table.deleteWhere$(new DbTableWhereLessThan('lastUsed', Date.now() - 90 * 24 * 60 * 60 * 1000))
+    .subscribe(nb => Console.info(nb, 'pois not used since 90 days cleant'));
   }
 }
 

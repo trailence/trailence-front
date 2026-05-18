@@ -27,6 +27,7 @@ import { Feedback, FeedbackReply } from '../feedback/feedback.service';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { AuthService } from '../auth/auth.service';
 import { NetworkService } from '../network/network.service';
+import { OfflineMapService } from '../map/offline-map.service';
 
 @Injectable({providedIn: 'root'})
 export class ModerationService {
@@ -40,6 +41,7 @@ export class ModerationService {
   constructor(
     private readonly http: HttpService,
     private readonly preferencesService: PreferencesService,
+    private readonly mapService: OfflineMapService,
     cacheService: CacheService,
     private readonly injector: Injector,
   ) {
@@ -148,7 +150,7 @@ export class ModerationService {
       switchMap(fromCache => {
         if (fromCache) return of(fromCache);
         return this.http.get<TrackDto>(environment.apiBaseUrl + '/moderation/v1/trackFromReview/' + trailUuid + '/' + trailOwner + '/' + trackUuid).pipe(
-          map(dto => new Track(dto, this.preferencesService)),
+          map(dto => new Track(dto, this.preferencesService, this.mapService)),
           tap(track => this.trackCache.feedItem(trackUuid + ' ' + trailOwner, track))
         );
       })

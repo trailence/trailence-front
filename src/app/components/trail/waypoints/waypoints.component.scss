@@ -38,6 +38,11 @@ div.show-breaks {
       flex: none;
       align-self: flex-start;
       z-index: 1;
+      ion-icon {
+        width: 24px;
+        height: 24px;
+        margin: 8px;
+      }
     }
 
     .waypoint-info-section {
@@ -85,6 +90,11 @@ div.show-breaks {
     .waypoint-description {
       margin-top: 2px;
       color: var(--ion-color-medium);
+      font-size: calc(max(13px, var(--min-font-size)));
+    }
+    .waypoint-attached-guidepost {
+      margin-top: 1px;
+      color: var(--ion-color-secondary);
       font-size: calc(max(13px, var(--min-font-size)));
     }
   }

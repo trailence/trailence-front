@@ -1,7 +1,7 @@
-import { BreakWayPoint, ComputedWayPoint, Track } from 'src/app/model/track';
+import { BreakWayPoint, ComputedWayPoint, Guidepost, Track, TrackWayPoint } from 'src/app/model/track';
 import { MapAnchor } from '../markers/map-anchor';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { Subscription } from 'rxjs';
+import { combineLatest, Subscription } from 'rxjs';
 import * as L from 'leaflet';
 import { Color } from 'src/app/utils/color';
 import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
@@ -29,7 +29,8 @@ export type ShowBreaksStyle = 'colored' | 'normal' | undefined;
 
 export class MapTrackWayPoints {
 
-  private _anchors?: MapAnchor[];
+  private _wayPointsAnchors?: MapAnchor[];
+  private _guidepostsTooltips?: L.Tooltip[];
   private _breaks?: MapAnchor[];
   private _breaksColored?: MapAnchor[];
   private _departure?: MapAnchor;
@@ -39,6 +40,7 @@ export class MapTrackWayPoints {
   private _showDA = false;
   private _showWP = false;
   private _showBreaks: ShowBreaksStyle = undefined;
+  private _showGuideposts = false;
   private _map?: L.Map;
   private subscription?: Subscription;
 
@@ -55,6 +57,7 @@ export class MapTrackWayPoints {
     if (this._showDA) this.addDAToMap();
     if (this._showBreaks) this.addBreaksToMap(this._showBreaks);
     if (this._showWP) this.addWPToMap();
+    if (this._showGuideposts) this.addGuidepostsToMap();
   }
 
   public remove(): void {
@@ -62,6 +65,7 @@ export class MapTrackWayPoints {
     if (this._showDA) this.removeDAFromMap();
     if (this._showBreaks) this.removeBreaksFromMap();
     if (this._showWP) this.removeWPFromMap();
+    if (this._showGuideposts) this.removeGuidepostsFromMap();
     this._map = undefined;
     this.subscription?.unsubscribe();
     this.subscription = undefined;
@@ -71,7 +75,8 @@ export class MapTrackWayPoints {
     if (!this._map) return;
     const map = this._map;
     this.remove();
-    this._anchors = undefined;
+    this._wayPointsAnchors = undefined;
+    this._guidepostsTooltips = undefined;
     this._breaks = undefined;
     this._breaksColored = undefined;
     this._departure = undefined;
@@ -104,58 +109,75 @@ export class MapTrackWayPoints {
     }
   }
 
+  public showGuideposts(shown: boolean): void {
+    if (shown === this._showGuideposts) return;
+    this._showGuideposts = shown;
+    if (this._map) {
+      if (shown) this.addGuidepostsToMap(); else this.removeGuidepostsFromMap();
+    }
+  }
+
   private load(): void {
-    if (this._anchors !== undefined) return;
+    if (this._wayPointsAnchors !== undefined) return;
     if (this.track instanceof Track) {
-      this.subscription = this.track.computedWayPoints$.subscribe(list => this.loadFromTrack(list));
+      this.subscription = combineLatest([this.track.computedWayPoints$, this.track.mapService.getPoiIcon$('guidepost')]).subscribe(([list, guidepostIcon]) => this.loadFromTrack(list, guidepostIcon));
     } else {
       this.loadFromSimplifiedTrack(this.track);
     }
   }
 
-  private loadFromTrack(list: ComputedWayPoint[]): void {
+  private loadFromTrack(list: TrackWayPoint[], guidepostIcon: SVGSVGElement): void {
     if (this._map && this._showDA) this.removeDAFromMap();
     if (this._map && this._showWP) this.removeWPFromMap();
     if (this._map && this._showBreaks) this.removeBreaksFromMap();
-    this._anchors = [];
+    this._wayPointsAnchors = [];
+    this._guidepostsTooltips = [];
     this._breaks = [];
     this._breaksColored = [];
     for (const wp of list) {
-      this.createFromWayPoint(wp, list);
+      this.createFromWayPoint(wp, list, guidepostIcon);
     }
     if (this._map && this._showDA) this.addDAToMap();
     if (this._map && this._showBreaks) this.addBreaksToMap(this._showBreaks);
     if (this._map && this._showWP) this.addWPToMap();
+    if (this._map && this._showGuideposts) this.addGuidepostsToMap();
   }
-  private createFromWayPoint(wp: ComputedWayPoint, list: ComputedWayPoint[]): void { // NOSONAR
-    if (wp.isDeparture) {
-      let isArrival = wp.isArrival;
-      if (!isArrival) {
-        const arrival = list.find(e => e.isArrival)?.wayPoint.point;
-        if (arrival && L.latLng(arrival.pos).distanceTo(wp.wayPoint.point.pos) < 5) isArrival = true;
-      }
-      if (isArrival && !this._isRecording) {
-        this._departureAndArrival = this.createDepartureAndArrival(wp.wayPoint.point.pos);
+  private createFromWayPoint(wp: TrackWayPoint, list: TrackWayPoint[], guidepostIcon: SVGSVGElement): void { // NOSONAR
+    if (wp.computed) {
+      if (wp.computed.isDeparture) {
+        let isArrival = wp.computed.isArrival;
+        if (!isArrival) {
+          const arrival = list.find(e => e.computed?.isArrival)?.computed?.wayPoint.point;
+          if (arrival && L.latLng(arrival.pos).distanceTo(wp.computed.wayPoint.point.pos) < 5) isArrival = true;
+        }
+        if (isArrival && !this._isRecording) {
+          this._departureAndArrival = this.createDepartureAndArrival(wp.computed.wayPoint.point.pos);
+        } else {
+          this._departure = this.createDeparture(wp.computed.wayPoint.point.pos);
+        }
+      } else if (wp.computed.isArrival && (!this._isRecording || wp.computed.isComputedOnly)) {
+        if (!this._isRecording) {
+          const departure = list.find(e => e.computed?.isDeparture)?.computed?.wayPoint.point;
+          if (!departure || L.latLng(departure.pos).distanceTo(wp.computed.wayPoint.point.pos) >= 5)
+            this._arrival = this.createArrival(wp.computed.wayPoint.point.pos);
+        }
+      } else if (wp.computed.breakPoint) {
+        this._breaks!.push(this.createBreakPoint(wp.computed, false));
+        this._breaksColored!.push(this.createBreakPoint(wp.computed, true))
       } else {
-        this._departure = this.createDeparture(wp.wayPoint.point.pos);
+        this._wayPointsAnchors!.push(this.createWayPoint(wp.computed));
       }
-    } else if (wp.isArrival && (!this._isRecording || wp.isComputedOnly)) {
-      if (!this._isRecording) {
-        const departure = list.find(e => e.isDeparture)?.wayPoint.point;
-        if (!departure || L.latLng(departure.pos).distanceTo(wp.wayPoint.point.pos) >= 5)
-          this._arrival = this.createArrival(wp.wayPoint.point.pos);
-      }
-    } else if (wp.breakPoint) {
-      this._breaks!.push(this.createBreakPoint(wp, false));
-      this._breaksColored!.push(this.createBreakPoint(wp, true))
-    } else {
-      this._anchors!.push(this.createWayPoint(wp));
+    }
+    if (wp.guidepost) {
+      if (!this._guidepostsTooltips!.some(t => (t as any)._guidepost.poi === wp.guidepost!.poi))
+        this._guidepostsTooltips!.push(this.createGuidepost(wp.guidepost, guidepostIcon));
     }
   }
 
   private loadFromSimplifiedTrack(track: SimplifiedTrackSnapshot): void {
     if (this._map && this._showDA) this.removeDAFromMap();
-    this._anchors = [];
+    this._wayPointsAnchors = [];
+    this._guidepostsTooltips = [];
     this._breaks = [];
     this._breaksColored = [];
     const departurePoint = track.points[0];
@@ -198,6 +220,17 @@ export class MapTrackWayPoints {
     return breakPoint.isBreak ? '&#8987;' : breakPoint.isPause ? '&#x23F8;' : breakPoint.isResume ? '&#x23F5;' : '&#x23EF;';
   }
 
+  private createGuidepost(guidepost: Guidepost, icon: SVGSVGElement): L.Tooltip {
+    const tooltip = L.tooltip({className: 'poi', permanent: true}).setLatLng(guidepost.pos).setContent('');
+    const span = document.createElement('SPAN');
+    span.innerText = guidepost.text;
+    tooltip.setContent(span.outerHTML);
+    tooltip.setOpacity(0.75);
+    tooltip.setContent(icon.outerHTML + tooltip.getContent());
+    (tooltip as any)._guidepost = guidepost;
+    return tooltip;
+  }
+
   private addDAToMap(): void {
     this.load();
     if (this._departureAndArrival) this._departureAndArrival.marker.addTo(this._map!); // NOSONAR
@@ -217,16 +250,32 @@ export class MapTrackWayPoints {
 
   private addWPToMap(): void {
     this.load();
-    for (const anchor of this._anchors!) {
+    for (const anchor of this._wayPointsAnchors!) {
       anchor.marker.addTo(this._map!); // NOSONAR
     }
   }
 
   private removeWPFromMap(): void {
-    if (this._anchors)
-      for (const anchor of this._anchors) {
+    if (this._wayPointsAnchors) {
+      for (const anchor of this._wayPointsAnchors) {
         anchor.marker.removeFrom(this._map!); // NOSONAR
       }
+    }
+  }
+
+  private addGuidepostsToMap(): void {
+    this.load();
+    for (const tooltip of this._guidepostsTooltips!) {
+      tooltip.addTo(this._map!);
+    }
+  }
+
+  private removeGuidepostsFromMap(): void {
+    if (this._guidepostsTooltips) {
+      for (const tooltip of this._guidepostsTooltips) {
+        tooltip.removeFrom(this._map!);
+      }
+    }
   }
 
   private addBreaksToMap(style: ShowBreaksStyle): void {
@@ -252,17 +301,42 @@ export class MapTrackWayPoints {
       }
   }
 
-  public highlight(wp: ComputedWayPoint): void {
-    const anchor = this.getAnchor(wp);
-    if (anchor) {
-      anchor.marker.getElement()?.classList.add('highlighted');
+  public highlight(wp: TrackWayPoint): void {
+    if (wp.computed) {
+      const anchor = this.getAnchor(wp.computed);
+      console.log('anchor', anchor)
+      if (anchor) {
+        anchor.marker.getElement()?.classList.add('highlighted');
+      }
+      if (this._wayPointsAnchors) {
+        for (const a of this._wayPointsAnchors) {
+          if (a !== anchor) a.marker.getElement()?.classList.add('semi-transparent');
+        }
+      }
+      if (this._departure && anchor !== this._departure) this._departure.marker.getElement()?.classList.add('semi-transparent');
+      if (this._arrival && anchor !== this._arrival) this._arrival.marker.getElement()?.classList.add('semi-transparent');
+      if (this._guidepostsTooltips)
+        for (const t of this._guidepostsTooltips) t.setOpacity(0.5);
+    } else {
+      const tooltip = this._guidepostsTooltips?.find(t => (t as any)._guidepost.poi === wp.guidepost!.poi);
+      if (tooltip) tooltip.setOpacity(1);
+      if (this._guidepostsTooltips) for (const t of this._guidepostsTooltips) if (t !== tooltip) t.setOpacity(0.5);
+      if (this._wayPointsAnchors) for (const a of this._wayPointsAnchors) a.marker.getElement()?.classList.add('semi-transparent');
+      if (this._departure) this._departure.marker.getElement()?.classList.add('semi-transparent');
+      if (this._arrival) this._arrival.marker.getElement()?.classList.add('semi-transparent');
     }
   }
 
-  public unhighlight(wp: ComputedWayPoint): void {
-    const anchor = this.getAnchor(wp);
-    if (anchor) {
-      anchor.marker.getElement()?.classList.remove('highlighted');
+  public unhighlight(wp: TrackWayPoint): void {
+    if (this._guidepostsTooltips) for (const t of this._guidepostsTooltips) t.setOpacity(0.75);
+    if (this._wayPointsAnchors) for (const a of this._wayPointsAnchors) a.marker.getElement()?.classList.remove('semi-transparent');
+    if (this._departure) this._departure.marker.getElement()?.classList.remove('semi-transparent');
+    if (this._arrival) this._arrival.marker.getElement()?.classList.remove('semi-transparent');
+    if (wp.computed) {
+      const anchor = this.getAnchor(wp.computed);
+      if (anchor) {
+        anchor.marker.getElement()?.classList.remove('highlighted');
+      }
     }
   }
 
@@ -277,8 +351,8 @@ export class MapTrackWayPoints {
       console.log(this._breaks);
       return this._breaks.find(b => b.data === wp); // TODO
     }
-    if (this._anchors) {
-      return this._anchors.find(b => b.data === wp);
+    if (this._wayPointsAnchors) {
+      return this._wayPointsAnchors.find(b => b.data === wp);
     }
     return undefined;
   }

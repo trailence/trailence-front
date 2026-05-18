@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, map, of, skip, switchMap } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, defer, filter, map, of, skip, switchMap } from 'rxjs';
 import { Segment, SegmentMetadata } from './segment';
 import { Point } from './point';
 import { PointDtoMapper } from './point-dto-mapper';
@@ -7,7 +7,7 @@ import { Owned } from './owned';
 import { TrackDto } from './dto/track';
 import { WayPoint } from './way-point';
 import * as L from 'leaflet';
-import { BehaviorSubjectOnDemand } from '../utils/rxjs/behavior-subject-ondemand';
+import { BehaviorSubjectOnDemand, BehaviorSubjectOnDemandWithSnapshot } from '../utils/rxjs/behavior-subject-ondemand';
 import { Arrays } from '../utils/arrays';
 import { TypeUtils } from '../utils/type-utils';
 import { calculateLongBreaksFromTrack, detectLongBreaksFromTrack } from '../services/track-edition/time/break-detection';
@@ -17,6 +17,10 @@ import { ComputedPreferences } from '../services/preferences/preferences';
 import { TrackUtils } from '../utils/track-utils';
 import { debounceTimeExtended } from '../utils/rxjs/debounce-time-extended';
 import { PointReference } from './point-reference';
+import { extendsAround } from '../utils/leaflet-utils';
+import { OfflineMapService } from '../services/map/offline-map.service';
+import { POI } from '../services/geolocation/geo.service';
+import { IdGenerator } from '../utils/component-utils';
 
 export class Track extends Owned {
 
@@ -56,18 +60,19 @@ export class Track extends Owned {
     );
   }
 
-  private readonly _computedWayPoints$ = new BehaviorSubjectOnDemand<ComputedWayPoint[]>(
-    () => ComputedWayPoint.compute(this, this.preferencesService.preferences),
+  private readonly _computedWayPoints$ = new BehaviorSubjectOnDemand<TrackWayPoint[]>(
+    () => TrackWayPointComputation.compute(this, this.preferencesService.preferences, this.mapService),
     this.changes$.pipe(debounceTime(250)) // invalidate on changes
   );
 
-  public get computedWayPoints$(): Observable<ComputedWayPoint[]> {
+  public get computedWayPoints$(): Observable<TrackWayPoint[]> {
     return this._computedWayPoints$.asObservable();
   }
 
   constructor(
     dto: Partial<TrackDto>,
-    private readonly preferencesService: PreferencesService,
+    public readonly preferencesService: PreferencesService,
+    public readonly mapService: OfflineMapService,
   ) {
     super(dto);
     this.sizeUsed = dto.sizeUsed;
@@ -142,7 +147,7 @@ export class Track extends Owned {
       s: this.segments.reverse().map(segment => segment.reverseDto()),
       wp: this.wayPoints.map(wp => wp.toDto()),
       sizeUsed: this.sizeUsed
-    }, this.preferencesService);
+    }, this.preferencesService, this.mapService);
   }
 
   public override toDto(): TrackDto {
@@ -224,7 +229,7 @@ export class Track extends Owned {
   }
 
   public subTrack(startSegment: number, startPoint: number, endSegment: number, endPoint: number): Track {
-    const sub = new Track({owner: 'nobody'}, this.preferencesService);
+    const sub = new Track({owner: 'nobody'}, this.preferencesService, this.mapService);
     const newPoints: PointDescriptor[] = [];
     for (let si = startSegment; si <= endSegment; si++) {
       const s = this._segments.value[si];
@@ -288,7 +293,7 @@ export class Track extends Owned {
       version: undefined,
       createdAt: undefined,
       updatedAt: undefined
-    }, this.preferencesService);
+    }, this.preferencesService, this.mapService);
   }
 
   public isEquals(other: Track): boolean {
@@ -421,8 +426,8 @@ export class TrackMetadata {
 
 export class TrackComputedMetadata {
 
-  private readonly _breaksDuration$: BehaviorSubjectOnDemand<number>;
-  private readonly _estimatedDuration$: BehaviorSubjectOnDemand<number>;
+  private readonly _breaksDuration$: BehaviorSubjectOnDemandWithSnapshot<number>;
+  private readonly _estimatedDuration$: BehaviorSubjectOnDemandWithSnapshot<number>;
 
   constructor(
     track: Track,
@@ -433,11 +438,11 @@ export class TrackComputedMetadata {
       skip(1),
       debounceTimeExtended(250, 250, 100),
     )]);
-    this._breaksDuration$ = new BehaviorSubjectOnDemand<number>(
+    this._breaksDuration$ = new BehaviorSubjectOnDemandWithSnapshot<number>(
       () => calculateLongBreaksFromTrack(track, preferencesService.preferences.longBreakMinimumDuration, preferencesService.preferences.longBreakMaximumDistance),
       changes$
     );
-    this._estimatedDuration$ = new BehaviorSubjectOnDemand<number>(
+    this._estimatedDuration$ = new BehaviorSubjectOnDemandWithSnapshot<number>(
       () => estimateTimeForTrack(track, preferencesService.preferences.estimatedBaseSpeed),
       changes$
     );
@@ -445,7 +450,6 @@ export class TrackComputedMetadata {
 
   public get breaksDuration$(): Observable<number> { return this._breaksDuration$.asObservable(); }
   public get estimatedDuration$(): Observable<number> { return this._estimatedDuration$.asObservable(); }
-
   public breakDurationSnapshot(): number { return this._breaksDuration$.snapshot(); }
   public estimatedDurationSnapshot(): number { return this._estimatedDuration$.snapshot(); }
 
@@ -869,6 +873,145 @@ export class ComputedWayPoint {
       previousIndex = si;
     }
 
+  }
+
+}
+
+export class TrackWayPoint {
+  constructor(
+    public computed: ComputedWayPoint | undefined,
+    public guidepost: Guidepost | undefined,
+  ) {}
+
+  public id = IdGenerator.generateId();
+
+  public get position() { return this.computed ? this.computed.wayPoint.point.pos : this.guidepost!.pos; }
+  public get durationSinceDeparture() { return this.computed ? this.computed.timeSinceDeparture : this.guidepost!.time; }
+  public get distanceSinceDeparture() { return this.computed ? this.computed.distanceFromDeparture : this.guidepost!.distance; }
+  public get altitude() { return this.computed?.altitude || this.guidepost?.altitude; }
+
+}
+
+export interface Guidepost {
+  poi: POI;
+  text: string;
+  pos: L.LatLngLiteral;
+  altitude: number | undefined;
+  distance: number | undefined;
+  time: number | undefined;
+}
+
+class TrackWayPointComputation {
+
+  public static compute(track: Track, preferences: ComputedPreferences, mapService: OfflineMapService): Observable<TrackWayPoint[]> {
+    return defer(() => {
+      const wayPoints = ComputedWayPoint.compute(track, preferences).map(wp => new TrackWayPoint(wp, undefined));
+      let bounds = track.metadata.bounds;
+      if (bounds) {
+        bounds = extendsAround(bounds, 26);
+      }
+      const pois$ = bounds ? concat(of([]), mapService.pois.getPois(bounds, ['guidepost']).pipe(filter(p => p.done), map(p => p.pois))) : of([]);
+      const all$ = pois$.pipe(map(pois => this.mergeWayPointsAndGuideposts(track, wayPoints, pois.filter(poi => !!poi.text))));
+      return concat(of(wayPoints), all$);
+    });
+  }
+
+  private static mergeWayPointsAndGuideposts(track: Track, wayPoints: TrackWayPoint[], guideposts: POI[]): TrackWayPoint[] {
+    // attach guideposts to way points
+    const result: TrackWayPoint[] = [...wayPoints];
+    for (const wp of result) {
+      let nearestGuidepost: POI | undefined = undefined;
+      let nerestDistance = 0;
+      const wpPoint = wp.computed!.wayPoint.point;
+      const wpPos = L.latLng(wpPoint.pos);
+      for (const poi of guideposts) {
+        const distance = wpPos.distanceTo(poi.pos);
+        if (distance < 25) {
+          if (nearestGuidepost === undefined || distance < nerestDistance) {
+            nearestGuidepost = poi;
+            nerestDistance = distance;
+          }
+        }
+      }
+      if (nearestGuidepost) {
+        wp.guidepost = {
+          poi: nearestGuidepost,
+          pos: nearestGuidepost.pos,
+          altitude: wpPoint.ele,
+          time: wp.computed!.timeSinceDeparture,
+          distance: wp.computed!.distanceFromDeparture,
+          text: nearestGuidepost.text!,
+        };
+      }
+    }
+    if (guideposts.length === 0) return result;
+    let previousPoi: POI | undefined;
+    let breaksDuration = 0;
+    let nextIndex = 0;
+    for (const segment of track.segments) {
+      const points = segment.points;
+      for (let i = 0; i < points.length; ++i) {
+        const point = points[i];
+        let wpFound = false;
+        for (let wpI = nextIndex; wpI < result.length; ++wpI) {
+          const wp = result[wpI];
+          if (wp.computed?.wayPoint?.point === point) {
+            nextIndex = wpI + 1;
+            wpFound = true;
+            if (wp.computed.breakPoint) breaksDuration += wp.computed.breakPoint.duration;
+          }
+        }
+        if (wpFound || result.some(wp => wp.computed && point.pos.distanceTo(wp.computed.wayPoint.point.pos) <= 25)) continue;
+        const poi = this.nearest(guideposts, point.pos);
+        if (!poi ||
+            previousPoi === poi || (previousPoi && previousPoi.text === poi.text) ||
+            result.some(wp => wp.computed && wp.guidepost && wp.guidepost.text === poi.text && L.latLng(poi.pos).distanceTo(wp.computed.wayPoint.point.pos) < 40)
+        ) continue;
+        previousPoi = poi;
+        let distance = point.pos.distanceTo(poi.pos);
+        let index = i;
+        for (let j = i + 1; j < points.length; ++j) {
+          const d = points[j].pos.distanceTo(poi.pos);
+          if (d < distance) {
+            distance = d;
+            index = j;
+          } else if (d > distance) {
+            break;
+          }
+        }
+        const newWp = new TrackWayPoint(undefined, {poi: poi, pos: poi.pos, altitude: point.ele, distance: point.distanceFromStart(track), time: point.time ? point.durationFromStart(track) - breaksDuration : undefined, text: poi.text!});
+        let insertIndex = nextIndex;
+        while (insertIndex < result.length) {
+          const r = result[insertIndex];
+          const time = r.computed?.timeSinceDeparture ?? r.guidepost?.time;
+          const distance = r.computed?.distanceFromDeparture ?? r.guidepost?.distance;
+          if ((time !== undefined && newWp.guidepost!.time !== undefined && time < newWp.guidepost!.time) || (distance && distance < newWp.guidepost!.distance!)) {
+            insertIndex++;
+          } else {
+            break;
+          }
+        }
+        if (insertIndex === result.length)
+          result.push(newWp);
+        else
+          result.splice(insertIndex, 0, newWp);
+        i = index;
+      }
+    }
+    return result;
+  }
+
+  private static nearest(pois: POI[], pos: L.LatLng): POI | undefined {
+    let nearest: POI | undefined = undefined;
+    let distance = 0;
+    for (const poi of pois) {
+      const d = pos.distanceTo(poi.pos);
+      if (d < 25 && (nearest === undefined || d < distance)) {
+        nearest = poi;
+        distance = d;
+      }
+    }
+    return nearest;
   }
 
 }

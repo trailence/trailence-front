@@ -281,6 +281,13 @@
       },
       "show_original": "Afficher la trace d'origine",
       "show_breaks": "Afficher les pauses",
+      "show_guideposts": "Afficher les balises",
+      "map_elements": {
+        "photos": "Photos",
+        "breaks": "Pauses",
+        "guideposts": "Balises",
+        "waypoints": "Étapes"
+      },
       "reverse_way": "Sens inversé",
       "open_in_app": "Ouvrir dans",
       "open_in_trailence": "Voir le parcours d'origine",

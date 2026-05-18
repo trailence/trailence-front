@@ -4,7 +4,7 @@ import { Subscription } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TextComponent } from '../../text/text.component';
 import { IonButton, IonIcon, IonCheckbox, IonSegment, IonSegmentButton, ModalController, AlertController } from '@ionic/angular/standalone';
-import { ComputedWayPoint } from 'src/app/model/track';
+import { ComputedWayPoint, TrackWayPoint } from 'src/app/model/track';
 import { TrackEditToolsComponent } from '../../track-edit-tools/track-edit-tools.component';
 import { ChangesDetection } from 'src/app/utils/angular-helpers';
 import { NgClass, NgTemplateOutlet } from '@angular/common';
@@ -14,8 +14,8 @@ import { Photo } from 'src/app/model/photo';
 
 @Component({
   selector: 'app-trail-waypoints',
-  templateUrl: './waypoints.components.html',
-  styleUrl: './waypoints.components.scss',
+  templateUrl: './waypoints.component.html',
+  styleUrl: './waypoints.component.scss',
   imports: [
     IonButton, IonIcon, IonCheckbox, IonSegment, IonSegmentButton,
     TextComponent,
@@ -31,8 +31,8 @@ export class WaypointsComponent implements OnInit, OnDestroy {
   @Input() editTools?: TrackEditToolsComponent;
   @Input() showSource = false;
 
-  @Output() highlightWaypoint = new EventEmitter<{wp: ComputedWayPoint, click: boolean}>();
-  @Output() unhighlightWaypoint = new EventEmitter<{wp: ComputedWayPoint, force: boolean}>();
+  @Output() highlightWaypoint = new EventEmitter<{wp: TrackWayPoint, click: boolean}>();
+  @Output() unhighlightWaypoint = new EventEmitter<{wp: TrackWayPoint, force: boolean}>();
 
   selectedTrailIndex = 0;
   selectedTrail?: TrailWaypoints;
@@ -73,13 +73,27 @@ export class WaypointsComponent implements OnInit, OnDestroy {
     this.subscription?.unsubscribe();
   }
 
-  toogleHighlightWayPoint(wp: ComputedWayPoint): void {
+  enterWaypoint(wp: TrackWayPoint): void {
+    this.highlightWaypoint.emit({wp, click: false})
+  }
+
+  leaveWaypoint(wp: TrackWayPoint): void {
+    this.unhighlightWaypoint.emit({wp, force: false});
+  }
+
+  toogleHighlightWayPoint(wp: TrackWayPoint | undefined): void {
+    if (!wp) return;
     if (this.trails.highlightedWayPoint === wp && this.trails.highlightedWayPointFromClick) this.unhighlightWaypoint.emit({wp, force: true});
     else this.highlightWaypoint.emit({wp, click: true});
   }
 
   toggleShowBreaks(trail: TrailWaypoints, checked: boolean): void {
     trail.showBreaks = checked;
+    this.changesDetection.detectChanges();
+  }
+
+  toggleShowGuideposts(trail: TrailWaypoints, checked: boolean): void {
+    trail.showGuideposts = checked;
     this.changesDetection.detectChanges();
   }
 

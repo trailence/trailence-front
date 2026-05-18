@@ -18,6 +18,7 @@ import { TypeUtils } from 'src/app/utils/type-utils';
 import { PendingRequests, PendingRequestsMultiple } from 'src/app/utils/pending-requests';
 import { Filters } from 'src/app/components/trails-list/filters';
 import { SimplifiedPoint, SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { OfflineMapService } from '../map/offline-map.service';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   uuid: string;
@@ -328,7 +329,7 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
           updatedAt: Date.now(),
         }
         this.tableFullTracks.put(dto);
-        return new Track(dto, this.injector.get(PreferencesService));
+        return new Track(dto, this.injector.get(PreferencesService), this.injector.get(OfflineMapService));
       })
     );
   }

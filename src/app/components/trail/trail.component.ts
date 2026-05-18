@@ -4,7 +4,7 @@ import { Trail } from 'src/app/model/trail';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapComponent } from '../map/map.component';
 import { MapTrack } from '../map/track/map-track';
-import { ComputedWayPoint, Track } from 'src/app/model/track';
+import { Track, TrackWayPoint } from 'src/app/model/track';
 import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { AsyncPipe, NgClass, NgComponentOutlet, NgStyle, NgTemplateOutlet } from '@angular/common';
@@ -60,7 +60,7 @@ import { FormsModule } from '@angular/forms';
 import { ModerationTranslationsComponent } from './moderation-translations/moderation-translations.component';
 import { TooltipDirective } from '../tooltip/tooltip.directive';
 import { CameraService } from 'src/app/services/camera/camera.service';
-import { WaypointsComponent } from './waypoints/waypoints.components';
+import { WaypointsComponent } from './waypoints/waypoints.component';
 import { TrailsWaypoints } from './trail-waypoints';
 import { WayPoint } from 'src/app/model/way-point';
 import { samePositionRound } from 'src/app/model/point';
@@ -72,6 +72,7 @@ import { LiveGroupComponent } from '../live-group/live-group.component';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { ContributionsBadgesComponent } from '../contributions-badges/contribution-badges.component';
 import { ApiError } from 'src/app/services/http/api-error';
+import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 
 interface TrailSource {
   isExternal: boolean;
@@ -398,40 +399,64 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         }
       }
     });
-    this.trailsWaypoints = new TrailsWaypoints(this.selection, i18n);
+    this.trailsWaypoints = new TrailsWaypoints(this.selection, i18n, injector.get(OfflineMapService));
     this.currentLang = this.preferencesService.preferences.lang;
   }
 
   protected override initComponent(): void {
     this.updateDisplay();
     this.whenVisible.subscribe(this.browser.resize$, () => this.updateDisplay());
-    this.whenVisible.subscribe(this.trailsWaypoints.changes$.pipe(skip(1)), () => this.refreshMapToolbarRight());
+    this.whenVisible.subscribe(this.trailsWaypoints.changes$.pipe(skip(1)), () => this.changesDetection.detectChanges());
     this.visible$.subscribe(() => this.updateDisplay());
     setTimeout(() => this.updateDisplay(), 0);
-    const showPhotoTool = new MenuItem().setIcon('photos')
-      .setVisible(() => !!this.photosHavingPosition?.length && !this.positionningOnMap$.value)
-      .setTextColor(() => this.showPhotos$.value ? 'light' : 'dark')
-      .setBackgroundColor(() => this.showPhotos$.value ? 'dark' : '')
-      .setAction(() => {
+    const showPhotoTool = new MenuItem()
+      .setIcon('photos')
+      .setI18nLabel('pages.trail.map_elements.photos')
+      .setDisabled(() => !this.photosHavingPosition?.length || !!this.positionningOnMap$.value)
+      .setSelected(() => this.showPhotos$.value && !!this.photosHavingPosition?.length && !this.positionningOnMap$.value)
+      .setAction((event) => {
+        event.stopPropagation();
+        event.preventDefault();
         this.showPhotos$.next(!this.showPhotos$.value);
-        this.refreshMapToolbarRight();
+        this.changesDetection.detectChanges();
       });
-    const showBreaksTool = new MenuItem().setIcon('hourglass')
-      .setVisible(() => !this.positionningOnMap$.value && this.trailsWaypoints.canShowBreaksOnMap())
-      .setTextColor(() => this.trailsWaypoints.isShowingAllBreaks() ? 'light' : 'dark')
-      .setBackgroundColor(() => this.trailsWaypoints.isShowingAllBreaks() ? 'dark' : '')
-      .setAction(() => {
-        this.trailsWaypoints.toggleShowAllBreaks();;
-        this.refreshMapToolbarRight();
+    const showBreaksTool = new MenuItem()
+      .setIcon('hourglass')
+      .setI18nLabel('pages.trail.map_elements.breaks')
+      .setDisabled(() => !!this.positionningOnMap$.value || !this.trailsWaypoints.canShowBreaksOnMap())
+      .setSelected(() => this.trailsWaypoints.isShowingAllBreaks() && !this.positionningOnMap$.value && this.trailsWaypoints.canShowBreaksOnMap())
+      .setAction((event) => {
+        event.stopPropagation();
+        event.preventDefault();
+        this.trailsWaypoints.toggleShowAllBreaks();
+        this.changesDetection.detectChanges();
       });
     const showWaypointsTool = new MenuItem()
-      .setIcon(() => this.trailsWaypoints.showWaypointsOnMap ? 'map-anchor-off' : 'map-anchor')
-      .setVisible(() => this.trailsWaypoints.canShowWaypointsOnMap())
-      .setAction(() => {
+      .setIcon('map-anchor')
+      .setI18nLabel('pages.trail.map_elements.waypoints')
+      .setDisabled(() => !this.trailsWaypoints.canShowWaypointsOnMap())
+      .setSelected(() => this.trailsWaypoints.showWaypointsOnMap && this.trailsWaypoints.canShowWaypointsOnMap())
+      .setAction((event) => {
+        event.stopPropagation();
+        event.preventDefault();
         this.trailsWaypoints.toggleShowWaypointsOnMap();
-        this.refreshMapToolbarRight();
+        this.changesDetection.detectChanges();
       });
-    this.mapToolbarRightItems.push(new MenuItem(), showPhotoTool, showBreaksTool, showWaypointsTool);
+    const showGuidepostsTool = new MenuItem()
+      .setIcon('poi-guidepost')
+      .setI18nLabel('pages.trail.map_elements.guideposts')
+      .setDisabled(() => !this.trailsWaypoints.canShowGuidepostsOnMap())
+      .setSelected(() => this.trailsWaypoints.canShowGuidepostsOnMap() && this.trailsWaypoints.isShowingAllGuideposts())
+      .setAction((event) => {
+        event.stopPropagation();
+        event.preventDefault();
+        this.trailsWaypoints.toggleShowAllGuideposts();
+        this.changesDetection.detectChanges();
+      });
+    const showElementsTool = new MenuItem()
+      .setIcon('privacy')
+      .setChildren([showWaypointsTool, showBreaksTool, showGuidepostsTool, showPhotoTool]);
+    this.mapToolbarRightItems.push(new MenuItem(), showElementsTool);
     if (globalThis.location.hash === '#bottom-tab=live-group') {
       this.liveGroups$.pipe(first(groups => !!groups?.length)).subscribe(groups => {
         this.bottomSheetTab = 'live-group-' + groups[0].slug;
@@ -1006,7 +1031,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           });
           this.photos = photos;
         }
-        this.refreshMapToolbarRight();
+        this.changesDetection.detectChanges();
       }, true
     );
   }
@@ -1132,7 +1157,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           photosOnMap.set(element.key, element.marker);
           if (!alreadyOnMap.includes(element.key)) this.map.addToMap(element.marker);
         }
-        this.refreshMapToolbarRight();
+        this.changesDetection.detectChanges();
       }, true
     );
   }
@@ -1491,7 +1516,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     if (this.isSmall) this.setTab('map');
 
     this.trailsWaypoints.showBreaksOnMapLocked = true;
-    this.trailsWaypoints.updateShowBreaks();
+    this.trailsWaypoints.updateElementsShown();
     const showPhotosBefore = this.showPhotos$.value;
     if (showPhotosBefore) this.showPhotos$.next(false);
     const showOriginalBefore = this.showOriginal$.value;
@@ -1505,7 +1530,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this.positionningOnMap$.pipe(filter(p => !p), first()).subscribe(() => {
       subscription.unsubscribe();
       this.trailsWaypoints.showBreaksOnMapLocked = false;
-      this.trailsWaypoints.updateShowBreaks();
+      this.trailsWaypoints.updateElementsShown();
       if (showPhotosBefore) this.showPhotos$.next(true);
       if (showOriginalBefore) this.showOriginal$.next(true);
       this.refreshMapToolbarRight();
@@ -1736,12 +1761,12 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     return true;
   }
 
-  highlightWayPoint(wp: ComputedWayPoint, click: boolean): void {
+  highlightWayPoint(wp: TrackWayPoint, click: boolean): void {
     this.trailsWaypoints.highlightWayPoint(wp, click);
     this.changesDetection.detectChanges();
   }
 
-  unhighlightWayPoint(wp: ComputedWayPoint, force: boolean): void {
+  unhighlightWayPoint(wp: TrackWayPoint, force: boolean): void {
     if (this.trailsWaypoints.unhighlightWayPoint(wp, force))
       this.changesDetection.detectChanges();
   }

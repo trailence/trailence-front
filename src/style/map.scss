@@ -140,6 +140,9 @@ app-map {
     margin-top: -50px !important;
     z-index: 1000 !important;
   }
+  .leaflet-marker-icon.semi-transparent {
+    opacity: 0.5;
+  }
   svg.position-circle-marker {
     z-index: 1000;
   }
@@ -154,16 +157,17 @@ app-map {
     align-items: center;
 
     svg {
-      width: 14px;
-      height: 14px;
+      width: 11px;
+      height: 11px;
     }
 
     svg + span {
-      margin-left: 2px;
+      margin-left: 0px;
       margin-bottom: -2px;
       max-width: 125px;
       overflow: hidden;
       text-overflow: ellipsis;
+      font-size: 11px;
     }
   }
 }

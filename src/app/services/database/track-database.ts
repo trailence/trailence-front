@@ -24,6 +24,7 @@ import { SimplifiedPoint, SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 
 import { StoreService, StoreWithCleaning } from './store/store.service';
 import { DbTable, DbTableWhereEquals, DbTableWhereGreaterThan, DbTableWhereLessThan } from './storage/db-table';
 import { Db, DbReady } from './storage/db';
+import { OfflineMapService } from '../map/offline-map.service';
 
 interface MetadataItem extends TrackMetadataSnapshot {
   key: string;
@@ -202,7 +203,7 @@ export class TrackDatabase implements StoreWithCleaning {
             return this.tableFullTrack.forEach$(trackItem => {
               if (!trackItem.track || trackItem.version === -1) return;
               count++;
-              const track = new Track(trackItem.track, this.injector.get(PreferencesService));
+              const track = new Track(trackItem.track, this.injector.get(PreferencesService), this.injector.get(OfflineMapService));
               let meta$ = this.metadata.get(trackItem.key);
               if (meta$?.loadedValue) {
                 countInMemory++;
@@ -396,7 +397,7 @@ export class TrackDatabase implements StoreWithCleaning {
   private loadFullTrack(key: string): Promise<Track | null> {
     return firstValueFrom(this.tableFullTrack.getByKey$(key).pipe(
       map(item => {
-        if (item?.track) return new Track(item.track, this.injector.get(PreferencesService));
+        if (item?.track) return new Track(item.track, this.injector.get(PreferencesService), this.injector.get(OfflineMapService));
         return null;
       })
     ));
@@ -962,7 +963,8 @@ export class TrackDatabase implements StoreWithCleaning {
         }));
         const fulls$ = firstValueFrom(this.tableFullTrack.setMany$(fulls));
         const prefs = this.injector.get(PreferencesService);
-        const entities = tracks.map(track => new Track(track, prefs));
+        const mapService = this.injector.get(OfflineMapService);
+        const entities = tracks.map(track => new Track(track, prefs, mapService));
         for (const entity of entities) this.fullTracks.get(entity.uuid + '#' + entity.owner)?.newValue(entity);
         const simplified = entities.map(track => ({...TrackDatabase.simplify(track), key: track.uuid + '#' + track.owner}));
         const simplified$ = firstValueFrom(this.tableSimplifiedTrack.setMany$(simplified));

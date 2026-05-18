@@ -281,6 +281,13 @@
       },
       "show_original": "Show original trace",
       "show_breaks": "Show breaks",
+      "show_guideposts": "Show guideposts",
+      "map_elements": {
+        "photos": "Photos",
+        "breaks": "Breaks",
+        "guideposts": "Guideposts",
+        "waypoints": "Waypoints"
+      },
       "reverse_way": "Reverse direction",
       "open_in_app": "Open in",
       "open_in_trailence": "View original trail",

@@ -11,13 +11,14 @@ import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
 import { ErrorService } from '../progress/error.service';
 import { I18nError, TranslatedString } from '../i18n/i18n-string';
 import { Console } from 'src/app/utils/console';
-import { GeoService, OverpassResponse, POI } from '../geolocation/geo.service';
+import { GeoService, OverpassResponse, POI, POIType } from '../geolocation/geo.service';
 import { Way, WayPermission } from '../geolocation/way';
 import { OverpassClient } from '../geolocation/overpass-client.service';
 import { Db } from '../database/storage/db';
 import { BlobDto, DbTablesMetaBlob } from '../database/storage/db-tables-meta-blob';
 import { DbTable, DbTableWhereLessThan } from '../database/storage/db-table';
 import { Pois } from './pois';
+import { AssetsService } from '../assets/assets.service';
 
 interface TileMetadata {
   key: string;
@@ -51,7 +52,6 @@ export class OfflineMapService {
   constructor(
     private readonly layers: MapLayersService,
     private readonly preferencesService: PreferencesService,
-    private readonly traceRecorder: TraceRecorderService,
     private readonly ngZone: NgZone,
     private readonly geoService: GeoService,
     private readonly injector: Injector,
@@ -81,6 +81,10 @@ export class OfflineMapService {
       }
     });
     this.db.start();
+  }
+
+  public getPoiIcon$(type: POIType) {
+    return this.injector.get(AssetsService).getIcon('poi-' + type, true);
   }
 
   public getAdditions(bounds: L.LatLngBounds, guidepost: boolean, water: boolean, toilets: boolean, forbiddenWays: boolean, permissiveWays: boolean): Observable<{pois: POI[], ways: Way[]}> {
@@ -309,7 +313,7 @@ export class OfflineMapService {
     this._cleanExpiredTimeout = setTimeout(() => {
       if (dbCounter !== this._dbCounter) return;
       this._cleanExpiredTimeout = undefined;
-      if (this.traceRecorder.recording) {
+      if (this.injector.get(TraceRecorderService).recording) {
         this.cleanExpiredTimeout(email);
         return;
       }

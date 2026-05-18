@@ -14,6 +14,7 @@ import { Console } from 'src/app/utils/console';
 import { AuthService } from '../auth/auth.service';
 import { SimplifiedPoint, SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { debounceTime, filter, first, firstValueFrom, from, switchMap } from 'rxjs';
+import { OfflineMapService } from '../map/offline-map.service';
 
 export interface TrailInfoBaseDto {
   info: TrailInfo;
@@ -145,7 +146,7 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
   }
 
   public override getFullTrack(uuid: string): Promise<Track | null> {
-    return this.tableFullTracks.get(uuid).then(t => t ? new Track(t, this.injector.get(PreferencesService)) : this.fetchFullTrackById(uuid));
+    return this.tableFullTracks.get(uuid).then(t => t ? new Track(t, this.injector.get(PreferencesService), this.injector.get(OfflineMapService)) : this.fetchFullTrackById(uuid));
   }
 
   protected fetchFullTrackById(uuid: string): Promise<Track | null> {

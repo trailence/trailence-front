@@ -1,4 +1,5 @@
 import * as L from 'leaflet';
+import { copyPoint } from '../model/point-descriptor';
 
 export class LeafletUtils {
 
@@ -71,6 +72,14 @@ export function boundingBoxAround(point: L.LatLngLiteral, distanceMeters: number
     L.latLng(point.lat - latOffset, point.lng - lngOffset),
     L.latLng(point.lat + latOffset, point.lng + lngOffset)
   );
+}
+
+export function extendsAround(bounds: L.LatLngBounds, distanceMeters: number): L.LatLngBounds {
+  const south = bounds.getSouth() - (distanceMeters / APPROXIMATE_METERS_PER_DEGREE);
+  const west = bounds.getWest() - (distanceMeters / (APPROXIMATE_METERS_PER_DEGREE * Math.cos(south * Math.PI / 180)));
+  const north = bounds.getNorth() + (distanceMeters / APPROXIMATE_METERS_PER_DEGREE);
+  const east = bounds.getEast() + (distanceMeters / (APPROXIMATE_METERS_PER_DEGREE * Math.cos(north * Math.PI / 180)));
+  return L.latLngBounds(L.latLng(south, west), L.latLng(north, east));
 }
 
 export class BoundsBuilder {

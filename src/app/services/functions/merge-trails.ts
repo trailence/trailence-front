@@ -9,9 +9,11 @@ import { I18nService } from '../i18n/i18n.service';
 import { TrailService } from '../database/trail.service';
 import { Router } from '@angular/router';
 import { copyPoint } from 'src/app/model/point-descriptor';
+import { OfflineMapService } from '../map/offline-map.service';
 
 export function mergeTrails(injector: Injector, trails: Trail[], collectionUuid: string): void {
   const trackService = injector.get(TrackService);
+  const mapService = injector.get(OfflineMapService);
   combineLatest(trails.map(
     trail => combineLatest([
       trackService.getFullTrackReady$(trail.originalTrackUuid, trail.owner).pipe(first()),
@@ -23,8 +25,8 @@ export function mergeTrails(injector: Injector, trails: Trail[], collectionUuid:
     trailsAndTracks.sort((t1, t2) => (t1.track1.metadata.startDate ?? 0) - (t2.track1.metadata.startDate ?? 0))
     const owner = injector.get(AuthService).email!;
     const preferences = injector.get(PreferencesService);
-    const originalTrack = new Track({owner}, preferences);
-    const editedTrack = new Track({owner}, preferences);
+    const originalTrack = new Track({owner}, preferences, mapService);
+    const editedTrack = new Track({owner}, preferences, mapService);
     const merge = new Trail({
       owner,
       collectionUuid,

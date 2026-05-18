@@ -9,6 +9,7 @@ import { detectLoopType } from './path-analysis/loop-type-detection';
 import { Console } from 'src/app/utils/console';
 import { removeUnprobablePointsBasedOnAccuracyOnSegment, removeUnprobablePointsBasedOnBigMovesOnShortTimeOnSegment, removeUnprobablePointsOnTrack } from './path-analysis/remove-unprobable-points';
 import { removeBreaksMovesOnSegment, removeBreaksMovesOnTrack } from './path-analysis/remove-breaks-moves';
+import { OfflineMapService } from '../map/offline-map.service';
 
 @Injectable({
   providedIn: 'root'
@@ -17,10 +18,11 @@ export class TrackEditionService {
 
   constructor(
     private readonly preferencesService: PreferencesService,
+    private readonly mapService: OfflineMapService,
   ) {}
 
   public applyDefaultImprovments(track: Track): Track {
-    const newTrack = new Track({...track.toDto(), uuid: undefined}, this.preferencesService);
+    const newTrack = new Track({...track.toDto(), uuid: undefined}, this.preferencesService, this.mapService);
     this.applyDefaultImprovmentsOnTrack(newTrack);
     return newTrack;
   }

@@ -45,7 +45,17 @@ export class LocalFilesService {
 
   private readonly _waiting = new Map<string, waitingOperation[]>();
 
+  private sanitizeDir(dir: string): string {
+    return dir.replaceAll(/[\*\?]/g, '##');
+  }
+
+  private sanitizeFilename(filename: string): string {
+    return filename.replaceAll(/[\/\\\*\?]/g, '##');
+  }
+
   private operation<T>(dir: string, filename: string, name: string, operation: () => Promise<T>): Promise<T> {
+    dir = this.sanitizeDir(dir);
+    filename = this.sanitizeFilename(filename);
     return new Promise<T>((resolve, reject) => {
       const op: waitingOperation = {name, operation, resolve, reject};
       const path = dir + '/' + filename;
@@ -62,7 +72,9 @@ export class LocalFilesService {
   }
 
   private multipleOperation<T>(dir: string, files: string[], name: string, operation: () => Promise<T>, previousTryAgain?: waitingOperation): Promise<T> {
+    dir = this.sanitizeDir(dir);
     if (files.length === 1) return this.operation(dir, files[0], name, operation);
+    files = files.map(filename =>this.sanitizeFilename(filename));
     const paths = files.map(filename => dir + '/' + filename);
     if (paths.every(path => !this._waiting.has(path))) {
       // can start now
@@ -152,36 +164,49 @@ export class LocalFilesService {
 
 
   public fileExists(dir: string, filename: string): Promise<boolean> {
+    dir = this.sanitizeDir(dir);
+    filename = this.sanitizeFilename(filename);
     return this.operation(dir, filename, 'fileExists', () => this.plugin.fileExists({dir, filename}).then(r => r.exists));
   }
 
   public filesExist(dir: string, files: string[]): Promise<boolean[]> {
+    dir = this.sanitizeDir(dir);
+    files = files.map(filename =>this.sanitizeFilename(filename));
     return this.multipleOperation(dir, files, 'fileExist', () => this.plugin.filesExist({dir, files}).then(r => r.exist));
   }
 
   public filesSize(dir: string, files: string[]): Promise<{filename: string, size: number}[]> {
+    dir = this.sanitizeDir(dir);
+    files = files.map(filename =>this.sanitizeFilename(filename));
     if (files.length === 0) return Promise.resolve([]);
     return this.multipleOperation(dir, files, 'filesSize', () => this.plugin.getFilesSize({dir, files}).then(r => r.files));
   }
 
   public listFiles(dir: string): Promise<string[]> {
+    dir = this.sanitizeDir(dir);
     return this.plugin.listFiles({dir}).then(r => r.files);
   }
 
   public deleteFile(dir: string, filename: string): Promise<any> {
+    dir = this.sanitizeDir(dir);
+    filename = this.sanitizeFilename(filename);
     return this.operation(dir, filename, 'delete', () => this.plugin.deleteFile({dir, filename}));
   }
 
   public deleteFiles(dir: string, files: string[]): Promise<any> {
+    dir = this.sanitizeDir(dir);
+    files = files.map(filename =>this.sanitizeFilename(filename));
     if (files.length === 0) return Promise.resolve();
     return this.multipleOperation(dir, files, 'delete', () => this.plugin.deleteFiles({dir, files}));
   }
 
   public deleteAllFiles(dir: string): Promise<any> {
+    dir = this.sanitizeDir(dir);
     return this.plugin.deleteAllFiles({dir});
   }
 
   public deleteDirectoryAndContent(dir: string): Promise<any> {
+    dir = this.sanitizeDir(dir);
     const retry: (trial:number) => Promise<any> = (trial: number) => this.plugin.deleteDirectoryAndContent({dir}).catch(_ => {
       if (trial < 10) return retry(trial + 1);
       return false;
@@ -190,6 +215,8 @@ export class LocalFilesService {
   }
 
   public saveBinaryFile(dir: string, filename: string, data: BinaryContent): Promise<boolean> {
+    dir = this.sanitizeDir(dir);
+    filename = this.sanitizeFilename(filename);
     return this.operation(dir, filename, 'saveBinary', () =>
       this.plugin.saveBinaryFile({dir, filename, size: data.getSize()})
       .then(init => (init as any)['id'] ? data.toUint8Array().then(content =>this.saveBinaryChunk((init as any).id, (init as any).maxChunkSize, content, 0)) : {})
@@ -210,6 +237,8 @@ export class LocalFilesService {
   }
 
   public readBlob(dir: string, filename: string, contentType?: string): Promise<Blob> {
+    dir = this.sanitizeDir(dir);
+    filename = this.sanitizeFilename(filename);
     return this.operation(dir, filename, 'readBlob', () =>
       this.plugin.readBinaryFile({dir, filename})
       .then(init => {
@@ -230,6 +259,8 @@ export class LocalFilesService {
   }
 
   public saveJsonl(dir: string, filename: string, linesGenerator: (from: number, limit: number) => Promise<{lines: string[], hasMore: boolean}>, chunkSize: number = 250): Promise<any> {
+    dir = this.sanitizeDir(dir);
+    filename = this.sanitizeFilename(filename);
     return this.operation(dir, filename, 'saveJsonl', () =>
       linesGenerator(0, chunkSize)
       .then(generated =>
@@ -254,6 +285,8 @@ export class LocalFilesService {
   }
 
   public readJsonl(dir: string, filename: string, linesConsumer: (lines: string[]) => Promise<any>): Promise<any> {
+    dir = this.sanitizeDir(dir);
+    filename = this.sanitizeFilename(filename);
     return this.operation(dir, filename, 'readJsonl', () =>
       this.plugin.readJsonlFile({dir, filename})
       .then(r => linesConsumer(r.lines).then(() => {

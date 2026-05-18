@@ -33,6 +33,7 @@ import { PhotoService } from '../database/photo.service';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { CameraService } from '../camera/camera.service';
 import { importPhoto } from '../database/photo-import';
+import { OfflineMapService } from '../map/offline-map.service';
 
 @Injectable({
   providedIn: 'root'
@@ -64,6 +65,7 @@ export class TraceRecorderService {
     private readonly toastController: ToastController,
     private readonly photoService: PhotoService,
     private readonly cameraService: CameraService,
+    private readonly mapService: OfflineMapService,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -106,7 +108,7 @@ export class TraceRecorderService {
     this._table = this._db.table<RecordingDto | {key: string, photo: ArrayBuffer}, string>('record');
     this._table.get('1')
     .then(dto => {
-      const recording = dto ? Recording.fromDto(dto as RecordingDto, this.preferencesService) : null;
+      const recording = dto ? Recording.fromDto(dto as RecordingDto, this.preferencesService, this.mapService) : null;
       if (recording) {
         Console.info('Trace in progress found in DB, start it');
         this._recording$.next(recording);
@@ -125,8 +127,8 @@ export class TraceRecorderService {
       this.collectionService.getMyTrails$().pipe(timeout(30000)).subscribe({
         next: myTrails => {
           if (!this._email) { reject(); return; }
-          const track = new Track({ owner: this._email }, this.preferencesService);
-          const rawTrack = new Track({ owner: this._email }, this.preferencesService);
+          const track = new Track({ owner: this._email }, this.preferencesService, this.mapService);
+          const rawTrack = new Track({ owner: this._email }, this.preferencesService, this.mapService);
           const trail = new Trail({
             owner: this._email,
             name: this.i18n.texts.trace_recorder.trail_name_start + ' ' + this.i18n.timestampToDateTimeString(Date.now()),
@@ -619,9 +621,9 @@ export class Recording {
     }
   }
 
-  static fromDto(dto: RecordingDto, preferencesService: PreferencesService): Recording {
-    const rawTrack = new Track(dto.rawTrack, preferencesService);
-    const improvedTrack = new Track(dto.track, preferencesService);
+  static fromDto(dto: RecordingDto, preferencesService: PreferencesService, mapService: OfflineMapService): Recording {
+    const rawTrack = new Track(dto.rawTrack, preferencesService, mapService);
+    const improvedTrack = new Track(dto.track, preferencesService, mapService);
     const r = new Recording(
       new Trail(dto.trail),
       improvedTrack,

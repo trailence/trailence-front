@@ -84,7 +84,7 @@
             <div>{{i18n.texts.pages.trails.empty_list.only_bubbles}}</div>
           } @else {
             <div>{{i18n.texts.pages.trails.empty_list.search}}</div>
-            <ion-button (click)="enlargeSearchArea()" fill="clear" size="small" color="secondary">{{i18n.texts.pages.trails.empty_list.filter_search_enlarge_button}}</ion-button>
+            <ion-button (click)="enlargeSearchArea($event)" fill="clear" size="small" color="secondary">{{i18n.texts.pages.trails.empty_list.filter_search_enlarge_button}}</ion-button>
           }
         }
       }
@@ -93,7 +93,7 @@
     <div class="empty-list">
       @if (listType === 'search') {
         <div>{{i18n.texts.pages.trails.empty_list.filter_search}}</div>
-        <ion-button (click)="enlargeSearchArea()" fill="clear" size="small" color="secondary">{{i18n.texts.pages.trails.empty_list.filter_search_enlarge_button}}</ion-button>
+        <ion-button (click)="enlargeSearchArea($event)" fill="clear" size="small" color="secondary">{{i18n.texts.pages.trails.empty_list.filter_search_enlarge_button}}</ion-button>
       } @else {
         <div>{{i18n.texts.pages.trails.empty_list.filter}}</div>
       }

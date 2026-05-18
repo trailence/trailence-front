@@ -1,4 +1,4 @@
-import { ComputedWayPoint, Track } from 'src/app/model/track';
+import { Track, TrackWayPoint } from 'src/app/model/track';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapTrackPath } from './map-track-path';
 import { Trail } from 'src/app/model/trail';
@@ -83,6 +83,10 @@ export class MapTrack {
     this._wayPoints.showBreaks(style);
   }
 
+  public showGuideposts(shown: boolean = true): void {
+    this._wayPoints.showGuideposts(shown);
+  }
+
   public showArrowPath(show: boolean = true): void {
     this._arrowPath.show(show);
   }
@@ -97,11 +101,11 @@ export class MapTrack {
     this._arrowPath.bringToBack();
   }
 
-  public highlightWayPoint(wp: ComputedWayPoint): void {
+  public highlightWayPoint(wp: TrackWayPoint): void {
     this._wayPoints.highlight(wp);
   }
 
-  public unhighlightWayPoint(wp: ComputedWayPoint): void {
+  public unhighlightWayPoint(wp: TrackWayPoint): void {
     this._wayPoints.unhighlight(wp);
   }
 
