@@ -1,5 +1,5 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { INetworkService } from './network.interface';
+import { INetworkService, PingResponse } from './network.interface';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpClientService } from '../http/http-client.service';
 import { HttpMethod, TrailenceHttpRequest } from '../http/http-request';
@@ -12,12 +12,12 @@ import { HttpService } from '../http/http.service';
 })
 export class NetworkService implements INetworkService, OnDestroy {
 
-  private readonly _server$: BehaviorSubject<boolean>;
+  private readonly _server$: BehaviorSubject<PingResponse | null>;
   private readonly _internet$: BehaviorSubject<boolean>;
   private destroyed = false;
 
   constructor(private readonly http: HttpClientService, httpService: HttpService) {
-    this._server$ = new BehaviorSubject<boolean>(false);
+    this._server$ = new BehaviorSubject<PingResponse | null>(null);
     this._internet$ = new BehaviorSubject<boolean>(false);
     this.updateStatus(true);
     globalThis.addEventListener('online', () => this.updateStatus(false));
@@ -30,7 +30,7 @@ export class NetworkService implements INetworkService, OnDestroy {
     httpService.addResponseInterceptor(response => {
       if (response.status === 0 && response.request.url.startsWith(environment.apiBaseUrl)) {
         if (this._server$.value) {
-          this._server$.next(false);
+          this._server$.next(null);
           this.checkServerConnection(++this.count, 1);
         }
       }
@@ -42,8 +42,8 @@ export class NetworkService implements INetworkService, OnDestroy {
     this.destroyed = true;
   }
 
-  get server(): boolean { return this._server$.value; }
-  get server$(): Observable<boolean> { return this._server$; }
+  get server(): PingResponse | null { return this._server$.value; }
+  get server$(): Observable<PingResponse | null> { return this._server$; }
 
   get internet(): boolean { return this._internet$.value; }
   get internet$(): Observable<boolean> { return this._internet$; }
@@ -84,20 +84,23 @@ export class NetworkService implements INetworkService, OnDestroy {
     this.http.send(new TrailenceHttpRequest(HttpMethod.GET, environment.apiBaseUrl + '/ping'))
     .subscribe(response => {
       if (count !== this.count || this.destroyed) return;
-      let status: boolean;
+      let status: PingResponse | null;
       if (response.status === 200) {
         Console.info('Server ping response received: connected (' + (Date.now() - start) + 'ms.)', response.body);
-        status = true;
+        status = response.body
       } else {
         Console.info('Server ping response error (' + response.status + '): not connected');
-        status = false;
+        status = null;
         if (trial < 3) setTimeout(() => this.checkServerConnection(count, trial + 1), trial * 250);
         else if (trial < 10) setTimeout(() => this.checkServerConnection(count, trial + 1), 1000);
         else if (trial < 15) setTimeout(() => this.checkServerConnection(count, trial + 1), 15000);
         else if (trial < 20) setTimeout(() => this.checkServerConnection(count, trial + 1), 60000);
         else setTimeout(() => this.checkServerConnection(count, trial + 1), 5 * 60000);
       }
-      if (status !== this._server$.value) {
+      if ((status === null && this._server$.value !== null) ||
+          (status !== null && this._server$.value === null) ||
+          (status !== null && this._server$.value !== null && (status.minSupportedVersion !== this._server$.value.minSupportedVersion || status.osmDataVersion !== this._server$.value.osmDataVersion))
+      ) {
         this._server$.next(status);
       }
     });

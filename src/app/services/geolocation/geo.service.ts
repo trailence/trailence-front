@@ -454,9 +454,10 @@ export interface OverpassGeometry {
   lon: number;
 }
 
+export type POIType = 'guidepost' | 'water' | 'toilets';
+
 export interface POI {
-  id: string;
-  type: 'guidepost' | 'water' | 'toilets';
+  type: POIType;
   pos: L.LatLngLiteral;
   text?: string;
 };

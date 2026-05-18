@@ -78,7 +78,7 @@ export class LiveGroupService {
     this.listenToGroupsSubscription =
       combineLatest([interval(30000), this.network.server$, this._forceUpdate$.pipe(debounceTime(250))])
       .pipe(
-        filter(([i, connected, updateRequested]) => connected),
+        filter(([i, connected, updateRequested]) => !!connected),
         switchMap(() => {
           const currentPos = this.geolocation.lastKnownPosition;
           const lat = currentPos?.position?.l;

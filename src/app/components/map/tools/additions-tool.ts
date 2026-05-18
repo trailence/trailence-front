@@ -95,6 +95,7 @@ export class AdditionsTool extends MapTool {
   private _timeout: any = undefined;
 
   public refresh(map: L.Map | undefined, mapComponent: MapComponent, injector: Injector): void {
+    // TODO timeout should not be needed anymore once migrated to self hosted data
     if (this._timeout) {
       clearTimeout(this._timeout);
       this._timeout = undefined;

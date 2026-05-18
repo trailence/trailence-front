@@ -17,6 +17,7 @@ import { OverpassClient } from '../geolocation/overpass-client.service';
 import { Db } from '../database/storage/db';
 import { BlobDto, DbTablesMetaBlob } from '../database/storage/db-tables-meta-blob';
 import { DbTable, DbTableWhereLessThan } from '../database/storage/db-table';
+import { Pois } from './pois';
 
 interface TileMetadata {
   key: string;
@@ -45,6 +46,8 @@ export class OfflineMapService {
   private _cleanExpiredTimeout?: any;
   private _dbCounter = 0;
 
+  readonly pois: Pois;
+
   constructor(
     private readonly layers: MapLayersService,
     private readonly preferencesService: PreferencesService,
@@ -65,6 +68,8 @@ export class OfflineMapService {
       this.osmDataTables.set(dataTable, table);
       tables.push(table);
     }
+    this.pois = new Pois(injector);
+    tables.push(this.pois.table);
     // TODO migrate to non-user-specific database
     this.db = new Db(injector, 'trailence_offline_map', true, tables);
     this.db.dbReady$.subscribe(ready => {
@@ -79,10 +84,11 @@ export class OfflineMapService {
   }
 
   public getAdditions(bounds: L.LatLngBounds, guidepost: boolean, water: boolean, toilets: boolean, forbiddenWays: boolean, permissiveWays: boolean): Observable<{pois: POI[], ways: Way[]}> {
+    // TODO
     const fromCache: Observable<{pois: POI[], ways: Way[]} | undefined>[] = [
-      guidepost ? this.getOverpassElementsFromCache(bounds, 'osm_guidepost') : of(undefined),
-      water ? this.getOverpassElementsFromCache(bounds, 'osm_water') : of(undefined),
-      toilets ? this.getOverpassElementsFromCache(bounds, 'osm_toilets') : of(undefined),
+      guidepost ? this.pois.getPois(bounds, ['guidepost']).pipe(map(r => ({pois: r.pois, ways: []}))) /*this.getOverpassElementsFromCache(bounds, 'osm_guidepost')*/ : of(undefined),
+      water ? this.pois.getPois(bounds, ['water']).pipe(map(r => ({pois: r.pois, ways: []}))) /* this.getOverpassElementsFromCache(bounds, 'osm_water')*/ : of(undefined),
+      toilets ? this.pois.getPois(bounds, ['toilets']).pipe(map(r => ({pois: r.pois, ways: []}))) /*this.getOverpassElementsFromCache(bounds, 'osm_toilets')*/ : of(undefined),
       forbiddenWays ? this.getOverpassElementsFromCache(bounds, 'osm_forbidden_ways') : of(undefined),
       permissiveWays ? this.getOverpassElementsFromCache(bounds, 'osm_permissive_ways') : of(undefined),
     ];
@@ -204,6 +210,7 @@ export class OfflineMapService {
 
   public saveOsm(bounds: L.LatLngBounds[]): void {
     for (const b of bounds) {
+      // TODO
       this.getOverpassElementsFromOsm(b, true, true, true, true, true, true);
     }
   }

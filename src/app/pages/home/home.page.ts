@@ -136,7 +136,7 @@ export class HomePage extends PublicPage {
   protected override initComponent(): void {
     this.setSlide(0, 0, true, false);
     this.injector.get(NetworkService).server$.pipe(
-      filter(connected => connected && !this.examples),
+      filter(connected => !!connected && !this.examples),
     ).subscribe(() => this.showExamples());
   }
 

@@ -277,7 +277,7 @@ class RegisteredStore implements StoreRegistration {
         this.service.injector.get(AuthService).permissionsChanged$,  // authenticated and not anonymous
       ]).pipe(
         map(([storeLoadStatus, networkConnected, syncStatus, auth]) => ({
-          shouldSync: !!storeLoadStatus && networkConnected && !!syncStatus?.needsSync && !syncStatus.inProgress && !!auth && !auth.isAnonymous,
+          shouldSync: !!storeLoadStatus && !!networkConnected && !!syncStatus?.needsSync && !syncStatus.inProgress && !!auth && !auth.isAnonymous,
           needsUpdateFromServer: syncStatus?.needsUpdateFromServer,
           storeLoadStatus,
         })),

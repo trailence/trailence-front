@@ -70,7 +70,7 @@ export class LoginPage extends PublicPage {
       if (params.has('email')) this.email = params.get('email')!;
     });
     network.server$.subscribe(connected => {
-      this.connected = connected;
+      this.connected = !!connected;
       changeDetector.markForCheck();
     });
     this.whenVisible.subscribe(auth.auth$, a => {

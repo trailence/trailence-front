@@ -17,7 +17,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 })
 export class NetworkService implements INetworkService {
 
-  private readonly _server$ = new BehaviorSubject<boolean>(false);
+  private readonly _server$ = new BehaviorSubject<PingResponse | null>(null);
   private readonly _internet$ = new BehaviorSubject<boolean>(false);
   private _cache = new Map<string, {connected: boolean, timestamp: number}>();
 
@@ -26,8 +26,6 @@ export class NetworkService implements INetworkService {
     httpService: HttpService,
     private readonly injector: Injector,
   ) {
-    this._server$ = new BehaviorSubject<boolean>(false);
-    this._internet$ = new BehaviorSubject<boolean>(false);
     Network.getStatus().then(status => {
       this.updateStatus(status);
     });
@@ -44,7 +42,7 @@ export class NetworkService implements INetworkService {
         if (this._server$.value)
           setTimeout(() => {
             if (this._server$.value) {
-              this._server$.next(false);
+              this._server$.next(null);
               setTimeout(() => this.checkServerConnection(++this.countPing, 1), 1000);
             }
           }, 0);
@@ -53,8 +51,8 @@ export class NetworkService implements INetworkService {
     });
   }
 
-  get server(): boolean { return this._server$.value; }
-  get server$(): Observable<boolean> { return this._server$; }
+  get server(): PingResponse | null { return this._server$.value; }
+  get server$(): Observable<PingResponse | null> { return this._server$; }
 
   get internet(): boolean { return this._internet$.value; }
   get internet$(): Observable<boolean> { return this._internet$; }
@@ -78,14 +76,14 @@ export class NetworkService implements INetworkService {
     this.http.send(new TrailenceHttpRequest(HttpMethod.GET, environment.apiBaseUrl + '/ping'))
     .subscribe(response => {
       if (count !== this.countPing) return;
-      let status: boolean;
+      let status: PingResponse | null;
       if (response.status === 200) {
         Console.info('Server ping response received: connected on ' + environment.apiBaseUrl);
         const ping = response.body as PingResponse;
         const minSupportedVersion = StringUtils.versionNameToVersionCode(ping.minSupportedVersion);
         if (minSupportedVersion === undefined || minSupportedVersion > trailenceAppVersionCode) {
           Console.info("We are on an obselete version ! please update");
-          status = false;
+          status = null;
           const i18n = this.injector.get(I18nService);
           this.injector.get(AlertController).create({
             header: i18n.texts.obsolete_message.title,
@@ -96,18 +94,21 @@ export class NetworkService implements INetworkService {
             }]
           }).then(a => a.present());
         } else {
-          status = true;
+          status = ping;
         }
       } else {
         Console.info('Server ping response error (' + response.status + '): not connected');
-        status = false;
+        status = null;
         if (trial < 3) setTimeout(() => this.checkServerConnection(count, trial + 1), trial * 250);
         else if (trial < 10) setTimeout(() => this.checkServerConnection(count, trial + 1), 1000);
         else if (trial < 15) setTimeout(() => this.checkServerConnection(count, trial + 1), 15000);
         else if (trial < 20) setTimeout(() => this.checkServerConnection(count, trial + 1), 60000);
         else setTimeout(() => this.checkServerConnection(count, trial + 1), 5 * 60000);
       }
-      if (status !== this._server$.value) {
+      if ((status === null && this._server$.value !== null) ||
+          (status !== null && this._server$.value === null) ||
+          (status !== null && this._server$.value !== null && (status.minSupportedVersion !== this._server$.value.minSupportedVersion || status.osmDataVersion !== this._server$.value.osmDataVersion))
+      ) {
         this._server$.next(status);
       }
     });

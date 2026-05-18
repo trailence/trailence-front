@@ -55,7 +55,7 @@ export class RegisterPage extends PublicPage {
   ) {
     super(injector);
     network.server$.subscribe(connected => {
-      this.connected = connected;
+      this.connected = !!connected;
       changeDetector.markForCheck();
     });
   }

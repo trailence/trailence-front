@@ -42,7 +42,7 @@ export class NotificationsPage implements OnInit, OnDestroy {
       this.network.server$,
       this.notifications.notifications$
     ]).subscribe(([online, list]) => {
-      this.online = online;
+      this.online = !!online;
       this.loaded = this.notifications.loaded;
       this.list = list;
     });

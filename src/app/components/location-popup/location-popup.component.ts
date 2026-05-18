@@ -93,7 +93,8 @@ export class LocationPopupComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.location = this.trail.location;
-    this.networkSubscription = this.networkService.server$.subscribe(online => {
+    this.networkSubscription = this.networkService.server$.subscribe(ping => {
+      const online = !!ping;
       if (online !== this.online) {
         this.online = online;
         this.changeDetector.detectChanges();

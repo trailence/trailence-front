@@ -76,7 +76,7 @@ export class ContactPage extends PublicPage {
 
   private init(): void {
     this.networkSubscription ??= this.networkService.server$.subscribe(available => {
-      this.networkAvailable = available;
+      this.networkAvailable = !!available;
       if (this.captchaNeeded && !this.captchaInit) this.initCaptcha();
     });
     this.email = '';

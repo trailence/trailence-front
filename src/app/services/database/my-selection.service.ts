@@ -28,7 +28,7 @@ export class MySelectionService {
             switchMap(trail => {
               if (trail) return of(trail);
               return concat(of(null), combineLatest([network.internet$, network.server$]).pipe(
-                filter(([c1,c2]) => c1 && c2),
+                filter(([c1,c2]) => c1 && !!c2),
                 switchMap(() => injector.get(TrailService).getTrail$(item.uuid, item.owner).pipe(
                   filterDefined(),
                   timeout(60000),

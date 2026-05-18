@@ -559,7 +559,7 @@ export class ModerationService {
       filter(auth => !!auth && (auth.admin || !!auth.roles?.find(r => r === 'moderator'))),
       // only network available
       switchMap(() => this.injector.get(NetworkService).server$),
-      filter(net => net),
+      filter(net => !!net),
       // stable for at least 5 seconds
       debounceTime(5000),
       // refresh requested or timer every 10 minutes

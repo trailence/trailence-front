@@ -33,7 +33,7 @@ export class MyPublicTrailsService {
           dbs.myPublicationsTable.getAll$(),
           networkService.server$.pipe(
             debounceTime(100),
-            filter(connected => connected),
+            filter(connected => !!connected),
             debounceTimeExtended(1000, 60000),
             switchMap(() => timer(100, 30 * 60 * 1000)),
             switchMap(() => http.get<MyPublicTrail[]>(environment.apiBaseUrl + '/public/trails/v1/mine').pipe(

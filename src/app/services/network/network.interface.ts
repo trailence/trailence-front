@@ -2,8 +2,8 @@ import { Observable } from 'rxjs';
 
 export interface INetworkService {
 
-  get server(): boolean;
-  get server$(): Observable<boolean>;
+  get server(): PingResponse | null;
+  get server$(): Observable<PingResponse | null>;
 
   get internet(): boolean;
   get internet$(): Observable<boolean>;
@@ -12,4 +12,5 @@ export interface INetworkService {
 
 export interface PingResponse {
   minSupportedVersion: string;
+  osmDataVersion: number;
 }

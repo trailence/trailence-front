@@ -106,7 +106,7 @@ export class TrailsPage extends AbstractPage {
     public readonly mapLayerService: MapLayersService,
   ) {
     super(injector);
-    this.connected$ = combineLatest([networkService.internet$, networkService.server$]).pipe(map(([i,s]) => i && s));
+    this.connected$ = combineLatest([networkService.internet$, networkService.server$]).pipe(map(([i,s]) => i && !!s));
     combineLatest([this.bubblesToolAvailable$, this.showBubbles$]).subscribe(
       ([available, show]) => {
         if (this.viewId && available && this.trailsType !== 'search') localStorage.setItem(LOCALSTORAGE_KEY_BUBBLES + '.' + this.viewId, JSON.stringify(show));

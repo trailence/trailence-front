@@ -125,7 +125,7 @@ export class TrailPlannerPage extends AbstractPage {
     .subscribe(
       collections => this.collections = collectionService.sort(collections)
     ));
-    this.connected$ = combineLatest([networkService.internet$, networkService.server$]).pipe(map(([i,s]) => i && s));
+    this.connected$ = combineLatest([networkService.internet$, networkService.server$]).pipe(map(([i,s]) => i && !!s));
     this.whenVisible.subscribe(browser.resize$, size => this.updateSize(size.width, size.height));
   }
 

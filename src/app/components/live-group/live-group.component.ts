@@ -81,7 +81,7 @@ export class LiveGroupComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnInit(): void {
     this.networkSubscription = this.network.server$.subscribe(n => {
-      this.networkAvailable = n;
+      this.networkAvailable = !!n;
       this.toolbar = [...this.toolbar];
       this.changeDetector.detectChanges();
     });
