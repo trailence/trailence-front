@@ -20,11 +20,12 @@ import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended'
 import { QuotaService } from '../auth/quota.service';
 import { StoreErrors } from './store/store-errors';
 import { StoreOperations } from './store/store-operations';
-import { SimplifiedPoint, SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { StoreService, StoreWithCleaning } from './store/store.service';
 import { DbTable, DbTableWhereEquals, DbTableWhereGreaterThan, DbTableWhereLessThan } from './storage/db-table';
 import { Db, DbReady } from './storage/db';
 import { OfflineMapService } from '../map/offline-map.service';
+import { WorkerService } from 'src/app/worker/web-app';
 
 interface MetadataItem extends TrackMetadataSnapshot {
   key: string;
@@ -403,45 +404,6 @@ export class TrackDatabase implements StoreWithCleaning {
     ));
   }
 
-  public static simplify(track: Track): SimplifiedTrackSnapshot {
-    const simplified: SimplifiedTrackSnapshot = { points: [] };
-    let previous: L.LatLng | undefined;
-    track.forEachPoint(point => {
-      const p = point.pos;
-      if (!previous || p.distanceTo(previous) >= 25) {
-        const newPoint: SimplifiedPoint = {
-          lat: p.lat,
-          lng: p.lng,
-          ele: point.ele,
-          time: point.time,
-        };
-        if (previous && simplified.points.length > 1) {
-          const angle1 = Math.atan2(p.lat - previous.lat, p.lng - previous.lng);
-          const pprevious = simplified.points.at(-2)!;
-          const angle2 = Math.atan2(previous.lat - pprevious.lat, previous.lng - pprevious.lng);
-          if (Math.abs(angle1 - angle2) < 0.35) {
-            simplified.points[simplified.points.length - 1] = newPoint;
-            previous = p;
-            return;
-          }
-        }
-        simplified.points.push(newPoint);
-        previous = p;
-      }
-    });
-    const lastSegment = track.segments.at(-1)!;
-    const lastPoint = lastSegment.points.at(-1)!;
-    if (previous !== lastPoint.pos) {
-      simplified.points.push({
-        lat: lastPoint.pos.lat,
-        lng: lastPoint.pos.lng,
-        ele: lastPoint.ele,
-        time: lastPoint.time,
-      });
-    }
-    return simplified;
-  }
-
   public static toMetadata(track: Track): TrackMetadataSnapshot {
     const m = track.metadata;
     const b = m.bounds;
@@ -468,7 +430,7 @@ export class TrackDatabase implements StoreWithCleaning {
     this.ngZone.runOutsideAngular(() => {
       const key = track.uuid + '#' + track.owner;
       const dto = track.toDto();
-      const simplified = TrackDatabase.simplify(track);
+      const simplifiedTrack$ = this.injector.get(WorkerService).simplifyTrack(track);
       const metadata = TrackDatabase.toMetadata(track);
       const status = this.loaded$.value;
       if (!status) return;
@@ -484,10 +446,10 @@ export class TrackDatabase implements StoreWithCleaning {
               updatedLocally: 0,
               track: dto,
             }),
-            this.tableSimplifiedTrack.addOne$({
-              ...simplified,
+            simplifiedTrack$.then(s => this.tableSimplifiedTrack.addOne$({
+              ...s,
               key,
-            }),
+            })),
             this.tableMeta.addOne$({
               ...metadata,
               key,
@@ -502,9 +464,11 @@ export class TrackDatabase implements StoreWithCleaning {
         const full$ = this.fullTracks.get(key);
         if (full$) full$.newValue(track);
         else this.fullTracks.set(key, this.subjectService.create<Track>('Track', () => this.loadFullTrack(key), undefined, track));
-        const simplified$ = this.simplifiedTracks.get(key);
-        if (simplified$) simplified$.newValue(simplified);
-        else this.simplifiedTracks.set(key, this.subjectService.create<SimplifiedTrackSnapshot>('SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), undefined, simplified));
+        simplifiedTrack$.then(simplified => {
+          const simplified$ = this.simplifiedTracks.get(key);
+          if (simplified$) simplified$.newValue(simplified);
+          else this.simplifiedTracks.set(key, this.subjectService.create<SimplifiedTrackSnapshot>('SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), undefined, simplified));
+        });
         const metadata$ = this.metadata.get(key);
         if (metadata$) metadata$.newValue(metadata);
         else this.metadata.set(key, this.subjectService.create<TrackMetadataSnapshot>('TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
@@ -522,7 +486,7 @@ export class TrackDatabase implements StoreWithCleaning {
       const key = track.uuid + '#' + track.owner;
       track.updatedAt = Date.now();
       const dto = track.toDto();
-      const simplified = TrackDatabase.simplify(track);
+      const simplifiedTrack$ = this.injector.get(WorkerService).simplifyTrack(track);
       const metadata = TrackDatabase.toMetadata(track);
       const status = this.loaded$.value;
       if (!status) return;
@@ -538,10 +502,10 @@ export class TrackDatabase implements StoreWithCleaning {
               updatedLocally: 1,
               track: dto,
             }),
-            this.tableSimplifiedTrack.setOne$({
+            simplifiedTrack$.then(simplified => this.tableSimplifiedTrack.setOne$({
               ...simplified,
               key,
-            }),
+            })),
             this.tableMeta.setOne$({
               ...metadata,
               key,
@@ -556,9 +520,11 @@ export class TrackDatabase implements StoreWithCleaning {
         const full$ = this.fullTracks.get(key);
         if (full$) full$.newValue(track);
         else this.fullTracks.set(key, this.subjectService.create<Track>('Track', () => this.loadFullTrack(key), undefined, track));
-        const simplified$ = this.simplifiedTracks.get(key);
-        if (simplified$) simplified$.newValue(simplified);
-        else this.simplifiedTracks.set(key, this.subjectService.create<SimplifiedTrackSnapshot>('SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), undefined, simplified));
+        simplifiedTrack$.then(simplified => {
+          const simplified$ = this.simplifiedTracks.get(key);
+          if (simplified$) simplified$.newValue(simplified);
+          else this.simplifiedTracks.set(key, this.subjectService.create<SimplifiedTrackSnapshot>('SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), undefined, simplified));
+        });
         const metadata$ = this.metadata.get(key);
         if (metadata$) metadata$.newValue(metadata);
         else this.metadata.set(key, this.subjectService.create<TrackMetadataSnapshot>('TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
@@ -966,9 +932,12 @@ export class TrackDatabase implements StoreWithCleaning {
         const mapService = this.injector.get(OfflineMapService);
         const entities = tracks.map(track => new Track(track, prefs, mapService));
         for (const entity of entities) this.fullTracks.get(entity.uuid + '#' + entity.owner)?.newValue(entity);
-        const simplified = entities.map(track => ({...TrackDatabase.simplify(track), key: track.uuid + '#' + track.owner}));
-        const simplified$ = firstValueFrom(this.tableSimplifiedTrack.setMany$(simplified));
-        for (const s of simplified) this.simplifiedTracks.get(s.key)?.newValue(s);
+        const simplified$ = Promise.all(
+          entities.map(track => this.injector.get(WorkerService).simplifyTrack(track).then(simplified => ({...simplified, key: track.uuid + '#' + track.owner})))
+        ).then(simplified => {
+          for (const s of simplified) this.simplifiedTracks.get(s.key)?.newValue(s);
+          return firstValueFrom(this.tableSimplifiedTrack.setMany$(simplified));
+        });
         const metadata = entities.map(track => ({...TrackDatabase.toMetadata(track), key: track.uuid + '#' + track.owner}));
         const meta$ = firstValueFrom(this.tableMeta.setMany$(metadata));
         for (const m of metadata) this.metadata.get(m.key)?.newValue(m);

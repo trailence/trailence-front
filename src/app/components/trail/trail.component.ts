@@ -30,7 +30,6 @@ import { MapPhoto } from '../map/markers/map-photo';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { TrackUtils } from 'src/app/utils/track-utils';
 import * as L from 'leaflet';
-import { ImageUtils } from 'src/app/utils/image-utils';
 import { Console } from 'src/app/utils/console';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { estimateSimilarity } from 'src/app/services/track-edition/path-analysis/similarity';
@@ -73,6 +72,7 @@ import { AvatarComponent } from '../avatar/avatar.component';
 import { ContributionsBadgesComponent } from '../contributions-badges/contribution-badges.component';
 import { ApiError } from 'src/app/services/http/api-error';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
+import { WorkerService } from 'src/app/worker/web-app';
 
 interface TrailSource {
   isExternal: boolean;
@@ -1191,7 +1191,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
 
   private createPhotoMarker(point: L.LatLngExpression, photos: Photo[], photosByKey: Map<string, Photo[]>, key: string, withError: boolean = true): Observable<{key: string, marker: L.Marker} | undefined | null> {
     return this.photoService.getFile$(photos[0]).pipe(
-      switchMap(blob => from(ImageUtils.convertToJpeg(blob, 75, 75, 0.7))),
+      switchMap(blob => this.injector.get(WorkerService).convertToJpeg(blob, 75, 75, 0.7)),
       switchMap(jpeg => from(new BinaryContent(jpeg.blob).toBase64()).pipe(
         map(base64 => {
           const marker = MapPhoto.create(point, 'data:image/jpeg;base64,' + base64, jpeg.width, jpeg.height, photos.length > 1 ? '' + photos.length : undefined);

@@ -46,7 +46,7 @@
       <ion-spinner name="dots"></ion-spinner>
     </div>
   }
-  @if (trails$ === undefined) {
+  @if (trails$ === undefined || loading) {
     @if (listType === 'search') {
       <div class="empty-list">
         <div>

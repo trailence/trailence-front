@@ -15,6 +15,7 @@ import { AuthService } from '../auth/auth.service';
 import { SimplifiedPoint, SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { debounceTime, filter, first, firstValueFrom, from, switchMap } from 'rxjs';
 import { OfflineMapService } from '../map/offline-map.service';
+import { WorkerService } from 'src/app/worker/web-app';
 
 export interface TrailInfoBaseDto {
   info: TrailInfo;
@@ -233,8 +234,8 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
     originalMetadata.uuid = originalTrackDto.uuid;
     const currentMetadata = currentTrack ? {...TrackDatabase.toMetadata(currentTrack), ...overrideMetadata} : undefined;
     if (currentMetadata) currentMetadata.uuid = currentTrackDto!.uuid;
-    const originalSimplifiedTrackDto = {uuid: originalTrackDto.uuid, points: TrackDatabase.simplify(originalTrack).points};
-    const currentSimplifiedTrackDto = currentTrack ? {uuid: currentTrackDto!.uuid, points: TrackDatabase.simplify(currentTrack).points} : undefined;
+    const originalSimplifiedTrackDto = this.injector.get(WorkerService).simplifyTrack(originalTrack).then(simplified => ({uuid: originalTrackDto.uuid, points: simplified.points}));
+    const currentSimplifiedTrackDto = currentTrack ? this.injector.get(WorkerService).simplifyTrack(currentTrack).then(simplified => ({uuid: currentTrackDto!.uuid, points: simplified.points})) : undefined;
     return {
       trail,
       trailDto,
@@ -249,12 +250,18 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
 
   protected storeTrails(trails: TrailToStore[]): void {
     this.tableTrails.bulkPut(trails.map(t => t.trailDto));
-    this.tableFullTracks.bulkPut(trails.map(t => t.originalTrackDto));
-    this.tableFullTracks.bulkPut(filterItemsDefined(trails.map(t => t.currentTrackDto)));
-    this.tableSimplifiedTracks.bulkPut(trails.map(t => t.originalSimplifiedTrackDto));
-    this.tableSimplifiedTracks.bulkPut(filterItemsDefined(trails.map(t => t.currentSimplifiedTrackDto)));
-    this.tableMetadata.bulkPut(trails.map(t => t.originalMetadata));
-    this.tableMetadata.bulkPut(filterItemsDefined(trails.map(t => t.currentMetadata)));
+    this.tableFullTracks.bulkPut([
+      ...trails.map(t => t.originalTrackDto),
+      ...filterItemsDefined(trails.map(t => t.currentTrackDto)),
+    ]);
+    Promise.all([
+      ...trails.map(t => t.originalSimplifiedTrackDto),
+      ...trails.filter(t => !!t.currentSimplifiedTrackDto).map(t => t.currentSimplifiedTrackDto!),
+    ]).then(tracks => this.tableSimplifiedTracks.bulkPut(tracks));
+    this.tableMetadata.bulkPut([
+      ...trails.map(t => t.originalMetadata),
+      ...filterItemsDefined(trails.map(t => t.currentMetadata)),
+    ]);
   }
 
   private clean(): void {
@@ -285,6 +292,6 @@ export interface TrailToStore {
   currentTrackDto?: TrackDto;
   originalMetadata: TrackMetadataSnapshot;
   currentMetadata?: TrackMetadataSnapshot;
-  originalSimplifiedTrackDto: SimplifiedTrackDto;
-  currentSimplifiedTrackDto?: SimplifiedTrackDto;
+  originalSimplifiedTrackDto: Promise<SimplifiedTrackDto>;
+  currentSimplifiedTrackDto?: Promise<SimplifiedTrackDto>;
 }

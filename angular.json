@@ -67,7 +67,8 @@
               "src/global.scss",
               "./node_modules/leaflet/dist/leaflet.css"
             ],
-            "browser": "src/main.ts"
+            "browser": "src/main.ts",
+            "webWorkerTsConfig": "tsconfig.worker.json"
           },
           "configurations": {
             "production": {
@@ -447,7 +448,8 @@
             "styles": [
               "src/global.scss",
               "./node_modules/leaflet/dist/leaflet.css"
-            ]
+            ],
+            "webWorkerTsConfig": "tsconfig.worker.json"
           },
           "configurations": {
             "ci": {

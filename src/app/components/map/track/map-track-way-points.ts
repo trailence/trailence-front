@@ -304,7 +304,6 @@ export class MapTrackWayPoints {
   public highlight(wp: TrackWayPoint): void {
     if (wp.computed) {
       const anchor = this.getAnchor(wp.computed);
-      console.log('anchor', anchor)
       if (anchor) {
         anchor.marker.getElement()?.classList.add('highlighted');
       }

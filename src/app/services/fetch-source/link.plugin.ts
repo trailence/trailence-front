@@ -12,6 +12,7 @@ import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/sn
 import { TrackDatabase } from '../database/track-database';
 import { PointDtoMapper } from 'src/app/model/point-dto-mapper';
 import { OfflineMapService } from '../map/offline-map.service';
+import { WorkerService } from 'src/app/worker/web-app';
 
 export class LinkPlugin extends FetchSourcePlugin {
 
@@ -67,7 +68,7 @@ export class LinkPlugin extends FetchSourcePlugin {
   }
 
   public getSimplifiedTrack(uuid: string): Promise<SimplifiedTrackSnapshot | null> {
-    return this.toPromise(this.getLink(uuid, false).pipe(map(cache => this.toSimplifiedTrack(uuid, cache))));
+    return this.toPromise(this.getLink(uuid, false).pipe(switchMap(cache => this.toSimplifiedTrack(uuid, cache))));
   }
 
   private toPromise<T>(observable: Observable<T>): Promise<T | null> {
@@ -102,9 +103,12 @@ export class LinkPlugin extends FetchSourcePlugin {
     return cache.metadata = TrackDatabase.toMetadata(this.toTrack(link, cache));
   }
 
-  private toSimplifiedTrack(link: string, cache: LinkCache): SimplifiedTrackSnapshot {
-    if (cache.simplified) return cache.simplified;
-    return cache.simplified = TrackDatabase.simplify(this.toTrack(link, cache));
+  private toSimplifiedTrack(link: string, cache: LinkCache): Promise<SimplifiedTrackSnapshot> {
+    if (cache.simplified) return Promise.resolve(cache.simplified);
+    return this.injector.get(WorkerService).simplifyTrack(this.toTrack(link, cache)).then(s => {
+      cache.simplified = s;
+      return s;
+    });
   }
 
   public getInfo(uuid: string): Promise<TrailInfo | null> {

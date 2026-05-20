@@ -28,6 +28,7 @@ import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/sn
 import { AuthService } from '../auth/auth.service';
 import { NetworkService } from '../network/network.service';
 import { OfflineMapService } from '../map/offline-map.service';
+import { WorkerService } from 'src/app/worker/web-app';
 
 @Injectable({providedIn: 'root'})
 export class ModerationService {
@@ -162,7 +163,7 @@ export class ModerationService {
   }
 
   public getSimplifiedTrack$(trailUuid: string, trailOwner: string, trackUuid: string): Observable<SimplifiedTrackSnapshot> {
-    return this.getFullTrack$(trailUuid, trailOwner, trackUuid).pipe(map(track => TrackDatabase.simplify(track)));
+    return this.getFullTrack$(trailUuid, trailOwner, trackUuid).pipe(switchMap(track => this.injector.get(WorkerService).simplifyTrack(track)));
   }
 
   public getPhotoBlob$(photoUuid: string, owner: string): Observable<Blob> {
@@ -358,11 +359,15 @@ export class ModerationService {
 
   public async validateAndPublish(trail: Trail, track: Track, photos: Photo[], ondone?: (success: boolean) => void) {
     const progress = this.injector.get(ProgressService).create(this.injector.get(I18nService).texts.publications.moderation.publishing, 9);
-    const step = <T>(work: number, op: () => T) => new Promise<T>(resolve => {
+    const step = <T>(work: number, op: () => Promise<T>) => new Promise<T>((resolve, reject) => {
       setTimeout(() => {
-        const result = op();
-        progress.addWorkDone(work);
-        resolve(result);
+        op().then(result => {
+          progress.addWorkDone(work);
+          resolve(result);
+        }).catch(e => {
+          progress.addWorkDone(work);
+          reject(e);
+        });
       }, 0);
     });
 
@@ -374,19 +379,19 @@ export class ModerationService {
         const point = crs.latLngToPoint(departure, zoom);
         tile128ByZoom.push(Math.floor(point.y / 128) * (4 << zoom) + Math.floor(point.x / 128));
       }
+      return Promise.resolve();
     });
 
     const simplifiedPath: number[] = [];
-    await step(1, () => {
-      const simplifiedTrack = TrackDatabase.simplify(track);
+    await step(1, () => this.injector.get(WorkerService).simplifyTrack(track).then(simplifiedTrack => {
       for (let point of simplifiedTrack.points) {
         simplifiedPath.push(point.lat, point.lng);
       }
-    });
+    }));
 
-    const breaksDuration = await step(1, () => calculateLongBreaksFromTrack(track, 3 * 60 * 1000, 50));
-    const estimatedDuration = await step(1, () => estimateTimeForTrack(track, 5000));
-    const fullTrack = await step(1, () => track.toDto());
+    const breaksDuration = await step(1, () => Promise.resolve(calculateLongBreaksFromTrack(track, 3 * 60 * 1000, 50)));
+    const estimatedDuration = await step(1, () => Promise.resolve(estimateTimeForTrack(track, 5000)));
+    const fullTrack = await step(1, () => Promise.resolve(track.toDto()));
 
     const photosDtos = await step(1, () => { // NOSONAR
       const result: CreatePublicTrailPhotoDto[] = [];
@@ -420,7 +425,7 @@ export class ModerationService {
           description: p.description,
         })
       }
-      return result;
+      return Promise.resolve(result);
     });
 
     const dto: CreatePublicTrailDto = {

@@ -22,6 +22,8 @@ import { TraceRecorderService } from 'src/app/services/trace-recorder/trace-reco
 import { CameraService } from 'src/app/services/camera/camera.service';
 import { NgClass, NgStyle } from '@angular/common';
 import { BinaryContent } from 'src/app/utils/binary-content';
+import { WorkerService } from 'src/app/worker/web-app';
+import { ConcurrentPromises } from 'src/app/utils/concurrency';
 
 interface PhotoWithInfo {
   photo: Photo;
@@ -262,6 +264,9 @@ export class PhotosPopupComponent  implements OnInit, OnChanges, OnDestroy {
       return;
     }
     let photoIndex = this.photos.length + 1;
+    const worker = this.injector.get(WorkerService);
+    const concurrency = new ConcurrentPromises(worker.maxWorkers);
+    const processErrors: any[] = [];
     this.fileService.openFileDialog({
       types: [
         {
@@ -287,22 +292,31 @@ export class PhotosPopupComponent  implements OnInit, OnChanges, OnDestroy {
         return Promise.resolve(progress);
       },
       onfileread: (index: number, nbFiles: number, progress: Progress, filename: string, file: ArrayBuffer) => {
-        const promise = trail === this.traceRecorder.current?.trail ?
-          this.traceRecorder.addPhoto(new BinaryContent(file)) :
-          firstValueFrom(this.photoService.addPhoto(trail.owner, trail.uuid, filename, photoIndex++, file));
-        return promise
-        .then(() => {
-          progress.subTitle = '' + (index + 1) + '/' + nbFiles;
-          progress.addWorkDone(1);
-          return true;
-        });
+        const op = () => {
+          const promise = trail === this.traceRecorder.current?.trail ?
+            this.traceRecorder.addPhoto(new BinaryContent(file)) :
+            firstValueFrom(this.photoService.addPhoto(trail.owner, trail.uuid, filename, photoIndex++, file));
+          return promise
+          .catch(e => {
+            processErrors.push(e);
+          })
+          .then(() => {
+            progress.subTitle = '' + (index + 1) + '/' + nbFiles;
+            progress.addWorkDone(1);
+            return true;
+          });
+        };
+        return concurrency.launchOrWait(op, () => true);
       },
       ondone: (progress: Progress | undefined, result: boolean[], errors: any[]) => {
-        progress?.done();
-        if (errors.length > 0) {
-          Console.error('Errors reading photos', errors);
-          this.errorService.addErrors(errors);
-        };
+        concurrency.waitAll().then(() => {
+          progress?.done();
+          errors.push(...processErrors);
+          if (errors.length > 0) {
+            Console.error('Errors reading photos', errors);
+            this.errorService.addErrors(errors);
+          };
+        });
       }
     })
   }

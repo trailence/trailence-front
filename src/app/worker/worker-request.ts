@@ -1,0 +1,19 @@
+export interface WorkerMessage {
+  request: WorkerRequest;
+  id: number;
+  payload: any;
+}
+
+export interface WorkerResponse {
+  id: number;
+  success: boolean;
+  payload: any;
+  error: any;
+}
+
+export enum WorkerRequest {
+  PARSE_POIS = 'parse-pois',
+  SIMPLIFY_TRACK = 'simplify-track',
+  IMPORT_PHOTO = 'import-photo',
+  CONVERT_JPEG = 'convert-jpeg',
+}

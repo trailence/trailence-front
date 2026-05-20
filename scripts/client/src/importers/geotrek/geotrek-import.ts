@@ -767,8 +767,11 @@ export class GeoTrekImport extends Importer {
       try {
         console.log('Downloading photo ' + info.url);
         const file = await (await fetch(info.url)).arrayBuffer();
-        const module = await import('front/services/database/photo-import.js');
-        photos.push(await module.importPhoto(owner, trailUuid, info.description, photos.length + 1, file, preferences, undefined, undefined, undefined, undefined, info.uuid));
+        const module = await import('front/worker/functions/import-photo.js');
+        photos.push(await (
+          module.importPhoto(owner, trailUuid, info.description, photos.length + 1, file, preferences, undefined, undefined, undefined, undefined, info.uuid)
+          .then(result => ({blob: result.blob, photo: new Photo(result.photo)}))
+        ));
       } catch (e) {
         console.warn('Cannot get trek photo', e);
         continue;

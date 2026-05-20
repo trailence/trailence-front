@@ -10,12 +10,14 @@ import { Console } from 'src/app/utils/console';
 import { ApiError } from '../http/api-error';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { DbTableWhereLessThan } from '../database/storage/db-table';
+import { WorkerService } from 'src/app/worker/web-app';
 
 export class Pois {
 
   readonly table: DbTableWithBlob<DbDto>;
   private readonly http: HttpService;
   private readonly network: NetworkService;
+  private readonly worker: WorkerService;
   private readonly pendingRequests = new PendingRequests<Blob | null | undefined>();
 
   constructor(
@@ -24,6 +26,7 @@ export class Pois {
     this.table = new DbTableWithBlob<DbDto>(injector, 'osm-data-pois', 'tile, lastUsed, version', 'tile', 'blob');
     this.http = injector.get(HttpService);
     this.network = injector.get(NetworkService);
+    this.worker = injector.get(WorkerService);
     this.table.whenReady$().pipe(debounceTime(120000)).subscribe(() => this.clean());
   }
 
@@ -36,7 +39,7 @@ export class Pois {
         switchMap(blob => {
           if (blob === undefined) return of({pois: [], done: true, partial: true} as PoisResponse);
           if (blob === null) return of({pois: [], done: true, partial: false} as PoisResponse);
-          return parsePois(blob, t.type, bounds).then(pois => ({pois, done: true, partial: false}))
+          return this.worker.parsePois(blob, t.type, bounds).then(pois => ({pois, done: true, partial: false}));
         })
       )
     ))).pipe(
@@ -142,36 +145,4 @@ interface DbDto {
   version: number;
   lastUsed: number;
   blob: Blob;
-}
-
-async function parsePois(blob: Blob, type: POIType, bounds: L.LatLngBounds): Promise<POI[]> {
-  const data = new DataView(await blob.arrayBuffer());
-  const textDecoder = new TextDecoder();
-  const pois: POI[] = [];
-  let offset = 0;
-  while (offset < data.byteLength) {
-    const extraLen = data.getUint16(offset, true);
-    const lat = data.getInt32(offset + 2, true) / 1e7;
-    const lng = data.getInt32(offset + 6, true) / 1e7;
-    offset += 10;
-    const pos = {lat, lng};
-    if (!bounds.contains(pos)) {
-      offset += extraLen;
-      continue;
-    }
-    let text: string | undefined = undefined;
-    if (extraLen > 0) {
-      const textLen = data.getUint8(offset);
-      if (textLen > 0) {
-        text = textDecoder.decode(data.buffer.slice(offset + 1, offset + 1 + textLen));
-      }
-      offset += extraLen;
-    }
-    pois.push({
-      type,
-      pos,
-      text
-    });
-  }
-  return pois;
 }

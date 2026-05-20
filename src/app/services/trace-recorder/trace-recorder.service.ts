@@ -32,8 +32,8 @@ import { PhotoDto } from 'src/app/model/dto/photo';
 import { PhotoService } from '../database/photo.service';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { CameraService } from '../camera/camera.service';
-import { importPhoto } from '../database/photo-import';
 import { OfflineMapService } from '../map/offline-map.service';
+import { WorkerService } from 'src/app/worker/web-app';
 
 @Injectable({
   providedIn: 'root'
@@ -66,6 +66,7 @@ export class TraceRecorderService {
     private readonly photoService: PhotoService,
     private readonly cameraService: CameraService,
     private readonly mapService: OfflineMapService,
+    private readonly worker: WorkerService,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -298,7 +299,7 @@ export class TraceRecorderService {
     const recording = this._recording$.value;
     if (!recording || !this._table) return;
     const buffer = await binary.toArrayBuffer();
-    const imported = await importPhoto(recording.trail.owner, recording.trail.uuid, '', recording.photos$.value.length + 1, buffer, this.preferencesService.preferences, Date.now(), recording.track.arrivalPoint?.pos.lat, recording.track.arrivalPoint?.pos.lng, false, undefined, true);
+    const imported = await this.worker.importPhoto(recording.trail.owner, recording.trail.uuid, '', recording.photos$.value.length + 1, buffer, this.preferencesService.preferences, Date.now(), recording.track.arrivalPoint?.pos.lat, recording.track.arrivalPoint?.pos.lng, false, undefined, true);
     return await this.storePhoto(imported.photo, imported.blob);
   }
 

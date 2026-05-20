@@ -4,12 +4,12 @@ import { map, of, switchMap } from 'rxjs';
 import { AVATAR_MAX_SIZE, AVATAR_MIN_SIZE, AvatarService } from 'src/app/services/avatar/avatar.service';
 import { FileService } from 'src/app/services/file/file.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { ImageUtils } from 'src/app/utils/image-utils';
 import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
 import { PhotoEditorComponent } from '../photo-editor/photo-editor.component';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { Console } from 'src/app/utils/console';
 import { ErrorService } from 'src/app/services/progress/error.service';
+import { WorkerService } from 'src/app/worker/web-app';
 
 export async function openEditAvatarPopup(injector: Injector) {
   const modal = await injector.get(ModalController).create({
@@ -46,6 +46,7 @@ export class EditAvatarPopup implements OnDestroy, OnInit {
     private readonly changeDetector: ChangeDetectorRef,
     private readonly modalController: ModalController,
     private readonly errorService: ErrorService,
+    private readonly worker: WorkerService,
   ) {
     this.subscriptions.add(
       this.avatarService.getMyAvatarDto$().pipe(
@@ -113,10 +114,10 @@ export class EditAvatarPopup implements OnDestroy, OnInit {
       multiple: false,
       onstartreading: () => Promise.resolve(),
       onfileread: (index: number, nbFiles: number, fromStartReading: any, fileName: string, fileContent: ArrayBuffer) => {
-        return ImageUtils.convertToJpeg(new Uint8Array(fileContent), 800, 800, 1, AVATAR_MIN_SIZE, AVATAR_MIN_SIZE)
+        return this.worker.convertToJpeg(new Blob([fileContent]), 800, 800, 1, AVATAR_MIN_SIZE, AVATAR_MIN_SIZE)
           .then(p => {
             if (p.width > AVATAR_MAX_SIZE || p.height > AVATAR_MAX_SIZE)
-              return this.extractCenter(new Blob([new Uint8Array(fileContent)])).then(small => ({small, original: p}));
+              return this.extractCenter(p.blob).then(small => ({small, original: p}));
             return {small: p.blob, original: p};
           });
       },

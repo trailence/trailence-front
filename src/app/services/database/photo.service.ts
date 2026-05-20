@@ -23,10 +23,10 @@ import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { QuotaService } from '../auth/quota.service';
 import { ModerationService } from '../moderation/moderation.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { importPhoto } from './photo-import';
 import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
 import { CommonDatabaseService } from './common-database.service';
 import { StoreWithCleaning } from './store/store.service';
+import { WorkerService } from 'src/app/worker/web-app';
 
 @Injectable({providedIn: 'root'})
 export class PhotoService {
@@ -162,7 +162,7 @@ export class PhotoService {
     fromModeration?: boolean,
     fromRecording?: boolean,
   ): Observable<Photo | null> {
-    return from(importPhoto(owner, trailUuid, description, index, content, this.preferences.preferences, dateTaken, latitude, longitude, isCover)).pipe(
+    return from(this.injector.get(WorkerService).importPhoto(owner, trailUuid, description, index, content, this.preferences.preferences, dateTaken, latitude, longitude, isCover)).pipe(
       switchMap(imported => {
         return this.injector.get(StoredFilesService).store(owner, 'photo', imported.photo.uuid, imported.blob).pipe(
           switchMap(result => {

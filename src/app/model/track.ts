@@ -197,6 +197,16 @@ export class Track extends Owned {
     return result;
   }
 
+  public getAllPoints(): Point[] {
+    const result: Point[] = [];
+    for (const segment of this.segments) {
+      for (const point of segment.points) {
+        result.push(point);
+      }
+    }
+    return result;
+  }
+
   public forEachPoint<T>(callback: (p: Point) => T | null | undefined | void): T | undefined {
     for (const segment of this.segments) {
       for (const point of segment.points) {

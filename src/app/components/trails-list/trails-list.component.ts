@@ -126,6 +126,7 @@ export class TrailsListComponent extends AbstractComponent {
   state$ = new BehaviorSubject<State>(defaultState);
   filters$ = new BehaviorSubject<Filters | undefined>(undefined);
 
+  loading = true;
   collection?: TrailCollection;
   allTrails: TrailWithInfo[] = [];
   mapTrails: TrailWithInfo[] = [];
@@ -327,6 +328,7 @@ export class TrailsListComponent extends AbstractComponent {
       this.loadState();
 
     const trails$ = this.trails$ ? this.trails$.toArray() : [];
+    this.loading = true;
     this.byState.add(this.ngZone.runOutsideAngular(() =>
       combineLatest([this.visible$, this.map?.visible$ ?? of(false)]).pipe(
         map(([thisVisible, mapVisible]) => thisVisible || mapVisible),
@@ -431,6 +433,7 @@ export class TrailsListComponent extends AbstractComponent {
           const ti = this.listTrails.find(t => t.trail.uuid === h.uuid && t.trail.owner === h.owner);
           this.highlighted = ti?.trail;
         }
+        this.loading = false;
         this.changesDetection.detectChanges();
       })
     ));
