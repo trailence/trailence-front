@@ -61,7 +61,7 @@ export abstract class IndexFileReader<T> {
     let count = 0;
     const start = Date.now();
     const fileOperations = new PromiseParallel(4);
-    const indexProcess = new PromiseParallel(20);
+    const indexProcess = new PromiseParallel(32);
     const nb = elementsByKey.length;
     let resolved = 0;
     for (let i = 0; i < nb; ++i) {

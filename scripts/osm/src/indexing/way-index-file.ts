@@ -5,6 +5,7 @@ import { MemoryLimiter } from '../util/memory-limiter';
 
 export const idToWayIndex = (id: bigint) => Math.floor(Number(id / 1000000n));
 export const idToSubWayIndex = (id: bigint) => Number(id % 1000000n);
+export const wayIndexToId = (index: number, subId: number) => BigInt(index) * 1000000n + BigInt(subId);
 
 export class WayIndexesWriter {
 
@@ -42,7 +43,7 @@ export class WayIndexFileWriter extends IndexFileWriter {
     fd: Promise<FileHandle>,
     memoryLimiter: MemoryLimiter,
   ) {
-    super(fd, 8, 512, memoryLimiter);
+    super(fd, 8, 8192, memoryLimiter);
   }
 
   public async add(subId: number, tile: number) {
