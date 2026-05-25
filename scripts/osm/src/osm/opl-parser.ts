@@ -16,6 +16,24 @@ export interface ParseRelationOptions {
 }
 
 export function parseOpl(line: string, acceptNodes: ParseNodeOptions | undefined, acceptWays: ParseWayOptions | undefined, acceptRelations: ParseRelationOptions | undefined): OsmObject | undefined {
+  const type = line.charCodeAt(0);
+  switch (type) {
+    case 110: // n
+      if (!acceptNodes) return undefined;
+      return parseOplNode(parseOplElements(line), acceptNodes);
+    case 114: // r
+      if (!acceptRelations) return undefined;
+      return parseOplRelation(parseOplElements(line), acceptRelations);
+    case 119: // w
+      if (!acceptWays) return undefined;
+      return parseOplWay(parseOplElements(line), acceptWays);
+    default:
+      console.log('Unknown OPL line type', line);
+      return undefined;
+  }
+}
+
+function parseOplElements(line: string): {id: bigint, elements: Map<string, string>} | undefined {
   const firstSep = line.indexOf(' ');
   if (firstSep < 0) return undefined;
   let id;
@@ -25,22 +43,7 @@ export function parseOpl(line: string, acceptNodes: ParseNodeOptions | undefined
     return undefined;
   }
   if (Number.isNaN(id)) return undefined;
-  const type = line.charCodeAt(0);
-  switch (type) {
-    case 110: // n
-      if (!acceptNodes) return undefined;
-      return parseOplNode(id, parseOplElements(line, firstSep), acceptNodes);
-    case 114: // r
-      if (!acceptRelations) return undefined;
-      return parseOplRelation(id, parseOplElements(line, firstSep), acceptRelations);
-    case 119: // w
-      if (!acceptWays) return undefined;
-      return parseOplWay(id, parseOplElements(line, firstSep), acceptWays);
-  }
-  return undefined;
-}
 
-function parseOplElements(line: string, firstSep: number): Map<string, string> {
   const elements = new Map<string, string>();
   const len = line.length;
   let i = firstSep + 1;
@@ -52,7 +55,7 @@ function parseOplElements(line: string, firstSep: number): Map<string, string> {
     if (nextSep < 0) break;
     i = nextSep + 1;
   }
-  return elements;
+  return {id, elements};
 }
 
 function unescape(str: string): string {
@@ -81,22 +84,24 @@ function parseTags(elements: Map<string, string>): {[key: string]: string} {
   return tags;
 }
 
-function parseOplNode(id: bigint, elements: Map<string, string>, options: ParseNodeOptions): OsmNode | undefined {
-  const xElement = elements.get('x');
-  const yElement = elements.get('y');
+function parseOplNode(opl: {id: bigint, elements: Map<string, string>} | undefined, options: ParseNodeOptions): OsmNode | undefined {
+  if (!opl) return undefined;
+  const xElement = opl.elements.get('x');
+  const yElement = opl.elements.get('y');
   if (!xElement || !yElement) return undefined;
   const x = Number.parseFloat(xElement);
   const y = Number.parseFloat(yElement);
   if (Number.isNaN(x) || Number.isNaN(y)) {
-    console.warn('Invalid node x/y: ', elements);
+    console.warn('Invalid node x/y: ', opl.elements);
     return undefined;
   }
-  const tags = options.includeTags ? parseTags(elements) : {};
-  return new OsmNode(id, x, y, tags);
+  const tags = options.includeTags ? parseTags(opl.elements) : {};
+  return new OsmNode(opl.id, x, y, tags);
 }
 
-function parseOplWay(id: bigint, elements: Map<string, string>, options: ParseWayOptions): OsmWay | undefined {
-  const nodesElement = elements.get('N');
+function parseOplWay(opl: {id: bigint, elements: Map<string, string>} | undefined, options: ParseWayOptions): OsmWay | undefined {
+  if (!opl) return undefined;
+  const nodesElement = opl.elements.get('N');
   if (!nodesElement) return undefined;
   const nodes: bigint[] = [];
   if (options.includeNodesIds) {
@@ -121,12 +126,13 @@ function parseOplWay(id: bigint, elements: Map<string, string>, options: ParseWa
       return undefined;
     }
   }
-  const tags = options.includeTags ? parseTags(elements) : {};
-  return new OsmWay(id, nodes, tags);
+  const tags = options.includeTags ? parseTags(opl.elements) : {};
+  return new OsmWay(opl.id, nodes, tags);
 }
 
-function parseOplRelation(id: bigint, elements: Map<string, string>, options: ParseRelationOptions): OsmRelation | undefined {
-  const tags = options.includeTags || options.filterTags ? parseTags(elements) : {};
+function parseOplRelation(opl: {id: bigint, elements: Map<string, string>} | undefined, options: ParseRelationOptions): OsmRelation | undefined {
+  if (!opl) return undefined;
+  const tags = options.includeTags || options.filterTags ? parseTags(opl.elements) : {};
   if (options.filterTags) {
     for (const key of Object.keys(options.filterTags)) {
       const tag = tags[key];
@@ -138,7 +144,7 @@ function parseOplRelation(id: bigint, elements: Map<string, string>, options: Pa
       }
     }
   }
-  const membersElement = elements.get('M');
+  const membersElement = opl.elements.get('M');
   if (!membersElement) return undefined;
   const members: OsmRelationMember[] = [];
   let i = 0;
@@ -196,5 +202,5 @@ function parseOplRelation(id: bigint, elements: Map<string, string>, options: Pa
     if (nextSep < 0) break;
     i = nextSep + 1;
   }
-  return new OsmRelation(id, members, options.includeTags ? tags : {});
+  return new OsmRelation(opl.id, members, options.includeTags ? tags : {});
 }

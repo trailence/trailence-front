@@ -4,8 +4,8 @@ import { IndexFileReader, IndexFileWriter } from './index-file';
 import { MemoryLimiter } from '../util/memory-limiter';
 import { OsmNode } from '../osm/osm-object';
 
-export const idToNodeIndex = (id: bigint) => Math.floor(Number(id / 1000000n));
-export const idToSubNodeId = (id: bigint) => Number(id % 1000000n);
+export const idToNodeIndex = (id: bigint) => Math.floor(Number(id / 500000n));
+export const idToSubNodeId = (id: bigint) => Number(id % 500000n);
 
 export class NodeIndexesWriter {
 

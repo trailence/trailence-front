@@ -15,3 +15,15 @@ export function posTo05DegTile(lat: number, lon: number): number {
   const y = Math.floor((lat + 90) * 2);
   return y * 360 * 2 + x;
 }
+
+export function posTo025DegTile(lat: number, lon: number): number {
+  const x = Math.floor((lon + 180) * 4);
+  const y = Math.floor((lat + 90) * 4);
+  return y * 360 * 4 + x;
+}
+
+export function posTo0125DegTile(lat: number, lon: number): number {
+  const x = Math.floor((lon + 180) * 8);
+  const y = Math.floor((lat + 90) * 8);
+  return y * 360 * 8 + x;
+}

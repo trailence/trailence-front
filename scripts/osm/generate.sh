@@ -38,7 +38,7 @@ fi
 
 if [ ! -d "$TMPDIR/nodes" ]; then
   echo "Indexing nodes for ways..."
-  mkdir $TMPDIR ||true
+  mkdir $TMPDIR || true
   osmium cat "$HIGHWAYS_WITH_NODES" -f opl,add_metadata=false -o - | node --import=tsx ./src/indexing/index-nodes.ts --out=$TMPDIR/nodes
 fi
 
@@ -52,12 +52,12 @@ if [ ! -d "$OUTDIR/ways" ]; then
   osmium cat "$HIGHWAYS_WITHOUT_NODES" -f opl,add_metadata=false -o - | node --max-old-space-size=4096 --import=tsx ./src/indexing/generate-ways.ts --nodesIndexDir=$TMPDIR/nodes --waysIndexDir=$TMPDIR/ways --waysTilesDir=$OUTDIR/ways
 fi
 
-if [ ! -f "$ROUTES" ]; then
-  echo "Extracting routes..."
-  osmium tags-filter "$PLANET_FILE" r/route -R -o "$ROUTES"
-fi
+#if [ ! -f "$ROUTES" ]; then
+#  echo "Extracting routes..."
+#  osmium tags-filter "$PLANET_FILE" r/route -R -o "$ROUTES"
+#fi
 
-if [ ! -d "$OUTDIR/routes" ]; then
-  echo "Generating routes..."
-  osmium cat "$ROUTES" -f opl,add_metadata=false -o - | node --max-old-space-size=4096 --import=tsx ./src/indexing/generate-routes.ts --waysIndexDir=$TMPDIR/ways --waysTilesDir=$OUTDIR/ways --routesDir=$OUTDIR/routes
-fi
+#if [ ! -d "$OUTDIR/routes" ]; then
+#  echo "Generating routes..."
+#  osmium cat "$ROUTES" -f opl,add_metadata=false -o - | node --max-old-space-size=4096 --import=tsx ./src/indexing/generate-routes.ts --waysIndexDir=$TMPDIR/ways --waysTilesDir=$OUTDIR/ways --routesDir=$OUTDIR/routes
+#fi

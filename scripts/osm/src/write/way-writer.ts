@@ -1,12 +1,12 @@
-import { posTo05DegTile } from '../model/tiles';
+import { posTo025DegTile } from '../model/tiles';
 import { Way } from '../model/way';
 import { TilesWriter } from './tiles-writer';
 
 export async function wayToTiles(way: Way, tiles: TilesWriter): Promise<number | undefined> {
-  const mainTile = posTo05DegTile(way.points[0] / 1e7, way.points[1] / 1e7);
+  const mainTile = posTo025DegTile(way.points[0] / 1e7, way.points[1] / 1e7);
   const secondaryTiles: number[] = [];
   for (let i = 2; i < way.points.length; i += 2) {
-    const tile = posTo05DegTile(way.points[i] / 1e7, way.points[i + 1] / 1e7);
+    const tile = posTo025DegTile(way.points[i] / 1e7, way.points[i + 1] / 1e7);
     if (tile !== mainTile && !secondaryTiles.includes(tile)) secondaryTiles.push(tile);
   }
   await wayToBin(way, mainTile, tiles);
@@ -25,7 +25,7 @@ async function wayToBin(way: Way, tile: number, tiles: TilesWriter) {
   const size = 8 + 2 + way.points.length * 4 + 2 + extraSize;
   const buffer = await tiles.getTileBuffer(tile, size);
   buffer.writeInt64(way.id);
-  buffer.writeUInt16(way.points.length);
+  buffer.writeUInt16(Math.floor(way.points.length / 2));
   for (let i = 0; i < way.points.length; i += 2) {
     buffer.writeInt32(way.points[i]);
     buffer.writeInt32(way.points[i + 1]);

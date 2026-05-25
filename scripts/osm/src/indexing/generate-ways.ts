@@ -13,6 +13,7 @@ import { WayIndexesWriter, wayIndexToId } from './way-index-file';
 import { MemoryLimiter } from '../util/memory-limiter';
 import { durationToString } from '../util/util';
 import { getFileSize, listFiles, readFully } from '../util/fs-util';
+import { PromiseLimiter, PromiseParallel } from '../util/promise-limiter';
 
 const args: {[key: string]: string} = {};
 const flags = new Set<string>();
@@ -43,7 +44,8 @@ let resumeFromId: bigint = 0n;
 const WAYS_PER_ROUND = 1000000;
 
 async function generateWays() {
-  if (!flags.has('resume')) {
+  const listUnknownHighways = flags.has('list-unknown-highways');
+  if (!flags.has('resume') && !listUnknownHighways) {
     await fs.promises.mkdir(waysTilesDir);
     await fs.promises.mkdir(waysIndexDir);
   }
@@ -58,14 +60,20 @@ async function generateWays() {
   let waysCount = 0;
   let waysToProcess: {way: Way, nodesIndexes: number[], nodesSubIndexes: number[]}[] = [];
   const start = Date.now();
+  const unknownHighways = new Map<string, number>();
   for await (const line of reader) {
     if (!line.trim()) continue;
     linesCount++;
     if ((linesCount % WAYS_PER_ROUND) === 0) console.log(linesCount, 'lines');
-    const osm = parseOpl(line, undefined, {includeTags: true, includeNodesIds: true}, undefined);
+    const osm = parseOpl(line, undefined, {includeTags: true, includeNodesIds: !listUnknownHighways}, undefined);
     if (osm instanceof OsmWay) {
       if (osm.id < resumeFromId)  continue;
-      const way = osmToWayWithoutPoints(osm);
+      if (osm.nodes.length > 65535) {
+        console.log('Way contains too many nodes', osm.id, osm.nodes.length);
+        continue;
+      }
+      const way = osmToWayWithoutPoints(osm, unknownHighways);
+      if (listUnknownHighways) continue;
       if (way) {
         const toProcess: {way: Way, nodesIndexes: number[], nodesSubIndexes: number[]} = {way, nodesIndexes: [], nodesSubIndexes: []};
         for (const nodeId of osm.nodes) {
@@ -95,6 +103,10 @@ async function generateWays() {
   console.log('Closing way indexes...');
   await wayIndexes.close();
   console.log('Done in', durationToString(Date.now() - start));
+  console.log('Unknown highways found:');
+  for (const h of unknownHighways.entries()) {
+    console.log('<' + h[0] + '>', h[1]);
+  }
 }
 
 async function processWays(waysToProcess: {way: Way, nodesIndexes: number[], nodesSubIndexes: number[]}[], nodeIndexReader: NodeIndexFileReader, tiles: TilesWriter, wayIndexes: WayIndexesWriter) {
@@ -125,29 +137,35 @@ async function processWays(waysToProcess: {way: Way, nodesIndexes: number[], nod
   console.log(nodeCount, 'nodes resolved in', durationToString(Date.now() - start), 'writing ways to tiles and indexes...');
   const start2 = Date.now();
   let lastLog = start2;
-  while (waysToProcess.length > 0) {
+  let index = 0;
+  while (index < waysToProcess.length) {
     const now = Date.now();
     if (now - lastLog >= 60000) {
-      console.log(waysToProcess.length, 'ways to process after', durationToString(now - start2));
+      console.log(waysToProcess.length - index, 'ways to process after', durationToString(now - start2));
       lastLog = now;
     }
-    const way = waysToProcess.shift()!;
+    const way = waysToProcess[index++];
     if (!resolveWayPoints(way.way, way.nodesIndexes, way.nodesSubIndexes, nodesToPoint)) continue;
     const mainTile = await wayToTiles(way.way, tiles);
     if (mainTile !== undefined) {
       await wayIndexes.add(way.way.id, mainTile);
     }
+    if (index > 100000) { // to reduce memory
+      waysToProcess.splice(0, index);
+      index = 0;
+    }
   }
 }
 
 function resolveWayPoints(way: Way, nodesIndexes: number[], nodesSubIndexes: number[], resolved: Map<number, Map<number, number[]>>): boolean {
+  way.points = new Array(nodesIndexes.length * 2);
   for (let i = 0; i < nodesIndexes.length; ++i) {
     const point = resolved.get(nodesIndexes[i])?.get(nodesSubIndexes[i]);
     if (!point) {
       console.error('Point not resolved', nodesIndexes[i], nodesSubIndexes[i]);
       return false;
     }
-    way.points.push(...point);
+    way.points.push(point[0], point[1]);
   }
   return true;
 }
@@ -174,43 +192,45 @@ async function getMaxIdFromIndexes(): Promise<bigint> {
 async function getMaxIdFromTiles(): Promise<{main: bigint, ref: bigint}> {
   const files = await listFiles(waysTilesDir);
   const tiles = files.filter(name => name.endsWith('.tile')).map(name => Number.parseInt(name.substring(0, name.length - 5))).filter(i => !Number.isNaN(i) && i > 0);
-  const maxIds$ = tiles.map(tile => getMaxIdFromTile(waysTilesDir + '/' + tile + '.tile'));
+  console.log(tiles.length, 'way tiles to analyze');
+  const fileOperations = new PromiseParallel(4);
+  const maxIds$ = tiles.map(tile => getMaxIdFromTile(waysTilesDir + '/' + tile + '.tile', fileOperations));
   const result = {main: 0n, ref: 0n};
+  let done = 0;
   for (const maxId$ of maxIds$) {
     const ids = await maxId$;
+    if ((++done % 1000) === 0) {
+      console.log(done, 'tiles analyzed');
+    }
     if (ids.main > result.main) result.main = ids.main;
     if (ids.ref > result.ref) result.ref = ids.ref;
   }
   return result;
 }
 
-async function getMaxIdFromTile(file: string): Promise<{main: bigint, ref: bigint}> {
-  const fd = await fs.promises.open(file, 'r');
-  const header = Buffer.allocUnsafe(10);
+async function getMaxIdFromTile(file: string, fileOperations: PromiseLimiter): Promise<{main: bigint, ref: bigint}> {
+  const buffer = await (fileOperations.push(() => fs.promises.readFile(file)));
   let offset = 0;
   let maxMainId: bigint = 0n;
   let maxReferenceId: bigint = 0n;
   do {
-    let read = await readFully(fd, header, 0, 10, offset);
-    if (read === 0) break;
-    if (read < 10) throw new Error('Only ' + read + ' bytes read at ' + offset + ' from ' + file);
+    if (buffer.byteLength - offset === 0) break;
+    if (buffer.byteLength - offset < 10) throw new Error('Only ' + (buffer.byteLength - offset) + ' bytes at ' + offset + ' from ' + file);
     offset += 10;
-    const id = header.readBigInt64LE(0);
-    const nbPoints = header.readUint16LE(8);
+    const id = buffer.readBigInt64LE(offset);
+    const nbPoints = buffer.readUint16LE(offset + 8);
     if (nbPoints === 0) {
       // reference
       if (id > maxReferenceId) maxReferenceId = id;
       offset += 4;
       continue;
     }
-    offset += nbPoints * 4;
-    read = await readFully(fd, header, 0, 2, offset);
-    if (read < 2) throw new Error('Only ' + read + ' bytes read at ' + offset + ' from ' + file);
-    const extraSize = header.readUint16LE(0);
+    offset += nbPoints * 8;
+    if (buffer.byteLength - offset < 2) throw new Error('Only ' + (buffer.byteLength - offset) + ' bytes at ' + offset + ' from ' + file);
+    const extraSize = buffer.readUint16LE(offset);
     offset += 2 + extraSize;
     if (id > maxMainId) maxMainId = id;
   } while (true);
-  await fd.close();
   if (offset === 0) {
     console.log('remove empty tile', file);
     await fs.promises.unlink(file);
@@ -334,7 +354,9 @@ async function computeResumeId(firstPass: boolean) {
   let minMaxId = maxIdFromIndex;
   if (maxIdFromTiles.main < minMaxId) minMaxId = maxIdFromTiles.main;
   if (maxIdFromTiles.ref < minMaxId) minMaxId = maxIdFromTiles.ref;
+  if (minMaxId == 0n) throw new Error('Max id is 0... cannot resume');
   minMaxId -= BigInt(WAYS_PER_ROUND); // make sure we redo at least the last round
+  if (minMaxId <= 0n) throw new Error('Max id is too small to resume');
   console.log('Truncate indexes');
   await truncateIndexes(minMaxId);
   console.log('Truncate tiles');

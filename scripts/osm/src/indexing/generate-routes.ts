@@ -120,6 +120,7 @@ async function processRoutes(
     subWaysIdsByIndex.push({index: e[0], subIds: Array.from(e[1])});
   }
   mapByIndex.clear();
+  subWaysIdsByIndex.sort((k1,k2) => k1.subIds.length < k2.subIds.length ? -1 : (k1.subIds.length > k2.subIds.length ? 1 : (k1.index < k2.index ? -1 : 1)));
   const waysTiles = await waysIndexes.resolveElements(subWaysIdsByIndex);
   console.log('Ways resolved into tiles');
   const mapByTile = new Map<number, Map<number, number[]>>();

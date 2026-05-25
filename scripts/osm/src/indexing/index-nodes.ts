@@ -42,12 +42,14 @@ async function indexNodes() {
   for await (const line of reader) {
     if (!line.trim()) continue;
     linesCount++;
-    const osm = parseOpl(line, {includeTags: false}, undefined);
+    const osm = parseOpl(line, {includeTags: false}, undefined, undefined);
     if (osm instanceof OsmNode) {
       await indexes.add(osm);
       if (++nodesCount % 10000000 === 0) {
         console.log('lines processed so far: ' + linesCount.toLocaleString() + '; ' + nodesCount.toLocaleString() + ' nodes, ' + durationToString(Date.now() - start));
       }
+    } else if ((linesCount % 1000000) === 0) {
+      console.log(linesCount, 'lines');
     }
   }
   console.log('Done: ' + linesCount.toLocaleString() + ' lines processed, ' + nodesCount.toLocaleString() + ' nodes');

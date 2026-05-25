@@ -23,6 +23,7 @@ export enum WayType {
   TRACK = 2,
   STEPS = 3,
   VIA_FERRATA = 4,
+  LADDER = 5,
 }
 
 export enum WaySurface {

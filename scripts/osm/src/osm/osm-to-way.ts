@@ -1,7 +1,7 @@
 import { HikingDifficulty, Way, WayPermission, WaySurface, WayType, WayVisibility } from '../model/way';
 import { OsmObject, OsmWay } from './osm-object';
 
-export function osmToWayWithoutPoints(osm: OsmObject): Way | undefined {
+export function osmToWayWithoutPoints(osm: OsmObject, unknownTypes: Map<string, number>): Way | undefined {
   if (!(osm instanceof OsmWay)) return undefined;
   const genericPermissions = toWayPermission(osm.tags['access']);
   const footPermission = toWayPermission(osm.tags['foot']) || genericPermissions;
@@ -22,7 +22,7 @@ export function osmToWayWithoutPoints(osm: OsmObject): Way | undefined {
     case 'living_street': case 'service': case 'bus_guideway': case 'escape': case 'road': case 'busway':
       way.type = WayType.MAIN;
       break;
-    case 'pedestrian': case 'footway':
+    case 'pedestrian': case 'footway': case 'crossing':
       way.type = WayType.MAIN;
       if (!way.footPermission) way.footPermission = WayPermission.ALLOWED;
       break;
@@ -32,6 +32,7 @@ export function osmToWayWithoutPoints(osm: OsmObject): Way | undefined {
       if (!way.bicyclePermission) way.bicyclePermission = WayPermission.FORBIDDEN;
       break;
     case 'track': case 'path':
+    case 'trail': // deprecated
       way.type = WayType.TRACK;
       break;
     case 'cycleway':
@@ -43,16 +44,30 @@ export function osmToWayWithoutPoints(osm: OsmObject): Way | undefined {
     case 'steps':
       way.type = WayType.STEPS;
       break;
+    case 'ladder':
+      way.type = WayType.LADDER;
+      break;
     case 'via_ferrata':
       way.type = WayType.VIA_FERRATA;
       break;
     case 'construction': case 'proposed': case 'rest_area': case 'no': case 'corridor': case 'platform': case 'disused': case 'elevator':
-    case 'razed': case 'services': case 'planned': case 'closed': case 'seasonal': case 'abandoned': case 'private':
+    case 'razed': case 'services': case 'planned': case 'closed': case 'seasonal': case 'abandoned': case 'private': case 'destroyed':
+    case 'residential_link': case 'emergency_bay': case 'turning_circle': case 'turning_loop': case 'bus_stop': case 'traffic_calming':
+    case 'trailhead': case 'dummy': case 'emergency_access_point': case 'scramble': case 'virtual': case 'demolition': case 'traffic_island':
+    case 'demolished': case 'unclassified_link': case 'link':
+    case 'piste': // TODO ?
       return undefined;
     case 'yes': break;
-    default:
-      console.log('unknown highway type', osm.tags['highway'], osm);
+    default: {
+      let count = unknownTypes.get(osm.tags['highway']);
+      if (count) {
+        unknownTypes.set(osm.tags['highway'], count + 1);
+      } else {
+        unknownTypes.set(osm.tags['highway'], 1);
+        console.log('unknown highway type', osm.tags['highway'], osm);
+      }
       return undefined;
+    }
   }
   const trackType = osm.tags['tracktype'];
   if (trackType) {
