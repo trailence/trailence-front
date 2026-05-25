@@ -124,6 +124,21 @@ export class Track extends Owned {
     }
   }
 
+  public moveWayPointAt(currentIndex: number, newIndex: number): void {
+    if (currentIndex === newIndex) return;
+    const nb = this._wayPoints.value.length;
+    if (currentIndex < 0 || currentIndex >= nb) return;
+    if (newIndex < 0 || newIndex >= nb) return;
+    const wp = this._wayPoints.value.splice(currentIndex, 1)[0];
+    if (newIndex === nb - 1)
+      this._wayPoints.value.push(wp);
+    else if (newIndex < currentIndex)
+      this._wayPoints.value.splice(newIndex, 0, wp);
+    else
+      this._wayPoints.value.splice(newIndex - 1, 0, wp);
+    this._wayPoints.next(this._wayPoints.value);
+  }
+
   public removeEmptySegments(): void {
     let changed = false;
     for (let i = 0; i < this._segments.value.length; ++i) {
@@ -485,6 +500,7 @@ export class ComputedWayPoint {
     private readonly _nearestPointIndex: number | undefined,
     track: Track,
     public readonly isComputedOnly: boolean,
+    public readonly otherPossibleIndexes: {newIndex: number, segmentIndex: number, pointIndex: number}[] = [],
   ) {
     const hasDuration = track.metadata.duration !== undefined;
     if (_nearestSegmentIndex !== undefined) {
@@ -659,6 +675,7 @@ export class ComputedWayPoint {
     for (const c of computed) {
       if (!c.isDeparture && (!c.isArrival || !c.isComputedOnly) && !c.breakPoint) c._index = index++;
     }
+    this.addOtherPossibleIndexes(track, computed);
     return computed;
   }
 
@@ -882,7 +899,59 @@ export class ComputedWayPoint {
       previous = segment;
       previousIndex = si;
     }
+  }
 
+  private static addOtherPossibleIndexes(track: Track, list: ComputedWayPoint[]) {
+    for (const wp of list) {
+      if (wp._index >= 0) this.addOtherPossibleIndexesFor(track, wp, list);
+    }
+  }
+
+  private static addOtherPossibleIndexesFor(track: Track, wp: ComputedWayPoint, list: ComputedWayPoint[]) {
+    const segments = track.segments;
+    let currentBestSi = -1;
+    let currentBestPi = -1;
+    let currentBestDistance = 0;
+    for (let si = 0; si < segments.length; ++si) {
+      const segment = segments[si];
+      const points = segment.points;
+      for (let pi = 0; pi < points.length; ++pi) {
+        const point = points[pi];
+        const d = point.distanceTo(wp.wayPoint.point.pos);
+        if (d < 25) {
+          if (currentBestSi === -1 || d < currentBestDistance) {
+            currentBestSi = si;
+            currentBestPi = pi;
+            currentBestDistance = d;
+          }
+        } else if (currentBestSi !== -1) {
+          // area left
+          this.addPossibleIndexFor(wp, list, currentBestSi, currentBestPi);
+          currentBestSi = -1;
+        }
+      }
+    }
+    if (currentBestSi !== -1) {
+      // area left
+      this.addPossibleIndexFor(wp, list, currentBestSi, currentBestPi);
+    }
+  }
+
+  private static addPossibleIndexFor(wp: ComputedWayPoint, list: ComputedWayPoint[], si: number, pi: number) {
+    let maxIndex = 0;
+    for (const cwp of list) {
+      if (cwp._index < 0) continue;
+      if (cwp._index > maxIndex) maxIndex = cwp._index;
+      if (cwp.nearestSegmentIndex === undefined || cwp.nearestPointIndex === undefined) continue;
+      if (cwp.nearestSegmentIndex > si || cwp.nearestSegmentIndex === si && cwp.nearestPointIndex >= pi) {
+        if (wp === cwp) return;
+        if (wp.otherPossibleIndexes.some(i => cwp._index === i.newIndex)) return;
+        wp.otherPossibleIndexes.push({newIndex: cwp._index, segmentIndex: si, pointIndex: pi});
+        return;
+      }
+    }
+    if (wp.otherPossibleIndexes.some(i => i.newIndex === maxIndex)) return;
+    wp.otherPossibleIndexes.push({newIndex: maxIndex, segmentIndex: si, pointIndex: pi});
   }
 
 }

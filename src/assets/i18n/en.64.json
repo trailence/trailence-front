@@ -1436,6 +1436,8 @@
         "remove_waypoint": "Remove the waypoint",
         "edit_waypoint": "Edit the waypoint",
         "move_waypoint": "Move the waypoint",
+        "move_waypoint_index": "Change order",
+        "move_waypoint_index_submenu": "Move to position",
         "popup": {
           "title": "Waypoint"
         },

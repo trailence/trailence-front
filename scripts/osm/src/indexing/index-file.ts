@@ -64,18 +64,25 @@ export abstract class IndexFileReader<T> {
     const indexProcess = new PromiseParallel(128);
     const nb = elementsByKey.length;
     let resolved = 0;
-    const resolve: ((entry: {index: number; subIds: number[]}) => Promise<Map<number, T>>) = entry =>
+    let lastLog = start;
+    const resolve: ((entry: {index: number; subIds: number[]}) => Promise<any>) = entry =>
       this.resolveElementsFromFile(entry.index, entry.subIds, fileOperations)
       .then(map => {
         output.set(entry.index, map);
         resolved += map.size;
-        if ((++count % 1000) === 0) console.log(' +', count, 'indexes processed', resolved, 'resolved after', durationToString(Date.now() - start));
-        return map;
+        const now = Date.now();
+        count++;
+        if ((now - lastLog) >= 60000) {
+          console.log(' +', count, 'indexes processed', resolved, 'resolved after', durationToString(now - start));
+          lastLog = now;
+        }
       });
     while (elementsByKey.length > 0) {
-      const e1 = elementsByKey.pop();
-      if (!e1) break;
-      promises.push(indexProcess.push(() => resolve(e1)));
+      for (let i = 0; i < 3; ++i) {
+        const e1 = elementsByKey.pop();
+        if (!e1) break;
+        promises.push(indexProcess.push(() => resolve(e1)));
+      }
       const e2 = elementsByKey.shift();
       if (!e2) break;
       promises.push(indexProcess.push(() => resolve(e2)));

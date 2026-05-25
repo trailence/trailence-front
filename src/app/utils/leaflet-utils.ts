@@ -1,5 +1,4 @@
 import * as L from 'leaflet';
-import { copyPoint } from '../model/point-descriptor';
 
 export class LeafletUtils {
 

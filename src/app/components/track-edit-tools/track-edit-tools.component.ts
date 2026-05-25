@@ -49,6 +49,7 @@ import { ArrivalToStart } from './tools/path/arrival-to-start';
 import { MoveWayPointTool } from './tools/way-points/move-way-point';
 import { WayPoint } from 'src/app/model/way-point';
 import { CalibrateElevationWithProvider } from './tools/elevation/calibrate';
+import { MoveWayPointIndexTool } from './tools/way-points/move-way-point-index';
 
 interface TrackEditToolsState {
   originalTrack?: Track;
@@ -86,11 +87,9 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
       .setI18nLabel(() => 'track_edit_tools.tools.' + tool.labelKey(this.context))
       .setBackgroundColor(tool.backgroundColor)
       .setTextColor(tool.textColor)
-      .setAction(() => {
-        tool.execute(this.context);
-      })
       .setVisible(() => tool.isAvailable(this.context))
       .setData(tool)
+      .setAction(() => tool.execute(this.context))
       ;
   }
   interactiveToolsMarkerStart = new MenuItem();
@@ -122,13 +121,18 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
       ]),
     new MenuItem().setIcon('location').setI18nLabel('track_edit_tools.categories.way_point')
       .setVisible(() => !this.interactiveTool)
-      .setChildren([
-        new MenuItem().setIcon('location').setI18nLabel('track_edit_tools.categories.way_point').setTextColor('secondary'),
-        this.toMenuItem(new CreateWayPointTool()),
-        this.toMenuItem(new EditWayPointTool()),
-        this.toMenuItem(new MoveWayPointTool()),
-        this.toMenuItem(new RemoveWayPointTool()),
-      ]),
+      .setChildrenProvider(() => MoveWayPointIndexTool.getMenu(this.context).pipe(
+        map(menu => {
+          return [
+            new MenuItem().setIcon('location').setI18nLabel('track_edit_tools.categories.way_point').setTextColor('secondary'),
+            this.toMenuItem(new CreateWayPointTool()),
+            this.toMenuItem(new EditWayPointTool()),
+            this.toMenuItem(new MoveWayPointTool()),
+            ...menu,
+            this.toMenuItem(new RemoveWayPointTool()),
+          ];
+        })
+      )),
     new MenuItem().setIcon('elevation').setI18nLabel('track_edit_tools.categories.elevation')
       .setVisible(() => !this.interactiveTool)
       .setChildren([

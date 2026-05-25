@@ -281,6 +281,30 @@ export class TrackUtils {
     return closest;
   }
 
+  public static putWayPointAtIndexForFirstExactPosition(track: Track, wp: WayPoint): void {
+    const all = track.wayPoints;
+    const currentIndex = all.indexOf(wp);
+    if (currentIndex < 0) return;
+    let newIndex = 0;
+    for (const segment of track.segments) {
+      for (const point of segment.points) {
+        if (samePositionRound(point.pos, wp.point.pos)) {
+          console.log('move', currentIndex, newIndex);
+          track.moveWayPointAt(currentIndex, newIndex);
+          return;
+        }
+        for (let i = newIndex; i < all.length; ++i) {
+          if (i === currentIndex) continue;
+          const w = all[i];
+          if (samePositionRound(w.point.pos, point.pos)) {
+            newIndex++;
+            break;
+          }
+        }
+      }
+    }
+  }
+
   public static inRange(segmentIndex: number, pointIndex: number, startSegmentIndex: number, startPointIndex: number, endSegmentIndex: number, endPointIndex: number): boolean {
     if (segmentIndex < startSegmentIndex || segmentIndex > endSegmentIndex) return false;
     if (segmentIndex === startSegmentIndex && pointIndex < startPointIndex) return false;

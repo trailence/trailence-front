@@ -51,6 +51,7 @@ export class MoveWayPointTool implements TrackEditTool {
         if (wp) {
           wp.point.pos = {...newPos.point.pos};
           wp.point.ele = newPos.point.ele;
+          TrackUtils.putWayPointAtIndexForFirstExactPosition(editionTrack, wp);
         }
         iCtx.endEditTrack();
         stop(iCtx);

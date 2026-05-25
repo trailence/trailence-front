@@ -32,10 +32,10 @@ export function samePosition(p1?: L.LatLngLiteral, p2?: L.LatLngLiteral): boolea
 }
 
 export function samePositionRound(p1: L.LatLngLiteral, p2: L.LatLngLiteral, roundFactor = 1000000): boolean {
-  const lat1 = Math.floor(p1.lat * roundFactor);
-  const lng1 = Math.floor(p1.lng * roundFactor);
-  const lat2 = Math.floor(p2.lat * roundFactor);
-  const lng2 = Math.floor(p2.lng * roundFactor);
+  const lat1 = Math.round(p1.lat * roundFactor);
+  const lng1 = Math.round(p1.lng * roundFactor);
+  const lat2 = Math.round(p2.lat * roundFactor);
+  const lng2 = Math.round(p2.lng * roundFactor);
   return Math.abs(lat1 - lat2) <= 1 && Math.abs(lng1 - lng2) <= 1;
 
 }

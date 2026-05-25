@@ -1439,6 +1439,8 @@
         "remove_waypoint": "Supprimer l'étape",
         "edit_waypoint": "Modifier l'étape",
         "move_waypoint": "Déplacer l'étape",
+        "move_waypoint_index": "Modifier l'ordre",
+        "move_waypoint_index_submenu": "Déplacer en position",
         "popup": {
           "title": "Étape"
         },

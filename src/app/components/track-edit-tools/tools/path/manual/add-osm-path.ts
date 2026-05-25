@@ -33,7 +33,7 @@ export class AddOsmPath extends AddPointsTool {
   private possibleWays: WayAndMapTrack[] = [];
   private possibleWaysFromCursor: WayAndMapTrack[] = [];
 
-  private init(ctx: AddPointsContext): void {
+  private _init(ctx: AddPointsContext): void {
     for (const w of this.possibleWays) ctx.map.removeTrack(w.mapTrack);
     for (const w of this.possibleWaysFromCursor) ctx.map.removeTrack(w.mapTrack);
     this.possibleWaysFromCursor = [];
@@ -70,10 +70,10 @@ export class AddOsmPath extends AddPointsTool {
           mapTrack.data = way;
           return mapTrack;
         });
-        this.init(ctx);
+        this._init(ctx);
       });
     } else {
-      this.init(ctx);
+      this._init(ctx);
     }
 
     this.anchorMapOverSubscription = ctx.map.mouseOverPoint.subscribe(refs => {

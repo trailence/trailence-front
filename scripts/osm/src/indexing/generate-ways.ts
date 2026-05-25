@@ -84,7 +84,7 @@ async function generateWays() {
         waysCount++;
         if (waysToProcess.length >= WAYS_PER_ROUND) {
           const startProcess = Date.now();
-          console.log('Flushing ways after ' + linesCount.toLocaleString() + ' lines; ' + waysCount.toLocaleString() + ' ways; ' + durationToString(startProcess - start));
+          console.log('Flushing ways after ' + linesCount.toLocaleString() + ' lines; ' + waysCount.toLocaleString() + ' ways; ' + durationToString(startProcess - start) + '; ' + new Date().toISOString());
           const nb = waysToProcess.length;
           await processWays(waysToProcess, nodeIndexReader, tiles, wayIndexes);
           console.log('==>', nb, ' ways processed in', durationToString(Date.now() - startProcess), 'total', waysCount, 'in', durationToString(Date.now() - start));
@@ -150,7 +150,7 @@ async function processWays(waysToProcess: {way: Way, nodesIndexes: number[], nod
     if (mainTile !== undefined) {
       await wayIndexes.add(way.way.id, mainTile);
     }
-    if (index > 100000) { // to reduce memory
+    if (index > 250000) { // to reduce memory
       waysToProcess.splice(0, index);
       index = 0;
     }

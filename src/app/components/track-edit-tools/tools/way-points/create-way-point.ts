@@ -43,6 +43,7 @@ export class CreateWayPointTool implements TrackEditTool {
           modal.onDidDismiss().then(result => {
             if (result.role === 'ok') {
               track.appendWayPoint(wp);
+              TrackUtils.putWayPointAtIndexForFirstExactPosition(track, wp);
             }
             subscriber.complete();
           });
