@@ -41,7 +41,14 @@ const waysTilesDir = expandHome(args['waysTilesDir']);
 const waysIndexDir = expandHome(args['waysIndexDir']);
 const nodesIndexDir = expandHome(args['nodesIndexDir']);
 let resumeFromId: bigint = 0n;
-const WAYS_PER_ROUND = 1000000;
+let WAYS_PER_ROUND = 1000000;
+if (args['waysPerRound'] && !Number.isNaN(Number.parseInt(args['waysPerRound'])))
+  WAYS_PER_ROUND = Number.parseInt(args['waysPerRound']);
+let STOP_AFTER_WAYS = -1;
+if (args['stopAfterWays'] && !Number.isNaN(Number.parseInt(args['stopAfterWays'])))
+  STOP_AFTER_WAYS = Number.parseInt(args['stopAfterWays']);
+
+const shutingDown: { get: () => boolean } = { get: () => false };
 
 async function generateWays() {
   const listUnknownHighways = flags.has('list-unknown-highways');
@@ -62,6 +69,7 @@ async function generateWays() {
   const start = Date.now();
   const unknownHighways = new Map<string, number>();
   for await (const line of reader) {
+    if (shutingDown.get()) break;
     if (!line.trim()) continue;
     linesCount++;
     if ((linesCount % WAYS_PER_ROUND) === 0) console.log(linesCount, 'lines');
@@ -70,6 +78,9 @@ async function generateWays() {
       if (osm.id < resumeFromId)  continue;
       if (osm.nodes.length > 65535) {
         console.log('Way contains too many nodes', osm.id, osm.nodes.length);
+        continue;
+      }
+      if (osm.nodes.length === 0) {
         continue;
       }
       const way = osmToWayWithoutPoints(osm, unknownHighways);
@@ -82,6 +93,7 @@ async function generateWays() {
         }
         waysToProcess.push(toProcess);
         waysCount++;
+        if (STOP_AFTER_WAYS > 0 && waysCount >= STOP_AFTER_WAYS) break;
         if (waysToProcess.length >= WAYS_PER_ROUND) {
           const startProcess = Date.now();
           console.log('Flushing ways after ' + linesCount.toLocaleString() + ' lines; ' + waysCount.toLocaleString() + ' ways; ' + durationToString(startProcess - start) + '; ' + new Date().toISOString());
@@ -93,7 +105,7 @@ async function generateWays() {
       }
     }
   }
-  if (waysToProcess.length > 0)
+  if (waysToProcess.length > 0 && !shutingDown.get())
     await processWays(waysToProcess, nodeIndexReader, tiles, wayIndexes);
   console.log('' + linesCount.toLocaleString() + ' lines found, ' + waysCount.toLocaleString() + ' ways found');
   console.log('Flushing tiles...');
@@ -131,14 +143,15 @@ async function processWays(waysToProcess: {way: Way, nodesIndexes: number[], nod
   nodesByKey = undefined; // GC
   const start = Date.now();
   sortedSubNodesByKey.sort((k1,k2) => k1.subIds.length < k2.subIds.length ? -1 : (k1.subIds.length > k2.subIds.length ? 1 : (k1.index < k2.index ? -1 : 1)));
+  if (shutingDown.get()) return;
   console.log('Resolving', nodeCount, 'nodes from', sortedSubNodesByKey.length, 'indexes for', waysToProcess.length, 'ways');
-  const nodesToPoint = await nodeIndexReader.resolveElements(sortedSubNodesByKey);
+  const nodesToPoint = await nodeIndexReader.resolveElements(sortedSubNodesByKey, shutingDown);
   sortedSubNodesByKey = undefined;
   console.log(nodeCount, 'nodes resolved in', durationToString(Date.now() - start), 'writing ways to tiles and indexes...');
   const start2 = Date.now();
   let lastLog = start2;
   let index = 0;
-  while (index < waysToProcess.length) {
+  while (index < waysToProcess.length && !shutingDown.get()) {
     const now = Date.now();
     if (now - lastLog >= 60000) {
       console.log(waysToProcess.length - index, 'ways to process after', durationToString(now - start2));
@@ -165,7 +178,8 @@ function resolveWayPoints(way: Way, nodesIndexes: number[], nodesSubIndexes: num
       console.error('Point not resolved', nodesIndexes[i], nodesSubIndexes[i]);
       return false;
     }
-    way.points.push(point[0], point[1]);
+    way.points[i * 2] = point[0];
+    way.points[i * 2 + 1] = point[1];
   }
   return true;
 }
@@ -379,4 +393,22 @@ if (flags.has('resume'))
 
 p = p.then(() => generateWays());
 
-p.catch(e => console.error(e));
+p.catch(e => console.error(e)).then(() => {
+  console.log('Exiting');
+  process.exit(0);
+});
+
+let gracefulShutdownStarted = false;
+function gracefulShutdown(signal: string) {
+  if (gracefulShutdownStarted) {
+    console.log(`Received ${signal}, graceful shutdown already started, exiting`);
+    process.exit(1);
+    return;
+  }
+  console.log(`Received ${signal}, starting graceful shutdown`);
+  shutingDown.get = () => true;
+  gracefulShutdownStarted = true;
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'))
+process.on('SIGINT', () => gracefulShutdown('SIGINT'))

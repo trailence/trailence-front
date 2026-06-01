@@ -1,10 +1,11 @@
 import fs from 'node:fs';
 import { Buf } from '../util/util';
 import { MemoryLimiter } from '../util/memory-limiter';
+import { FileAppender } from '../util/file-appender';
 
 interface Tile {
   buf: Buf;
-  op: Promise<any>;
+  fileAppender: FileAppender;
 }
 
 export class TilesWriter {
@@ -19,28 +20,18 @@ export class TilesWriter {
       if (t.buf.remaining >= size) return t.buf;
       const buf = t.buf;
       t.buf = new Buf(Math.max(this.bufferSize, size));
-      const op = t.op.then(() => this.append(tile, buf));
-      t.op = op;
-      await this.memoryLimiter.add(op, buf.buffer.length);
+      await t.fileAppender.append(buf);
       return t.buf;
     }
-    t = { buf: new Buf(Math.max(this.bufferSize, size)), op: Promise.resolve() }
+    t = { buf: new Buf(Math.max(this.bufferSize, size)), fileAppender: new FileAppender(this.dir + '/' + tile + '.tile', this.memoryLimiter) }
     this.tiles.set(tile, t);
     return t.buf;
   }
 
-  private async append(tile: number, buf: Buf) {
-    const fd = await fs.promises.open(this.dir + '/' + tile + '.tile', 'a');
-    await fd.write(buf.buffer, 0, buf.offset);
-    await fd.close();
-  }
-
   public async close() {
-    for (const tile of this.tiles.entries()) {
-      const key = tile[0];
-      const t = tile[1];
-      if (t.buf.offset > 0) t.op = t.op.then(() => this.append(key, t.buf));
-      await t.op;
+    for (const tile of this.tiles.values()) {
+      if (tile.buf.offset > 0) tile.fileAppender.append(tile.buf);
+      await tile.fileAppender.close();
     }
     this.tiles.clear();
   }

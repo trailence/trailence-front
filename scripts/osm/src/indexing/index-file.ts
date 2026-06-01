@@ -55,7 +55,7 @@ export abstract class IndexFileReader<T> {
     this.dichotomySize = dichotomyNbEntries * this.entrySize;
   }
 
-  public async resolveElements(elementsByKey: {index: number; subIds: number[]}[]): Promise<Map<number, Map<number, T>>> {
+  public async resolveElements(elementsByKey: {index: number; subIds: number[]}[], shutingDown: {get: () => boolean}): Promise<Map<number, Map<number, T>>> {
     const promises: Promise<any>[] = [];
     const output = new Map<number, Map<number, T>>();
     let count = 0;
@@ -66,7 +66,7 @@ export abstract class IndexFileReader<T> {
     let resolved = 0;
     let lastLog = start;
     const resolve: ((entry: {index: number; subIds: number[]}) => Promise<any>) = entry =>
-      this.resolveElementsFromFile(entry.index, entry.subIds, fileOperations)
+      this.resolveElementsFromFile(entry.index, entry.subIds, fileOperations, shutingDown)
       .then(map => {
         output.set(entry.index, map);
         resolved += map.size;
@@ -98,29 +98,32 @@ export abstract class IndexFileReader<T> {
   private readonly learnEvery: number;
   private readonly dichotomySize: number;
 
-  private async resolveElementsFromFile(indexKey: number, subIds: number[], fileOperations: PromiseLimiter): Promise<Map<number, T>> {
+  private async resolveElementsFromFile(indexKey: number, subIds: number[], fileOperations: PromiseLimiter, shutingDown: {get: () => boolean}): Promise<Map<number, T>> {
+    const output = new Map<number, T>();
+    if (shutingDown.get()) return output;
     let pfd = fs.promises.open(this.dir + '/' + indexKey, 'r');
     let fileLearning = this.learnt.get(indexKey);
     if (!fileLearning) {
       fileLearning = [];
       this.learnt.set(indexKey, fileLearning);
     }
+    const initialNb = subIds.length;
     let offset = this.getNextOffset(0 - this.bufferSize, fileLearning, subIds[0]);
     const buffer = Buffer.allocUnsafe(this.bufferSize);
-    const output = new Map<number, T>();
     let fd = await pfd;
     do {
       const read = await fileOperations.push(() => readFully(fd, buffer, 0, this.bufferSize, offset));
       if ((read % this.entrySize) !== 0) throw new Error('Invalid index ' + indexKey + ' ? ' + read + ' bytes read at ' + offset);
+      if (read === 0) break;
       await this.resolveBuffer(buffer, 0, read, subIds, output, fileLearning, offset);
       if (read < this.bufferSize) break;
       if (subIds.length === 0) break;
       const nextOffset = this.getNextOffset(offset, fileLearning, subIds[0]);
       if (nextOffset < offset + this.bufferSize) throw new Error('Unexpected next offset');
       offset = nextOffset;
-    } while (true);
-    if (subIds.length > 0) throw new Error('Elements not found in index ' + indexKey + ': ' + subIds.length + ': ' + subIds);
+    } while (!shutingDown.get());
     fd.close();
+    if (subIds.length > 0) throw new Error('Elements not found in index ' + indexKey + ': ' + subIds.length + ': ' + subIds + '; offset = ' + offset + '; found = ' + output.size + '/' + initialNb);
     return output;
   }
 
@@ -152,6 +155,7 @@ export abstract class IndexFileReader<T> {
       this.resolveElement(buffer, to - this.entrySize, lastId, output);
       sorted.splice(lastIndex, 1);
     }
+    to -= this.entrySize;
     if (to - from > this.dichotomySize) {
       await this.resolveBuffer(buffer, from, from + this.dichotomySize, sorted, output, undefined, offset);
       if (sorted.length === 0 || sorted[0] > lastId) return;
@@ -162,15 +166,16 @@ export abstract class IndexFileReader<T> {
         from = to - this.dichotomySize;
       }
     }
-    for (let i = from; i < to - this.entrySize; i += this.entrySize) {
+    let sortedIndex = 0;
+    for (let i = from; i < to; i += this.entrySize) {
       const id = buffer.readUInt32LE(i);
-      if (sorted[0] === id) {
+      if (sorted[sortedIndex] === id) {
         this.resolveElement(buffer, i, id, output);
-        sorted.shift();
-        if (sorted.length === 0) return;
-        if (sorted[0] > lastId) return;
+        sortedIndex++;
+        if (sortedIndex >= sorted.length || sorted[sortedIndex] > lastId) break;
       }
     }
+    if (sortedIndex > 0) sorted.splice(0, sortedIndex);
   }
 
   private resolveElement(buffer: Buffer, pos: number, id: number, output: Map<number, T>) {
