@@ -1,12 +1,12 @@
-import { posTo025DegTile } from '../model/tiles';
+import { posTo0125DegTile } from '../model/tiles';
 import { Way } from '../model/way';
 import { TilesWriter } from './tiles-writer';
 
 export async function wayToTiles(way: Way, tiles: TilesWriter): Promise<number | undefined> {
-  const mainTile = posTo025DegTile(way.points[0] / 1e7, way.points[1] / 1e7);
+  const mainTile = posTo0125DegTile(way.points[0] / 1e7, way.points[1] / 1e7);
   const secondaryTiles: number[] = [];
   for (let i = 2; i < way.points.length; i += 2) {
-    const tile = posTo025DegTile(way.points[i] / 1e7, way.points[i + 1] / 1e7);
+    const tile = posTo0125DegTile(way.points[i] / 1e7, way.points[i + 1] / 1e7);
     if (tile !== mainTile && !secondaryTiles.includes(tile)) secondaryTiles.push(tile);
   }
   await wayToBin(way, mainTile, tiles);

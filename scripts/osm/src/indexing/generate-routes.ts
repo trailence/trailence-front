@@ -34,6 +34,8 @@ const waysIndexDir = expandHome(args['waysIndexDir']);
 const waysTilesDir = expandHome(args['waysTilesDir']);
 const routesDir = expandHome(args['routesDir']);
 
+const shutingDown: { get: () => boolean } = { get: () => false };
+
 interface RouteToResolve {
   route: Route;
   waysIndexes: number[];
@@ -55,6 +57,7 @@ async function generateRoutes() {
   const waysIndexes = new WayIndexFileReader(waysIndexDir);
   for await (const line of reader) {
     if (!line.trim()) continue;
+    if (shutingDown.get()) break;
     lineCount++;
     const osm = parseOpl(line, undefined, undefined, {
       includeTags: true,
@@ -115,13 +118,15 @@ async function processRoutes(
   mapByIndex: Map<number, Set<number>>,
   waysIndexes: WayIndexFileReader,
 ) {
+  if (shutingDown.get()) return;
   const subWaysIdsByIndex: {index: number, subIds: number[]}[] = [];
   for (const e of mapByIndex.entries()) {
     subWaysIdsByIndex.push({index: e[0], subIds: Array.from(e[1])});
   }
   mapByIndex.clear();
   subWaysIdsByIndex.sort((k1,k2) => k1.subIds.length < k2.subIds.length ? -1 : (k1.subIds.length > k2.subIds.length ? 1 : (k1.index < k2.index ? -1 : 1)));
-  const waysTiles = await waysIndexes.resolveElements(subWaysIdsByIndex);
+  const waysTiles = await waysIndexes.resolveElements(subWaysIdsByIndex, shutingDown);
+  if (shutingDown.get()) return;
   console.log('Ways resolved into tiles');
   const mapByTile = new Map<number, Map<number, number[]>>();
   for (const indexEntry of waysTiles.entries()) {
@@ -141,6 +146,7 @@ async function processRoutes(
     }
   }
   waysTiles.clear(); // GC
+  if (shutingDown.get()) return;
   console.log('Matching routes and ways using', mapByTile.size, 'tiles');
   for (const tileEntry of mapByTile.entries()) {
     const tileNumber = tileEntry[0];
@@ -237,4 +243,22 @@ async function processTile(tile: number, waysIdsMap: Map<number, number[]>, rout
   await fs.promises.rename(waysTilesDir + '/' + tile + '.tmp', waysTilesDir + '/' + tile + '.tile');
 }
 
-generateRoutes().catch(e => console.error(e));
+generateRoutes().catch(e => console.error(e)).then(() => {
+  console.log('Exiting');
+  process.exit(0);
+});
+
+let gracefulShutdownStarted = false;
+function gracefulShutdown(signal: string) {
+  if (gracefulShutdownStarted) {
+    console.log(`Received ${signal}, graceful shutdown already started, exiting`);
+    process.exit(1);
+    return;
+  }
+  console.log(`Received ${signal}, starting graceful shutdown`);
+  shutingDown.get = () => true;
+  gracefulShutdownStarted = true;
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'))
+process.on('SIGINT', () => gracefulShutdown('SIGINT'))

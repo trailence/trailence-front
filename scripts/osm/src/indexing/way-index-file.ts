@@ -3,9 +3,9 @@ import { FileHandle } from 'node:fs/promises';
 import { IndexFileReader, IndexFileWriter } from './index-file';
 import { MemoryLimiter } from '../util/memory-limiter';
 
-export const idToWayIndex = (id: bigint) => Math.floor(Number(id / 1000000n));
-export const idToSubWayIndex = (id: bigint) => Number(id % 1000000n);
-export const wayIndexToId = (index: number, subId: number) => BigInt(index) * 1000000n + BigInt(subId);
+export const idToWayIndex = (id: bigint) => Math.floor(Number(id / 250000n));
+export const idToSubWayIndex = (id: bigint) => Number(id % 250000n);
+export const wayIndexToId = (index: number, subId: number) => BigInt(index) * 250000n + BigInt(subId);
 
 export class WayIndexesWriter {
 

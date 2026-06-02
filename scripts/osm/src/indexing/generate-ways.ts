@@ -101,6 +101,7 @@ async function generateWays() {
           await processWays(waysToProcess, nodeIndexReader, tiles, wayIndexes);
           console.log('==>', nb, ' ways processed in', durationToString(Date.now() - startProcess), 'total', waysCount, 'in', durationToString(Date.now() - start));
           waysToProcess = [];
+          await tiles.flushIfNeeded(125000, 80000);
         }
       }
     }

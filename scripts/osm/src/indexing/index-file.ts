@@ -70,6 +70,7 @@ export abstract class IndexFileReader<T> {
       .then(map => {
         output.set(entry.index, map);
         resolved += map.size;
+        entry.subIds = []; // GC
         const now = Date.now();
         count++;
         if ((now - lastLog) >= 60000) {
@@ -77,15 +78,17 @@ export abstract class IndexFileReader<T> {
           lastLog = now;
         }
       });
-    while (elementsByKey.length > 0) {
-      for (let i = 0; i < 3; ++i) {
-        const e1 = elementsByKey.pop();
-        if (!e1) break;
+    let lastIndex = elementsByKey.length - 1;
+    let firstIndex = 0;
+    while (lastIndex >= firstIndex) {
+      for (let i = 0; i < 3 && lastIndex >= firstIndex; ++i) {
+        const e1 = elementsByKey[lastIndex--];
         promises.push(indexProcess.push(() => resolve(e1)));
       }
-      const e2 = elementsByKey.shift();
-      if (!e2) break;
-      promises.push(indexProcess.push(() => resolve(e2)));
+      if (lastIndex >= firstIndex) {
+        const e2 = elementsByKey[firstIndex++];
+        promises.push(indexProcess.push(() => resolve(e2)));
+      }
     }
     await Promise.all(promises);
     console.log(' => ', resolved, 'elements resolved from', nb, 'indexes in', durationToString(Date.now() - start));
@@ -108,22 +111,24 @@ export abstract class IndexFileReader<T> {
       this.learnt.set(indexKey, fileLearning);
     }
     const initialNb = subIds.length;
-    let offset = this.getNextOffset(0 - this.bufferSize, fileLearning, subIds[0]);
+    let sortedIndex = 0;
+    let offset = this.getNextOffset(0 - this.bufferSize, fileLearning, subIds[sortedIndex]);
     const buffer = Buffer.allocUnsafe(this.bufferSize);
     let fd = await pfd;
     do {
       const read = await fileOperations.push(() => readFully(fd, buffer, 0, this.bufferSize, offset));
       if ((read % this.entrySize) !== 0) throw new Error('Invalid index ' + indexKey + ' ? ' + read + ' bytes read at ' + offset);
       if (read === 0) break;
-      await this.resolveBuffer(buffer, 0, read, subIds, output, fileLearning, offset);
+      sortedIndex = await this.resolveBuffer(buffer, 0, read, subIds, sortedIndex, output, fileLearning, offset);
       if (read < this.bufferSize) break;
-      if (subIds.length === 0) break;
-      const nextOffset = this.getNextOffset(offset, fileLearning, subIds[0]);
+      if (sortedIndex >= subIds.length) break;
+      const nextOffset = this.getNextOffset(offset, fileLearning, subIds[sortedIndex]);
       if (nextOffset < offset + this.bufferSize) throw new Error('Unexpected next offset');
       offset = nextOffset;
     } while (!shutingDown.get());
     fd.close();
-    if (subIds.length > 0) throw new Error('Elements not found in index ' + indexKey + ': ' + subIds.length + ': ' + subIds + '; offset = ' + offset + '; found = ' + output.size + '/' + initialNb);
+    if (sortedIndex < subIds.length && !shutingDown.get())
+      throw new Error('Elements not found in index ' + indexKey + ': ' + sortedIndex + '/' + subIds.length + ', ' + subIds.slice(sortedIndex) + '; offset = ' + offset + '; found = ' + output.size + '/' + initialNb);
     return output;
   }
 
@@ -131,11 +136,11 @@ export abstract class IndexFileReader<T> {
     // nothing
   }
 
-  private async resolveBuffer(buffer: Buffer, from: number, to: number, sorted: number[], output: Map<number, T>, fileLearning: number[] | undefined, offset: number) {
-    await new Promise((resolve,reject) => setTimeout(() => this._resolveBuffer(buffer, from, to, sorted, output, fileLearning, offset).catch(reject).then(resolve), 0));
+  private async resolveBuffer(buffer: Buffer, from: number, to: number, sorted: number[], sortedIndex: number, output: Map<number, T>, fileLearning: number[] | undefined, offset: number): Promise<number> {
+    return await new Promise<number>((resolve,reject) => setTimeout(() => this._resolveBuffer(buffer, from, to, sorted, sortedIndex, output, fileLearning, offset).then(resolve).catch(reject), 0));
   }
 
-  private async _resolveBuffer(buffer: Buffer, from: number, to: number, sorted: number[], output: Map<number, T>, fileLearning: number[] | undefined, offset: number) {
+  private async _resolveBuffer(buffer: Buffer, from: number, to: number, sorted: number[], sortedIndex: number, output: Map<number, T>, fileLearning: number[] | undefined, offset: number): Promise<number> {
     const lastId = buffer.readUInt32LE(to - this.entrySize);
     if (fileLearning) {
       const bufferIndex = offset / this.bufferSize;
@@ -144,29 +149,27 @@ export abstract class IndexFileReader<T> {
         if (i === fileLearning.length) fileLearning.push(lastId);
       }
     }
-    if (sorted[0] > lastId) return;
-    if (sorted[0] === lastId) {
+    if (sorted[sortedIndex] > lastId) return sortedIndex;
+    if (sorted[sortedIndex] === lastId) {
       this.resolveElement(buffer, to - this.entrySize, lastId, output);
-      sorted.shift();
-      return;
+      return sortedIndex + 1;
     }
     const lastIndex = sorted.indexOf(lastId); // TODO improve ?
-    if (lastIndex >= 0) {
+    if (lastIndex > sortedIndex) {
       this.resolveElement(buffer, to - this.entrySize, lastId, output);
       sorted.splice(lastIndex, 1);
     }
     to -= this.entrySize;
     if (to - from > this.dichotomySize) {
-      await this.resolveBuffer(buffer, from, from + this.dichotomySize, sorted, output, undefined, offset);
-      if (sorted.length === 0 || sorted[0] > lastId) return;
+      sortedIndex = await this.resolveBuffer(buffer, from, from + this.dichotomySize, sorted, sortedIndex, output, undefined, offset);
+      if (sortedIndex >= sorted.length || sorted[sortedIndex] > lastId) return sortedIndex;
       from += this.dichotomySize;
       if (to - from > this.dichotomySize) {
-        await this.resolveBuffer(buffer, from, to - this.dichotomySize, sorted, output, undefined, offset);
-        if (sorted.length === 0 || sorted[0] > lastId) return;
+        sortedIndex = await this.resolveBuffer(buffer, from, to - this.dichotomySize, sorted, sortedIndex, output, undefined, offset);
+        if (sortedIndex >= sorted.length || sorted[sortedIndex] > lastId) return sortedIndex;
         from = to - this.dichotomySize;
       }
     }
-    let sortedIndex = 0;
     for (let i = from; i < to; i += this.entrySize) {
       const id = buffer.readUInt32LE(i);
       if (sorted[sortedIndex] === id) {
@@ -175,7 +178,7 @@ export abstract class IndexFileReader<T> {
         if (sortedIndex >= sorted.length || sorted[sortedIndex] > lastId) break;
       }
     }
-    if (sortedIndex > 0) sorted.splice(0, sortedIndex);
+    return sortedIndex;
   }
 
   private resolveElement(buffer: Buffer, pos: number, id: number, output: Map<number, T>) {
