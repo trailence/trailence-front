@@ -1,4 +1,5 @@
-import { Way, WayPermission } from './way';
+import { Arrays } from 'src/app/utils/arrays';
+import { Way } from './way';
 import * as L from 'leaflet';
 
 export class WayUtils {
@@ -27,20 +28,20 @@ export class WayUtils {
   }
 
 
-  public static mergeWays(ways: Way[]): Way[] {
+  public static mergeWays(ways: Way[], mergePredicate: (way1: Way, way2: Way) => boolean): Way[] {
     if (ways.length < 2) return ways;
     for (let i = 0; i < ways.length; ++i) {
       const way = ways[i];
       let merged = false;
       let start = way.points[0];
-      let way2Index = this.findSingleWayStartingAt(start.lat, start.lng, ways, i + 1, way.permission);
+      let way2Index = this.findSingleWayStartingAt(start.lat, start.lng, ways, i + 1, (w2) => mergePredicate(way, w2));
       if (way2Index >= 0) {
         this.merge(way, ways[way2Index]);
         ways.splice(way2Index, 1);
         merged = true;
       }
       start = way.points.at(-1)!;
-      way2Index = this.findSingleWayStartingAt(start.lat, start.lng, ways, i + 1, way.permission);
+      way2Index = this.findSingleWayStartingAt(start.lat, start.lng, ways, i + 1, (w2) => mergePredicate(way, w2));
       if (way2Index >= 0) {
         this.merge(way, ways[way2Index]);
         ways.splice(way2Index, 1);
@@ -51,11 +52,11 @@ export class WayUtils {
     return ways;
   }
 
-  private static findSingleWayStartingAt(lat: number, lng: number, ways: Way[], i: number, permission: WayPermission | undefined): number {
+  private static findSingleWayStartingAt(lat: number, lng: number, ways: Way[], i: number, mergePredicate: (way: Way) => boolean): number {
     let found = -1;
     for (; i < ways.length; ++i) {
       const way = ways[i];
-      if (way.permission != permission) continue;
+      if (!mergePredicate(way)) continue;
       if (way.points[0].lat === lat && way.points[0].lng === lng) {
         if (found !== -1) return -1;
         found = i;
@@ -75,7 +76,7 @@ export class WayUtils {
     const l2 = w2.points.length - 1;
     if (w2.points[0].lat === w1.points[0].lat && w2.points[0].lng === w1.points[0].lng) {
       // first point of w2 matches with first point of w1 => w2 goes before w1, but reverse way
-      w1.points.splice(0, 0, ...w2.points.reverse());
+      w1.points.splice(0, 0, ...Arrays.toReversed(w2.points));
     } else if (w2.points[0].lat === w1.points[l1].lat && w2.points[0].lng === w1.points[l1].lng) {
       // first point of w2 matches with last point of w1 => append points
       w1.points.push(...w2.points);
@@ -84,16 +85,9 @@ export class WayUtils {
       w1.points.splice(0, 0, ...w2.points);
     } else {
       // last point of w2 matches with last point of w1 => append points, but reverse way
-      w1.points.push(...w2.points.reverse());
+      w1.points.push(...Arrays.toReversed(w2.points));
     }
     w1.id = w1.id + '-' + w2.id;
-    if (!w1.bounds) w1.bounds = w2.bounds;
-    else if (w2.bounds) w1.bounds = {
-      minlat: Math.min(w1.bounds.minlat, w2.bounds.minlat),
-      maxlat: Math.max(w1.bounds.maxlat, w2.bounds.maxlat),
-      minlon: Math.min(w1.bounds.minlon, w2.bounds.minlon),
-      maxlon: Math.max(w1.bounds.maxlon, w2.bounds.maxlon),
-    };
   }
 
 }

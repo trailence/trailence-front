@@ -14,6 +14,16 @@ import { MapLayer, MapLayersService } from 'src/app/services/map/map-layers.serv
     </ion-button>
   </div>
   <div class="modal-content">
+    @for (overlay of overlays; track overlay.name) {
+      <div>
+        <ion-checkbox [checked]="selectedOverlays.includes(overlay.name)" labelPlacement="end" (ionChange)="selectOverlay(overlay.name, $event.detail.checked)">
+          <ion-label>{{i18n.texts.mapAdditions.overlays[overlay.name] ?? overlay.displayName}}</ion-label>
+        </ion-checkbox>
+      </div>
+    }
+    <div class="section-title">
+      {{i18n.texts.mapAdditions.only_zoom_10}}
+    </div>
     <div>
       <ion-checkbox [(ngModel)]="options.guidepost" labelPlacement="end" (ngModelChange)="emitChange()">
         <ion-icon name="poi-guidepost"></ion-icon>
@@ -44,13 +54,6 @@ import { MapLayer, MapLayersService } from 'src/app/services/map/map-layers.serv
         <ion-label>{{i18n.texts.mapAdditions.way_permissive}}</ion-label>
       </ion-checkbox>
     </div>
-    @for (overlay of overlays; track overlay.name) {
-      <div>
-        <ion-checkbox [checked]="selectedOverlays.includes(overlay.name)" labelPlacement="end" (ionChange)="selectOverlay(overlay.name, $event.detail.checked)">
-          <ion-label>{{i18n.texts.mapAdditions.overlays[overlay.name] ?? overlay.displayName}}</ion-label>
-        </ion-checkbox>
-      </div>
-    }
   </div>
   `,
   styles: `
@@ -86,6 +89,12 @@ import { MapLayer, MapLayersService } from 'src/app/services/map/map-layers.serv
       ion-label {
         margin-left: 4px;
       }
+    }
+
+    div.section-title {
+      font-size: 13px;
+      color: var(--ion-color-medium);
+      margin: 8px 0 4px 0;
     }
   }
   `,

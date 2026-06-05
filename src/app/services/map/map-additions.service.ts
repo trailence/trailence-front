@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { POI } from '../geolocation/geo.service';
-import { Observable, of } from 'rxjs';
-import { Way } from '../geolocation/way';
+import { concat, map, merge, Observable, of } from 'rxjs';
 import { OfflineMapService } from './offline-map.service';
 import * as L from 'leaflet';
+import { POI, POIType } from './poi';
+import { Way, WayPermission } from './way';
 
 @Injectable({providedIn: 'root'})
 export class MapAdditionsService {
@@ -45,9 +45,26 @@ export class MapAdditionsService {
 
   // -- Additions
 
-  public getAdditions(bounds: L.LatLngBounds, options: MapAdditionsOptions): Observable<{pois: POI[], ways: Way[]}> {
-    if (!options.guidepost && !options.waterPoint && !options.toilets && !options.forbiddenWays && !options.permissiveWays) return of({pois: [], ways: []});
-    return this.mapOffline.getAdditions(bounds, !!options.guidepost, !!options.waterPoint, !!options.toilets, !!options.forbiddenWays, !!options.permissiveWays);
+  private readonly END = of({pois: [] as POI[], ways: [] as Way[], done: true});
+
+  public getAdditions(bounds: L.LatLngBounds, options: MapAdditionsOptions): Observable<{pois: POI[], ways: Way[], done: boolean}> {
+    const requests: Observable<{pois: POI[], ways: Way[], done: boolean}>[] = [];
+    const poiTypes: POIType[] = [];
+    if (options.waterPoint) poiTypes.push('water');
+    if (options.toilets) poiTypes.push('toilets');
+    if (options.guidepost) poiTypes.push('guidepost');
+    if (poiTypes.length > 0)
+      requests.push(this.mapOffline.pois.getPois(bounds, poiTypes).pipe(map(r => ({pois: r.pois, ways: [] as Way[], done: false}))));
+    if (options.forbiddenWays || options.permissiveWays) {
+      const wayFilter: (way: Way) => boolean = way => {
+        if (options.forbiddenWays && way.footPermission === WayPermission.FORBIDDEN) return true;
+        if (options.permissiveWays && way.footPermission === WayPermission.PERMISSIVE) return true;
+        return false;
+      };
+      requests.push(this.mapOffline.ways.getWays(bounds).pipe(map(r => ({pois: [] as POI[], ways: r.ways.filter(wayFilter), done: false}))));
+    }
+    if (requests.length === 0) return this.END;
+    return concat(merge(...requests), this.END);
   }
 
 }

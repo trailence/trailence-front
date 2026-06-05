@@ -1,5 +1,6 @@
 import { posTo0125DegTile } from '../model/tiles';
 import { Way } from '../model/way';
+import { getRouteBufferSize, writeRouteBuffer } from './route-writer';
 import { TilesWriter } from './tiles-writer';
 
 export async function wayToTiles(way: Way, tiles: TilesWriter): Promise<number | undefined> {
@@ -17,10 +18,16 @@ export async function wayToTiles(way: Way, tiles: TilesWriter): Promise<number |
 
 async function wayToBin(way: Way, tile: number, tiles: TilesWriter) {
   const bytesValues = wayExtraDataByteValues(way);
-  const routes = way.routes;
-  if (routes.length * 8 > 65535) routes.splice(8191, routes.length - 8191);
   const bytesValuesSize = bytesValues.length === 0 ? 0 : 3 + bytesValues.length;
-  const routesSize = routes.length === 0 ? 0 : 3 + routes.length * 8;
+  let nbRoutes = 0;
+  let routesSize = 0;
+  for (const route of way.routes) {
+    const routeSize = 8 + getRouteBufferSize(route);
+    if (routesSize + routeSize + bytesValuesSize + 3 > 65535) break;
+    routesSize += routeSize;
+    nbRoutes++;
+  }
+  if (routesSize > 0) routesSize += 3;
   const extraSize = bytesValuesSize + routesSize;
   const size = 8 + 2 + way.points.length * 4 + 2 + extraSize;
   const buffer = await tiles.getTileBuffer(tile, size);
@@ -36,10 +43,13 @@ async function wayToBin(way: Way, tile: number, tiles: TilesWriter) {
     buffer.writeUInt16(bytesValues.length);
     for (const b of bytesValues) buffer.writeUInt8(b);
   }
-  if (routes.length > 0) {
+  if (routesSize > 0) {
     buffer.writeUInt8(ExtraDataType.ROUTES);
-    buffer.writeUInt16(routes.length * 8);
-    for (const route of routes) buffer.writeInt64(route);
+    buffer.writeUInt16(routesSize - 3);
+    for (let i = 0; i < nbRoutes; ++i) {
+      buffer.writeInt64(way.routes[i].id);
+      writeRouteBuffer(way.routes[i], buffer);
+    }
   }
 }
 

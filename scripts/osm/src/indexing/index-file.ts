@@ -14,7 +14,7 @@ export abstract class IndexFileWriter {
     private readonly memoryLimiter: MemoryLimiter,
   ) {
     this.bufSize = entrySize * nbEntriesBuffer;
-    this.buf = new Buf(this.bufSize);
+    this.buf = Buf.of(this.bufSize);
     this.write = Promise.resolve();
   }
 
@@ -28,7 +28,7 @@ export abstract class IndexFileWriter {
 
   private async flush() {
     const buf = this.buf;
-    this.buf = new Buf(this.bufSize);
+    this.buf = Buf.of(this.bufSize);
     this.write = this.write.then(() => this.fd.then(fd => fd.write(buf.buffer, 0, buf.offset)));
     await this.memoryLimiter.add(this.write, this.bufSize);
   }

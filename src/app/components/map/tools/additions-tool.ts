@@ -1,37 +1,40 @@
 import { Injector } from '@angular/core';
 import * as L from 'leaflet';
 import { MapAdditionsOptions, MapAdditionsService } from 'src/app/services/map/map-additions.service';
-import { Way, WayPermission } from 'src/app/services/geolocation/way';
 import { MapTool } from './tool.interface';
 import { of } from 'rxjs';
 import { MapComponent } from '../map.component';
-import { AssetsService } from 'src/app/services/assets/assets.service';
 import { ModalController } from '@ionic/angular/standalone';
-import { POI } from 'src/app/services/geolocation/geo.service';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
 import { BadgesConfig } from '../../menus/menu-item';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
+import { Way, WayPermission } from 'src/app/services/map/way';
+import { POI } from 'src/app/services/map/poi';
 
 export class AdditionsTool extends MapTool {
 
   private modal?: HTMLIonModalElement;
   private _loading = false;
 
+  // TODO way permission for bicycle
+
   constructor(
     private readonly mapId: string,
   ) {
     super();
     this.icon = 'info';
-    this.visible = (map: L.Map, mapComponent: MapComponent, injector: Injector) => map.getZoom() >= 10;
+    this.visible = (map: L.Map, mapComponent: MapComponent, injector: Injector) => true;
     this.badges = (map: L.Map, mapComponent: MapComponent, injector: Injector) => {
       let count = 0;
       const state = mapComponent.getState();
       const options = state.additions;
-      if (options.guidepost) count++;
-      if (options.waterPoint) count++;
-      if (options.toilets) count++;
-      if (options.forbiddenWays) count++;
-      if (options.permissiveWays) count++;
+      if (state.zoom > 10) {
+        if (options.guidepost) count++;
+        if (options.waterPoint) count++;
+        if (options.toilets) count++;
+        if (options.forbiddenWays) count++;
+        if (options.permissiveWays) count++;
+      }
       count += state.overlays.length;
       if (count === 0) return undefined;
       return {
@@ -123,19 +126,24 @@ export class AdditionsTool extends MapTool {
     this._loading = true;
     mapComponent.refreshTools();
     const count = ++this._refreshCount;
+    for (const layer of this._layers) layer.remove();
+    this._layers = [];
     injector.get(MapAdditionsService).getAdditions(bounds, mapComponent.getState().additions).subscribe(additions => {
       if (this._refreshCount !== count) return;
-      for (const layer of this._layers) layer.remove();
-      this._layers = [];
       for (const poi of additions.pois) {
-        this._layers.push(this.poiToTooltip(poi, injector));
+        const tooltip = this.poiToTooltip(poi, injector);
+        this._layers.push(tooltip);
+        tooltip.addTo(map!);
       }
       for (const way of additions.ways) {
-        this._layers.push(this.wayToPath(way));
+        const path = this.wayToPath(way);
+        this._layers.push(path);
+        path.addTo(map!);
       }
-      for (const layer of this._layers) layer.addTo(map!); // NOSONAR
-      this._loading = false;
-      mapComponent.refreshTools();
+      if (additions.done) {
+        this._loading = false;
+        mapComponent.refreshTools();
+      }
     });
   }
 
@@ -155,7 +163,7 @@ export class AdditionsTool extends MapTool {
 
   private wayToPath(way: Way): L.Polyline {
     const path = L.polyline(way.points, {
-      color: way.permission === WayPermission.FORBIDDEN ? 'var(--way-forbidden-color)' : 'var(--way-permissive-color)',
+      color: way.footPermission === WayPermission.FORBIDDEN ? 'var(--way-forbidden-color)' : 'var(--way-permissive-color)',
       dashArray: '4',
       smoothFactor: 1,
       interactive: false

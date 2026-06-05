@@ -13,6 +13,7 @@ export interface WorkerResponse {
 
 export enum WorkerRequest {
   PARSE_POIS = 'parse-pois',
+  PARSE_WAYS = 'parse-ways',
   SIMPLIFY_TRACK = 'simplify-track',
   IMPORT_PHOTO = 'import-photo',
   CONVERT_JPEG = 'convert-jpeg',

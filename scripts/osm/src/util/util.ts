@@ -14,9 +14,13 @@ export function durationToString(duration: number): string {
 }
 
 export class Buf {
-  constructor(size: number) {
-    this.buffer = Buffer.allocUnsafe(size);
-    this.offset = 0;
+  constructor(b: Buffer, o: number) {
+    this.buffer = b;
+    this.offset = o;
+  }
+
+  public static of(size: number): Buf {
+    return new Buf(Buffer.allocUnsafe(size), 0);
   }
 
   public buffer: Buffer;
@@ -51,5 +55,9 @@ export class Buf {
 
   public write(data: Buffer) {
     this.offset += data.copy(this.buffer, this.offset);
+  }
+
+  public writeString(s: string) {
+    this.offset += this.buffer.write(s, this.offset, 'utf8');
   }
 }

@@ -1526,6 +1526,7 @@
   },
   "mapAdditions": {
     "title": "Show / Hide",
+    "only_zoom_10": "Only displayed with a zomm > 10",
     "guidepost": "Signposts",
     "water": "Water points",
     "toilets": "Toilets",

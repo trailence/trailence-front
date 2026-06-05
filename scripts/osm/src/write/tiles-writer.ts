@@ -21,11 +21,11 @@ export class TilesWriter {
       t.lastUsed = Date.now();
       if (t.buf.remaining >= size) return t.buf;
       const buf = t.buf;
-      t.buf = new Buf(Math.max(this.bufferSize, size));
+      t.buf = Buf.of(Math.max(this.bufferSize, size));
       await t.fileAppender.append(buf);
       return t.buf;
     }
-    t = { buf: new Buf(Math.max(this.bufferSize, size)), fileAppender: new FileAppender(this.dir + '/' + tile + '.tile', this.memoryLimiter), lastUsed: Date.now() }
+    t = { buf: Buf.of(Math.max(this.bufferSize, size)), fileAppender: new FileAppender(this.dir + '/' + tile + '.tile', this.memoryLimiter), lastUsed: Date.now() }
     this.tiles.set(tile, t);
     return t.buf;
   }

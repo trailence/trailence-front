@@ -1,5 +1,5 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { INetworkService, PingResponse } from './network.interface';
+import { INetworkService, PingResponse, sameOsmDataVersions } from './network.interface';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpClientService } from '../http/http-client.service';
 import { HttpMethod, TrailenceHttpRequest } from '../http/http-request';
@@ -99,7 +99,7 @@ export class NetworkService implements INetworkService, OnDestroy {
       }
       if ((status === null && this._server$.value !== null) ||
           (status !== null && this._server$.value === null) ||
-          (status !== null && this._server$.value !== null && (status.minSupportedVersion !== this._server$.value.minSupportedVersion || status.osmDataVersion !== this._server$.value.osmDataVersion))
+          (status !== null && this._server$.value !== null && (status.minSupportedVersion !== this._server$.value.minSupportedVersion || sameOsmDataVersions(status.osmDataVersions, this._server$.value.osmDataVersions)))
       ) {
         this._server$.next(status);
       }

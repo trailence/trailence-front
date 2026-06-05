@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { POI, POIType } from '../services/geolocation/geo.service';
 import { WorkerMessage, WorkerRequest } from './worker-request';
 import { Console } from '../utils/console';
 import { Track } from '../model/track';
@@ -8,6 +7,8 @@ import { ComputedPreferences } from '../services/preferences/preferences';
 import { Photo } from '../model/photo';
 import { TranslatedString } from '../services/i18n/i18n-string';
 import { PhotoDto } from '../model/dto/photo';
+import { Way, WayReference } from '../services/map/way';
+import { POI, POIType } from '../services/map/poi';
 
 @Injectable({providedIn: 'root'})
 export class WorkerService {
@@ -24,6 +25,14 @@ export class WorkerService {
     return this.request<POI[]>({
       request: WorkerRequest.PARSE_POIS,
       payload: {blob, type, south: bounds.getSouth(), north: bounds.getNorth(), east: bounds.getEast(), west: bounds.getWest()},
+      transferable: [blob]
+    });
+  }
+
+  public parseWays(blob: Blob, bounds: L.LatLngBounds): Promise<{ways: Way[], references: WayReference[]}> {
+    return this.request<{ways: Way[], references: WayReference[]}>({
+      request: WorkerRequest.PARSE_WAYS,
+      payload: {blob, south: bounds.getSouth(), north: bounds.getNorth(), east: bounds.getEast(), west: bounds.getWest()},
       transferable: [blob]
     });
   }

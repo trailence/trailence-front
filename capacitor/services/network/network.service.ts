@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { INetworkService, PingResponse } from 'src/app/services/network/network.interface';
+import { INetworkService, PingResponse, sameOsmDataVersions } from 'src/app/services/network/network.interface';
 import { ConnectionStatus, Network } from '@capacitor/network';
 import { HttpClientService } from 'src/app/services/http/http-client.service';
 import { HttpMethod, TrailenceHttpRequest } from 'src/app/services/http/http-request';
@@ -107,7 +107,7 @@ export class NetworkService implements INetworkService {
       }
       if ((status === null && this._server$.value !== null) ||
           (status !== null && this._server$.value === null) ||
-          (status !== null && this._server$.value !== null && (status.minSupportedVersion !== this._server$.value.minSupportedVersion || status.osmDataVersion !== this._server$.value.osmDataVersion))
+          (status !== null && this._server$.value !== null && (status.minSupportedVersion !== this._server$.value.minSupportedVersion || sameOsmDataVersions(status.osmDataVersions, this._server$.value.osmDataVersions)))
       ) {
         this._server$.next(status);
       }

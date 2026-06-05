@@ -39,6 +39,11 @@ export class Arrays {
     return result;
   }
 
+  public static toReversed<T>(array: T[]): T[] {
+    if (typeof (array as any)['toReversed'] === 'function') return (array as any).toReversed();
+    return array.slice().reverse();
+  }
+
 }
 
 export class CollectionMapper<S, T> {

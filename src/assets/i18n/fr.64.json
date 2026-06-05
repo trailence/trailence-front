@@ -1529,6 +1529,7 @@
   },
   "mapAdditions": {
     "title": "Afficher / Masquer",
+    "only_zoom_10": "Seulement affichés avec un zoom > 10",
     "guidepost": "Balises",
     "water": "Points d'eau",
     "toilets": "Toilettes",

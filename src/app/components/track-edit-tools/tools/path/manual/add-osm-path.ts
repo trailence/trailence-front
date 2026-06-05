@@ -1,16 +1,16 @@
-import { combineLatest, distinctUntilChanged, map, of, Subscription, switchMap } from 'rxjs';
+import { combineLatest, distinctUntilChanged, of, Subscription, switchMap } from 'rxjs';
 import { TrackEditToolContext } from '../../tool.interface';
 import { AddPointsContext, AddPointsTool } from './add-points-tool';
-import { Way } from 'src/app/services/geolocation/way';
 import * as L from 'leaflet';
-import { GeoService } from 'src/app/services/geolocation/geo.service';
-import { WayUtils } from 'src/app/services/geolocation/way-utils';
+import { WayUtils } from 'src/app/services/map/way-utils';
 import { MapTrack } from 'src/app/components/map/track/map-track';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapTrackPointReference } from 'src/app/components/map/track/map-track-point-reference';
 import { Arrays } from 'src/app/utils/arrays';
 import { PointDescriptor } from 'src/app/model/point-descriptor';
 import { TrackUtils } from 'src/app/utils/track-utils';
+import { Way } from 'src/app/services/map/way';
+import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 
 const MIN_ZOOM = 14;
 const MATCHING_MAX_DISTANCE = 2.5;
@@ -33,6 +33,8 @@ export class AddOsmPath extends AddPointsTool {
   private possibleWays: WayAndMapTrack[] = [];
   private possibleWaysFromCursor: WayAndMapTrack[] = [];
 
+  private mode: 'foot' | 'bicycle' = 'foot'; // TODO
+
   private _init(ctx: AddPointsContext): void {
     for (const w of this.possibleWays) ctx.map.removeTrack(w.mapTrack);
     for (const w of this.possibleWaysFromCursor) ctx.map.removeTrack(w.mapTrack);
@@ -52,25 +54,29 @@ export class AddOsmPath extends AddPointsTool {
 
   override enableAddPoints(ctx: AddPointsContext): void {
     if (this.waysSubscription === undefined) {
+      let cumulativeWays: Way[] = [];
       this.waysSubscription = combineLatest([ctx.map.getState().center$, ctx.map.getState().zoomInt$]).pipe(
         distinctUntilChanged(),
-        switchMap(([center, zoom]) => zoom < MIN_ZOOM ? of([]) : ctx.injector.get(GeoService).findWays(ctx.map.getBounds()!)), // NOSONAR
-        map(ways => WayUtils.mergeWays(ways)),
-      ).subscribe(ways => {
-        this.allWays = ways;
-        this.allMapTracks = ways.map(way => {
-          const mapTrack = new MapTrack(
-            undefined,
-            {
-              points: way.points
-            },
-            DEFAULT_COLOR,
-            1, false, ctx.injector.get(I18nService)
-          );
-          mapTrack.data = way;
-          return mapTrack;
-        });
-        this._init(ctx);
+        switchMap(([center, zoom]) => zoom < MIN_ZOOM ? of({ways: []}) : ctx.injector.get(OfflineMapService).ways.getWays(ctx.map.getBounds()!)),
+      ).subscribe({
+        next: response => cumulativeWays.push(...response.ways),
+        complete: () => {
+          const ways = WayUtils.mergeWays(cumulativeWays, () => true) // TODO merge those which have compatible permission = same color
+          this.allWays = ways;
+          this.allMapTracks = ways.map(way => {
+            const mapTrack = new MapTrack(
+              undefined,
+              {
+                points: way.points
+              },
+              DEFAULT_COLOR,
+              1, false, ctx.injector.get(I18nService)
+            );
+            mapTrack.data = way;
+            return mapTrack;
+          });
+          this._init(ctx);
+        }
       });
     } else {
       this._init(ctx);

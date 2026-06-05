@@ -1,18 +1,17 @@
-import { catchError, combineLatest, concat, debounceTime, firstValueFrom, from, map, Observable, of, switchMap } from 'rxjs';
+import { WorkerService } from 'src/app/worker/web-app';
 import { DbTableWithBlob } from '../database/storage/db-table-with-blob';
-import { Injector } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { NetworkService } from '../network/network.service';
 import { PendingRequests } from 'src/app/utils/pending-requests';
+import { Injector } from '@angular/core';
+import { catchError, debounceTime, firstValueFrom, forkJoin, from, map, Observable, of, Subscriber, switchMap, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { Console } from 'src/app/utils/console';
 import { ApiError } from '../http/api-error';
-import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { Console } from 'src/app/utils/console';
+import { Way } from './way';
 import { DbTableWhereLessThan } from '../database/storage/db-table';
-import { WorkerService } from 'src/app/worker/web-app';
-import { POI, POIType } from './poi';
 
-export class Pois {
+export class Ways {
 
   readonly table: DbTableWithBlob<DbDto>;
   private readonly http: HttpService;
@@ -23,33 +22,53 @@ export class Pois {
   constructor(
     injector: Injector,
   ) {
-    this.table = new DbTableWithBlob<DbDto>(injector, 'osm-data-pois', 'tile, lastUsed, version', 'tile', 'blob');
+    this.table = new DbTableWithBlob<DbDto>(injector, 'osm-data-ways', 'tile, lastUsed, version', 'tile', 'blob');
     this.http = injector.get(HttpService);
     this.network = injector.get(NetworkService);
     this.worker = injector.get(WorkerService);
-    this.table.whenReady$().pipe(debounceTime(120000)).subscribe(() => this.clean());
+    this.table.whenReady$().pipe(debounceTime(180000)).subscribe(() => this.clean());
   }
 
-  public getPois(bounds: L.LatLngBounds, types: POIType[]): Observable<PoisResponse> {
-    const tiles = this.toTiles(bounds, types);
-    if (tiles.length === 0) return of({pois: [], done: true, partial: false});
-    return combineLatest(tiles.map(t => concat(
-      of({pois: [], done: false, partial: false} as PoisResponse),
-      this.getTile(t.tile).pipe(
+  public getWays(bounds: L.LatLngBounds): Observable<WaysResponse> {
+    const boundsTiles = this.boundsToTiles(bounds);
+    if (boundsTiles.length === 0) return of({ways: [], done: true, partial: false});
+    return new Observable<WaysResponse>(subscriber => {
+      this.processWaysTiles([], boundsTiles, bounds, false, subscriber);
+    });
+  }
+
+  private processWaysTiles(tilesProcessed: number[], tilesToProcess: number[], bounds: L.LatLngBounds, partial: boolean, subscriber: Subscriber<WaysResponse>) {
+    forkJoin(tilesToProcess.map(tileNumber =>
+      this.getTile('' + tileNumber).pipe(
         switchMap(blob => {
-          if (blob === undefined) return of({pois: [], done: true, partial: true} as PoisResponse);
-          if (blob === null) return of({pois: [], done: true, partial: false} as PoisResponse);
-          return this.worker.parsePois(blob, t.type, bounds).then(pois => ({pois, done: true, partial: false}));
+          if (blob === undefined) return of(undefined);
+          if (blob === null) return of(null);
+          return this.worker.parseWays(blob, bounds);
+        }),
+        tap(response => {
+          if (response) subscriber.next({ways: response.ways, done: false, partial: false});
         })
       )
-    ))).pipe(
-      debounceTimeExtended(250, 250, undefined, (p, n) => n.every(r => r.done)),
-      map(responses => ({
-        pois: responses.flatMap(r => r.pois),
-        done: responses.every(r => r.done),
-        partial: !responses.every(r => !r.partial),
-      }))
-    );
+    )).subscribe(responses => {
+      const newProcessed = [...tilesProcessed, ...tilesToProcess];
+      const newToProcess: number[] = [];
+      for (const response of responses) {
+        if (response) {
+          for (const reference of response.references) {
+            if (!newProcessed.includes(reference.tile) && !newToProcess.includes(reference.tile))
+              newToProcess.push(reference.tile);
+          }
+        } else if (response === undefined) {
+          partial = true;
+        }
+      }
+      if (newToProcess.length === 0 || tilesProcessed.length > 0) { // only one level of references
+        subscriber.next({ways: [], done: true, partial});
+        subscriber.complete();
+      } else {
+        this.processWaysTiles(newProcessed, newToProcess, bounds, partial, subscriber);
+      }
+    });
   }
 
   /** return the blob, or null if no blob exists, or undefined if not in cache and no network */
@@ -76,7 +95,7 @@ export class Pois {
 
   private requestAndCacheV1(tile: string, version: number): Observable<Blob | null | undefined> {
     return from(this.pendingRequests.request(tile, () =>
-      firstValueFrom(this.http.getBlob(environment.apiBaseUrl + '/geo-data/v1/' + tile).pipe(
+      firstValueFrom(this.http.getBlob(environment.apiBaseUrl + '/geo-data/v1/ways/' + tile).pipe(
         switchMap(blob => this.table.setOne$({ // TODO save in background ?
             tile,
             version,
@@ -95,34 +114,14 @@ export class Pois {
   }
 
   private boundsToTiles(bounds: L.LatLngBounds): number[] {
-    const minX = Math.floor((bounds.getWest() + 180) / 2);
-    const maxX = Math.floor((bounds.getEast() + 180) / 2);
-    const minY = Math.floor((bounds.getNorth() + 90) / 2);
-    const maxY = Math.floor((bounds.getNorth() + 90) / 2);
+    const minX = Math.floor((bounds.getWest() + 180) * 8);
+    const maxX = Math.floor((bounds.getEast() + 180) * 8);
+    const minY = Math.floor((bounds.getNorth() + 90) * 8);
+    const maxY = Math.floor((bounds.getNorth() + 90) * 8);
     const tiles: number[] = [];
     for (let x = minX; x <= maxX; ++x) {
       for (let y = minY; y <= maxY; ++y) {
-        tiles.push(y * 180 + x);
-      }
-    }
-    return tiles;
-  }
-
-  private typeToTile(type: POIType): string {
-    switch(type) {
-      case 'guidepost': return 'guidepost';
-      case 'water': return 'drinking_water';
-      case 'toilets': return 'toilets';
-    }
-  }
-
-  private toTiles(bounds: L.LatLngBounds, types: POIType[]): {tile: string, type: POIType}[] {
-    const boundsTiles = this.boundsToTiles(bounds);
-    const typesTiles = types.map(t => ({tileType: this.typeToTile(t), poiType: t}));
-    const tiles: {tile: string, type: POIType}[] = [];
-    for (const type of typesTiles) {
-      for (const b of boundsTiles) {
-        tiles.push({tile: type.tileType + '/' + b, type: type.poiType});
+        tiles.push(y * 360 * 8 + x);
       }
     }
     return tiles;
@@ -130,14 +129,9 @@ export class Pois {
 
   private clean(): void {
     this.table.deleteWhere$(new DbTableWhereLessThan('lastUsed', Date.now() - 90 * 24 * 60 * 60 * 1000))
-    .subscribe(nb => Console.info(nb, 'pois not used since 90 days cleant'));
+    .subscribe(nb => Console.info(nb, 'ways not used since 90 days cleant'));
   }
-}
 
-export interface PoisResponse {
-  pois: POI[];
-  done: boolean;
-  partial: boolean;
 }
 
 interface DbDto {
@@ -145,4 +139,10 @@ interface DbDto {
   version: number;
   lastUsed: number;
   blob: Blob;
+}
+
+export interface WaysResponse {
+  ways: Way[];
+  done: boolean;
+  partial: boolean;
 }

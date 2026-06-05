@@ -19,8 +19,8 @@ import { debounceTimeExtended } from '../utils/rxjs/debounce-time-extended';
 import { PointReference } from './point-reference';
 import { extendsAround } from '../utils/leaflet-utils';
 import { OfflineMapService } from '../services/map/offline-map.service';
-import { POI } from '../services/geolocation/geo.service';
 import { IdGenerator } from '../utils/component-utils';
+import { POI } from '../services/map/poi';
 
 export class Track extends Owned {
 

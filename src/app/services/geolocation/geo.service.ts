@@ -4,7 +4,6 @@ import { catchError, map, Observable, of, switchMap, tap, timer, zip } from 'rxj
 import { environment } from 'src/environments/environment';
 import * as L from 'leaflet';
 import { Place } from './place';
-import { Way, WayPermission } from './way';
 import { Track } from 'src/app/model/track';
 import { Segment } from 'src/app/model/segment';
 import { samePositionRound } from 'src/app/model/point';
@@ -55,55 +54,6 @@ export class GeoService {
     const pos = parseCoordinates(name);
     if (pos !== undefined) return of([{...pos, north: undefined, south: undefined, east: undefined, west: undefined, names: [name, this.i18n.texts.go_to_position]}]);
     return this.http.get<Place[]>(environment.apiBaseUrl + '/place/v1/search?terms=' + encodeURIComponent(name) + '&lang=' + this.prefService.preferences.lang);
-  }
-
-  public overpassElementToPOI(element: OverpassElement): POI | null {
-    if (!element.lat || !element.lon) return null;
-    if (element.tags['information'] === 'guidepost') {
-      let s = element.tags['name'] ?? '';
-      let s2 = element.tags['ref'] ?? '';
-      if (s.length > 0) {
-        if (s2.length > 0) s += ' (' + s2 + ')';
-      } else s = s2;
-      if (s.length === 0) return null;
-      return {id: element.id, type: 'guidepost', pos: {lat: element.lat, lng: element.lon}, text: s} as POI;
-    }
-    if (element.tags['amenity'] === 'drinking_water' || element.tags['amenity'] === 'water_point') {
-      return {id: element.id, type: 'water', pos: {lat: element.lat, lng: element.lon}} as POI;
-    }
-    if (element.tags['amenity'] === 'toilets') {
-      return {id: element.id, type: 'toilets', pos: {lat: element.lat, lng: element.lon}} as POI;
-    }
-    return null;
-  }
-
-  public findWays(bounds: L.LatLngBounds): Observable<Way[]> {
-    const filterWays = 'way["highway"]';
-    const filterBounds = '(' + bounds.getSouth() + ',' + bounds.getWest() + ',' + bounds.getNorth() + ',' + bounds.getEast() + ')';
-    const output = 'out tags geom;';
-
-    const request = filterWays + filterBounds + ';' + output;
-
-    return this.overpass.request<OverpassResponse>(request, 25).pipe(
-      map(response => response.elements.filter(e => e.geometry && e.geometry.length > 1).map(e => this.overpassElementToWay(e)))
-    );
-  }
-
-  public overpassElementToWay(element: OverpassElement): Way {
-    return {
-      id: element.id,
-      bounds: element.bounds,
-      points: element.geometry.map(g => L.latLng(g.lat, g.lon)),
-      permission: this.overpassWayPermission(element.tags['foot'])
-    };
-  }
-
-  private overpassWayPermission(overpassPermission?: string): WayPermission | undefined {
-    if (overpassPermission === 'no' || overpassPermission === 'private' || overpassPermission === 'destination')
-      return WayPermission.FORBIDDEN;
-    if (overpassPermission === 'permissive')
-      return WayPermission.PERMISSIVE;
-    return overpassPermission ? WayPermission.ALLOWED : undefined;
   }
 
   public fillTrackElevation(track: Track, showProgress = false, onlyGoodProviders = false): Observable<any> {
@@ -453,11 +403,3 @@ export interface OverpassGeometry {
   lat: number;
   lon: number;
 }
-
-export type POIType = 'guidepost' | 'water' | 'toilets';
-
-export interface POI {
-  type: POIType;
-  pos: L.LatLngLiteral;
-  text?: string;
-};

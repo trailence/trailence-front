@@ -11,7 +11,6 @@ import { Trail } from 'src/app/model/trail';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { TrailService } from 'src/app/services/database/trail.service';
-import { Way, WayPermission } from 'src/app/services/geolocation/way';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { TrackEditionService } from 'src/app/services/track-edition/track-edition.service';
 import { Arrays } from 'src/app/utils/arrays';
@@ -24,9 +23,10 @@ import { Console } from 'src/app/utils/console';
 import { TrackDto } from 'src/app/model/dto/track';
 import { estimateTimeForTrack } from 'src/app/services/track-edition/time/time-estimation';
 import { TrailSourceType } from 'src/app/model/dto/trail';
-import { WayUtils } from 'src/app/services/geolocation/way-utils';
+import { WayUtils } from 'src/app/services/map/way-utils';
 import { SimplifiedPoint, SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
+import { Way, WayPermission } from 'src/app/services/map/way';
 
 export const WAY_MAPTRACK_DEFAULT_COLOR = '#0000FF80'
 export const WAY_MAPTRACK_HIGHLIGHTED_COLOR = '#000080FF'
@@ -54,6 +54,8 @@ export class TrackBuilder {
   public putFreeAnchor = false;
 
   private readonly map: MapComponent;
+
+  private mode: 'foot' | 'bicycle' = 'foot'; // TODO
 
   constructor(
     private readonly injector: Injector,
@@ -141,10 +143,24 @@ export class TrackBuilder {
   }
 
   private getWayColor(way?: Way): string {
-    if (way?.permission === WayPermission.FORBIDDEN)
-      return WAY_MAPTRACK_FORBIDDEN_COLOR;
-    if (way?.permission === WayPermission.PERMISSIVE)
-      return WAY_MAPTRACK_PERMISSIVE_COLOR;
+    if (!way) return WAY_MAPTRACK_DEFAULT_COLOR;
+    switch (this.mode) {
+      case 'foot':
+        switch (way.footPermission) {
+          case WayPermission.ALLOWED: return WAY_MAPTRACK_DEFAULT_COLOR;
+          case WayPermission.FORBIDDEN: return WAY_MAPTRACK_FORBIDDEN_COLOR;
+          case WayPermission.PERMISSIVE: return WAY_MAPTRACK_PERMISSIVE_COLOR;
+        }
+        break;
+      case 'bicycle':
+        switch (way.bicyclePermission) {
+          case WayPermission.ALLOWED: return WAY_MAPTRACK_DEFAULT_COLOR;
+          case WayPermission.FORBIDDEN: return WAY_MAPTRACK_FORBIDDEN_COLOR;
+          case WayPermission.PERMISSIVE: return WAY_MAPTRACK_PERMISSIVE_COLOR;
+          case WayPermission.DISMOUNT: return WAY_MAPTRACK_PERMISSIVE_COLOR; // TODO
+        }
+        break;
+    }
     return WAY_MAPTRACK_DEFAULT_COLOR;
   }
 
@@ -406,11 +422,17 @@ export class TrackBuilder {
       setTimeout(() => this.updateWays(), 100);
       return;
     }
-    this.injector.get(GeoService)
-      .findWays(bounds)
-      .subscribe(ways => {
-        this.updateWaysFromService(WayUtils.mergeWays(ways));
-        this.searchingWays = false;
+    let allWays: Way[] = [];
+    this.injector.get(OfflineMapService)
+      .ways.getWays(bounds)
+      .subscribe({
+        next: response => {
+          allWays.push(...response.ways);
+        },
+        complete: () => {
+          this.updateWaysFromService(WayUtils.mergeWays(allWays, (w1, w2) => this.getWayColor(w1) === this.getWayColor(w2)));
+          this.searchingWays = false;
+        },
       });
   }
 
