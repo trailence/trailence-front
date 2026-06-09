@@ -74,6 +74,7 @@ import { ApiError } from 'src/app/services/http/api-error';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { WorkerService } from 'src/app/worker/web-app';
 import { TrackWayPoint } from 'src/app/utils/track-waypoints/track-waypoint';
+import { buildOsmTrack } from 'src/app/utils/track-computed-data/build-osm-track';
 
 interface TrailSource {
   isExternal: boolean;
@@ -154,6 +155,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   @Input() tab = 'map';
 
   showOriginal$ = new BehaviorSubject<boolean>(false);
+  showOsmTrack$ = new BehaviorSubject<boolean>(false);
   showPhotos$ = new BehaviorSubject<boolean>(false);
   reverseWay$ = new BehaviorSubject<boolean>(false);
 
@@ -586,7 +588,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   private listenForTracks(): void {
     const recording$ = this.recording$ ? combineLatest([this.recording$, this.showOriginal$]).pipe(map(([r,s]) => r ? {recording: r, track: s ? r.rawTrack : r.track} : null)) : of(null);
     this.byStateAndVisible.subscribe(
-      combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), recording$, this.toolsBaseTrack$, this.toolsModifiedTrack$, this.selection.selectionTrack$, this.selection.zoom$, this.toolsHideBaseTrack$, this.publicTrailsAroundMapTracks$]).pipe(
+      combineLatest([this.trail$(this.trail1$, true), this.trail$(this.trail2$, false), recording$, this.toolsBaseTrack$, this.toolsModifiedTrack$, this.selection.selectionTrack$, this.selection.zoom$, this.toolsHideBaseTrack$, this.publicTrailsAroundMapTracks$]).pipe(
         debounceTime(1)
       ),
       ([trail1, trail2, recordingWithTrack, toolsBaseTrack, toolsModifiedTrack, selectionTracks, zoomOnSelection, hideBaseTrack, publicTrailsAround]) => { // NOSONAR
@@ -635,14 +637,15 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           }
         }
         if (trail1[1] && !toolsBaseTrack) {
-          tracks.push(trail1[1]);
+          const { track, mapTrack } = trail1[3] && !this.editTools && !toolsModifiedTrack && !hideBaseTrack && !trail2[1] ? {track: trail1[3], mapTrack: trail1[4]!} : {track: trail1[1], mapTrack: trail1[2]!};
+          tracks.push(track);
           if (!toolsModifiedTrack || !hideBaseTrack)
-            this.graphTrack1 = trail1[1];
+            this.graphTrack1 = track;
           if (trail1[2] && (!toolsModifiedTrack || !hideBaseTrack)) {
-            mapTracks.push(trail1[2]);
+            mapTracks.push(mapTrack);
             if (!toolsModifiedTrack) {
-              trail1[2].showDepartureAndArrivalAnchors();
-              trail1[2].showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
+              mapTrack.showDepartureAndArrivalAnchors();
+              mapTrack.showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
             }
           }
           if (trail2[1]) {
@@ -736,25 +739,37 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this.byStateAndVisible.subscribe(this.selection.selection$, () => this.changesDetection.detectChanges());
   }
 
-  private trail$(trail$?: Observable<Trail | null>): Observable<[Trail | null, Track | undefined, MapTrack | undefined]> {
-    if (!trail$) return of(([null, undefined, undefined]) as [Trail | null, Track | undefined, MapTrack | undefined]);
+  private trail$(trail$: Observable<Trail | null> | undefined, includeOsmMatch: boolean): Observable<[Trail | null, Track | undefined, MapTrack | undefined, Track | undefined, MapTrack | undefined]> {
+    if (!trail$) return of(([null, undefined, undefined, undefined, undefined]) as [Trail | null, Track | undefined, MapTrack | undefined, Track | undefined, MapTrack | undefined]);
     return trail$.pipe(
       switchMap(trail => {
-        if (!trail) return of(([null, undefined, undefined]) as [Trail | null, Track | undefined, MapTrack | undefined]);
-        return combineLatest([this.showOriginal$, this.reverseWay$]).pipe(
-          switchMap(([original, reverse]) => {
+        if (!trail) return of(([null, undefined, undefined, undefined, undefined]) as [Trail | null, Track | undefined, MapTrack | undefined, Track | undefined, MapTrack | undefined]);
+        return combineLatest([this.showOriginal$, this.reverseWay$, this.showOsmTrack$]).pipe(
+          switchMap(([original, reverse, showOsm]) => {
             const uuid$ = original ? trail.originalTrackUuid$ : trail.currentTrackUuid$;
             return uuid$.pipe(
               switchMap(uuid => trail.fromModeration ?
                 this.injector.get(ModerationService).getFullTrack$(trail.uuid, trail.owner, uuid) :
                 this.trackService.getFullTrack$(uuid, trail.owner)
               ),
-              map(track => {
-                if (!track) return ([trail, undefined, undefined]) as [Trail | null, Track | undefined, MapTrack | undefined];
+              switchMap(track => {
+                if (!track) return of([trail, undefined, undefined, undefined, undefined] as [Trail | null, Track | undefined, MapTrack | undefined, Track | undefined, MapTrack | undefined]);
                 if (reverse) track = track.reverse();
                 const mapTrack = new MapTrack(trail, track, 'red', 1, false, this.i18n);
                 mapTrack.showArrowPath();
-                return ([trail, track, mapTrack]) as [Trail | null, Track | undefined, MapTrack | undefined];
+                if (!includeOsmMatch || original || !showOsm) return of([trail, track, mapTrack, undefined, undefined] as [Trail | null, Track | undefined, MapTrack | undefined, Track | undefined, MapTrack | undefined]);
+                return concat(
+                  of(undefined),
+                  track.computed.osmWays$
+                ).pipe(
+                  map(osm => {
+                    if (!osm) return ([trail, track, mapTrack, undefined, undefined]) as [Trail | null, Track | undefined, MapTrack | undefined, Track | undefined, MapTrack | undefined];
+                    const osmTrack = buildOsmTrack(track, osm);
+                    const osmMap = new MapTrack(trail, osmTrack, 'red', 1, false, this.i18n);
+                    osmMap.showArrowPath();
+                    return [trail, track, mapTrack, osmTrack, osmMap] as [Trail | null, Track | undefined, MapTrack | undefined, Track | undefined, MapTrack | undefined];
+                  })
+                )
               })
             );
           })

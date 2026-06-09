@@ -11,6 +11,7 @@ import { PreferencesService } from '../services/preferences/preferences.service'
 import { PointReference } from './point-reference';
 import { OfflineMapService } from '../services/map/offline-map.service';
 import { TrackComputedData } from '../utils/track-computed-data/track-computed-data';
+import { WorkerService } from '../worker/web-app';
 
 export class Track extends Owned {
 
@@ -54,6 +55,7 @@ export class Track extends Owned {
     dto: Partial<TrackDto>,
     public readonly preferencesService: PreferencesService,
     public readonly mapService: OfflineMapService,
+    public readonly workerService: WorkerService,
   ) {
     super(dto);
     this.sizeUsed = dto.sizeUsed;
@@ -75,7 +77,7 @@ export class Track extends Owned {
           time: wp.t,
         }, wp.na ?? '', wp.de ?? '', wp.nt, wp.dt));
       }
-    this._computed = new TrackComputedData(this, preferencesService, mapService);
+    this._computed = new TrackComputedData(this, preferencesService, mapService, workerService);
   }
 
   public newSegment(): Segment {
@@ -143,7 +145,7 @@ export class Track extends Owned {
       s: this.segments.reverse().map(segment => segment.reverseDto()),
       wp: this.wayPoints.map(wp => wp.toDto()),
       sizeUsed: this.sizeUsed
-    }, this.preferencesService, this.mapService);
+    }, this.preferencesService, this.mapService, this.workerService);
   }
 
   public override toDto(): TrackDto {
@@ -235,7 +237,7 @@ export class Track extends Owned {
   }
 
   public subTrack(startSegment: number, startPoint: number, endSegment: number, endPoint: number): Track {
-    const sub = new Track({owner: 'nobody'}, this.preferencesService, this.mapService);
+    const sub = new Track({owner: 'nobody'}, this.preferencesService, this.mapService, this.workerService);
     const newPoints: PointDescriptor[] = [];
     for (let si = startSegment; si <= endSegment; si++) {
       const s = this._segments.value[si];
@@ -299,7 +301,20 @@ export class Track extends Owned {
       version: undefined,
       createdAt: undefined,
       updatedAt: undefined
-    }, this.preferencesService, this.mapService);
+    }, this.preferencesService, this.mapService, this.workerService);
+  }
+
+  public newTrack(owner: string): Track {
+    return new Track(
+      {
+        uuid: undefined,
+        owner,
+        version: undefined,
+        createdAt: undefined,
+        updatedAt: undefined,
+      },
+      this.preferencesService, this.mapService, this.workerService
+    );
   }
 
   public isEquals(other: Track): boolean {

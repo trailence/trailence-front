@@ -4,7 +4,7 @@ import { HttpService } from '../http/http.service';
 import { NetworkService } from '../network/network.service';
 import { PendingRequests } from 'src/app/utils/pending-requests';
 import { Injector } from '@angular/core';
-import { catchError, debounceTime, firstValueFrom, forkJoin, from, map, Observable, of, Subscriber, switchMap, tap } from 'rxjs';
+import { catchError, debounceTime, filter, firstValueFrom, forkJoin, from, map, Observable, of, Subscriber, switchMap, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { ApiError } from '../http/api-error';
 import { Console } from 'src/app/utils/console';
@@ -38,6 +38,15 @@ export class Ways {
     return new Observable<WaysResponse>(subscriber => {
       this.processWaysTiles([], boundsTiles, bounds, false, subscriber);
     });
+  }
+
+  public getAllWays(bounds: L.LatLngBounds): Observable<Way[]> {
+    const allWays: Way[] = [];
+    return this.getWays(bounds).pipe(
+      tap(response => allWays.push(...response.ways)),
+      filter(response => response.done),
+      map(() => allWays),
+    );
   }
 
   private processWaysTiles(tilesProcessed: number[], tilesToProcess: number[], bounds: L.LatLngBounds, partial: boolean, subscriber: Subscriber<WaysResponse>) {

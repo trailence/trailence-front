@@ -10,6 +10,7 @@ import { Photo } from 'src/app/model/photo';
 import { PhotoDto } from 'src/app/model/dto/photo';
 import { GpxFormatRaw } from './gpx-format-raw';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
+import { WorkerService } from 'src/app/worker/web-app';
 
 export interface ImportedTrail {
   trail: Trail;
@@ -22,10 +23,10 @@ export interface ImportedTrail {
 
 export class GpxFormat {
 
-  public static importGpx(file: ArrayBuffer, user: string, collectionUuid: string, preferencesService: PreferencesService, mapService: OfflineMapService, trailSourceType: TrailSourceType | undefined, trailSource: string | undefined, trailSourceDate: number | undefined): ImportedTrail { // NOSONAR
+  public static importGpx(file: ArrayBuffer, user: string, collectionUuid: string, preferencesService: PreferencesService, mapService: OfflineMapService, workerService: WorkerService, trailSourceType: TrailSourceType | undefined, trailSource: string | undefined, trailSourceDate: number | undefined): ImportedTrail { // NOSONAR
     const raw = GpxFormatRaw.importGpxRaw(file, user, collectionUuid, trailSourceType, trailSource, trailSourceDate, new DOMParser());
     const tracks = raw.tracks.map(trackRaw => {
-      const track = new Track({owner: user}, preferencesService, mapService);
+      const track = new Track({owner: user}, preferencesService, mapService, workerService);
       for (const segmentRaw of trackRaw.segments) {
         const segment = track.newSegment();
         segment.appendMany(segmentRaw);

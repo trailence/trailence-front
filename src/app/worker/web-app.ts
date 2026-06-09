@@ -9,6 +9,8 @@ import { TranslatedString } from '../services/i18n/i18n-string';
 import { PhotoDto } from '../model/dto/photo';
 import { Way, WayReference } from '../services/map/way';
 import { POI, POIType } from '../services/map/poi';
+import { EarthPoint } from '../utils/latlng';
+import { OsmWaysTrackPoint } from '../utils/track-computed-data/match-osm-ways';
 
 @Injectable({providedIn: 'root'})
 export class WorkerService {
@@ -34,6 +36,14 @@ export class WorkerService {
       request: WorkerRequest.PARSE_WAYS,
       payload: {blob, south: bounds.getSouth(), north: bounds.getNorth(), east: bounds.getEast(), west: bounds.getWest()},
       transferable: [blob]
+    });
+  }
+
+  public matchOsmWays(track: EarthPoint[][], osmWays: Way[]): Promise<OsmWaysTrackPoint[][]> {
+    return this.request<OsmWaysTrackPoint[][]>({
+      request: WorkerRequest.MATCH_OSM_WAYS,
+      payload: {track, osmWays},
+      transferable: [],
     });
   }
 

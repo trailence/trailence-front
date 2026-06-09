@@ -204,7 +204,7 @@ export class TrackDatabase implements StoreWithCleaning {
             return this.tableFullTrack.forEach$(trackItem => {
               if (!trackItem.track || trackItem.version === -1) return;
               count++;
-              const track = new Track(trackItem.track, this.injector.get(PreferencesService), this.injector.get(OfflineMapService));
+              const track = new Track(trackItem.track, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService));
               let meta$ = this.metadata.get(trackItem.key);
               if (meta$?.loadedValue) {
                 countInMemory++;
@@ -398,7 +398,7 @@ export class TrackDatabase implements StoreWithCleaning {
   private loadFullTrack(key: string): Promise<Track | null> {
     return firstValueFrom(this.tableFullTrack.getByKey$(key).pipe(
       map(item => {
-        if (item?.track) return new Track(item.track, this.injector.get(PreferencesService), this.injector.get(OfflineMapService));
+        if (item?.track) return new Track(item.track, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService));
         return null;
       })
     ));
@@ -930,7 +930,8 @@ export class TrackDatabase implements StoreWithCleaning {
         const fulls$ = firstValueFrom(this.tableFullTrack.setMany$(fulls));
         const prefs = this.injector.get(PreferencesService);
         const mapService = this.injector.get(OfflineMapService);
-        const entities = tracks.map(track => new Track(track, prefs, mapService));
+        const workerService = this.injector.get(WorkerService);
+        const entities = tracks.map(track => new Track(track, prefs, mapService, workerService));
         for (const entity of entities) this.fullTracks.get(entity.uuid + '#' + entity.owner)?.newValue(entity);
         const simplified$ = Promise.all(
           entities.map(track => this.injector.get(WorkerService).simplifyTrack(track).then(simplified => ({...simplified, key: track.uuid + '#' + track.owner})))

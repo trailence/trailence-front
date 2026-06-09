@@ -17,4 +17,5 @@ export enum WorkerRequest {
   SIMPLIFY_TRACK = 'simplify-track',
   IMPORT_PHOTO = 'import-photo',
   CONVERT_JPEG = 'convert-jpeg',
+  MATCH_OSM_WAYS = 'match_osm_ways',
 }

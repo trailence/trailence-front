@@ -2,11 +2,13 @@ import { Track } from 'src/app/model/track';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { BehaviorSubjectOnDemand, BehaviorSubjectOnDemandWithSnapshot } from '../rxjs/behavior-subject-ondemand';
 import { BreakPointSection, detectLongBreaksFromTrack, TrackLongBreaks } from 'src/app/services/track-edition/time/break-detection';
-import { debounceTime, Observable } from 'rxjs';
+import { debounceTime, from, Observable, of, switchMap } from 'rxjs';
 import { estimateTimeForTrack, TrackTimeEstimation } from 'src/app/services/track-edition/time/time-estimation';
 import { TrackWayPoint } from '../track-waypoints/track-waypoint';
 import { computeTrackWayPoints } from '../track-waypoints/compute-track-way-points';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
+import { WorkerService } from 'src/app/worker/web-app';
+import { OsmWaysTrackPoint } from './match-osm-ways';
 
 export class TrackComputedData {
 
@@ -14,6 +16,7 @@ export class TrackComputedData {
     public readonly track: Track,
     public readonly preferencesService: PreferencesService,
     public readonly mapService: OfflineMapService,
+    public readonly workerService: WorkerService,
   ) {}
 
   private readonly _breaks = new BehaviorSubjectOnDemandWithSnapshot<TrackLongBreaks>(
@@ -26,9 +29,19 @@ export class TrackComputedData {
     this.track.changes$.pipe(debounceTime(250))
   );
 
+  private readonly _osmWaysMatch = new BehaviorSubjectOnDemand<any>(
+    () => this.track.metadata.bounds ?
+        this.mapService.ways.getAllWays(this.track.metadata.bounds)
+        .pipe(switchMap(ways => from(this.workerService.matchOsmWays(this.track.segments.map(s => s.points.map(p => ({lat: p.pos.lat, lng: p.pos.lng}))), ways))))
+      : of(undefined),
+    this.track.changes$.pipe(debounceTime(250)),
+    120000,
+  );
+
   private readonly _wayPoints = new BehaviorSubjectOnDemand<TrackWayPoint[]>(
     () => computeTrackWayPoints(this.track, this._breaks.snapshot().sections, this.mapService),
-    this.track.changes$.pipe(debounceTime(250))
+    this.track.changes$.pipe(debounceTime(250)),
+    60000,
   );
 
   public get breaks$(): Observable<TrackLongBreaks> {
@@ -47,6 +60,10 @@ export class TrackComputedData {
 
   public get wayPoints$(): Observable<TrackWayPoint[]> {
     return this._wayPoints.asObservable();
+  }
+
+  public get osmWays$(): Observable<OsmWaysTrackPoint[][]> {
+    return this._osmWaysMatch.asObservable();
   }
 
 }

@@ -66,7 +66,7 @@ export class TraceRecorderService {
     private readonly photoService: PhotoService,
     private readonly cameraService: CameraService,
     private readonly mapService: OfflineMapService,
-    private readonly worker: WorkerService,
+    private readonly workerService: WorkerService,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -109,7 +109,7 @@ export class TraceRecorderService {
     this._table = this._db.table<RecordingDto | {key: string, photo: ArrayBuffer}, string>('record');
     this._table.get('1')
     .then(dto => {
-      const recording = dto ? Recording.fromDto(dto as RecordingDto, this.preferencesService, this.mapService) : null;
+      const recording = dto ? Recording.fromDto(dto as RecordingDto, this.preferencesService, this.mapService, this.workerService) : null;
       if (recording) {
         Console.info('Trace in progress found in DB, start it');
         this._recording$.next(recording);
@@ -128,8 +128,8 @@ export class TraceRecorderService {
       this.collectionService.getMyTrails$().pipe(timeout(30000)).subscribe({
         next: myTrails => {
           if (!this._email) { reject(); return; }
-          const track = new Track({ owner: this._email }, this.preferencesService, this.mapService);
-          const rawTrack = new Track({ owner: this._email }, this.preferencesService, this.mapService);
+          const track = new Track({ owner: this._email }, this.preferencesService, this.mapService, this.workerService);
+          const rawTrack = new Track({ owner: this._email }, this.preferencesService, this.mapService, this.workerService);
           const trail = new Trail({
             owner: this._email,
             name: this.i18n.texts.trace_recorder.trail_name_start + ' ' + this.i18n.timestampToDateTimeString(Date.now()),
@@ -299,7 +299,7 @@ export class TraceRecorderService {
     const recording = this._recording$.value;
     if (!recording || !this._table) return;
     const buffer = await binary.toArrayBuffer();
-    const imported = await this.worker.importPhoto(recording.trail.owner, recording.trail.uuid, '', recording.photos$.value.length + 1, buffer, this.preferencesService.preferences, Date.now(), recording.track.arrivalPoint?.pos.lat, recording.track.arrivalPoint?.pos.lng, false, undefined, true);
+    const imported = await this.workerService.importPhoto(recording.trail.owner, recording.trail.uuid, '', recording.photos$.value.length + 1, buffer, this.preferencesService.preferences, Date.now(), recording.track.arrivalPoint?.pos.lat, recording.track.arrivalPoint?.pos.lng, false, undefined, true);
     return await this.storePhoto(imported.photo, imported.blob);
   }
 
@@ -622,9 +622,9 @@ export class Recording {
     }
   }
 
-  static fromDto(dto: RecordingDto, preferencesService: PreferencesService, mapService: OfflineMapService): Recording {
-    const rawTrack = new Track(dto.rawTrack, preferencesService, mapService);
-    const improvedTrack = new Track(dto.track, preferencesService, mapService);
+  static fromDto(dto: RecordingDto, preferencesService: PreferencesService, mapService: OfflineMapService, workerService: WorkerService): Recording {
+    const rawTrack = new Track(dto.rawTrack, preferencesService, mapService, workerService);
+    const improvedTrack = new Track(dto.track, preferencesService, mapService, workerService);
     const r = new Recording(
       new Trail(dto.trail),
       improvedTrack,

@@ -452,6 +452,14 @@
             </ion-checkbox>
           </div>
         }
+        @if (tracks[0] && !toolsEnabled && !trail2) {
+          <div class="show-osm">
+            <ion-checkbox labelPlacement="end" [checked]="showOsmTrack$.value" (ionChange)="showOsmTrack$.next($event.detail.checked)">
+              <span>{{i18n.texts.pages.trail.show_osm}}</span>
+              <ion-icon name="help-circle" [appTooltip]="i18n.texts.help.contextual.show_osm" style="width: 20px; height: 20px; margin-left: 8px; margin-bottom: -4px"></ion-icon>
+            </ion-checkbox>
+          </div>
+        }
 
 
         @if (!isSmall) {

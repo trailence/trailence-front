@@ -372,6 +372,12 @@
   div.show-original {
     padding: 6px 3px 0 8px;
   }
+  div.show-osm {
+    padding: 6px 3px 0 8px;
+    ion-checkbox::part(label) {
+      white-space: wrap;
+    }
+  }
 
   .section {
     background-color: var(--ion-item-background);

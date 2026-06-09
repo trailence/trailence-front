@@ -23,16 +23,9 @@ export function computeTrackWayPoints(track: Track, breaksSections: BreakPointSe
       return;
     }
     bounds = extendsAround(bounds, 26);
-    const pois$ = mapService.pois.getPois(bounds, ['guidepost']).pipe(filter(p => p.done), map(p => p.pois));
-    const allWays: Way[] = [];
-    const ways$ = mapService.ways.getWays(bounds).pipe(
-      tap(response => allWays.push(...response.ways)),
-      filter(response => response.done),
-      map(() => allWays), // TODO switchMap with attached ways
-    );
+    const pois$ = mapService.pois.getPois(bounds, ['guidepost']).pipe(filter(p => p.done), map(p => p.pois)); // TODO put in track computed data to avoid recomputing each time ?
     let poisDone = false;
-    let waysDone = false;
-    combineLatest([concat(of(undefined), pois$), concat(of(undefined), ways$)]).pipe(debounceTimeExtended(250, 250, undefined, (p,n) => n[0] !== undefined && n[1] !== undefined)).subscribe({
+    combineLatest([concat(of(undefined), pois$)/*, concat(of(undefined), ways$)*/]).pipe(debounceTimeExtended(250, 250, undefined, (p,n) => n[0] !== undefined /*&& n[1] !== undefined*/)).subscribe({
       next: result => {
         const newList = [...list];
         let changed = false;
@@ -40,9 +33,11 @@ export function computeTrackWayPoints(track: Track, breaksSections: BreakPointSe
           changed = computeGuidepostsWayPoints(track, result[0], newList) || changed;
           poisDone = true;
         }
+        /*
         if (result[1] && !waysDone) {
           // TODO
         }
+          */
         if (changed) subscriber.next(newList);
       },
       complete: () => {

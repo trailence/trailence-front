@@ -1,4 +1,5 @@
 import { Console } from '../utils/console';
+import { matchOsmWays } from '../utils/track-computed-data/match-osm-ways';
 import { convertToJpeg } from './functions/image-to-jpeg';
 import { importPhoto } from './functions/import-photo';
 import { parsePois } from './functions/parse-pois';
@@ -40,6 +41,9 @@ export function processWorkerMessage(request: WorkerMessage): Promise<{response:
       case WorkerRequest.CONVERT_JPEG:
         result = convertToJpeg(request.payload.image, request.payload.maxWidth, request.payload.maxHeight, request.payload.quality, request.payload.minWidth, request.payload.minHeight)
         .then(result => ({result, transferable: [result.jpeg]}));
+        break;
+      case WorkerRequest.MATCH_OSM_WAYS:
+        result = new Promise<any>(resolve => (resolve({result: matchOsmWays(request.payload.track, request.payload.osmWays), transferable: []})));
         break;
       default:
         result = Promise.reject(new Error('Unknown worker message: ' + request.request));

@@ -95,7 +95,7 @@ export class LinkPlugin extends FetchSourcePlugin {
       version: 1,
       owner: this.owner,
       uuid: link,
-    }, this.injector.get(PreferencesService), this.injector.get(OfflineMapService));
+    }, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService));
   }
 
   private toMetadata(link: string, cache: LinkCache): TrackMetadataSnapshot {
