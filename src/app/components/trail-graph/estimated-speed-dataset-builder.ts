@@ -1,5 +1,4 @@
 import { Track } from 'src/app/model/track';
-import { ESTIMATED_SMALL_BREAK_EVERY, estimateSmallBreakTime, estimateSpeedInMetersByHour } from 'src/app/services/track-edition/time/time-estimation';
 import { DataPoint } from './data-point';
 import { ComputedPreferences } from 'src/app/services/preferences/preferences';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
@@ -28,28 +27,14 @@ export class EstimatedSpeedDatasetBuilder {
   }
 
   private static fillEstimatedSpeed(ds: any, track: Track, originalData: DataPoint[], prefs: ComputedPreferences, i18n: I18nService): void {
-    let distance = 0;
-    let duration = 0;
-    let estimatedDuration = 0;
-    let durationSincePreviousBreak = 0;
+    const trackEstimation = track.computed.timeEstimationSnapshot;
     let index = 0;
-    const trackDistance = track.metadata.distance;
-    const segments = track.segments;
-    for (const segment of segments) {
-      const points = segment.points;
-      durationSincePreviousBreak = 0;
-      const segmentDuration = segment.duration;
-      let durationSinceSegmentStart = 0;
-      for (const point of points) {
-        const distanceFromPreviousPoint = point.distanceFromPreviousPoint;
-        distance += distanceFromPreviousPoint;
-        const speed = distanceFromPreviousPoint > 0 ? estimateSpeedInMetersByHour(point, estimatedDuration, prefs.estimatedBaseSpeed) : ds.data.at(-1)?.speed ?? 0;
-        const estimatedTime = speed > 0 ? distanceFromPreviousPoint * (60 * 60 * 1000) / speed : 0;
-        estimatedDuration += estimatedTime;
-        let timeFromPreviousPoint = point.durationFromPreviousPoint ?? estimatedTime;
-        duration += timeFromPreviousPoint;
-        durationSincePreviousBreak += timeFromPreviousPoint;
-        durationSinceSegmentStart += timeFromPreviousPoint;
+    for (let si = 0; si < track.segments.length; ++si) {
+      const points = track.segments[si].points;
+      const pointsEstimation = trackEstimation.points[si];
+      for (let pi = 0; pi < points.length; ++pi) {
+        const pointEstimation = pointsEstimation?.[pi];
+        const point = points[pi];
         while (originalData[index].isBreakPoint) {
           ds.data.push({
             isBreakPoint: true,
@@ -58,32 +43,29 @@ export class EstimatedSpeedDatasetBuilder {
           });
           index++;
         }
-        ds.data.push({
-          x: duration / 60000,
-          y: i18n.distanceInLongUserUnit(speed),
-          distance,
-          duration,
-          speed,
-          distanceFromPreviousPoint,
-          timeFromPreviousPoint,
-          originalDataIndex: index,
-        });
-        originalData[index].estimatedSpeed = speed;
-        originalData[index].estimatedDuration = estimatedDuration;
-        if (originalData[index].x === 0) originalData[index].x = duration;
-        index++;
-        if (durationSincePreviousBreak >= ESTIMATED_SMALL_BREAK_EVERY &&
-          distanceFromPreviousPoint > 0 &&
-          (!segmentDuration || segmentDuration - durationSinceSegmentStart > ESTIMATED_SMALL_BREAK_EVERY / 2) && // no break if less than 30 minutes remaining
-          (segmentDuration || (trackDistance > 0 && trackDistance - distance > prefs.estimatedBaseSpeed * 0.4)) // no break if no time info and remaining distance is around 30 minutes
-        ) {
-          const breakTime = estimateSmallBreakTime(duration);
-          this.addSmallBreak(breakTime, ds, originalData);
-          estimatedDuration += breakTime;
-          durationSincePreviousBreak = 0;
+        if (pointEstimation) {
+          ds.data.push({
+            x: pointEstimation.durationFromStartOnTrack / 60000,
+            y: i18n.distanceInLongUserUnit(pointEstimation.speedMetersByHour),
+            distance: pointEstimation.distanceFromStart,
+            duration: pointEstimation.durationFromStartOnTrack,
+            speed: pointEstimation.speedMetersByHour,
+            originalDataIndex: index,
+            timeFromPreviousPoint: point.durationFromPreviousPoint ?? pointEstimation.estimatedTime,
+            distanceFromPreviousPoint: point.distanceFromPreviousPoint,
+          });
+          originalData[index].estimatedSpeed = pointEstimation.speedMetersByHour;
+          originalData[index].estimatedDuration = pointEstimation.estimatedDurationFromStart;
+          if (originalData[index].x === 0) {
+            originalData[index].x = pointEstimation.durationFromStartOnTrack / 60000;
+          }
+          if (pointEstimation.smallBreakDuration > 0)
+            this.addSmallBreak(pointEstimation.smallBreakDuration, ds, originalData);
         }
+        index++;
       }
     }
+    ds.data.sort((p1: any, p2: any) => p1.x - p2.x);
   }
 
   private static addSmallBreak(breakTime: number, ds: any, originalData: DataPoint[]): void {

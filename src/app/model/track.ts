@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, map, of, skip, switchMap } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, concat, map, of, skip, switchMap } from 'rxjs';
 import { Segment, SegmentMetadata } from './segment';
 import { Point } from './point';
 import { PointDtoMapper } from './point-dto-mapper';
@@ -7,22 +7,17 @@ import { Owned } from './owned';
 import { TrackDto } from './dto/track';
 import { WayPoint } from './way-point';
 import * as L from 'leaflet';
-import { BehaviorSubjectOnDemand, BehaviorSubjectOnDemandWithSnapshot } from '../utils/rxjs/behavior-subject-ondemand';
-import { calculateLongBreaksFromTrack } from '../services/track-edition/time/break-detection';
 import { PreferencesService } from '../services/preferences/preferences.service';
-import { estimateTimeForTrack } from '../services/track-edition/time/time-estimation';
-import { debounceTimeExtended } from '../utils/rxjs/debounce-time-extended';
 import { PointReference } from './point-reference';
 import { OfflineMapService } from '../services/map/offline-map.service';
-import { TrackWayPoint } from '../utils/track-waypoints/track-waypoint';
-import { computeTrackWayPoints } from '../utils/track-waypoints/compute-track-way-points';
+import { TrackComputedData } from '../utils/track-computed-data/track-computed-data';
 
 export class Track extends Owned {
 
   private readonly _segments = new BehaviorSubject<Segment[]>([]);
   private readonly _wayPoints = new BehaviorSubject<WayPoint[]>([]);
   private readonly _meta = new TrackMetadata(this._segments);
-  private readonly _computedMeta: TrackComputedMetadata;
+  private readonly _computed: TrackComputedData;
 
   public readonly sizeUsed?: number;
 
@@ -33,7 +28,7 @@ export class Track extends Owned {
   public get wayPoints$(): Observable<WayPoint[]> { return this._wayPoints; }
 
   public get metadata(): TrackMetadata { return this._meta };
-  public get computedMetadata(): TrackComputedMetadata { return this._computedMeta; }
+  public get computed(): TrackComputedData { return this._computed; }
 
   public get segmentChanges$(): Observable<any> {
     return this.segments$.pipe(
@@ -53,15 +48,6 @@ export class Track extends Owned {
     ]).pipe(
       skip(1)
     );
-  }
-
-  private readonly _computedWayPoints$ = new BehaviorSubjectOnDemand<TrackWayPoint[]>(
-    () => computeTrackWayPoints(this, this.preferencesService.preferences, this.mapService),
-    this.changes$.pipe(debounceTime(250)) // invalidate on changes
-  );
-
-  public get computedWayPoints$(): Observable<TrackWayPoint[]> {
-    return this._computedWayPoints$.asObservable();
   }
 
   constructor(
@@ -89,7 +75,7 @@ export class Track extends Owned {
           time: wp.t,
         }, wp.na ?? '', wp.de ?? '', wp.nt, wp.dt));
       }
-    this._computedMeta = new TrackComputedMetadata(this, preferencesService);
+    this._computed = new TrackComputedData(this, preferencesService, mapService);
   }
 
   public newSegment(): Segment {
@@ -441,36 +427,5 @@ export class TrackMetadata {
       }
     });
   }
-
-}
-
-export class TrackComputedMetadata {
-
-  private readonly _breaksDuration$: BehaviorSubjectOnDemandWithSnapshot<number>;
-  private readonly _estimatedDuration$: BehaviorSubjectOnDemandWithSnapshot<number>;
-
-  constructor(
-    track: Track,
-    preferencesService: PreferencesService,
-  ) {
-    const changes$ = combineLatest([preferencesService.preferences$, track.segments$.pipe(
-      switchMap(segments => segments.length === 0 ? of([]) : combineLatest(segments.map(s => concat(of(true), s.changes$)))),
-      skip(1),
-      debounceTimeExtended(250, 250, 100),
-    )]);
-    this._breaksDuration$ = new BehaviorSubjectOnDemandWithSnapshot<number>(
-      () => calculateLongBreaksFromTrack(track, preferencesService.preferences.longBreakMinimumDuration, preferencesService.preferences.longBreakMaximumDistance),
-      changes$
-    );
-    this._estimatedDuration$ = new BehaviorSubjectOnDemandWithSnapshot<number>(
-      () => estimateTimeForTrack(track, preferencesService.preferences.estimatedBaseSpeed),
-      changes$
-    );
-  }
-
-  public get breaksDuration$(): Observable<number> { return this._breaksDuration$.asObservable(); }
-  public get estimatedDuration$(): Observable<number> { return this._estimatedDuration$.asObservable(); }
-  public breakDurationSnapshot(): number { return this._breaksDuration$.snapshot(); }
-  public estimatedDurationSnapshot(): number { return this._estimatedDuration$.snapshot(); }
 
 }

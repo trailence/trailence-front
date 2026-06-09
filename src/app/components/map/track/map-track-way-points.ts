@@ -124,7 +124,7 @@ export class MapTrackWayPoints {
   private load(): void {
     if (this._wayPointsAnchors !== undefined) return;
     if (this.track instanceof Track) {
-      this.subscription = combineLatest([this.track.computedWayPoints$, this.track.mapService.getPoiIcon$('guidepost')]).subscribe(([list, guidepostIcon]) => this.loadFromTrack(list, guidepostIcon));
+      this.subscription = combineLatest([this.track.computed.wayPoints$, this.track.mapService.getPoiIcon$('guidepost')]).subscribe(([list, guidepostIcon]) => this.loadFromTrack(list, guidepostIcon));
     } else {
       this.loadFromSimplifiedTrack(this.track);
     }

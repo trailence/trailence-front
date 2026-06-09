@@ -85,7 +85,7 @@ export class BehaviorSubjectOnDemandWithSnapshot<T> {
 
   public snapshot(): T {
     if (this.lastValue === undefined || this.observers.length === 0)
-      return this.valueProvider();
+      return this.lastValue = this.valueProvider();
     return this.lastValue;
   }
 

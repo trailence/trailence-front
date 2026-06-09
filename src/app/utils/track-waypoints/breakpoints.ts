@@ -1,6 +1,5 @@
 import { Track } from 'src/app/model/track';
-import { ComputedPreferences } from 'src/app/services/preferences/preferences';
-import { detectLongBreaksFromTrack } from 'src/app/services/track-edition/time/break-detection';
+import { BreakPointSection } from 'src/app/services/track-edition/time/break-detection';
 import { TrackUtils } from '../track-utils';
 import { TrackWayPoint, TrackWayPointElement } from './track-waypoint';
 import { WayPoint } from 'src/app/model/way-point';
@@ -48,12 +47,10 @@ export class BreakPoint extends TrackWayPointElement {
 
 }
 
-export function computeBreakPoints(track: Track, prefs: ComputedPreferences): BreakPoint[] {
-  const breaks = detectLongBreaksFromTrack(track, prefs.longBreakMinimumDuration, prefs.longBreakMaximumDistance);
+export function computeBreakPoints(track: Track, breaks: BreakPointSection[]): BreakPoint[] {
   const result: BreakPoint[] = [];
   for (const b of breaks) {
     const segment = track.segments[b.segmentIndex];
-    const point = segment.points[b.pointIndex];
     const duration = TrackUtils.durationBetween(segment.points[Math.max(0, b.startIndex - 1)], segment.points[Math.min(segment.points.length - 1, b.endIndex + 1)]);
     result.push(new BreakPoint(track, b.segmentIndex, b.pointIndex, true, false, false, false, duration));
   }

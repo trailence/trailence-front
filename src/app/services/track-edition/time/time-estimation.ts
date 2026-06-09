@@ -3,38 +3,70 @@ import { Point } from 'src/app/model/point';
 
 export const ESTIMATED_SMALL_BREAK_EVERY = 60 * 60 * 1000;
 
-export function estimateTimeForTrack(track: Track, estimatedBaseSpeed: number): number { // NOSONAR
-  let duration = 0;
+export interface TrackTimeEstimation {
+  total: number;
+  points: (TrackPointTimeEstimation | undefined)[][];
+}
+
+export interface TrackPointTimeEstimation {
+  speedMetersByHour: number;
+  estimatedTime: number;
+  estimatedDurationFromStart: number;
+  durationFromStartOnTrack: number;
+  distanceFromStart: number;
+  smallBreakDuration: number;
+}
+
+export function estimateTimeForTrack(track: Track, estimatedBaseSpeed: number): TrackTimeEstimation { // NOSONAR
+  const result: TrackTimeEstimation = { total: 0, points: [] }
   let totalDistance = 0;
+  let trackDuration = 0;
   const trackDistance = track.metadata.distance;
   for (const segment of track.segments) {
+    const segmentEstimation: (TrackPointTimeEstimation | undefined)[] = [];
+    result.points.push(segmentEstimation);
     let durationSincePeviousBreak = 0;
     const segmentDuration = segment.duration;
     const nb = segment.points.length;
     for (let i = 1; i < nb; ++i) {
       const sp = segment.points[i];
       const distance = sp.distanceFromPreviousPoint;
-      if (distance === 0) continue;
+      const timeFromPreviousPoint = sp.durationFromPreviousPoint;
+      if (timeFromPreviousPoint) trackDuration += timeFromPreviousPoint;
+      if (distance === 0) {
+        segmentEstimation.push(undefined);
+        continue;
+      }
       totalDistance += distance;
-      const speedMetersByHour = estimateSpeedInMetersByHour(sp, duration, estimatedBaseSpeed);
+      const speedMetersByHour = estimateSpeedInMetersByHour(sp, result.total, estimatedBaseSpeed);
       const estimatedTime = speedMetersByHour > 0 ? distance * (60 * 60 * 1000) / speedMetersByHour : 0;
-      duration += estimatedTime;
+      result.total += estimatedTime;
+      const pointEstimation: TrackPointTimeEstimation = {
+        speedMetersByHour,
+        estimatedTime,
+        estimatedDurationFromStart: result.total,
+        durationFromStartOnTrack: trackDuration,
+        distanceFromStart: totalDistance,
+        smallBreakDuration: 0,
+      };
+      segmentEstimation.push(pointEstimation);
       durationSincePeviousBreak += estimatedTime;
       if (durationSincePeviousBreak >= ESTIMATED_SMALL_BREAK_EVERY &&
-        (!segmentDuration || segmentDuration - duration > ESTIMATED_SMALL_BREAK_EVERY / 2) && // no break if less than 30 minutes remaining
+        (!segmentDuration || segmentDuration - result.total > ESTIMATED_SMALL_BREAK_EVERY / 2) && // no break if less than 30 minutes remaining
         (segmentDuration || (trackDistance > 0 && trackDistance - totalDistance > estimatedBaseSpeed * 0.4)) // no break if no time info and remaining distance is around 30 minutes
       ) {
-        duration += estimateSmallBreakTime(duration);
+        pointEstimation.smallBreakDuration = estimateSmallBreakTime(result.total);
+        result.total += pointEstimation.smallBreakDuration;
         durationSincePeviousBreak = 0;
       }
     }
   }
-  if (duration > 15 * 60 * 1000) {
+  if (result.total > 15 * 60 * 1000) {
     // round to 5 minutes
-    const _5minutes = duration % (5 * 60 * 1000);
-    if (_5minutes > 0) duration += 5 * 60 * 1000 - _5minutes;
+    const _5minutes = result.total % (5 * 60 * 1000);
+    if (_5minutes > 0) result.total += 5 * 60 * 1000 - _5minutes;
   }
-  return duration;
+  return result;
 }
 
 export function estimateSpeedInMetersByHour(point: Point, durationSinceStart: number, estimatedBaseSpeed: number): number {

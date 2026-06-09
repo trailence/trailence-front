@@ -229,8 +229,8 @@ export class TrackMetadataComponent extends AbstractComponent {
           track.metadata.negativeElevation$,
           config.showHighestAndLowestAltitude ? track.metadata.highestAltitude$ : of(undefined),
           config.showHighestAndLowestAltitude ? track.metadata.lowestAltitude$ : of(undefined),
-          track.computedMetadata.breaksDuration$,
-          track.computedMetadata.estimatedDuration$,
+          track.computed.breaks$.pipe(map(b => b.total)),
+          track.computed.timeEstimation$.pipe(map(t => t.total)),
           i18n.stateChanged$
         ]);
         return i18n.stateChanged$.pipe(map(state => ([

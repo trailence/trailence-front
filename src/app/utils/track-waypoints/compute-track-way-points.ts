@@ -1,7 +1,6 @@
 import { combineLatest, concat, filter, map, Observable, of, tap } from 'rxjs';
 import { Track } from 'src/app/model/track';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
-import { ComputedPreferences } from 'src/app/services/preferences/preferences';
 import { TrackWayPoint, TrackWayPointElement } from './track-waypoint';
 import { computeWayPointsFromTrack } from './waypoints-from-track';
 import { computeBreakPoints } from './breakpoints';
@@ -9,11 +8,12 @@ import { extendsAround } from '../leaflet-utils';
 import { Way } from 'src/app/services/map/way';
 import { debounceTimeExtended } from '../rxjs/debounce-time-extended';
 import { computeGuidepostsWayPoints } from './guideposts';
+import { BreakPointSection } from 'src/app/services/track-edition/time/break-detection';
 
-export function computeTrackWayPoints(track: Track, prefs: ComputedPreferences, mapService: OfflineMapService): Observable<TrackWayPoint[]> {
+export function computeTrackWayPoints(track: Track, breaksSections: BreakPointSection[], mapService: OfflineMapService): Observable<TrackWayPoint[]> {
   return new Observable<TrackWayPoint[]>(subscriber => {
     const fromTrack = computeWayPointsFromTrack(track);
-    const breaks = computeBreakPoints(track, prefs);
+    const breaks = computeBreakPoints(track, breaksSections);
     const merged = [...fromTrack, ...breaks].sort(TrackWayPointElement.compare);
     const list = merged.map(e => new TrackWayPoint(e));
     subscriber.next(list);

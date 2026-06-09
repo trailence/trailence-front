@@ -1270,7 +1270,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         if (remaining) {
           this.remaining = {
             originalTime: remaining.metadata.duration,
-            estimatedTime: remaining.computedMetadata.estimatedDurationSnapshot(),
+            estimatedTime: remaining.computed.timeEstimationSnapshot.total, // TODO do not use snapshot
             distance: remaining.metadata.distance,
             ascent: remaining.metadata.positiveElevation,
             descent: remaining.metadata.negativeElevation,

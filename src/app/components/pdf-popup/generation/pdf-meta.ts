@@ -12,7 +12,7 @@ export async function metaToPdf(ctx: PdfContext, x: number, y: number, w: number
   let secondTile = false;
   if (ctx.track.metadata.duration) {
     await metaRowToPdf(ctx, 'duration', ctx.i18n.texts.metadata.duration, ctx.i18n.durationToString(ctx.track.metadata.duration), x, y, w / 2);
-    const breaksDuration = ctx.track.computedMetadata.breakDurationSnapshot();
+    const breaksDuration = ctx.track.computed.breaksSnapshot.total;
     if (breaksDuration) {
       await metaRowToPdf(ctx, 'hourglass', ctx.i18n.texts.metadata.breaksDuration, ctx.i18n.durationToString(breaksDuration), x + w / 2, y, w / 2);
       y = ctx.doc.y + verticalSpacing;
@@ -20,7 +20,7 @@ export async function metaToPdf(ctx: PdfContext, x: number, y: number, w: number
       secondTile = true;
     }
   }
-  const estimatedDuration = ctx.track.computedMetadata.estimatedDurationSnapshot();
+  const estimatedDuration = ctx.track.computed.timeEstimationSnapshot.total;
   if (estimatedDuration) {
     await metaRowToPdf(ctx, 'chrono', ctx.i18n.texts.metadata.estimatedDuration, '≈ ' + ctx.i18n.durationToString(estimatedDuration), x + (secondTile ? w / 2 : 0), y, w / 2);
     if (secondTile) {

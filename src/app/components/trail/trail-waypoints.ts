@@ -235,7 +235,7 @@ export class TrailWaypoints {
     readonly onUpdated: () => void,
   ) {
     this.currentPhotos = initialPhotos;
-    this.subscription = track.computedWayPoints$.subscribe(
+    this.subscription = track.computed.wayPoints$.subscribe(
       wayPoints => {
         const previousHighlighted = trails.highlightedWayPoint;
         const previousHighlightedIndex = previousHighlighted ? this.wayPoints.findIndex(w => w.waypoint === trails.highlightedWayPoint) : -1;

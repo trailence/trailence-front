@@ -14,7 +14,6 @@ import { Photo } from 'src/app/model/photo';
 import * as L from 'leaflet';
 import { SegmentDto } from 'src/app/model/dto/segment';
 import { WayPointDto } from 'src/app/model/dto/way-point';
-import { calculateLongBreaksFromTrack } from '../track-edition/time/break-detection';
 import { estimateTimeForTrack } from '../track-edition/time/time-estimation';
 import { ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
@@ -29,6 +28,7 @@ import { AuthService } from '../auth/auth.service';
 import { NetworkService } from '../network/network.service';
 import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from 'src/app/worker/web-app';
+import { detectLongBreaksFromTrack } from '../track-edition/time/break-detection';
 
 @Injectable({providedIn: 'root'})
 export class ModerationService {
@@ -389,8 +389,8 @@ export class ModerationService {
       }
     }));
 
-    const breaksDuration = await step(1, () => Promise.resolve(calculateLongBreaksFromTrack(track, 3 * 60 * 1000, 50)));
-    const estimatedDuration = await step(1, () => Promise.resolve(estimateTimeForTrack(track, 5000)));
+    const breaksDuration = await step(1, () => Promise.resolve(detectLongBreaksFromTrack(track, 3 * 60 * 1000, 50).total));
+    const estimatedDuration = await step(1, () => Promise.resolve(estimateTimeForTrack(track, 5000).total));
     const fullTrack = await step(1, () => Promise.resolve(track.toDto()));
 
     const photosDtos = await step(1, () => { // NOSONAR

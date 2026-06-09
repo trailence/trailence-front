@@ -11,7 +11,7 @@ export class MoveWayPointIndexTool {
   public static getMenu(ctx: TrackEditToolContext): Observable<MenuItem[]> {
     return combineLatest([
       ctx.currentTrack$.pipe(
-        switchMap(track => track ? track.computedWayPoints$.pipe(map(wayPoints => ({track, wayPoints}))) : of(undefined))
+        switchMap(track => track ? track.computed.wayPoints$.pipe(map(wayPoints => ({track, wayPoints}))) : of(undefined))
       ),
       ctx.selection.selectedWayPoint$,
     ]).pipe(

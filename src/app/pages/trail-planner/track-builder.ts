@@ -21,7 +21,6 @@ import { TrackUtils } from 'src/app/utils/track-utils';
 import { GeoService } from 'src/app/services/geolocation/geo.service';
 import { Console } from 'src/app/utils/console';
 import { TrackDto } from 'src/app/model/dto/track';
-import { estimateTimeForTrack } from 'src/app/services/track-edition/time/time-estimation';
 import { TrailSourceType } from 'src/app/model/dto/trail';
 import { WayUtils } from 'src/app/services/map/way-utils';
 import { SimplifiedPoint, SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
@@ -455,8 +454,7 @@ export class TrackBuilder {
     this.currentMapTrack$.next(mt);
     this.getElevation().subscribe(() => {
       this.saveToLocalStorage();
-      const prefs = this.injector.get(PreferencesService).preferences;
-      this.estimatedTime = estimateTimeForTrack(this.track!, prefs.estimatedBaseSpeed);
+      this.estimatedTime = this.track!.computed.timeEstimationSnapshot.total;
       this.hasElevation = this.track!.forEachPoint(p => p.ele !== undefined) ?? false;
       if (this.hasElevation)
         this.planner.updateGraph(this.track!);

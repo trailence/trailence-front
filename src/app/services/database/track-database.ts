@@ -209,8 +209,8 @@ export class TrackDatabase implements StoreWithCleaning {
               if (meta$?.loadedValue) {
                 countInMemory++;
                 const meta = meta$.loadedValue;
-                if (updateTimeEstimation) meta.estimatedDuration = track.computedMetadata.estimatedDurationSnapshot();
-                if (updateBreakTime) meta.breaksDuration = track.computedMetadata.breakDurationSnapshot();
+                if (updateTimeEstimation) meta.estimatedDuration = track.computed.timeEstimationSnapshot.total;
+                if (updateBreakTime) meta.breaksDuration = track.computed.breaksSnapshot.total;
                 meta$.newValue({...meta});
                 this.tableMeta.setOne$({
                   key: trackItem.key,
@@ -420,8 +420,8 @@ export class TrackDatabase implements StoreWithCleaning {
       duration: m.duration,
       startDate: m.startDate,
       bounds: b ? [[b.getNorth(), b.getEast()], [b.getSouth(), b.getWest()]] : undefined,
-      breaksDuration: track.computedMetadata.breakDurationSnapshot(),
-      estimatedDuration: track.computedMetadata.estimatedDurationSnapshot(),
+      breaksDuration: track.computed.breaksSnapshot.total,
+      estimatedDuration: track.computed.timeEstimationSnapshot.total,
       localUpdate: Date.now(),
     }
   }

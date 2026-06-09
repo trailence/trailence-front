@@ -1,41 +1,6 @@
 import { Segment } from 'src/app/model/segment';
 import { Track } from 'src/app/model/track';
 
-export function calculateLongBreaksFromTrack(track: Track, longBreakMinimumDuration: number, longBreakMaximumDistance: number): number {
-  const segments = track.segments;
-  if (segments.length === 0) return 0;
-  let breaks = calculateLongBreaksFromSegment(segments[0], 0, longBreakMinimumDuration, longBreakMaximumDistance);
-  for (let i = 1; i < segments.length; ++i) {
-    const segment = segments[i];
-    breaks += calculateLongBreaksFromSegment(segment, i, longBreakMinimumDuration, longBreakMaximumDistance);
-  }
-  return breaks;
-}
-
-export function calculateLongBreaksFromSegment(segment: Segment, segmentIndex: number, longBreakMinimumDuration: number, longBreakMaximumDistance: number): number {
-  const breaks = detectLongBreaksFromSegment(segment, segmentIndex, longBreakMinimumDuration, longBreakMaximumDistance);
-  if (breaks.length === 0) return 0;
-  const points = segment.points;
-  let duration = 0;
-  for (const b of breaks) {
-    let startTime = points[b.startIndex].time;
-    let i = b.startIndex;
-    while (startTime === undefined && i < b.endIndex) {
-      startTime = points[++i].time;
-    }
-    if (startTime === undefined) continue;
-    let endIndex = b.endIndex;
-    if (endIndex < points.length - 1) endIndex++;
-    let endTime = points[endIndex].time;
-    while (endTime === undefined && endIndex < points.length - 1) {
-      endTime = points[++endIndex].time;
-    }
-    if (endTime === undefined) continue;
-    duration += (endTime - startTime);
-  }
-  return duration;
-}
-
 export interface BreakPointSection {
   segmentIndex: number;
   startIndex: number;
@@ -43,11 +8,40 @@ export interface BreakPointSection {
   pointIndex: number;
 }
 
-export function detectLongBreaksFromTrack(track: Track, minDuration: number, maxDistance: number): BreakPointSection[] {
-  const result: BreakPointSection[] = [];
+export interface TrackLongBreaks {
+  total: number,
+  durations: (number | undefined)[],
+  sections: BreakPointSection[],
+}
+
+export function detectLongBreaksFromTrack(track: Track, minDuration: number, maxDistance: number): TrackLongBreaks {
+  const result: TrackLongBreaks = {total: 0, sections: [], durations: []};
   for (let i = 0; i < track.segments.length; ++i) {
-    for (const b of detectLongBreaksFromSegment(track.segments[i], i, minDuration, maxDistance)) {
-      result.push(b);
+    const segment = track.segments[i];
+    const points = segment.points;
+    for (const b of detectLongBreaksFromSegment(segment, i, minDuration, maxDistance)) {
+      result.sections.push(b);
+      let duration: number | undefined = undefined;
+
+      let startTime = points[b.startIndex].time;
+      let i = b.startIndex;
+      while (startTime === undefined && i < b.endIndex) {
+        startTime = points[++i].time;
+      }
+      if (startTime !== undefined) {
+        let endIndex = b.endIndex;
+        if (endIndex < points.length - 1) endIndex++;
+        let endTime = points[endIndex].time;
+        while (endTime === undefined && endIndex < points.length - 1) {
+          endTime = points[++endIndex].time;
+        }
+        if (endTime !== undefined) {
+          duration = (endTime - startTime);
+        }
+      }
+      result.durations.push(duration);
+      if (duration)
+        result.total += duration;
     }
   }
   return result;
