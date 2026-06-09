@@ -419,7 +419,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
       if (info.description && info.description.length > 0 && (gpx.trail.description ?? '').length === 0)
         gpx.trail.description = info.description;
       if (info.wayPoints && info.wayPoints.length > 0) {
-        populateWayPointInfo(gpx.tracks[0], info.wayPoints, this.injector.get(PreferencesService).preferences);
+        populateWayPointInfo(gpx.tracks[0], info.wayPoints);
       }
       if (info.location && info.location.length > 0 && gpx.trail.location.length === 0) {
         gpx.trail.location = info.location;

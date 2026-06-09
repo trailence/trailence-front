@@ -69,13 +69,13 @@ export class RemoveSelectionTool implements TrackEditTool {
   }
 
   private removePoint(ctx: TrackEditToolContext, track: Track, point: PointReference): void {
-    const wp = TrackUtils.findWayPoints(track, point.segmentIndex, point.pointIndex, point.segmentIndex, point.pointIndex, ctx.injector.get(PreferencesService));
+    const wp = TrackUtils.findWayPoints(track, point.segmentIndex, point.pointIndex, point.segmentIndex, point.pointIndex);
     track.segments[point.segmentIndex].removePointAt(point.pointIndex);
     for (const w of wp) track.removeWayPoint(w);
   }
 
   private removeRange(ctx: TrackEditToolContext, track: Track, range: RangeReference): void {
-    const wp = TrackUtils.findWayPoints(track, range.start.segmentIndex, range.start.pointIndex + 1, range.end.segmentIndex, range.end.pointIndex - 1, ctx.injector.get(PreferencesService));
+    const wp = TrackUtils.findWayPoints(track, range.start.segmentIndex, range.start.pointIndex + 1, range.end.segmentIndex, range.end.pointIndex - 1);
     for (const w of wp) track.removeWayPoint(w);
     let endSi = range.end.segmentIndex;
     while (endSi > range.start.segmentIndex + 1) {

@@ -11,7 +11,6 @@ import { TrackService } from 'src/app/services/database/track.service';
 import { combineLatest, firstValueFrom } from 'rxjs';
 import { PhotoService } from 'src/app/services/database/photo.service';
 import { populateWayPointInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { AsyncPipe } from '@angular/common';
 
 @Component({
@@ -36,7 +35,6 @@ export class FetchSourcePopupComponent implements OnInit {
     private readonly authService: AuthService,
     private readonly trackService: TrackService,
     private readonly photoService: PhotoService,
-    private readonly preferences: PreferencesService,
   ) { }
 
   ngOnInit(): void {
@@ -78,8 +76,8 @@ export class FetchSourcePopupComponent implements OnInit {
           r$ = r$
           .then(() => firstValueFrom(combineLatest([this.trackService.getFullTrackReady$(trail.originalTrackUuid, email), this.trackService.getFullTrackReady$(trail.currentTrackUuid, email)])))
           .then(([track1, track2]) => {
-            let track1Updated = populateWayPointInfo(track1, info.wayPoints!, this.preferences.preferences);
-            let track2Updated = track2.uuid === track1.uuid ? false : populateWayPointInfo(track2, info.wayPoints!, this.preferences.preferences);
+            let track1Updated = populateWayPointInfo(track1, info.wayPoints!);
+            let track2Updated = track2.uuid === track1.uuid ? false : populateWayPointInfo(track2, info.wayPoints!);
             if (track1Updated) this.trackService.update(track1);
             if (track2Updated) this.trackService.update(track2);
             return true;

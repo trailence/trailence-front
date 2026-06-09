@@ -11,7 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { NgStyle } from '@angular/common';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { TrailLinkService } from 'src/app/services/database/link.service';
-import { ComputedWayPoint, Track } from 'src/app/model/track';
+import { Track } from 'src/app/model/track';
 import { TrackService } from 'src/app/services/database/track.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { combineLatest, first, firstValueFrom, of } from 'rxjs';
@@ -25,6 +25,7 @@ import { AvatarService } from 'src/app/services/avatar/avatar.service';
 import { PhotoService } from 'src/app/services/database/photo.service';
 import { Photo } from 'src/app/model/photo';
 import { PhotosSliderComponent } from '../photos-slider/photos-slider.component';
+import { computeWayPointsFromTrack, WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
 
 export function openPdfPopup(injector: Injector, trail: Trail) {
   injector.get(ModalController).create({
@@ -66,7 +67,7 @@ export class PdfPopup implements OnInit, OnDestroy {
   viewer: any = undefined;
   pdfTask: any = undefined;
 
-  wayPoints: ComputedWayPoint[] = [];
+  wayPoints: WayPointFromTrack[] = [];
   track?: Track;
   hasDescription = true;
   hasWayPoints = false;
@@ -136,7 +137,7 @@ export class PdfPopup implements OnInit, OnDestroy {
     .subscribe(([t, info, photos]) => {
       this.track = t;
       const preferences = this.injector.get(PreferencesService).preferences;
-      this.wayPoints = ComputedWayPoint.compute(t, preferences);
+      this.wayPoints = computeWayPointsFromTrack(t);
       const userLang = preferences.lang;
       const sourceLang = info?.lang ?? userLang;
       this.hasWayPoints = hasWaypointsContent(this.wayPoints, sourceLang, userLang);

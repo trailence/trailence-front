@@ -1,10 +1,10 @@
 import { Point, samePositionRound } from '../model/point';
 import { PointDescriptor } from '../model/point-descriptor';
 import * as L from 'leaflet';
-import { ComputedWayPoint, Track } from '../model/track';
+import { Track } from '../model/track';
 import { Segment } from '../model/segment';
-import { PreferencesService } from '../services/preferences/preferences.service';
 import { WayPoint } from '../model/way-point';
+import { computeWayPointsFromTrack } from './track-waypoints/waypoints-from-track';
 
 export class TrackUtils {
 
@@ -253,13 +253,12 @@ export class TrackUtils {
 
   // Waypoints
 
-  public static findWayPoints(track: Track, startSegmentIndex: number, startPointIndex: number, endSegmentIndex: number, endPointIndex: number, prefs: PreferencesService) {
-    let computed = ComputedWayPoint.compute(track, prefs.preferences);
-    computed = computed.filter(wp =>
+  public static findWayPoints(track: Track, startSegmentIndex: number, startPointIndex: number, endSegmentIndex: number, endPointIndex: number) {
+    const waypoints = computeWayPointsFromTrack(track).filter(wp =>
       wp.nearestSegmentIndex !== undefined && wp.nearestPointIndex !== undefined &&
       this.inRange(wp.nearestSegmentIndex, wp.nearestPointIndex, startSegmentIndex, startPointIndex, endSegmentIndex, endPointIndex)
     );
-    return track.wayPoints.filter(wp => computed.find(c => c.wayPoint.isEquals(wp)));
+    return track.wayPoints.filter(wp => waypoints.find(c => c.wayPoint.isEquals(wp)));
   }
 
   public static getWayPointAt(track: Track, position: L.LatLngLiteral): WayPoint | undefined {

@@ -77,7 +77,7 @@ export async function generatePdfMap(ctx: PdfContext, x: number, y: number, widt
   }
   if (includeWaypoints) {
     for (const wp of ctx.wayPoints) {
-      if (wp.isDeparture || wp.isArrival || wp.breakPoint) continue;
+      if (wp.isDeparture || wp.isArrival) continue;
       const svg = MapAnchor.createSvg(anchorBorderColor, '' + wp.index, anchorTextColor, anchorFillColor);
       const pos = pathPt(wp.wayPoint.point.pos);
       addSvgToPdf(ctx, svg, x + pos.x / ratio - anchorSize / 2, y + pos.y / ratio - anchorSize, anchorSize, anchorSize);

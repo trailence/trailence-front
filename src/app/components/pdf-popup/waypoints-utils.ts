@@ -1,6 +1,6 @@
-import { ComputedWayPoint } from 'src/app/model/track';
+import { WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
 
-export function hasWaypointsContent(wayPoints: ComputedWayPoint[], sourceLang: string, userLang: string) {
+export function hasWaypointsContent(wayPoints: WayPointFromTrack[], sourceLang: string, userLang: string) {
   const departure = wayPoints.find(wp => wp.isDeparture);
   let wayPointData = getWaypointData(departure, sourceLang, userLang);
   if (wayPointData) return true;
@@ -18,7 +18,7 @@ export function hasWaypointsContent(wayPoints: ComputedWayPoint[], sourceLang: s
   return false;
 }
 
-export function getWaypointData(waypoint: ComputedWayPoint | undefined, sourceLang: string, userLang: string): {waypoint: ComputedWayPoint, name: string | undefined, description: string | undefined} | undefined {
+export function getWaypointData(waypoint: WayPointFromTrack | undefined, sourceLang: string, userLang: string): {waypoint: WayPointFromTrack, name: string | undefined, description: string | undefined} | undefined {
   if (!waypoint) return undefined;
   const name = getWaypointName(waypoint, sourceLang, userLang);
   const description = getWaypointDescription(waypoint, sourceLang, userLang);
@@ -26,7 +26,7 @@ export function getWaypointData(waypoint: ComputedWayPoint | undefined, sourceLa
   return {waypoint, name, description};
 }
 
-function getWaypointName(waypoint: ComputedWayPoint, sourceLang: string, userLang: string): string | undefined {
+function getWaypointName(waypoint: WayPointFromTrack, sourceLang: string, userLang: string): string | undefined {
   const text =
     sourceLang === userLang ? waypoint.wayPoint.name?.trim() :
     (waypoint.wayPoint.nameTranslations?.[userLang] ? waypoint.wayPoint.nameTranslations[userLang].trim() : waypoint.wayPoint.name?.trim());
@@ -35,7 +35,7 @@ function getWaypointName(waypoint: ComputedWayPoint, sourceLang: string, userLan
 }
 
 
-function getWaypointDescription(waypoint: ComputedWayPoint, sourceLang: string, userLang: string): string | undefined {
+function getWaypointDescription(waypoint: WayPointFromTrack, sourceLang: string, userLang: string): string | undefined {
   const text =
     sourceLang === userLang ? waypoint.wayPoint.description?.trim() :
     (waypoint.wayPoint.descriptionTranslations?.[userLang] ? waypoint.wayPoint.descriptionTranslations[userLang].trim() : waypoint.wayPoint.description?.trim());

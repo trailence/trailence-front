@@ -1,5 +1,5 @@
 import { BehaviorSubject, Subscription } from 'rxjs';
-import { ComputedWayPoint, Track, TrackWayPoint } from 'src/app/model/track';
+import { Track } from 'src/app/model/track';
 import { Trail } from 'src/app/model/trail';
 import { MapAnchor } from '../map/markers/map-anchor';
 import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorBreakBorderColor, anchorBreakFillColor, anchorBreakTextColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor, MapTrackWayPoints } from '../map/track/map-track-way-points';
@@ -12,6 +12,10 @@ import { Photo } from 'src/app/model/photo';
 import * as L from 'leaflet';
 import { Arrays } from 'src/app/utils/arrays';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
+import { TrackWayPoint } from 'src/app/utils/track-waypoints/track-waypoint';
+import { WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
+import { BreakPoint } from 'src/app/utils/track-waypoints/breakpoints';
+import { GuidepostWayPoint } from 'src/app/utils/track-waypoints/guideposts';
 
 export class TrailsWaypoints {
 
@@ -117,7 +121,13 @@ export class TrailsWaypoints {
   }
 
   public canShowWaypointsOnMap(): boolean {
-    return this.trails.some(t => t.wayPoints.some(wp => wp.waypoint.guidepost || (wp.waypoint.computed && !wp.waypoint.computed.breakPoint && !wp.waypoint.computed.isDeparture && !wp.waypoint.computed.isArrival)));
+    return this.trails.some(
+      t => t.wayPoints.some(wp => {
+        if (GuidepostWayPoint.from(wp.waypoint)) return true;
+        const twp = WayPointFromTrack.from(wp.waypoint);
+        return twp && !twp.isDeparture && !twp.isArrival;
+      })
+    );
   }
 
   private wayPointsUpdated(): void {
@@ -151,16 +161,13 @@ export class TrailsWaypoints {
   }
 
   private waypointClick(wp: TrackWayPoint, trail: TrailWaypoints | undefined): void {
-    if (trail && wp.computed) {
-      if (wp.computed.nearestSegmentIndex !== undefined && wp.computed.nearestPointIndex !== undefined &&
-        wp.computed.nearestSegmentIndex < trail.track.segments.length && wp.computed.nearestPointIndex < trail.track.segments[wp.computed.nearestSegmentIndex].points.length
-      ) {
-        const pathPoint = trail.track.segments[wp.computed.nearestSegmentIndex].points[wp.computed.nearestPointIndex];
-        if (samePositionRound(pathPoint.pos, wp.computed.wayPoint.point.pos)) {
-          this.selection.selectPoint([new PointReference(trail.track, wp.computed.nearestSegmentIndex, wp.computed.nearestPointIndex)]);
-        }
+    const twp = WayPointFromTrack.from(wp);
+    if (trail && twp) {
+      const pathPoint = twp.getPoint();
+      if (pathPoint && samePositionRound(pathPoint.pos, twp.wayPoint.point.pos)) {
+        this.selection.selectPoint([new PointReference(trail.track, twp.nearestSegmentIndex!, twp.nearestPointIndex!)]);
       }
-      this.selection.selectedWayPoint$.next(wp.computed.wayPoint);
+      this.selection.selectedWayPoint$.next(twp.wayPoint);
     } else {
       this.selection.selectedWayPoint$.next(undefined);
     }
@@ -170,7 +177,7 @@ export class TrailsWaypoints {
     if (this._highlightedWayPoint === wp && (force || !this._highlightedWayPointFromClick)) {
       this._highlightedWayPoint = undefined;
       this._highlightedWayPointFromClick = false;
-      if (this.selection.selectedWayPoint$.value === wp.computed?.wayPoint)
+      if (this.selection.selectedWayPoint$.value === WayPointFromTrack.from(wp)?.wayPoint)
         this.selection.selectedWayPoint$.next(undefined);
       const trail = this.trails.find(t => t.wayPoints.some(w => w.waypoint === wp));
       if (trail) {
@@ -211,9 +218,10 @@ export class TrailWaypoints {
   }
 
   public isShown(wp: WayPointWithPhotos) {
-    if (wp.waypoint.computed?.breakPoint) return this._showBreaks;
-    if (wp.waypoint.guidepost && !wp.waypoint.computed) return this._showGuideposts;
-    return true;
+    if (WayPointFromTrack.from(wp.waypoint)) return true;
+    if (this._showBreaks && BreakPoint.from(wp.waypoint)) return true;
+    if (this._showGuideposts && GuidepostWayPoint.from(wp.waypoint)) return true;
+    return false;
   }
 
   private currentPhotos: {photos: Photo[], point: L.LatLngExpression}[];
@@ -232,19 +240,19 @@ export class TrailWaypoints {
         const previousHighlighted = trails.highlightedWayPoint;
         const previousHighlightedIndex = previousHighlighted ? this.wayPoints.findIndex(w => w.waypoint === trails.highlightedWayPoint) : -1;
         if (previousHighlightedIndex >= 0) trails.unhighlightWayPoint(previousHighlighted!, true);
-        this.wayPoints = wayPoints.map(wp => ({waypoint: wp, photos: this.getPhotos(this.currentPhotos, wp.position)}));
-        this.hasBreaks = wayPoints.some(wp => wp.computed?.breakPoint);
-        this.hasGuideposts = wayPoints.some(wp => !!wp.guidepost);
-        this.wayPointDepartureAndArrival = this.wayPoints.find(wp => wp.waypoint.computed?.isDeparture && wp.waypoint.computed?.isArrival);
-        this.wayPointsImages = wayPoints.map(wp => {
-          if (wp.computed?.isDeparture)
+        this.wayPoints = wayPoints.map(wp => new WayPointWithPhotos(wp, this.getPhotos(this.currentPhotos, wp.position)));
+        this.hasBreaks = this.wayPoints.some(wp => !!wp.breakPoint);
+        this.hasGuideposts = this.wayPoints.some(wp => !!wp.guidepost);
+        this.wayPointDepartureAndArrival = this.wayPoints.find(wp => wp.trackWayPoint?.isDepartureAndArrival());
+        this.wayPointsImages = this.wayPoints.map(wp => {
+          if (wp.trackWayPoint?.isDeparture)
             return MapAnchor.createDataIcon(anchorDepartureBorderColor, trails.i18n.texts.way_points.D, anchorDepartureTextColor, anchorDepartureFillColor);
-          if (wp.computed?.breakPoint)
-            return MapAnchor.createDataIcon(anchorBreakBorderColor, MapTrackWayPoints.breakPointText(wp.computed.breakPoint), anchorBreakTextColor, anchorBreakFillColor);
-          if (wp.computed?.isArrival && (!recording || wp.computed?.isComputedOnly))
+          if (wp.trackWayPoint?.isArrival && (!recording || wp.trackWayPoint?.isComputedOnly))
             return MapAnchor.createDataIcon(anchorArrivalBorderColor, trails.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor);
-          if (wp.computed)
-            return MapAnchor.createDataIcon(anchorBorderColor, '' + wp.computed.index, anchorTextColor, anchorFillColor);
+          if (wp.trackWayPoint)
+            return MapAnchor.createDataIcon(anchorBorderColor, '' + wp.trackWayPoint.index, anchorTextColor, anchorFillColor);
+          if (wp.breakPoint)
+            return MapAnchor.createDataIcon(anchorBreakBorderColor, MapTrackWayPoints.breakPointText(wp.breakPoint), anchorBreakTextColor, anchorBreakFillColor);
           return undefined;
         });
         if (this.wayPointDepartureAndArrival)
@@ -283,7 +291,17 @@ export class TrailWaypoints {
 
 }
 
-export interface WayPointWithPhotos {
-  waypoint: TrackWayPoint;
-  photos: Photo[];
+export class WayPointWithPhotos {
+  constructor(
+    public readonly waypoint: TrackWayPoint,
+    public photos: Photo[],
+  ) {
+    this.trackWayPoint = WayPointFromTrack.from(waypoint);
+    this.breakPoint = BreakPoint.from(waypoint);
+    this.guidepost = GuidepostWayPoint.from(waypoint);
+  }
+
+  public readonly trackWayPoint: WayPointFromTrack | undefined;
+  public readonly breakPoint: BreakPoint | undefined;
+  public readonly guidepost: GuidepostWayPoint | undefined;
 }

@@ -3,6 +3,7 @@ import { TrackEditToolContext } from '../tool.interface';
 import { TrackUtils } from 'src/app/utils/track-utils';
 import { MenuItem } from 'src/app/components/menus/menu-item';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
 
 export class MoveWayPointIndexTool {
 
@@ -23,16 +24,16 @@ export class MoveWayPointIndexTool {
           wayPoint = TrackUtils.getWayPointAt(r[0].track, point.point.pos);
           if (!wayPoint) return [];
         }
-        const computed = r[0].wayPoints.find(wp => wp.computed?.wayPoint === wayPoint);
+        const computed = r[0].wayPoints.find(wp => WayPointFromTrack.from(wp)?.wayPoint === wayPoint) as WayPointFromTrack | undefined;
         if (!computed) return [];
-        if (computed.computed!.otherPossibleIndexes.length === 0) return [];
-        const currentIndex = r[0].track.wayPoints.indexOf(computed.computed!.wayPoint);
+        if (computed.otherPossibleIndexes.length === 0) return [];
+        const currentIndex = r[0].track.wayPoints.indexOf(computed.wayPoint);
         if (currentIndex < 0) return [];
         const subItems: MenuItem[] = [];
-        for (const newPossibility of computed.computed!.otherPossibleIndexes) {
-          const newTarget = r[0].wayPoints.find(w => w.computed?.index === newPossibility.newIndex);
+        for (const newPossibility of computed.otherPossibleIndexes) {
+          const newTarget = r[0].wayPoints.find(w => WayPointFromTrack.from(w)?.index === newPossibility.newIndex) as WayPointFromTrack | undefined;
           if (!newTarget) continue;
-          const newTargetIndex = r[0].track.wayPoints.indexOf(newTarget.computed!.wayPoint);
+          const newTargetIndex = r[0].track.wayPoints.indexOf(newTarget.wayPoint);
           const newIndex = newTargetIndex >= 0 ? newTargetIndex : r[0].track.wayPoints.length;
           subItems.push(
             new MenuItem()

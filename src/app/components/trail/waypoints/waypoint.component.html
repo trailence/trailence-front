@@ -1,0 +1,76 @@
+<div class="waypoint-header">
+  @if (wp.trackWayPoint || wp.breakPoint) {
+    <div class="waypoint-anchor">
+      <img [src]="img" width="40" height="40">
+    </div>
+  } @else {
+    <div class="waypoint-anchor">
+      <ion-icon name="poi-guidepost"></ion-icon>
+    </div>
+  }
+  <div class="waypoint-info-section">
+    <div class="waypoint-info">
+      <div class="waypoint-info-title">{{i18n.texts.way_points.position}}</div>
+      <div class="waypoint-info-value small">{{i18n.coordToString(position.lat)}}<br/>{{i18n.coordToString(position.lng)}}</div>
+    </div>
+    <div class="waypoint-info">
+      <div class="waypoint-info-title">{{i18n.texts.way_points.altitude}}</div>
+      <div class="waypoint-info-value">{{altitude !== undefined ? i18n.elevationToString(altitude) : '?'}}</div>
+    </div>
+    @if (arrival || !wp.trackWayPoint?.isDeparture) {
+      <div class="waypoint-info">
+        <div class="waypoint-info-title">{{i18n.texts.way_points.distance}}</div>
+        <div class="waypoint-info-value">{{i18n.distanceToString(distance)}}</div>
+      </div>
+      <div class="waypoint-info">
+        <div class="waypoint-info-title">{{i18n.texts.way_points.time}}</div>
+        <div class="waypoint-info-value">{{i18n.durationToString(time)}}</div>
+      </div>
+    }
+    @if (wp.breakPoint) {
+      <div class="waypoint-info">
+        <div class="waypoint-info-title">{{i18n.texts.way_points.duration}}</div>
+        <div class="waypoint-info-value">{{i18n.durationToString(wp.breakPoint.duration)}}</div>
+      </div>
+    }
+  </div>
+  @if ((showActions) && wp.trackWayPoint) {
+    <div class="waypoint-actions">
+      @if (!wp.trackWayPoint.isDeparture && !wp.trackWayPoint.isComputedOnly) {
+        <ion-button fill="clear" shape="round" size="small" color="danger" (click)="$event.preventDefault(); $event.stopPropagation(); removeWayPoint.emit(wp.trackWayPoint);">
+          <ion-icon slot="icon-only" name="trash"></ion-icon>
+        </ion-button>
+      }
+      @if (!(wp.trackWayPoint.isDeparture && wp.trackWayPoint.isArrival && arrival)) {
+        <ion-button fill="clear" shape="round" size="small" color="secondary" (click)="$event.preventDefault(); $event.stopPropagation(); editWayPoint.emit(wp.trackWayPoint);">
+          <ion-icon slot="icon-only" name="edit"></ion-icon>
+        </ion-button>
+      }
+    </div>
+  }
+</div>
+<div class="waypoint-content">
+  @if (wp.trackWayPoint && !wp.breakPoint && (!arrival || !wp.trackWayPoint.isDeparture)) {
+    <div class="waypoint-name">
+      <app-text [text]="wp.trackWayPoint.wayPoint.name" [lang]="lang" [translations]="wp.trackWayPoint.wayPoint.nameTranslations" [showSource]="showSource"></app-text>
+    </div>
+    @if (wp.guidepost && trail.showGuideposts) {
+      <div class="waypoint-attached-guidepost">
+        <ion-icon name="poi-guidepost"></ion-icon>
+        {{wp.guidepost.poi.text}}
+      </div>
+    }
+    <div class="waypoint-description">
+      <app-text [text]="wp.trackWayPoint.wayPoint.description" [lang]="lang" [translations]="wp.trackWayPoint.wayPoint.descriptionTranslations" [showSource]="showSource"></app-text>
+    </div>
+  } @else if (wp.guidepost && !wp.trackWayPoint) {
+    <div class="waypoint-name">
+      {{wp.guidepost.poi.text}}
+    </div>
+  }
+</div>
+@if (wp.photos.length > 0 && (!arrival || !wp.trackWayPoint?.isDeparture)) {
+  <div class="waypoint-photos">
+    <app-photos-slider #slider [photos]="wp.photos" [width]="150" [height]="100" [preLoadNext]="false" (click)="$event.stopPropagation(); openPhotos(wp.photos, slider);"></app-photos-slider>
+  </div>
+}

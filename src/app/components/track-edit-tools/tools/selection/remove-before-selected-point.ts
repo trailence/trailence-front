@@ -21,7 +21,7 @@ export class RemoveBeforeSelectedPointTool implements TrackEditTool {
     const point = ctx.selection.getSinglePointOf(currentTrack);
     if (!point) return;
     ctx.modifyTrack(track => {
-      const wp = TrackUtils.findWayPoints(track, 0, 0, point.segmentIndex, point.pointIndex - 1, ctx.injector.get(PreferencesService));
+      const wp = TrackUtils.findWayPoints(track, 0, 0, point.segmentIndex, point.pointIndex - 1);
       for (const w of wp) track.removeWayPoint(w);
       let si = point.segmentIndex;
       while (si > 0) {

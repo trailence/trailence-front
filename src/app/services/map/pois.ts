@@ -12,6 +12,9 @@ import { DbTableWhereLessThan } from '../database/storage/db-table';
 import { WorkerService } from 'src/app/worker/web-app';
 import { POI, POIType } from './poi';
 
+const CACHE_EXPIRATION = 90 * 24 * 60 * 60 * 1000;
+const CACHE_NULL = -CACHE_EXPIRATION + 3 * 60 * 60 * 1000;
+
 export class Pois {
 
   readonly table: DbTableWithBlob<DbDto>;
@@ -69,7 +72,10 @@ export class Pois {
   }
 
   private used(dto: DbDto): DbDto {
-    dto.lastUsed = Date.now();
+    if (dto.blob === null) return dto;
+    const now = Date.now();
+    if (now - dto.lastUsed < 120000) return dto;
+    dto.lastUsed = now;
     this.table.setOne$(dto).subscribe();
     return dto;
   }
@@ -77,16 +83,25 @@ export class Pois {
   private requestAndCacheV1(tile: string, version: number): Observable<Blob | null | undefined> {
     return from(this.pendingRequests.request(tile, () =>
       firstValueFrom(this.http.getBlob(environment.apiBaseUrl + '/geo-data/v1/' + tile).pipe(
-        switchMap(blob => this.table.setOne$({ // TODO save in background ?
+        map(blob => {
+          this.table.setOne$({
             tile,
             version,
             lastUsed: Date.now(),
             blob,
-          })
-        ),
-        map(dto => dto.blob),
+          }).subscribe();
+          return blob;
+        }),
         catchError(e => {
-          if (e instanceof ApiError && e.httpCode === 404) return of(null); // TODO save with null
+          if (e instanceof ApiError && e.httpCode === 404){
+            this.table.setOne$({
+              tile,
+              version,
+              lastUsed: Date.now() + CACHE_NULL,
+              blob: null,
+            }).subscribe();
+            return of(null);
+          }
           Console.error('Error getting tile', tile, e);
           return of(undefined);
         })
@@ -129,7 +144,7 @@ export class Pois {
   }
 
   private clean(): void {
-    this.table.deleteWhere$(new DbTableWhereLessThan('lastUsed', Date.now() - 90 * 24 * 60 * 60 * 1000))
+    this.table.deleteWhere$(new DbTableWhereLessThan('lastUsed', Date.now() - CACHE_EXPIRATION))
     .subscribe(nb => Console.info(nb, 'pois not used since 90 days cleant'));
   }
 }
@@ -144,5 +159,5 @@ interface DbDto {
   tile: string;
   version: number;
   lastUsed: number;
-  blob: Blob;
+  blob: Blob | null;
 }

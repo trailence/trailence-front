@@ -4,7 +4,7 @@ import { Trail } from 'src/app/model/trail';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapComponent } from '../map/map.component';
 import { MapTrack } from '../map/track/map-track';
-import { Track, TrackWayPoint } from 'src/app/model/track';
+import { Track } from 'src/app/model/track';
 import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { AsyncPipe, NgClass, NgComponentOutlet, NgStyle, NgTemplateOutlet } from '@angular/common';
@@ -73,6 +73,7 @@ import { ContributionsBadgesComponent } from '../contributions-badges/contributi
 import { ApiError } from 'src/app/services/http/api-error';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { WorkerService } from 'src/app/worker/web-app';
+import { TrackWayPoint } from 'src/app/utils/track-waypoints/track-waypoint';
 
 interface TrailSource {
   isExternal: boolean;

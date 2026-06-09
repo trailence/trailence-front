@@ -2,33 +2,29 @@ import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnDestroy, O
 import { TrailsWaypoints, TrailWaypoints } from '../trail-waypoints';
 import { Subscription } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { TextComponent } from '../../text/text.component';
-import { IonButton, IonIcon, IonCheckbox, IonSegment, IonSegmentButton, ModalController, AlertController } from '@ionic/angular/standalone';
-import { ComputedWayPoint, TrackWayPoint } from 'src/app/model/track';
+import { IonCheckbox, IonSegment, IonSegmentButton, ModalController, AlertController } from '@ionic/angular/standalone';
 import { TrackEditToolsComponent } from '../../track-edit-tools/track-edit-tools.component';
 import { ChangesDetection } from 'src/app/utils/angular-helpers';
-import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { PhotosSliderComponent } from '../../photos-slider/photos-slider.component';
-import { PhotoService } from 'src/app/services/database/photo.service';
-import { Photo } from 'src/app/model/photo';
+import { NgClass } from '@angular/common';
+import { TrackWayPoint } from 'src/app/utils/track-waypoints/track-waypoint';
+import { WayPointComponent } from './waypoint.component';
+import { WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
 
 @Component({
   selector: 'app-trail-waypoints',
   templateUrl: './waypoints.component.html',
   styleUrl: './waypoints.component.scss',
   imports: [
-    IonButton, IonIcon, IonCheckbox, IonSegment, IonSegmentButton,
-    TextComponent,
-    NgTemplateOutlet,
+    IonCheckbox, IonSegment, IonSegmentButton,
     NgClass,
-    PhotosSliderComponent,
+    WayPointComponent,
   ]
 })
 export class WaypointsComponent implements OnInit, OnDestroy {
 
   @Input() trails!: TrailsWaypoints;
-  @Input() lang?: string;
   @Input() editTools?: TrackEditToolsComponent;
+  @Input() lang?: string;
   @Input() showSource = false;
 
   @Output() highlightWaypoint = new EventEmitter<{wp: TrackWayPoint, click: boolean}>();
@@ -45,7 +41,6 @@ export class WaypointsComponent implements OnInit, OnDestroy {
     ngZone: NgZone,
     private readonly modalController: ModalController,
     private readonly alertController: AlertController,
-    private readonly photoService: PhotoService,
   ) {
     this.changesDetection = new ChangesDetection(ngZone, changesDetector);
   }
@@ -105,7 +100,7 @@ export class WaypointsComponent implements OnInit, OnDestroy {
     }
   }
 
-  removeWaypoint(wp: ComputedWayPoint): void {
+  removeWaypoint(wp: WayPointFromTrack): void {
     if (this.editTools) {
       this.editTools.removeWayPoint(wp.wayPoint);
     } else {
@@ -129,7 +124,7 @@ export class WaypointsComponent implements OnInit, OnDestroy {
     }
   }
 
-  editWaypoint(wp: ComputedWayPoint): void {
+  editWaypoint(wp: WayPointFromTrack): void {
     if (this.editTools) {
       this.editTools.editWayPoint(wp.wayPoint);
     } else {
@@ -151,10 +146,6 @@ export class WaypointsComponent implements OnInit, OnDestroy {
         modal.present();
       });
     }
-  }
-
-  openPhotos(photos: Photo[], slider: PhotosSliderComponent): void {
-    this.photoService.openSliderPopup(photos, slider.index);
   }
 
 }

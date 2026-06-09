@@ -1,6 +1,6 @@
 import * as L from 'leaflet';
 import { Trail } from 'src/app/model/trail';
-import { ComputedWayPoint, Track } from 'src/app/model/track';
+import { Track } from 'src/app/model/track';
 import { ComputedPreferences } from '../preferences/preferences';
 import { Injector } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -9,6 +9,7 @@ import { AuthService } from '../auth/auth.service';
 import { Filters } from 'src/app/components/trails-list/filters';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { TrailActivity } from 'src/app/model/dto/trail-activity';
+import { computeWayPointsFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
 
 export abstract class FetchSourcePlugin {
 
@@ -152,9 +153,9 @@ export interface FetchSourceTrailComment {
   text?: string;
 }
 
-export function populateWayPointInfo(track: Track, fetched: WayPointInfo[], preferences: ComputedPreferences): boolean { // NOSONAR
+export function populateWayPointInfo(track: Track, fetched: WayPointInfo[]): boolean { // NOSONAR
   let updated = false;
-  const cwp = ComputedWayPoint.compute(track, preferences);
+  const cwp = computeWayPointsFromTrack(track);
   for (const wpi of fetched) {
     if (wpi.number !== undefined) {
       const wp = cwp.find(w => w.index === wpi.number);

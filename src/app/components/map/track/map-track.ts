@@ -1,4 +1,4 @@
-import { Track, TrackWayPoint } from 'src/app/model/track';
+import { Track } from 'src/app/model/track';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapTrackPath } from './map-track-path';
 import { Trail } from 'src/app/model/trail';
@@ -6,6 +6,7 @@ import { MapTrackWayPoints, ShowBreaksStyle } from './map-track-way-points';
 import { MapTrackArrowPath } from './map-track-arrows-path';
 import * as L from 'leaflet';
 import { SimplifiedPoint, SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
+import { TrackWayPoint } from 'src/app/utils/track-waypoints/track-waypoint';
 
 export class MapTrack {
 

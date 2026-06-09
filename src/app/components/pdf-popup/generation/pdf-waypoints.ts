@@ -1,10 +1,10 @@
-import { ComputedWayPoint } from 'src/app/model/track';
 import { HorizBounds, PdfContext } from './pdf-context';
 import { MapAnchor } from '../../map/markers/map-anchor';
 import { anchorBorderColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor } from '../../map/track/map-track-way-points';
 import { addSvgToPdf } from './pdf-icon';
 import { generatePdfText } from './pdf-text';
 import { getWaypointData } from '../waypoints-utils';
+import { WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
 
 export async function generateWaypointsTextToPdf(ctx: PdfContext, y: number, horiz: HorizBounds) {
   const userLang = ctx.preferences.preferences.lang;
@@ -36,7 +36,7 @@ export async function generateWaypointsTextToPdf(ctx: PdfContext, y: number, hor
   return state;
 }
 
-async function generateWaypoint(ctx: PdfContext, waypoint: ComputedWayPoint, name: string | undefined, description: string | undefined, y: number, horiz: HorizBounds): Promise<{y: number, horiz: HorizBounds}> {
+async function generateWaypoint(ctx: PdfContext, waypoint: WayPointFromTrack, name: string | undefined, description: string | undefined, y: number, horiz: HorizBounds): Promise<{y: number, horiz: HorizBounds}> {
   const anchorSize = 20;
   const anchorMargin = 2;
 

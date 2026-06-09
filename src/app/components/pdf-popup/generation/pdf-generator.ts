@@ -11,7 +11,7 @@ import { generatePdfMap } from './pdf-map';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { metaToPdf } from './pdf-meta';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { ComputedWayPoint, Track } from 'src/app/model/track';
+import { Track } from 'src/app/model/track';
 import { generateElevationGraphToPdf } from './pdf-elevation-graph';
 import { addQrCodeToPdf } from './pdf-qrcode';
 import { hasWaypointsContent } from '../waypoints-utils';
@@ -21,6 +21,7 @@ import { Console } from 'src/app/utils/console';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { PdfFixedColumnsLayout, pdfFullWidth, PdfSectionGenerator } from './pdf-layout-helper';
 import { generateDescriptionAndWaypoints } from './pdf-description-and-waypoints';
+import { computeWayPointsFromTrack, WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
 
 export enum PdfModel {
   BIG_MAP = 'BIG_MAP',
@@ -40,13 +41,13 @@ export interface PdfOptions {
 
 export class PdfGenerator {
 
-  public static generate(injector: Injector, environmentInjector: EnvironmentInjector, trail: Trail, track: Track | undefined, wayPoints: ComputedWayPoint[], avatar: Blob | undefined, photo: ArrayBuffer | undefined, options: PdfOptions, progress: (percent: number) => void): Promise<Blob> { // NOSONAR
+  public static generate(injector: Injector, environmentInjector: EnvironmentInjector, trail: Trail, track: Track | undefined, wayPoints: WayPointFromTrack[], avatar: Blob | undefined, photo: ArrayBuffer | undefined, options: PdfOptions, progress: (percent: number) => void): Promise<Blob> { // NOSONAR
     return new Promise<Blob>((resolve) => {
       this._generate(injector, environmentInjector, trail, track, wayPoints, avatar, photo, options, progress, resolve);
     });
   }
 
-  private static async _generate(injector: Injector, environmentInjector: EnvironmentInjector, trail: Trail, track: Track | undefined, wayPoints: ComputedWayPoint[], avatar: Blob | undefined, photo: ArrayBuffer | undefined, options: PdfOptions, progress: (percent: number) => void, resolve: (blob: Blob) => void) { // NOSONAR
+  private static async _generate(injector: Injector, environmentInjector: EnvironmentInjector, trail: Trail, track: Track | undefined, wayPoints: WayPointFromTrack[], avatar: Blob | undefined, photo: ArrayBuffer | undefined, options: PdfOptions, progress: (percent: number) => void, resolve: (blob: Blob) => void) { // NOSONAR
     let percent = 0;
     let percentDone = (done: number) => { percent = Math.min(100, percent + done); progress(percent); };
     let roboto: ArrayBuffer;
@@ -69,9 +70,9 @@ export class PdfGenerator {
     const preferences = injector.get(PreferencesService);
     if (!track) {
       track = await firstValueFrom(injector.get(TrackService).getFullTrack$(trail.currentTrackUuid, trail.owner).pipe(filterDefined()));
-      wayPoints = ComputedWayPoint.compute(track, preferences.preferences);
+      wayPoints = computeWayPointsFromTrack(track);
     } else if (wayPoints.length === 0) {
-      wayPoints = ComputedWayPoint.compute(track, preferences.preferences);
+      wayPoints = computeWayPointsFromTrack(track);
     }
     const trailInfo = trail.owner.includes('@') ? undefined : await firstValueFrom(injector.get(FetchSourceService).getTrailInfo$(trail.owner, trail.uuid));
     const lang = preferences.preferences.lang;
