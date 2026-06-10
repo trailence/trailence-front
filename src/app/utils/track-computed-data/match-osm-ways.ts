@@ -518,6 +518,7 @@ function processUnresolved(matches: PointMatch[][][], original: EarthPoint[][]):
         // TODO the end is unresolved
         continue;
       }
+      if (point2.length === 0) continue; // ?
       const nextMatch = point2[0];
       if (previousMatch.way.id === nextMatch.way.id) {
         const d = distance(nextMatch.closest.point, previousMatch.closest.point);

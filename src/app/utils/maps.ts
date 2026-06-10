@@ -9,16 +9,16 @@ export class Maps {
     }
   }
 
-  public static increment<K>(key: K, map: Map<K, number>): void {
-    if (map.has(key)) map.set(key, map.get(key)! + 1);
-    else map.set(key, 1);
+  public static increment<K>(key: K, map: Map<K, number>, increment = 1): void {
+    if (map.has(key)) map.set(key, map.get(key)! + increment);
+    else map.set(key, increment);
   }
 
-  public static decrement<K>(key: K, map: Map<K, number>): void {
+  public static decrement<K>(key: K, map: Map<K, number>, decrement = 1): void {
     const counter = map.get(key);
     if (counter === undefined) return;
-    if (counter === 1) map.delete(key);
-    else map.set(key, counter - 1);
+    if (counter <= decrement) map.delete(key);
+    else map.set(key, counter - decrement);
   }
 
 }

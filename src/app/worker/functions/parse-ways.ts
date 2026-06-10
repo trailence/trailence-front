@@ -37,7 +37,7 @@ export async function parseWays(blob: Blob, south: number, west: number, north: 
       const extraTypeSize = data.getUint16(offset + extraOffset + 1, true);
       switch (extraType) {
         case ExtraDataType.BYTES_VALUES:
-          readBytesProperties(data, offset + extraOffset + 3, extraTypeSize, way);
+          readBytesProperties(data, offset + extraOffset + 3, Math.floor(extraTypeSize / 2), way);
           break;
         case ExtraDataType.ROUTES:
           readRoutes(data, offset + extraOffset + 3, extraTypeSize, way, textDecoder);

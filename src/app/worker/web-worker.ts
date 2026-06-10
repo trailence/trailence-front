@@ -1,5 +1,6 @@
 import { Console } from '../utils/console';
 import { matchOsmWays } from '../utils/track-computed-data/match-osm-ways';
+import { getTrackOsmStats } from '../utils/track-computed-data/track-osm-stats';
 import { convertToJpeg } from './functions/image-to-jpeg';
 import { importPhoto } from './functions/import-photo';
 import { parsePois } from './functions/parse-pois';
@@ -45,6 +46,9 @@ export function processWorkerMessage(request: WorkerMessage): Promise<{response:
         break;
       case WorkerRequest.MATCH_OSM_WAYS:
         result = Promise.resolve({result: matchOsmWays(request.payload.track, request.payload.osmWays), transferable: []});
+        break;
+      case WorkerRequest.TRACK_OSM_STATS:
+        result = Promise.resolve({result: getTrackOsmStats(request.payload.ways, request.payload.osmTrackPoints), transferable: []});
         break;
       default:
         result = Promise.reject(new Error('Unknown worker message: ' + request.request));

@@ -75,6 +75,9 @@ import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { WorkerService } from 'src/app/worker/web-app';
 import { TrackWayPoint } from 'src/app/utils/track-waypoints/track-waypoint';
 import { buildOsmTrack } from 'src/app/utils/track-computed-data/build-osm-track';
+import { TrackOsmStatsComponent } from './osm-stats/track-osm-stats.component';
+import { TrackSection } from 'src/app/utils/track-computed-data/track-osm-stats';
+import { SimplifiedPoint, SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
 
 interface TrailSource {
   isExternal: boolean;
@@ -145,6 +148,7 @@ class TrailWithInfo {
         LiveGroupComponent,
         AvatarComponent,
         ContributionsBadgesComponent,
+        TrackOsmStatsComponent,
     ]
 })
 export class TrailComponent extends AbstractComponent implements AfterContentChecked {
@@ -717,6 +721,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         }
 
         mapTracks.push(...publicTrailsAround);
+        mapTracks.push(...this.highlightedMapTrackSections);
 
         this.trailsWaypoints.update([
           {trail: trail1[0], track: toolsModifiedTrack || toolsBaseTrack || trail1[1], recording: false},
@@ -1396,7 +1401,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
 
   private updateDisplay(): void {
     if (!this.visible) {
-      this.updateVisibility(false, false);
+      this.updateVisibility(false, false, false);
       return;
     }
     const w = this.browser.width;
@@ -1405,11 +1410,11 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       this.displayMode = 'large';
       this.isSmall = false;
       if (this.bottomSheetTab === 'info') this.bottomSheetTab = 'elevation';
-      this.updateVisibility(true, this.bottomSheetOpen);
+      this.updateVisibility(true, this.bottomSheetOpen, true);
     } else {
       this.displayMode = h > 500 || w < 500 ? 'small' : 'small small-height bottom-sheet-tab-open-' + this.bottomSheetTab;
       this.isSmall = true;
-      this.updateVisibility(this.tab === 'map', this.bottomSheetTab === 'elevation' || this.bottomSheetTab === 'speed');
+      this.updateVisibility(this.tab === 'map', this.bottomSheetTab === 'elevation' || this.bottomSheetTab === 'speed', this.tab === 'details');
     }
     this.mapToolbarTopRightMaxItems = w > 600 ? undefined : Math.floor((w - 90) / 48);
     this.maxBottomSheetHeight = Math.min(h - 100, 350);
@@ -1419,10 +1424,11 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this.changesDetection.detectChanges();
   }
 
-  private updateVisibility(mapVisible: boolean, graphVisible: boolean): void {
+  private updateVisibility(mapVisible: boolean, graphVisible: boolean, detailsVisible: boolean): void {
     for (const child of this._children$.value) {
       if (child instanceof MapComponent) child.setVisible(mapVisible);
       else if (child instanceof TrailGraphComponent) child.setVisible(graphVisible);
+      else if (child instanceof TrackOsmStatsComponent) child.setVisible(detailsVisible);
     }
   }
 
@@ -2136,6 +2142,34 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   hidePublicTrailsAround(): void {
     this.isShowPublicTrailsAround = false;
     this.publicTrailsAroundMapTracks$.next([]);
+  }
+
+  highlightedMapTrackSections: MapTrack[] = [];
+  highlightSections(event: {track: Track, sections: TrackSection[]} | null): void {
+    const sizeBefore = this.mapTracks$.value.length;
+    Arrays.removeAll(this.mapTracks$.value, this.highlightedMapTrackSections);
+    let changed = this.mapTracks$.value.length != sizeBefore;
+    if (event) {
+      this.highlightedMapTrackSections = event.sections.map(section => this.buildMapTrack(event.track, section));
+      this.mapTracks$.value.push(...this.highlightedMapTrackSections);
+      changed = true;
+    }
+    if (changed) this.mapTracks$.next(this.mapTracks$.value);
+  }
+
+  private buildMapTrack(track: Track, section: TrackSection): MapTrack {
+    const sectionTrack: SimplifiedTrackSnapshot = { points: [] };
+    for (let si = section.start.segmentIndex; si <= section.end.segmentIndex; ++si) {
+      const segment = track.segments[si].points;
+      const start = si === section.start.segmentIndex ? section.start.pointIndex : 0;
+      const end = si === section.end.segmentIndex ? section.end.pointIndex : segment.length - 1;
+      for (let pi = start; pi <= end; ++pi) {
+        const point = segment[pi];
+        sectionTrack.points.push({lat: point.pos.lat, lng: point.pos.lng});
+      }
+    }
+    const mt = new MapTrack(undefined, sectionTrack, 'yellow', 1, false, this.i18n, 3);
+    return mt;
   }
 
 }

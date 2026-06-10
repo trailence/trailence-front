@@ -2,7 +2,7 @@ import { Track } from 'src/app/model/track';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { BehaviorSubjectOnDemand, BehaviorSubjectOnDemandWithSnapshot } from '../rxjs/behavior-subject-ondemand';
 import { BreakPointSection, detectLongBreaksFromTrack, TrackLongBreaks } from 'src/app/services/track-edition/time/break-detection';
-import { debounceTime, from, Observable, of, switchMap } from 'rxjs';
+import { debounceTime, EMPTY, from, Observable, of, switchMap } from 'rxjs';
 import { estimateTimeForTrack, TrackTimeEstimation } from 'src/app/services/track-edition/time/time-estimation';
 import { TrackWayPoint } from '../track-waypoints/track-waypoint';
 import { computeTrackWayPoints } from '../track-waypoints/compute-track-way-points';
@@ -10,6 +10,7 @@ import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { WorkerService } from 'src/app/worker/web-app';
 import { OsmWaysTrackPoint } from './match-osm-ways';
 import { Way } from 'src/app/services/map/way';
+import { TrackOsmStats } from './track-osm-stats';
 
 export class TrackComputedData {
 
@@ -52,6 +53,14 @@ export class TrackComputedData {
     120000,
   );
 
+  private readonly _osmStats = new BehaviorSubjectOnDemand<TrackOsmStats | null>(
+    () => this.osmWays$.pipe(
+      switchMap(osmWays => osmWays ? this.workerService.getTrackOsmStats(osmWays.ways, osmWays.osmTrackPoints) : of(null)),
+    ),
+    EMPTY,
+    120000,
+  );
+
   private readonly _wayPoints = new BehaviorSubjectOnDemand<TrackWayPoint[]>(
     () => computeTrackWayPoints(this.track, this._breaks.snapshot().sections, this.mapService),
     this.track.changes$.pipe(debounceTime(250)),
@@ -78,6 +87,10 @@ export class TrackComputedData {
 
   public get osmWays$(): Observable<{ways: Map<string, Way>, osmTrackPoints: OsmWaysTrackPoint[][]} | undefined> {
     return this._osmWaysMatch.asObservable();
+  }
+
+  public get osmStats$(): Observable<TrackOsmStats | null> {
+    return this._osmStats.asObservable();
   }
 
 }

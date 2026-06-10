@@ -1,0 +1,25 @@
+@if (stats) {
+  <div class="stats-container">
+    <div class="title">{{i18n.texts.osm_stats.title}}</div>
+    <div class="stats-content">
+      <ng-container *ngTemplateOutlet="statTemplate; context: {array: stats.wayType, i18n_type: 'wayType'}"></ng-container>
+      <ng-container *ngTemplateOutlet="statTemplate; context: {array: stats.surface, i18n_type: 'surface'}"></ng-container>
+      <ng-container *ngTemplateOutlet="statTemplate; context: {array: stats.visibility, i18n_type: 'visibility'}"></ng-container>
+      <ng-container *ngTemplateOutlet="statTemplate; context: {array: stats.hikingDifficulty, i18n_type: 'hikingDifficulty'}"></ng-container>
+    </div>
+  </div>
+}
+
+<ng-template #statTemplate let-array="array" let-i18n_type="i18n_type">
+  @if (array) {
+    <div class="stat">
+      <div class="stat-title">{{i18n.texts.osm_stats.types[i18n_type].title}}</div>
+      @for (entry of array; track entry.value) {
+        <div class="stat-value" (click)="highlightSections(entry)" [ngClass]="{'selected': previousSelection === entry.sections, 'selectable': entry.sections.length > 0}">
+          <div class="stat-name">{{i18n.texts.osm_stats.types[i18n_type].descriptions[entry.value === undefined ? 'unknown' : '' + entry.value]}}</div>
+          <div class="stat-percent"><app-percent-circle [percent]="entry.percent" [size]="32" color="var(--ion-color-primary)" bgColor="rgba(var(--ion-color-medium-rgb), 0.75)" textColor="rgba(var(--ion-text-color-rgb), 0.8)"></app-percent-circle></div>
+        </div>
+      }
+    </div>
+  }
+</ng-template>

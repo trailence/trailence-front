@@ -44,6 +44,14 @@ export class Arrays {
     return array.slice().reverse();
   }
 
+  public static removeAll<T>(array: T[], toRemove: T[]): T[] {
+    for (const e of toRemove) {
+      const index = array.indexOf(e);
+      if (index >= 0) array.splice(index, 1);
+    }
+    return array;
+  }
+
 }
 
 export class CollectionMapper<S, T> {

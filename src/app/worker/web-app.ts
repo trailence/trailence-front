@@ -11,6 +11,7 @@ import { Way, WayReference } from '../services/map/way';
 import { POI, POIType } from '../services/map/poi';
 import { EarthPoint } from '../utils/latlng';
 import { OsmWaysTrackPoint } from '../utils/track-computed-data/match-osm-ways';
+import { TrackOsmStats } from '../utils/track-computed-data/track-osm-stats';
 
 @Injectable({providedIn: 'root'})
 export class WorkerService {
@@ -43,6 +44,14 @@ export class WorkerService {
     return this.request<OsmWaysTrackPoint[][]>({
       request: WorkerRequest.MATCH_OSM_WAYS,
       payload: {track, osmWays},
+      transferable: [],
+    });
+  }
+
+  public getTrackOsmStats(ways: Map<string, Way>, osmTrackPoints: OsmWaysTrackPoint[][]): Promise<TrackOsmStats> {
+    return this.request<TrackOsmStats>({
+      request: WorkerRequest.TRACK_OSM_STATS,
+      payload: {ways, osmTrackPoints},
       transferable: [],
     });
   }
