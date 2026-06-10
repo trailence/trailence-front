@@ -9,6 +9,7 @@ import { computeTrackWayPoints } from '../track-waypoints/compute-track-way-poin
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { WorkerService } from 'src/app/worker/web-app';
 import { OsmWaysTrackPoint } from './match-osm-ways';
+import { Way } from 'src/app/services/map/way';
 
 export class TrackComputedData {
 
@@ -29,10 +30,23 @@ export class TrackComputedData {
     this.track.changes$.pipe(debounceTime(250))
   );
 
-  private readonly _osmWaysMatch = new BehaviorSubjectOnDemand<any>(
+  // TODO once calculated, with a good debounceTime (or when BehaviorSubjectOnDemand is unloading), save in cache ? with the version of the track, and version of osm-data
+  private readonly _osmWaysMatch = new BehaviorSubjectOnDemand<{ways: Map<string, Way>, osmTrackPoints: OsmWaysTrackPoint[][]} | undefined>(
     () => this.track.metadata.bounds ?
-        this.mapService.ways.getAllWays(this.track.metadata.bounds)
-        .pipe(switchMap(ways => from(this.workerService.matchOsmWays(this.track.segments.map(s => s.points.map(p => ({lat: p.pos.lat, lng: p.pos.lng}))), ways))))
+        this.mapService.ways.getAllWays(this.track.metadata.bounds).pipe(
+          switchMap(ways => from(
+            this.workerService.matchOsmWays(this.track.segments.map(s => s.points.map(p => ({lat: p.pos.lat, lng: p.pos.lng}))), ways)
+            .then(osmTrackPoints => {
+              const waysIds = new Set<string>();
+              for (const segment of osmTrackPoints)
+                for (const p of segment)
+                  if (p.osmWayId) waysIds.add(p.osmWayId);
+              const waysMap = new Map<string, Way>();
+              for (const way of ways) if (waysIds.has(way.id)) waysMap.set(way.id, way);
+              return {ways: waysMap, osmTrackPoints};
+            })
+          ))
+        )
       : of(undefined),
     this.track.changes$.pipe(debounceTime(250)),
     120000,
@@ -62,7 +76,7 @@ export class TrackComputedData {
     return this._wayPoints.asObservable();
   }
 
-  public get osmWays$(): Observable<OsmWaysTrackPoint[][]> {
+  public get osmWays$(): Observable<{ways: Map<string, Way>, osmTrackPoints: OsmWaysTrackPoint[][]} | undefined> {
     return this._osmWaysMatch.asObservable();
   }
 

@@ -1,4 +1,5 @@
 import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { environment } from 'src/environments/environment';
 
 export function buildTooltip(context: any, container: HTMLElement, isSelecting: boolean, i18n: I18nService) {
   if (context.tooltip.opacity === 0 || isSelecting) {
@@ -82,6 +83,13 @@ export function buildTooltip(context: any, container: HTMLElement, isSelecting: 
     html += '</td>';
   }
   html += '</tr>';
+  if (!environment.production) {
+    html += '<tr><th>Track point</th><td>';
+    for (const point of points) {
+      html += '<td>seg ' + point.raw.segmentIndex + ' pt ' + point.raw.pointIndex + '</td>';
+    }
+    html += '</tr>';
+  }
   html += '</table>';
   container.innerHTML = html;
   const chartRect = context.chart.canvas.getBoundingClientRect();

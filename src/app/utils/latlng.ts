@@ -1,6 +1,7 @@
 export const EARTH_RADIUS = 6371000; // meters
 
 export type EarthPoint = {lat: number, lng: number};
+export type EarthBBox = {minlat: number, maxlat: number, minlng: number, maxlng: number};
 
 export function distance(latlng1: EarthPoint, latlng2: EarthPoint) {
   const rad = Math.PI / 180,
@@ -29,6 +30,22 @@ export function toLocalMeters(
     EARTH_RADIUS;
 
   return { x, y };
+}
+
+export function earthBBox(p1: EarthPoint, p2: EarthPoint): EarthBBox {
+  return {
+    minlat: Math.min(p1.lat, p2.lat),
+    maxlat: Math.max(p1.lat, p2.lat),
+    minlng: Math.min(p1.lng, p2.lng),
+    maxlng: Math.max(p1.lng, p2.lng),
+  }
+}
+
+export function isPointInBBox(point: EarthPoint, bbox: EarthBBox, tolerance: EarthPoint): boolean {
+  return point.lat >= bbox.minlat - tolerance.lat &&
+    point.lat <= bbox.maxlat + tolerance.lat &&
+    point.lng >= bbox.minlng - tolerance.lng &&
+    point.lng <= bbox.maxlng + tolerance.lng;
 }
 
 export function fromLocalMeters(
@@ -70,6 +87,8 @@ export type ClosestMatch =
       t: number; // interpolation factor [0..1]
     };
 
+const EPS = 1e-9;
+
 export function findClosestPointOnPath(
   path: EarthPoint[],
   searchPoint: EarthPoint,
@@ -79,7 +98,7 @@ export function findClosestPointOnPath(
     return undefined;
   }
 
-let best:
+  let best:
     | (ClosestMatch & { distanceMeters: number })
     | undefined;
 
@@ -97,8 +116,6 @@ let best:
       !best ||
       distanceMeters < best.distanceMeters
     ) {
-      const EPS = 1e-9;
-
       if (t <= EPS) {
         best = {
           type: "vertex",
@@ -133,11 +150,17 @@ let best:
   return best;
 }
 
-function closestPointOnSegment(
+export interface ClosestPointOnSegment {
+  point: EarthPoint;
+  distanceMeters: number;
+  t: number;
+}
+
+export function closestPointOnSegment(
   searchPoint: EarthPoint,
   a: EarthPoint,
   b: EarthPoint
-): { point: EarthPoint; distanceMeters: number; t: number; } | undefined {
+): ClosestPointOnSegment | undefined {
   // Use p as local projection origin
   const P = { x: 0, y: 0 };
 
@@ -149,7 +172,7 @@ function closestPointOnSegment(
 
   const ab2 = ABx * ABx + ABy * ABy;
 
-  // Segment is degenerate
+  // Segment is degenerate (a and b are same point)
   if (ab2 === 0) {
     return undefined;
   }

@@ -6,6 +6,7 @@ export function buildOsmTrack(baseTrack: Track, osm: OsmWaysTrackPoint[][]): Tra
   const newTrack = baseTrack.newTrack('osm-match');
   for (const osmSegment of osm) {
     const segment = newTrack.newSegment();
+    // TODO remove duplicated points, because resolved osm may return the same point consecutively
     const points: PointDescriptor[] = osmSegment.map(p => {
       const originalPoint = p.originalSegmentIndex === undefined ? undefined : baseTrack.segments[p.originalSegmentIndex].points[p.originalPointIndex!];
       return {

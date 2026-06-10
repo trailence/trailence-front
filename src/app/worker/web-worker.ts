@@ -9,6 +9,7 @@ import { WorkerMessage, WorkerRequest, WorkerResponse } from './worker-request';
 
 export function processWorkerMessage(request: WorkerMessage): Promise<{response: WorkerResponse, transferable: Transferable[]}> {
   let result: Promise<{result: any, transferable: Transferable[]}>;
+  const start = Date.now();
   try {
     switch (request.request) {
       case WorkerRequest.PARSE_POIS:
@@ -43,7 +44,7 @@ export function processWorkerMessage(request: WorkerMessage): Promise<{response:
         .then(result => ({result, transferable: [result.jpeg]}));
         break;
       case WorkerRequest.MATCH_OSM_WAYS:
-        result = new Promise<any>(resolve => (resolve({result: matchOsmWays(request.payload.track, request.payload.osmWays), transferable: []})));
+        result = Promise.resolve({result: matchOsmWays(request.payload.track, request.payload.osmWays), transferable: []});
         break;
       default:
         result = Promise.reject(new Error('Unknown worker message: ' + request.request));
@@ -52,9 +53,14 @@ export function processWorkerMessage(request: WorkerMessage): Promise<{response:
   } catch (e) {
     result = Promise.reject(e);
   }
-  return result.then(response => ({response: {id: request.id, success: true, payload: response.result, error: undefined}, transferable: response.transferable}))
-    .catch(e => {
-      Console.error('Error processing request', request, e);
-      return {response: {id: request.id, success: false, payload: undefined, error: e}, transferable: []};
-    });
+  return result
+  .then(response => {
+    const time = Date.now() - start;
+    Console.info('[WORKER] request ' + request.request + ' (id ' + request.id + ') processed in ' + time + 'ms.');
+    return {response: {id: request.id, success: true, payload: response.result, error: undefined}, transferable: response.transferable};
+  })
+  .catch(e => {
+    Console.error('Error processing request', request, e);
+    return {response: {id: request.id, success: false, payload: undefined, error: e}, transferable: []};
+  });
 }

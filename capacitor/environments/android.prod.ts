@@ -1,5 +1,5 @@
 export const environment = {
-  production: false,
+  production: true,
   serviceWorker: false,
   apiBaseUrl: 'https://trailence.org/api',
   assetsUrl: '/assets',

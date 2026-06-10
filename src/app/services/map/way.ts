@@ -24,21 +24,21 @@ export enum WayPermission {
 }
 
 export enum WayType {
-  MAIN = 1, // roads, pedestrian streets, asphalt tracks...
-  TRACK = 2,
+  MAIN = 1, // roads, pedestrian streets, asphalt tracks, motorway, busway...
+  TRACK = 2, // track, path.. typically not for motorized vehicles
   STEPS = 3,
   VIA_FERRATA = 4,
   LADDER = 5,
 }
 
 export enum WaySurface {
-  SOLID = 1,
-  MOSTLY_SOLID = 2,
-  MIXTURE = 3,
-  MOSTLY_SOFT = 4,
-  SOFT = 5,
-  SOFT_WITH_DIFFICULTY = 6,
-  ROCK = 7,
+  SOLID = 1,        // grade1, paved, asphalt, bricks...
+  MOSTLY_SOLID = 2, // grade2, compacted, grass_paver, fine_gravel...
+  MIXTURE = 3,      // grade3,
+  MOSTLY_SOFT = 4,  // grade4
+  SOFT = 5,         // grade5, gravel, shells, dirt, earth, grass...
+  SOFT_WITH_DIFFICULTY = 6, // mud, sand
+  ROCK = 7,         // rock
 }
 
 export enum HikingDifficulty {

@@ -764,7 +764,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
                 ).pipe(
                   map(osm => {
                     if (!osm) return ([trail, track, mapTrack, undefined, undefined]) as [Trail | null, Track | undefined, MapTrack | undefined, Track | undefined, MapTrack | undefined];
-                    const osmTrack = buildOsmTrack(track, osm);
+                    const osmTrack = buildOsmTrack(track, osm.osmTrackPoints);
                     const osmMap = new MapTrack(trail, osmTrack, 'red', 1, false, this.i18n);
                     osmMap.showArrowPath();
                     return [trail, track, mapTrack, osmTrack, osmMap] as [Trail | null, Track | undefined, MapTrack | undefined, Track | undefined, MapTrack | undefined];
