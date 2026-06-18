@@ -1,8 +1,8 @@
 import { HikingDifficulty, Way, WaySurface, WayType, WayVisibility } from 'src/app/services/map/way';
 import { OsmWaysTrackPoint } from './match-osm-ways';
 import { distance } from '../latlng';
+import { TrackPointReference } from './types';
 
-export type TrackPointReference = {segmentIndex: number, pointIndex: number};
 export type TrackSection = {start: TrackPointReference, end: TrackPointReference};
 
 export type TrackOsmStatInfo = {distance: number, sections: TrackSection[]};
@@ -26,11 +26,11 @@ export function getTrackOsmStats(ways: Map<string, Way>, osmTrackPoints: OsmWays
   for (const segment of osmTrackPoints) {
     for (let pi = 0; pi < segment.length; ++pi) {
       const point = segment[pi];
-      if (point.osmWayPoint === undefined) {
+      if (!point.osm) {
         continue;
       }
       let pi2 = pi + 1;
-      while (pi2 < segment.length && point.osmWayId === segment[pi2].osmWayId) pi2++;
+      while (pi2 < segment.length && point.osm.wayId === segment[pi2].osm?.wayId) pi2++;
       if (pi2 === pi + 1) continue; // single point
       let start: TrackPointReference | undefined = undefined;
       let end: TrackPointReference | undefined = undefined;
@@ -39,17 +39,17 @@ export function getTrackOsmStats(ways: Map<string, Way>, osmTrackPoints: OsmWays
         const point2 = segment[i];
         if (i > pi) {
           const previous = segment[i - 1];
-          if (previous.osmWayPoint)
-            d += distance(previous.osmWayPoint, point2.osmWayPoint!);
+          if (previous.osm)
+            d += distance(previous.osm.point, point2.osm!.point);
         }
-        if (point2.originalSegmentIndex !== undefined) {
-          end = {segmentIndex: point2.originalSegmentIndex, pointIndex: point2.originalPointIndex!};
-          if (!start) start = end;
+        if (point2.originalTrackPoint) {
+          end = {...point2.originalTrackPoint};
+          start ??= end;
         }
       }
       stats.osmTotalDistanceMeters += d;
       const section = start && end ? {start, end} : undefined;
-      const way = ways.get(point.osmWayId!)!;
+      const way = ways.get(point.osm.wayId)!;
       if (way.type !== undefined)
         addStat(stats.wayType, way.type, d, section)
       if (way.surface !== undefined)

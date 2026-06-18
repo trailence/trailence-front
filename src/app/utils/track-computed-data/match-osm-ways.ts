@@ -1,16 +1,20 @@
 import { Way } from 'src/app/services/map/way';
 import { ClosestMatch, ClosestPointOnSegment, closestPointOnSegment, distance, earthBBox, EarthBBox, EarthPoint, findClosestPointOnPath, isPointInBBox } from '../latlng';
-
-export interface OsmWaysTrackPoint {
-  originalSegmentIndex?: number;
-  originalPointIndex?: number;
-  osmWayId?: string;
-  osmWayPoint?: EarthPoint;
-  distanceMeters?: number;
-  osmWayPosition?: OsmWayPosition;
-}
+import { TrackPointReference } from './types';
 
 export type OsmWayPosition = {type: 'exact', index: number} | {type: 'segment', indexBefore: number, indexAfter: number};
+
+export interface OsmWayPointInfo {
+  wayId: string;
+  point: EarthPoint;
+  position: OsmWayPosition;
+}
+
+export interface OsmWaysTrackPoint {
+  originalTrackPoint?: TrackPointReference;
+  osm?: OsmWayPointInfo;
+  osmDistanceMetersFromOriginal?: number;
+}
 
 interface PointMatch {
   way: Way;
@@ -47,20 +51,24 @@ export function matchOsmWays(segments: EarthPoint[][], ways: Way[]): OsmWaysTrac
     const segment = matches[si];
     const segmentResult: OsmWaysTrackPoint[] = [];
     result.push(segmentResult);
-    let previousResolved: PointMatch | undefined = undefined;;
+    let previousResolved: PointMatch | undefined = undefined;
     for (let pi = 0; pi < segment.length; ++pi) {
       const point = segment[pi];
       const resolved: PointMatch | undefined = point[0];
       if (previousResolved && resolved) addOsmPathBetween(segmentResult, previousResolved, resolved, wayMap);
       if (point.length > 1) console.log('unresolved ambiguity', pi, segmentResult.length, point);
-      segmentResult.push({
-        originalSegmentIndex: si,
-        originalPointIndex: pi,
-        osmWayId: resolved?.way.id,
-        osmWayPoint: resolved?.closest?.point,
-        distanceMeters: resolved?.closest?.distanceMeters,
-        osmWayPosition: toOsmWayPosition(resolved?.closest)
-      });
+      const pointResult: OsmWaysTrackPoint = {
+        originalTrackPoint: {segmentIndex: si, pointIndex: pi},
+      };
+      if (resolved) {
+        pointResult.osm = {
+          wayId: resolved.way.id,
+          point: resolved.closest.point,
+          position: toOsmWayPosition(resolved.closest),
+        }
+        pointResult.osmDistanceMetersFromOriginal = resolved.closest.distanceMeters;
+      }
+      segmentResult.push(pointResult);
       previousResolved = resolved;
     }
   }
@@ -549,9 +557,11 @@ function addOsmPathBetween(path: OsmWaysTrackPoint[], previousMatch: PointMatch,
       const d3 = distance(previousMatch.closest.point, newMatch.closest.point);
       if (d1 + d2 < d3 * 1.75) { // not too much additional distance
         path.push({
-          osmWayId: previousMatch.way.id,
-          osmWayPoint: common.point,
-          osmWayPosition: {type: 'exact', index: common.indexFrom},
+          osm: {
+            wayId: previousMatch.way.id,
+            point: common.point,
+            position: {type: 'exact', index: common.indexFrom},
+          }
         });
       }
     }
@@ -606,17 +616,18 @@ function addOsmPathBetweenSameWayPoints(path: OsmWaysTrackPoint[], from: number,
   let index = from;
   do {
     path.push({
-      osmWayId: way.id,
-      osmWayPoint: way.points[index],
-      osmWayPosition: {type: 'exact', index},
+      osm: {
+        wayId: way.id,
+        point: way.points[index],
+        position: {type: 'exact', index},
+      }
     });
     if (index === to) return;
     index += increment;
   } while (index > 0 && index < way.points.length);
 }
 
-function toOsmWayPosition(match: ClosestMatch | undefined): OsmWayPosition | undefined {
-  if (!match) return undefined;
+function toOsmWayPosition(match: ClosestMatch): OsmWayPosition {
   if (match.type === 'vertex') return {type: 'exact', index: match.index};
   return {type: 'segment', indexBefore: match.indexBefore, indexAfter: match.indexAfter};
 }

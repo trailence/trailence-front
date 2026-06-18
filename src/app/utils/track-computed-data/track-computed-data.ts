@@ -41,7 +41,7 @@ export class TrackComputedData {
               const waysIds = new Set<string>();
               for (const segment of osmTrackPoints)
                 for (const p of segment)
-                  if (p.osmWayId) waysIds.add(p.osmWayId);
+                  if (p.osm) waysIds.add(p.osm.wayId);
               const waysMap = new Map<string, Way>();
               for (const way of ways) if (waysIds.has(way.id)) waysMap.set(way.id, way);
               return {ways: waysMap, osmTrackPoints};

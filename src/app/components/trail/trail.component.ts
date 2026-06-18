@@ -1780,6 +1780,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     if (this.trail2) return false;
     if (this.trail1?.owner !== this.auth.email && !this.trail1?.fromModeration) return false;
     if (this.recording) return false;
+    if (this.showOsmTrack$.value) return false;
     return true;
   }
 

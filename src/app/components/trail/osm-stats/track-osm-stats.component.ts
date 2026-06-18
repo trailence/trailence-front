@@ -1,5 +1,5 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { of } from 'rxjs';
 import { Track } from 'src/app/model/track';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
@@ -8,7 +8,7 @@ import { AbstractComponent } from 'src/app/utils/component-utils';
 import { TrackOsmStatInfo, TrackOsmStats, TrackSection, trackSectionsComparator } from 'src/app/utils/track-computed-data/track-osm-stats';
 import { PercentCircleComponent } from '../../percent-circle/percent-circle.component';
 
-type Stat<T> = {value: T | undefined, percent: number, distance: number, sections: TrackSection[]}
+type Stat<T> = {value: T | 'unknown' | 'others', percent: number, distance: number, sections: TrackSection[]}
 
 interface Stats {
   wayType: Stat<WayType>[] | undefined;
@@ -62,9 +62,7 @@ export class TrackOsmStatsComponent extends AbstractComponent {
     };
   }
 
-  private mapToStat<T>(stats: TrackOsmStats, map: Map<T, TrackOsmStatInfo>, merges: Map<T,T>): {value: T | undefined, percent: number, distance: number, sections: TrackSection[]}[] | undefined {
-    const result:{value: T | undefined, percent: number, distance: number, sections: TrackSection[]}[] = [];
-    let remaining = stats.osmTotalDistanceMeters;
+  private mapToStat<T>(stats: TrackOsmStats, map: Map<T, TrackOsmStatInfo>, merges: Map<T,T>): {value: T | 'unknown' | 'others', percent: number, distance: number, sections: TrackSection[]}[] | undefined {
     let mergedMap: Map<T, TrackOsmStatInfo>;
     if (merges.size === 0) mergedMap = map;
     else {
@@ -81,19 +79,32 @@ export class TrackOsmStatsComponent extends AbstractComponent {
         }
       }
     }
+    const result:{value: T | 'unknown' | 'others', percent: number, distance: number, sections: TrackSection[]}[] = [];
+    let remaining = stats.osmTotalDistanceMeters;
+    let others = 0;
     for (const entry of mergedMap.entries()) {
       const value = entry[0];
       const info = entry[1];
       const percent = Math.floor(info.distance * 100 / stats.osmTotalDistanceMeters);
       remaining -= info.distance;
-      if (percent >= 1) // less than 5% is not interesting
+      if (percent >= 1)
         result.push({value, percent, distance: info.distance, sections: info.sections});
+      else
+        others += info.distance;
     }
     if (remaining > 0) {
       const percent = Math.floor(remaining * 100 / stats.osmTotalDistanceMeters);
       if (percent >= 50) return undefined; // more than helf is unknown, not interesting
-      if (percent >= 5)
-        result.push({value: undefined, percent, distance: remaining, sections: []});
+      if (percent >= 3) {
+        result.push({value: 'unknown', percent, distance: remaining, sections: []});
+        remaining = 0;
+      }
+    }
+    if (others + remaining > 0) {
+      const percent = Math.floor((others + remaining) * 100 / stats.osmTotalDistanceMeters);
+      if (percent >= 1) {
+        result.push({value: 'others', percent, distance: others + remaining, sections: []});
+      }
     }
     result.sort((s1, s2) => s2.distance - s1.distance);
     return result;

@@ -12,6 +12,7 @@ import { PointReference } from './point-reference';
 import { OfflineMapService } from '../services/map/offline-map.service';
 import { TrackComputedData } from '../utils/track-computed-data/track-computed-data';
 import { WorkerService } from '../worker/web-app';
+import { TrackPointReference } from '../utils/track-computed-data/types';
 
 export class Track extends Owned {
 
@@ -223,6 +224,10 @@ export class Track extends Owned {
       }
     }
     return undefined;
+  }
+
+  public getPoint(reference: TrackPointReference): Point {
+    return this.segments[reference.segmentIndex].points[reference.pointIndex];
   }
 
   public segmentTimeSinceDeparture(segmentIndex: number): number {

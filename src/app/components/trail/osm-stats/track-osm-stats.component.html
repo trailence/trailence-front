@@ -16,7 +16,7 @@
       <div class="stat-title">{{i18n.texts.osm_stats.types[i18n_type].title}}</div>
       @for (entry of array; track entry.value) {
         <div class="stat-value" (click)="highlightSections(entry)" [ngClass]="{'selected': previousSelection === entry.sections, 'selectable': entry.sections.length > 0}">
-          <div class="stat-name">{{i18n.texts.osm_stats.types[i18n_type].descriptions[entry.value === undefined ? 'unknown' : '' + entry.value]}}</div>
+          <div class="stat-name">{{i18n.texts.osm_stats.types[i18n_type].descriptions['' + entry.value]}}</div>
           <div class="stat-percent"><app-percent-circle [percent]="entry.percent" [size]="32" color="var(--ion-color-primary)" bgColor="rgba(var(--ion-color-medium-rgb), 0.75)" textColor="rgba(var(--ion-text-color-rgb), 0.8)"></app-percent-circle></div>
         </div>
       }

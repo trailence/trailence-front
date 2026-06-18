@@ -1638,6 +1638,7 @@
         "title": "Type de chemin",
         "descriptions": {
           "unknown": "Inconnu",
+          "others": "Autres",
           "1": "Route, rue…",
           "2": "Chemin",
           "3": "Escalier",
@@ -1649,6 +1650,7 @@
         "title": "Surface",
         "descriptions": {
           "unknown": "Inconnue",
+          "others": "Autres",
           "1": "Dur (goudron…)",
           "2": "Assez dur (gravier…)",
           "5": "Souple (terre, herbe…)",
@@ -1660,6 +1662,7 @@
         "title": "Difficulté",
         "descriptions": {
           "unknown": "Inconnue",
+          "others": "Autres",
           "1": "Très facile",
           "2": "Facile",
           "3": "Moyen",
@@ -1672,6 +1675,7 @@
         "title": "Visibilité du chemin",
         "descriptions": {
           "unknown": "Inconnue",
+          "others": "Autres",
           "1": "Excellente",
           "2": "Bonne",
           "3": "Moyenne",
