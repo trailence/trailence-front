@@ -177,34 +177,57 @@ export class TrailsListComponent extends AbstractComponent {
     }),
     new MenuItem().setIcon('save').setI18nLabel('pages.trails.filters.save')
       .setDisabled(() => FiltersUtils.nbActives(this.state$.value.filters, true) === 0)
-      .setAction(() => {
-        this.injector.get(AlertController).create({
-          header: this.i18n.texts.pages.trails.filters.save_title,
-          inputs: [{
-            type: 'text',
-            min: 1,
-            max: 100,
-            label: this.i18n.texts.pages.trails.filters.save_name,
-          }],
-          buttons: [
-            {
-              text: this.i18n.texts.buttons.ok,
-              role: 'ok'
-            }, {
-              text: this.i18n.texts.buttons.cancel,
-              role: 'cancel'
-            }
-          ]
-        }).then(a => a.present().then(() => a.onDidDismiss().then(event => {
-          if (event.role === 'ok') {
-            const name = event.data.values[0].trim();
-            if (name.length > 0) {
+      .setChildrenProvider(() => {
+        const children = [
+          new MenuItem().setI18nLabel('pages.trails.filters.save_new').setTextColor('secondary')
+          .setAction(() => {
+            this.injector.get(AlertController).create({
+              header: this.i18n.texts.pages.trails.filters.save_title,
+              inputs: [{
+                type: 'text',
+                min: 1,
+                max: 100,
+                label: this.i18n.texts.pages.trails.filters.save_name,
+              }],
+              buttons: [
+                {
+                  text: this.i18n.texts.buttons.ok,
+                  role: 'ok'
+                }, {
+                  text: this.i18n.texts.buttons.cancel,
+                  role: 'cancel'
+                }
+              ]
+            }).then(a => a.present().then(() => a.onDidDismiss().then(event => {
+              if (event.role === 'ok') {
+                const name = event.data.values[0].trim();
+                if (name.length > 0) {
+                  const filters = this.preferences.preferences.trailFilters ?? {};
+                  filters[name] = FiltersUtils.toSystemUnit(FiltersUtils.copy(this.state$.value.filters), this.preferences.preferences, this.i18n);
+                  this.preferences.saveTrailFilters({...filters});
+                }
+              }
+            })));
+          })
+        ];
+        const saved = this.preferences.preferences.trailFilters;
+        const names = saved ? Object.keys(saved) : [];
+        if (names.length === 0) return of(children);
+        children.push(new MenuItem());
+        names.sort().forEach(name => {
+          const systemFilter = saved![name];
+          const userFilter = FiltersUtils.toUserUnit(systemFilter, this.preferences.preferences, this.i18n);
+          children.push(
+            new MenuItem().setFixedLabel(name).setSubLabel(FiltersUtils.getDescription(userFilter, this.i18n, this.preferences.preferences))
+            .setDisabled(() => !this.isFilterEligible(systemFilter))
+            .setAction(() => {
               const filters = this.preferences.preferences.trailFilters ?? {};
               filters[name] = FiltersUtils.toSystemUnit(FiltersUtils.copy(this.state$.value.filters), this.preferences.preferences, this.i18n);
               this.preferences.saveTrailFilters({...filters});
-            }
-          }
-        })));
+            })
+          );
+        });
+        return of(children);
       }),
     new MenuItem().setIcon('trash').setI18nLabel('pages.trails.filters.remove').setChildrenProvider(() => {
       const saved = this.preferences.preferences.trailFilters;

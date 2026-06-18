@@ -169,6 +169,7 @@
         "load": "Load",
         "save": "Save",
         "remove": "Delete",
+        "save_new": "New filter...",
         "no_saved_filter": "No saved filter",
         "save_title": "Save filter",
         "save_name": "Filter name",

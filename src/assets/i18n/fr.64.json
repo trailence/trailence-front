@@ -169,6 +169,7 @@
         "load": "Charger",
         "save": "Enregistrer",
         "remove": "Supprimer",
+        "save_new": "Nouveau filtre...",
         "no_saved_filter": "Aucun filtre enregistré",
         "save_title": "Enregistrer le filter",
         "save_name": "Nom du filter",
