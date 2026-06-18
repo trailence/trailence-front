@@ -2,6 +2,7 @@ import { Track } from 'src/app/model/track';
 import { WayPoint } from 'src/app/model/way-point';
 import { Point } from 'src/app/model/point';
 import { IdGenerator } from '../component-utils';
+import { TrackPointReference } from '../track-computed-data/types';
 
 export class TrackWayPoint {
 
@@ -16,8 +17,8 @@ export class TrackWayPoint {
     this.elements.push(element);
   }
 
-  public get nearestIndex(): {segmentIndex: number, pointIndex: number} | undefined {
-    for (const element of this.elements) if (element.nearestSegmentIndex !== undefined) return {segmentIndex: element.nearestSegmentIndex, pointIndex: element.nearestPointIndex!};
+  public get nearestTrackPointReference(): TrackPointReference | undefined {
+    for (const element of this.elements) if (element.nearestTrackPoint !== undefined) return element.nearestTrackPoint;
     return undefined;
   }
 
@@ -69,8 +70,7 @@ export class TrackWayPoint {
 export abstract class TrackWayPointElement {
   constructor(
     public readonly track: Track,
-    public readonly nearestSegmentIndex: number | undefined,
-    public readonly nearestPointIndex: number | undefined,
+    public readonly nearestTrackPoint: TrackPointReference | undefined,
   ) {}
 
   public abstract getWayPoint(): WayPoint | undefined;
@@ -85,11 +85,11 @@ export abstract class TrackWayPointElement {
 
   public static compare(e1: TrackWayPointElement, e2: TrackWayPointElement): number {
     // first by position in the track
-    if (e1.nearestSegmentIndex !== undefined && e2.nearestSegmentIndex !== undefined) {
-      if (e1.nearestSegmentIndex < e2.nearestSegmentIndex) return -1;
-      if (e1.nearestSegmentIndex > e2.nearestSegmentIndex) return 1;
-      if (e1.nearestPointIndex! < e2.nearestPointIndex!) return -1;
-      if (e1.nearestPointIndex! > e2.nearestPointIndex!) return 1;
+    if (e1.nearestTrackPoint !== undefined && e2.nearestTrackPoint !== undefined) {
+      if (e1.nearestTrackPoint.segmentIndex < e2.nearestTrackPoint.segmentIndex) return -1;
+      if (e1.nearestTrackPoint.segmentIndex > e2.nearestTrackPoint.segmentIndex) return 1;
+      if (e1.nearestTrackPoint.pointIndex < e2.nearestTrackPoint.pointIndex) return -1;
+      if (e1.nearestTrackPoint.pointIndex > e2.nearestTrackPoint.pointIndex) return 1;
     }
     // then by position in waypoints
     const wp1 = e1.getWayPoint();

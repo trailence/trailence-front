@@ -16,6 +16,7 @@ import { TrackWayPoint } from 'src/app/utils/track-waypoints/track-waypoint';
 import { WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
 import { BreakPoint } from 'src/app/utils/track-waypoints/breakpoints';
 import { GuidepostWayPoint } from 'src/app/utils/track-waypoints/guideposts';
+import { OsmWayIntersection } from 'src/app/utils/track-waypoints/way-intersection';
 
 export class TrailsWaypoints {
 
@@ -103,6 +104,16 @@ export class TrailsWaypoints {
     this.updateElementsShown();
   }
 
+  public isShowingAllIntersections(): boolean {
+    return this.trails.every(t => t.showIntersections);
+  }
+
+  public toggleShowAllIntersections(): void {
+    const newValue = !this.isShowingAllIntersections();
+    this.trails.forEach(t => t._showIntersections = newValue);
+    this.updateElementsShown();
+  }
+
   public updatePhotos(photosWithPosition: {photos: Photo[], point: L.LatLngExpression}[]): void {
     this.photosWithPosition = photosWithPosition;
     let changed = false;
@@ -165,7 +176,7 @@ export class TrailsWaypoints {
     if (trail && twp) {
       const pathPoint = twp.getPoint();
       if (pathPoint && samePositionRound(pathPoint.pos, twp.wayPoint.point.pos)) {
-        this.selection.selectPoint([new PointReference(trail.track, twp.nearestSegmentIndex!, twp.nearestPointIndex!)]);
+        this.selection.selectPoint([new PointReference(trail.track, twp.nearestTrackPoint!.segmentIndex, twp.nearestTrackPoint!.pointIndex)]);
       }
       this.selection.selectedWayPoint$.next(twp.wayPoint);
     } else {
@@ -196,10 +207,13 @@ export class TrailWaypoints {
   wayPoints: WayPointWithPhotos[] = [];
   wayPointDepartureAndArrival?: WayPointWithPhotos;
   wayPointsImages: (string | undefined)[] = [];
+  intersectionsImages: (SVGSVGElement | undefined)[] = [];
   hasBreaks = false;
   _showBreaks = false;
   hasGuideposts = false;
   _showGuideposts = false;
+  hasIntersections = false;
+  _showIntersections = false;
 
   private readonly subscription: Subscription;
 
@@ -217,10 +231,18 @@ export class TrailWaypoints {
     this.trails.updateElementsShown();
   }
 
+  public get showIntersections() { return this._showIntersections; }
+  public set showIntersections(value: boolean) {
+    if (value === this._showIntersections || this.trails.showBreaksOnMapLocked) return;
+    this._showIntersections = value;
+    this.trails.updateElementsShown();
+  }
+
   public isShown(wp: WayPointWithPhotos) {
     if (WayPointFromTrack.from(wp.waypoint)) return true;
     if (this._showBreaks && BreakPoint.from(wp.waypoint)) return true;
     if (this._showGuideposts && GuidepostWayPoint.from(wp.waypoint)) return true;
+    if (this._showIntersections && OsmWayIntersection.from(wp.waypoint)) return true;
     return false;
   }
 
@@ -243,6 +265,7 @@ export class TrailWaypoints {
         this.wayPoints = wayPoints.map(wp => new WayPointWithPhotos(wp, this.getPhotos(this.currentPhotos, wp.position)));
         this.hasBreaks = this.wayPoints.some(wp => !!wp.breakPoint);
         this.hasGuideposts = this.wayPoints.some(wp => !!wp.guidepost);
+        this.hasIntersections = this.wayPoints.some(wp => !!wp.intersection);
         this.wayPointDepartureAndArrival = this.wayPoints.find(wp => wp.trackWayPoint?.isDepartureAndArrival());
         this.wayPointsImages = this.wayPoints.map(wp => {
           if (wp.trackWayPoint?.isDeparture)
@@ -257,6 +280,7 @@ export class TrailWaypoints {
         });
         if (this.wayPointDepartureAndArrival)
           this.wayPointsImages.push(MapAnchor.createDataIcon(anchorArrivalBorderColor, trails.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor));
+        this.intersectionsImages = this.wayPoints.map(wp => wp.intersection?.toSvg('red'))
         onUpdated();
       }
     );
@@ -299,9 +323,11 @@ export class WayPointWithPhotos {
     this.trackWayPoint = WayPointFromTrack.from(waypoint);
     this.breakPoint = BreakPoint.from(waypoint);
     this.guidepost = GuidepostWayPoint.from(waypoint);
+    this.intersection = OsmWayIntersection.from(waypoint);
   }
 
   public readonly trackWayPoint: WayPointFromTrack | undefined;
   public readonly breakPoint: BreakPoint | undefined;
   public readonly guidepost: GuidepostWayPoint | undefined;
+  public readonly intersection: OsmWayIntersection | undefined;
 }

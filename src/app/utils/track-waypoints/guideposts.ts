@@ -5,16 +5,18 @@ import { WayPointFromTrack } from './waypoints-from-track';
 import { distance } from '../latlng';
 import { WayPoint } from 'src/app/model/way-point';
 import { Point } from 'src/app/model/point';
+import { TrackPointReference } from '../track-computed-data/types';
+
+export const GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT = 25;
 
 export class GuidepostWayPoint extends TrackWayPointElement {
 
   constructor(
     track: Track,
     public readonly poi: POI,
-    segmentIndex: number | undefined,
-    pointIndex: number | undefined,
+    trackPointReference: TrackPointReference | undefined,
   ) {
-    super(track, segmentIndex, pointIndex);
+    super(track, trackPointReference);
   }
 
   public static from(wp: TrackWayPoint): GuidepostWayPoint | undefined {
@@ -26,13 +28,13 @@ export class GuidepostWayPoint extends TrackWayPointElement {
   }
 
   public override getPoint(): Point | undefined {
-    if (this.nearestSegmentIndex === undefined) return undefined;
-    return this.track.segments[this.nearestSegmentIndex].points[this.nearestPointIndex!];
+    if (this.nearestTrackPoint === undefined) return undefined;
+    return this.track.getPoint(this.nearestTrackPoint);
   }
 
   public override getPosition(): { lat: number; lng: number; } {
-    if (this.nearestSegmentIndex === undefined) return this.poi.pos;
-    return this.track.segments[this.nearestSegmentIndex].points[this.nearestPointIndex!].pos;
+    if (this.nearestTrackPoint === undefined) return this.poi.pos;
+    return this.track.getPoint(this.nearestTrackPoint).pos;
   }
 
   public override getAltitude(): number | undefined {
@@ -61,7 +63,7 @@ export function computeGuidepostsWayPoints(track: Track, pois: POI[], wayPoints:
     if (!wpPoint) continue;
     for (const poi of pois) {
       const distance = wpPoint.pos.distanceTo(poi.pos);
-      if (distance < 25) {
+      if (distance < GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT) {
         if (nearestGuidepost === undefined || distance < nerestDistance) {
           nearestGuidepost = poi;
           nerestDistance = distance;
@@ -69,8 +71,8 @@ export function computeGuidepostsWayPoints(track: Track, pois: POI[], wayPoints:
       }
     }
     if (nearestGuidepost) {
-      const nearest = wp.nearestIndex;
-      wp.addElement(new GuidepostWayPoint(track, nearestGuidepost, nearest?.segmentIndex, nearest?.pointIndex));
+      const nearest = wp.nearestTrackPointReference;
+      wp.addElement(new GuidepostWayPoint(track, nearestGuidepost, nearest));
       changed = true;
     }
   }
@@ -88,11 +90,11 @@ export function computeGuidepostsWayPoints(track: Track, pois: POI[], wayPoints:
           wpFound = true;
         }
       }
-      if (wpFound || wayPoints.some(wp => isWayPointAndDistanceLessThan(wp, 25, point.pos))) continue;
+      if (wpFound || wayPoints.some(wp => isWayPointAndDistanceLessThan(wp, GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT, point.pos))) continue;
       const poi = nearest(pois, point.pos);
       if (!poi ||
           previousPoi === poi || (previousPoi && previousPoi.text === poi.text) ||
-          wayPoints.some(wp => isWayPointAndDistanceLessThan(wp, 40, poi.pos))
+          wayPoints.some(wp => isWayPointAndDistanceLessThan(wp, GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT + 15, poi.pos))
       ) continue;
       previousPoi = poi;
       let distance = point.pos.distanceTo(poi.pos);
@@ -106,7 +108,7 @@ export function computeGuidepostsWayPoints(track: Track, pois: POI[], wayPoints:
           break;
         }
       }
-      const guidpost = new GuidepostWayPoint(track, poi, si, i)
+      const guidpost = new GuidepostWayPoint(track, poi, {segmentIndex: si, pointIndex: i})
       const newWp = new TrackWayPoint(guidpost);
       let insertIndex = nextIndex;
       while (insertIndex < wayPoints.length) {
@@ -135,7 +137,7 @@ function nearest(pois: POI[], pos: L.LatLng): POI | undefined {
   let distance = 0;
   for (const poi of pois) {
     const d = pos.distanceTo(poi.pos);
-    if (d < 25 && (nearest === undefined || d < distance)) {
+    if (d < GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT && (nearest === undefined || d < distance)) {
       nearest = poi;
       distance = d;
     }

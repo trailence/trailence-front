@@ -283,6 +283,7 @@
       "show_osm": "Afficher le parcours en suivant les chemins connus",
       "show_breaks": "Afficher les pauses",
       "show_guideposts": "Afficher les balises",
+      "show_intersections": "Afficher les intersections",
       "map_elements": {
         "photos": "Photos",
         "breaks": "Pauses",

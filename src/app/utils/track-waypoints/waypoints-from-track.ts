@@ -4,6 +4,7 @@ import { WayPoint } from 'src/app/model/way-point';
 import { Arrays } from '../arrays';
 import { PointDescriptor } from 'src/app/model/point-descriptor';
 import { Point } from 'src/app/model/point';
+import { TrackPointReference } from '../track-computed-data/types';
 
 export class WayPointFromTrack extends TrackWayPointElement {
   constructor(
@@ -11,13 +12,12 @@ export class WayPointFromTrack extends TrackWayPointElement {
     public isDeparture: boolean,
     public isArrival: boolean,
     public index: number,
-    nearestSegmentIndex: number | undefined,
-    nearestPointIndex: number | undefined,
+    nearestTrackPoint: TrackPointReference | undefined,
     track: Track,
     public readonly isComputedOnly: boolean,
     public readonly otherPossibleIndexes: {newIndex: number, segmentIndex: number, pointIndex: number}[] = [],
   ) {
-    super(track, nearestSegmentIndex, nearestPointIndex);
+    super(track, nearestTrackPoint);
   }
 
   public static from(wp: TrackWayPoint): WayPointFromTrack | undefined {
@@ -29,8 +29,8 @@ export class WayPointFromTrack extends TrackWayPointElement {
   }
 
   public override getPoint(): Point | undefined {
-    if (this.nearestSegmentIndex === undefined) return undefined;
-    return this.track.segments[this.nearestSegmentIndex]?.points[this.nearestPointIndex!];
+    if (this.nearestTrackPoint === undefined) return undefined;
+    return this.track.getPoint(this.nearestTrackPoint);
   }
 
   public override getPosition(): { lat: number; lng: number; } {
@@ -58,7 +58,7 @@ export function computeWayPointsFromTrack(track: Track): WayPointFromTrack[] {
     const isArrival = track.arrivalPoint!.distanceTo(track.departurePoint.pos) === 0 || (track.arrivalPoint!.distanceTo(track.departurePoint.pos) <= 25 && track.metadata.distance > 25);
     const result = [new WayPointFromTrack(
       new WayPoint(track.departurePoint, '', ''),
-      true, isArrival, -1, 0, 0, track, true
+      true, isArrival, -1, {segmentIndex: 0, pointIndex: 0}, track, true
     )];
     if (isArrival) return result;
     if (track.arrivalPoint !== track.departurePoint) {
@@ -70,13 +70,13 @@ export function computeWayPointsFromTrack(track: Track): WayPointFromTrack[] {
       result.push(new WayPointFromTrack(
         new WayPoint(track.arrivalPoint!, '', ''),
         false, true, -1,
-        segmentIndex, track.segments[segmentIndex].points.length - 1,
+        {segmentIndex, pointIndex: track.segments[segmentIndex].points.length - 1},
         track, true
       ));
     }
     return result;
   }
-  const eligibles: {segmentIndex: number; pointIndex: number}[][] = [];
+  const eligibles: TrackPointReference[][] = [];
   for (const wp of wayPoints) {
     eligibles.push(findEligiblePoints(wp.point, track));
   }
@@ -95,16 +95,16 @@ export function computeWayPointsFromTrack(track: Track): WayPointFromTrack[] {
   const computed: WayPointFromTrack[] = [];
   for (let i = 0; i < eligibles.length; ++i) {
     const eligible = eligibles[i].length > 0 ? eligibles[i][0] : undefined;
-    computed.push(new WayPointFromTrack(wayPoints[i], false, false, -1, eligible?.segmentIndex, eligible?.pointIndex, track, false));
+    computed.push(new WayPointFromTrack(wayPoints[i], false, false, -1, eligible, track, false));
   }
   // order them
   computed.sort(TrackWayPointElement.compare);
   // handle departure and arrival
   let departure, arrival;
-  const firstKnownIndex = computed.findIndex(c => c.nearestSegmentIndex !== undefined);
+  const firstKnownIndex = computed.findIndex(c => c.nearestTrackPoint !== undefined);
   if (firstKnownIndex >= 0) {
     const firstKnown = computed[firstKnownIndex];
-    if ((firstKnown.nearestSegmentIndex === 0 && firstKnown.nearestPointIndex === 0) ||
+    if ((firstKnown.nearestTrackPoint?.segmentIndex === 0 && firstKnown.nearestTrackPoint.pointIndex === 0) ||
         (track.departurePoint && track.departurePoint.pos.distanceTo(firstKnown.wayPoint.point.pos) < 25)) {
       // match the departure
       firstKnown.isDeparture = true;
@@ -115,10 +115,10 @@ export function computeWayPointsFromTrack(track: Track): WayPointFromTrack[] {
       departure = firstKnown;
     }
   }
-  const lastKnownIndex = Arrays.findLastIndex(computed, c => c.nearestSegmentIndex !== undefined); // NOSONAR
+  const lastKnownIndex = Arrays.findLastIndex(computed, c => c.nearestTrackPoint !== undefined); // NOSONAR
   if (lastKnownIndex >= 0) {
     const lastKnown = computed[lastKnownIndex];
-    if ((lastKnown.nearestSegmentIndex === track.segments.length - 1 && lastKnown.nearestPointIndex === track.segments.at(-1)!.points.length - 1) ||
+    if ((lastKnown.nearestTrackPoint?.segmentIndex === track.segments.length - 1 && lastKnown.nearestTrackPoint.pointIndex === track.segments.at(-1)!.points.length - 1) ||
         (track.arrivalPoint && track.arrivalPoint.pos.distanceTo(lastKnown.wayPoint.point.pos) < 25)) {
       // match the arrival
       lastKnown.isArrival = true;
@@ -142,7 +142,7 @@ export function computeWayPointsFromTrack(track: Track): WayPointFromTrack[] {
       departure = new WayPointFromTrack(
         new WayPoint(track.departurePoint, '', ''),
         true, !arrival && track.departurePoint.distanceTo(track.arrivalPoint!.pos) <= 25,
-        -1, 0, 0, track, true
+        -1, {segmentIndex: 0, pointIndex: 0}, track, true
       );
       computed.splice(0, 0, departure);
       if (departure.isArrival) arrival = departure;
@@ -155,7 +155,7 @@ export function computeWayPointsFromTrack(track: Track): WayPointFromTrack[] {
       arrival = new WayPointFromTrack(
         new WayPoint(track.arrivalPoint!, '', ''),
         false, true, -1,
-        track.segments.length - 1, track.segments.at(-1)!.points.length - 1,
+        {segmentIndex: track.segments.length - 1, pointIndex: track.segments.at(-1)!.points.length - 1},
         track, true
       );
       computed.push(arrival);
@@ -354,8 +354,8 @@ function addPossibleIndexFor(wp: WayPointFromTrack, list: WayPointFromTrack[], s
   for (const cwp of list) {
     if (cwp.index < 0) continue;
     if (cwp.index > maxIndex) maxIndex = cwp.index;
-    if (cwp.nearestSegmentIndex === undefined || cwp.nearestPointIndex === undefined) continue;
-    if (cwp.nearestSegmentIndex > si || cwp.nearestSegmentIndex === si && cwp.nearestPointIndex >= pi) {
+    if (cwp.nearestTrackPoint === undefined) continue;
+    if (cwp.nearestTrackPoint.segmentIndex > si || cwp.nearestTrackPoint.segmentIndex === si && cwp.nearestTrackPoint.pointIndex >= pi) {
       if (wp === cwp) return;
       if (wp.otherPossibleIndexes.some(i => cwp.index === i.newIndex)) return;
       wp.otherPossibleIndexes.push({newIndex: cwp.index, segmentIndex: si, pointIndex: pi});

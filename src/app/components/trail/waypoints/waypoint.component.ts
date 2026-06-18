@@ -7,6 +7,7 @@ import { WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-
 import { TextComponent } from '../../text/text.component';
 import { Photo } from 'src/app/model/photo';
 import { PhotoService } from 'src/app/services/database/photo.service';
+import { SvgContainerComponent } from '../../svg-container/svg-container.component';
 
 @Component({
   selector: 'app-waypoint',
@@ -16,6 +17,7 @@ import { PhotoService } from 'src/app/services/database/photo.service';
     IonIcon, IonButton,
     PhotosSliderComponent,
     TextComponent,
+    SvgContainerComponent,
   ]
 })
 export class WayPointComponent implements OnInit, OnChanges {
@@ -53,6 +55,7 @@ export class WayPointComponent implements OnInit, OnChanges {
   distance?: number;
   time?: number;
   img: string | undefined;
+  intersectionImg: SVGSVGElement | undefined;
 
   private update() {
     this.arrival = this.forceArrival || (!!this.wp.trackWayPoint?.isArrival && !this.wp.trackWayPoint?.isDeparture);
@@ -61,6 +64,7 @@ export class WayPointComponent implements OnInit, OnChanges {
     this.distance = this.arrival && this.wp.trackWayPoint?.isDeparture ? this.trail.track.metadata?.distance : this.wp.waypoint.distanceFromDeparture;
     this.time = this.arrival && this.wp.trackWayPoint?.isDeparture ? this.trail.track.metadata?.duration : this.wp.waypoint.getDurationFromDepartureWithoutBreaks(this.trail.wayPoints.map(wp => wp.waypoint));
     this.img = this.trail.wayPointsImages[this.imgIndex];
+    this.intersectionImg = this.trail.intersectionsImages[this.imgIndex];
   }
 
   openPhotos(photos: Photo[], slider: PhotosSliderComponent): void {

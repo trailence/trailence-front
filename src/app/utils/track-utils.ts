@@ -255,8 +255,8 @@ export class TrackUtils {
 
   public static findWayPoints(track: Track, startSegmentIndex: number, startPointIndex: number, endSegmentIndex: number, endPointIndex: number) {
     const waypoints = computeWayPointsFromTrack(track).filter(wp =>
-      wp.nearestSegmentIndex !== undefined && wp.nearestPointIndex !== undefined &&
-      this.inRange(wp.nearestSegmentIndex, wp.nearestPointIndex, startSegmentIndex, startPointIndex, endSegmentIndex, endPointIndex)
+      wp.nearestTrackPoint !== undefined &&
+      this.inRange(wp.nearestTrackPoint.segmentIndex, wp.nearestTrackPoint.pointIndex, startSegmentIndex, startPointIndex, endSegmentIndex, endPointIndex)
     );
     return track.wayPoints.filter(wp => waypoints.find(c => c.wayPoint.isEquals(wp)));
   }

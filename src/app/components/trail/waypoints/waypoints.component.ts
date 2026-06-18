@@ -92,6 +92,11 @@ export class WaypointsComponent implements OnInit, OnDestroy {
     this.changesDetection.detectChanges();
   }
 
+  toggleShowIntersections(trail: TrailWaypoints, checked: boolean): void {
+    trail.showIntersections = checked;
+    this.changesDetection.detectChanges();
+  }
+
   setTab(index: any): void {
     if (typeof index === 'number' && index >= 0 && index < this.trails.trails.length && index !== this.selectedTrailIndex) {
       this.selectedTrailIndex = index;

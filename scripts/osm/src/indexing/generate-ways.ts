@@ -146,7 +146,7 @@ async function processWays(waysToProcess: {way: Way, nodesIndexes: number[], nod
   sortedSubNodesByKey.sort((k1,k2) => k1.subIds.length < k2.subIds.length ? -1 : (k1.subIds.length > k2.subIds.length ? 1 : (k1.index < k2.index ? -1 : 1)));
   if (shutingDown.get()) return;
   console.log('Resolving', nodeCount, 'nodes from', sortedSubNodesByKey.length, 'indexes for', waysToProcess.length, 'ways');
-  const nodesToPoint = await nodeIndexReader.resolveElements(sortedSubNodesByKey, shutingDown);
+  const nodesToPoint = await nodeIndexReader.resolveElements(sortedSubNodesByKey, false, shutingDown);
   sortedSubNodesByKey = undefined;
   console.log(nodeCount, 'nodes resolved in', durationToString(Date.now() - start), 'writing ways to tiles and indexes...');
   const start2 = Date.now();

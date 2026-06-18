@@ -5,20 +5,20 @@ import { TrackWayPoint, TrackWayPointElement } from './track-waypoint';
 import { WayPoint } from 'src/app/model/way-point';
 import { Segment } from 'src/app/model/segment';
 import { Point } from 'src/app/model/point';
+import { TrackPointReference } from '../track-computed-data/types';
 
 export class BreakPoint extends TrackWayPointElement {
 
   constructor(
     track: Track,
-    segmentIndex: number,
-    pointIndex: number,
+    pointReference: TrackPointReference,
     public readonly isBreak: boolean,
     public readonly isPause: boolean,
     public readonly isResume: boolean,
     public readonly isPauseResume: boolean,
     public readonly duration: number,
   ) {
-    super(track, segmentIndex, pointIndex);
+    super(track, pointReference);
   }
 
   public static from(wp: TrackWayPoint): BreakPoint | undefined {
@@ -30,7 +30,7 @@ export class BreakPoint extends TrackWayPointElement {
   }
 
   public override getPoint(): Point | undefined {
-    return this.track.segments[this.nearestSegmentIndex!].points[this.nearestPointIndex!];
+    return this.track.getPoint(this.nearestTrackPoint!);
   }
 
   public override getPosition(): { lat: number; lng: number; } {
@@ -52,7 +52,7 @@ export function computeBreakPoints(track: Track, breaks: BreakPointSection[]): B
   for (const b of breaks) {
     const segment = track.segments[b.segmentIndex];
     const duration = TrackUtils.durationBetween(segment.points[Math.max(0, b.startIndex - 1)], segment.points[Math.min(segment.points.length - 1, b.endIndex + 1)]);
-    result.push(new BreakPoint(track, b.segmentIndex, b.pointIndex, true, false, false, false, duration));
+    result.push(new BreakPoint(track, {segmentIndex: b.segmentIndex, pointIndex: b.pointIndex}, true, false, false, false, duration));
   }
   let previous: Segment | undefined;
   let previousIndex = -1;
@@ -65,11 +65,11 @@ export function computeBreakPoints(track: Track, breaks: BreakPointSection[]): B
       const duration = TrackUtils.durationBetween(previous.arrivalPoint!, segment.departurePoint!);
       if (distance > 15) {
         result.push(
-          new BreakPoint(track, previousIndex, previous.points.length - 1, false, true, false, false, duration),
-          new BreakPoint(track, si, 0, false, false, true, false, duration)
+          new BreakPoint(track, {segmentIndex: previousIndex, pointIndex: previous.points.length - 1}, false, true, false, false, duration),
+          new BreakPoint(track, {segmentIndex: si, pointIndex: 0}, false, false, true, false, duration)
         );
       } else {
-        result.push(new BreakPoint(track, si, 0, false, false, false, true, duration));
+        result.push(new BreakPoint(track, {segmentIndex: si, pointIndex: 0}, false, false, false, true, duration));
       }
     }
     previous = segment;

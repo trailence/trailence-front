@@ -5,7 +5,11 @@
     </div>
   } @else {
     <div class="waypoint-anchor">
-      <ion-icon name="poi-guidepost"></ion-icon>
+      @if (wp.guidepost) {
+        <ion-icon name="poi-guidepost"></ion-icon>
+      } @else if (wp.intersection) {
+        TODO
+      }
     </div>
   }
   <div class="waypoint-info-section">
@@ -63,10 +67,16 @@
     <div class="waypoint-description">
       <app-text [text]="wp.trackWayPoint.wayPoint.description" [lang]="lang" [translations]="wp.trackWayPoint.wayPoint.descriptionTranslations" [showSource]="showSource"></app-text>
     </div>
-  } @else if (wp.guidepost && !wp.trackWayPoint) {
-    <div class="waypoint-name">
-      {{wp.guidepost.poi.text}}
-    </div>
+  } @else if (!wp.trackWayPoint) {
+    @if (wp.guidepost) {
+      <div class="waypoint-name">
+        {{wp.guidepost.poi.text}}
+      </div>
+    }
+    @if (wp.intersection) {
+      INTERSECTION:
+      <app-svg-container [svg]="intersectionImg" [width]="40" [height]="40" style="color:var(--ion-color-secondary)"></app-svg-container>
+    }
   }
 </div>
 @if (wp.photos.length > 0 && (!arrival || !wp.trackWayPoint?.isDeparture)) {

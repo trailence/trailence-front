@@ -33,6 +33,15 @@
         >{{i18n.texts.pages.trail.show_guideposts}}</ion-checkbox>
       </div>
     }
+    @if (selectedTrail.hasIntersections) {
+      <div class="show-breaks">
+        <ion-checkbox labelPlacement="end"
+          [checked]="selectedTrail.showIntersections"
+          (ionChange)="toggleShowIntersections(selectedTrail, $event.detail.checked)"
+          [disabled]="trails.showBreaksOnMapLocked"
+        >{{i18n.texts.pages.trail.show_intersections}}</ion-checkbox>
+      </div>
+    }
     @for (wp of selectedTrail.wayPoints; track wp) {
       @if (selectedTrail.isShown(wp)) {
         <app-waypoint

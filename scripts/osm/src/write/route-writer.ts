@@ -5,7 +5,7 @@ import { FileHandle } from 'node:fs/promises';
 import { Buf } from '../util/util';
 
 export async function writeRouteWithPoints(routesDir: string, route: Route, points: number[][], roles: (OsmRelationMemberRole | undefined)[]) {
-  const fd = await fs.promises.open(routesDir + '/' + route.id + '.route');
+  const fd = await fs.promises.open(routesDir + '/' + route.id + '.route', 'w');
   const bufSize = getRouteBufferSize(route);
   const buf = Buf.of(bufSize);
   writeRouteBuffer(route, buf);

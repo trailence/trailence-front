@@ -7,10 +7,10 @@ import { OsmRelation, OsmRelationMemberRole, OsmRelationMemberType } from '../os
 import { osmToRoute } from '../osm/osm-to-route';
 import { Route } from '../model/route';
 import { idToSubWayIndex, idToWayIndex, WayIndexFileReader } from './way-index-file';
-import { readFully } from '../util/fs-util';
+import { BufferedReader, BufferedWriter, readFully } from '../util/fs-util';
 import { ExtraDataType } from '../write/way-writer';
 import { getRouteBufferSize, writeRouteBuffer, writeRouteWithPoints } from '../write/route-writer';
-import { Buf } from '../util/util';
+import { Buf, durationToString } from '../util/util';
 
 const args: {[key: string]: string} = {};
 for (const arg of process.argv) {
@@ -56,6 +56,7 @@ async function generateRoutes() {
   const waysIds = new Set<bigint>();
   const mapByIndex = new Map<number, Set<number>>();
   const waysIndexes = new WayIndexFileReader(waysIndexDir);
+  const start = Date.now();
   for await (const line of reader) {
     if (!line.trim()) continue;
     if (shutingDown.get()) break;
@@ -89,12 +90,13 @@ async function generateRoutes() {
       roles: new Array(osm.members.length),
       points: new Array(osm.members.length)
     };
-    for (const member of osm.members) {
+    for (let i = 0; i < osm.members.length; ++i) {
+      const member = osm.members[i];
       const index = idToWayIndex(member.id);
       const subId = idToSubWayIndex(member.id);
-      r.waysIndexes.push(index);
-      r.waysSubIds.push(subId);
-      r.roles.push(member.role);
+      r.waysIndexes[i] = index;
+      r.waysSubIds[i] = subId;
+      r.roles[i] = member.role;
       let subIds = mapByIndex.get(index);
       if (!subIds) {
         subIds = new Set<number>();
@@ -105,10 +107,13 @@ async function generateRoutes() {
     routes.push(r);
     routeCount++;
     for (const member of osm.members) waysIds.add(member.id);
-    if (waysIds.size > 10000) {
+    if (waysIds.size > 200000) {
       console.log('Processing', routes.length, 'routes', 'with', waysIds.size, 'ways after', lineCount, 'lines');
       waysIds.clear();
+      const startRoutes = Date.now();
       await processRoutes(routes, mapByIndex, waysIndexes);
+      const end = Date.now();
+      console.log(routes.length, 'routes processed in', durationToString(end - startRoutes), 'after', durationToString(end - start));
     }
   }
   if (waysIds.size > 0) {
@@ -127,13 +132,26 @@ async function processRoutes(
   if (shutingDown.get()) return;
   const subWaysIdsByIndex: {index: number, subIds: number[]}[] = [];
   for (const e of mapByIndex.entries()) {
-    subWaysIdsByIndex.push({index: e[0], subIds: Array.from(e[1])});
+    const sorted = Array.from(e[1]).sort((id1, id2) => id1 < id2 ? -1 : 1);
+    subWaysIdsByIndex.push({index: e[0], subIds: sorted});
   }
   mapByIndex.clear();
   subWaysIdsByIndex.sort((k1,k2) => k1.subIds.length < k2.subIds.length ? -1 : (k1.subIds.length > k2.subIds.length ? 1 : (k1.index < k2.index ? -1 : 1)));
-  const waysTiles = await waysIndexes.resolveElements(subWaysIdsByIndex, shutingDown);
+  const waysTiles = await waysIndexes.resolveElements(subWaysIdsByIndex, true, shutingDown);
   if (shutingDown.get()) return;
-  console.log('Ways resolved into tiles');
+  // remove unresolved routes
+  const routesBefore = routes.length;
+  routes = routes.filter(route => {
+    for (let i = 0; i < route.waysIndexes.length; ++i) {
+      const wayIndex = waysTiles.get(route.waysIndexes[i]);
+      if (!wayIndex) return false;
+      const tileNumber = wayIndex.get(route.waysSubIds[i]);
+      if (tileNumber === undefined) return false;
+    }
+    return true;
+  });
+  console.log('Ways resolved into tiles, remaining routes', routes.length, '/', routesBefore);
+  if (routes.length === 0) return;
   const mapByTile = new Map<number, Map<number, number[]>>();
   for (const indexEntry of waysTiles.entries()) {
     for (const subIdEntry of indexEntry[1].entries()) {
@@ -154,10 +172,19 @@ async function processRoutes(
   waysTiles.clear(); // GC
   if (shutingDown.get()) return;
   console.log('Matching routes and ways using', mapByTile.size, 'tiles');
+  let index = 1;
   for (const tileEntry of mapByTile.entries()) {
     const tileNumber = tileEntry[0];
-    await processTile(tileNumber, mapByTile.get(tileNumber)!, routes);
+    const waysIdsMap = mapByTile.get(tileNumber);
+    process.stdout.clearLine(-1);
+    process.stdout.cursorTo(0);
+    process.stdout.write(' + Tile ' + index);
+    if (waysIdsMap)
+      await processTile(tileNumber, waysIdsMap, routes);
+    index++;
   }
+  process.stdout.clearLine(-1);
+  process.stdout.cursorTo(0);
   console.log('Ways updated, writing', routes.length, 'routes');
   for (const route of routes) {
     await writeRouteWithPoints(routesDir, route.route, route.points, route.roles);
@@ -166,26 +193,27 @@ async function processRoutes(
 }
 
 async function processTile(tile: number, waysIdsMap: Map<number, number[]>, routes: RouteToResolve[]) {
-  const src = await fs.promises.open(waysTilesDir + '/' + tile + '.tile', 'r');
-  const dst = await fs.promises.open(waysTilesDir + '/' + tile + '.tmp', 'w');
-  let srcOffset = 0;
-  let dstOffset = 0;
-  const header = Buffer.allocUnsafe(10);
+  const src = new BufferedReader(await fs.promises.open(waysTilesDir + '/' + tile + '.tile', 'r'), 128 * 1024);
+  const dst = new BufferedWriter(await fs.promises.open(waysTilesDir + '/' + tile + '.tmp', 'w'), 128 * 1024);
   do {
-    let read = await readFully(src, header, 0, 10, srcOffset);
-    if (read === 0) break;
-    if (read !== 10) throw new Error('Cannot read ways tile ' + tile + ': only ' + read + ' bytes read at ' + srcOffset);
-    srcOffset += 10;
-    await dst.write(header, 0, 10, dstOffset);
-    dstOffset += 10;
+    const header = await src.read(10);
+    if (header.length === 0) break;
+    if (header.length !== 10) throw new Error('Cannot read ways tile ' + tile + ': only ' + header.length + ' bytes read at ' + (src.offset - header.length) + ', expected 10 bytes for way header');
+    dst.write(header, 0, 10);
 
     const wayId = header.readBigInt64LE(0);
     const nbPoints = header.readUInt16LE(8);
-    let bufferSize = nbPoints * 8 + 2;
-    let buffer = Buffer.allocUnsafe(bufferSize);
-    read = await readFully(src, buffer, 0, bufferSize, srcOffset);
-    if (read !== bufferSize) throw new Error('Cannot read ways tile ' + tile + ': only ' + read + ' bytes read at ' + srcOffset);
-    srcOffset += bufferSize;
+    //console.log('tile', tile, 'offset', srcOffset - 10, 'way', wayId, 'nbPoints', nbPoints);
+    if (nbPoints === 0) {
+      // way reference
+      const tile = await src.read(4);
+      if (tile.length !== 4) throw new Error('Cannot read ways tile ' + tile + ': only ' + tile.length + ' bytes read at ' + (src.offset - header.length) + ', expected 4 bytes for main tile reference of way id ' + wayId);
+      dst.write(header, 0, 4);
+      continue;
+    }
+    let pointsSize = nbPoints * 8 + 2;
+    let pointsBuffer = await src.read(pointsSize);
+    if (pointsBuffer.length !== pointsSize) throw new Error('Cannot read ways tile ' + tile + ': only ' + pointsBuffer.length + ' bytes read at ' + (src.offset - pointsBuffer.length) + ', expected ' + pointsSize + ' for way id ' + wayId + ' with ' + nbPoints + ' points');
 
     const wayIndex = idToWayIndex(wayId);
     const waySubId = idToSubWayIndex(wayId);
@@ -205,9 +233,9 @@ async function processTile(tile: number, waysIdsMap: Map<number, number[]>, rout
     if (indexed) {
       const points: number[] = [];
       for (let i = 0; i < nbPoints; ++i) {
-        points.push(buffer.readInt32LE(i * 8), buffer.readInt32LE(i * 8 + 4));
+        points.push(pointsBuffer.readInt32LE(i * 8), pointsBuffer.readInt32LE(i * 8 + 4));
       }
-      const extraSizeBefore = buffer.readUInt16LE(bufferSize - 2);
+      const extraSizeBefore = pointsBuffer.readUInt16LE(pointsSize - 2);
       const linkedRoutes: Route[] = [];
       let linkedRoutesSize = 0;
       for (const route of routes) {
@@ -223,33 +251,26 @@ async function processTile(tile: number, waysIdsMap: Map<number, number[]>, rout
         }
       }
       const extraSizeAfter = extraSizeBefore + 3 + linkedRoutesSize;
-      buffer.writeUInt16LE(extraSizeAfter);
-      await dst.write(buffer, 0, bufferSize, dstOffset);
-      dstOffset += bufferSize;
+      pointsBuffer.writeUInt16LE(extraSizeAfter, pointsSize - 2);
+      dst.write(pointsBuffer, 0, pointsSize);
 
-      buffer = Buffer.allocUnsafe(extraSizeAfter);
-      read = await readFully(src, buffer, 0, extraSizeBefore, srcOffset);
-      if (read !== extraSizeBefore) throw new Error('Cannot read ways tile ' + tile + ': only ' + read + ' bytes read at ' + srcOffset);
-      srcOffset += extraSizeBefore;
-      buffer.writeUint8(ExtraDataType.ROUTES, extraSizeBefore);
-      buffer.writeUint16LE(linkedRoutesSize, extraSizeBefore + 1);
-      const buf = new Buf(buffer, extraSizeBefore + 3);
+      const extraBefore = await src.read(extraSizeBefore);
+      if (extraBefore.length !== extraSizeBefore) throw new Error('Cannot read ways tile ' + tile + ': only ' + extraBefore.length + ' bytes read at ' + (src.offset - extraBefore.length) + ', expected ' + extraSizeBefore + ' for extra data');
+      dst.write(extraBefore, 0, extraSizeBefore);
+      const extraAddition = Buf.of(3 + linkedRoutesSize);
+      extraAddition.writeUInt8(ExtraDataType.ROUTES);
+      extraAddition.writeUInt16(linkedRoutesSize);
       for (const r of linkedRoutes) {
-        buf.writeInt64(r.id);
-        writeRouteBuffer(r, buf);
+        extraAddition.writeInt64(r.id);
+        writeRouteBuffer(r, extraAddition);
       }
-      await dst.write(buffer, 0, extraSizeAfter, dstOffset);
-      dstOffset += extraSizeAfter;
+      dst.write(extraAddition.buffer, 0, 3 + linkedRoutesSize);
     } else {
-      await dst.write(buffer, 0, bufferSize, dstOffset);
-      dstOffset += bufferSize;
-      bufferSize = buffer.readUInt16LE(bufferSize - 2);
-      buffer = Buffer.allocUnsafe(bufferSize + 2);
-      read = await readFully(src, buffer, 0, bufferSize, srcOffset);
-      if (read !== bufferSize) throw new Error('Cannot read ways tile ' + tile + ': only ' + read + ' bytes read at ' + srcOffset);
-      await dst.write(buffer, 0, bufferSize, dstOffset);
-      srcOffset += bufferSize;
-      dstOffset += bufferSize;
+      dst.write(pointsBuffer, 0, pointsSize);
+      const extraSize = pointsBuffer.readUInt16LE(pointsSize - 2);
+      const extra = await src.read(extraSize);
+      if (extra.length !== extraSize) throw new Error('Cannot read ways tile ' + tile + ': only ' + extra.length + ' bytes read at ' + (src.offset - extra.length) + ', expected ' + extraSize + ' for extra data');
+      dst.write(extra, 0, extraSize);
     }
   } while (true);
   await src.close();
