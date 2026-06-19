@@ -4,11 +4,13 @@ import { BehaviorSubject, from, map, Observable, switchMap, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { DynamicCacheObservables } from 'src/app/utils/rxjs/dynamic-cache-observable';
 
 @Injectable({providedIn: 'root'})
 export class FeedbackService {
 
   private readonly mines = new Map<string, BehaviorSubject<MyFeedback | undefined>>();
+  private readonly counts = new DynamicCacheObservables<number>(key => this.getCount(key));
 
   constructor(
     private readonly http: HttpService,
@@ -52,6 +54,14 @@ export class FeedbackService {
     );
   }
 
+  public countFeedbacks(uuid: string): Observable<number> {
+    return this.counts.get(uuid);
+  }
+
+  private getCount(uuid: string): Observable<number> {
+    return this.http.get<number>(environment.apiBaseUrl + '/public_trail_feedback/v1/' + uuid + '/count');
+  }
+
   public sendFeedback(trailUuid: string, rate?: number, comment?: string): Observable<any> {
     return this.http.post(environment.apiBaseUrl + '/public_trail_feedback/v1', {
       trailUuid,
@@ -65,6 +75,7 @@ export class FeedbackService {
           rateDate: rate === undefined ? known.value?.rateDate : Date.now(),
           latestCommentDate: comment === undefined || comment.trim().length === 0 ? known.value?.latestCommentDate : Date.now(),
         });
+        this.counts.invalidate(trailUuid);
         return from(this.fetchService.getTrailence()!.forceRefresh(trailUuid)).pipe(map(() => response));
       })
     );
@@ -81,6 +92,7 @@ export class FeedbackService {
         complete: () => {
           let known = this.mines.get(trailUuid);
           if (known) this.getMyFeedback(trailUuid, true);
+          this.counts.invalidate(trailUuid);
         }
       })
     );

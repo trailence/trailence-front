@@ -31,7 +31,6 @@
   .map-container {
     position: absolute;
   }
-
   .graph-container {
     position: absolute;
     z-index: 1000;
@@ -46,6 +45,7 @@
 
   .tabs-container {
     position: absolute;
+    height: var(--tabs-height);
     ion-segment-button {
       min-height: var(--tabs-height);
       min-width: 60px;
@@ -104,9 +104,55 @@
   .bottom-info {
     position: absolute;
   }
+
+  &:not(.large):not(.tab-details) {
+    .trail-details {
+      display: none;
+    }
+  }
+  &:not(.tab-map) {
+    .map-container {
+      display: none;
+    }
+    .graph-container {
+      display: none;
+    }
+    .bottom-sheet-container {
+      display: none;
+    }
+  }
+
   .trail-photos-tab, .trail-reviews-tab, .trail-waypoints-tab {
     display: none;
     position: absolute;
+    top: calc(var(--tabs-height) + 10px);
+    right: 0;
+    bottom: 0;
+  }
+  &.tab-photos {
+    .trail-photos-tab {
+      display: block;
+
+      app-photos {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+      }
+    }
+  }
+  &.tab-waypoints {
+    .trail-waypoints-tab {
+      display: block;
+      overflow-y: auto;
+      border-top: 1px solid var(--ion-color-light);
+    }
+  }
+  &.tab-reviews {
+    .trail-reviews-tab {
+      display: block;
+      overflow-y: auto;
+    }
   }
 
   &.bottom-sheet-closed {
@@ -144,12 +190,32 @@
   }
 
 
-
   &.large {
     --bottom-sheet-tab-content-height: 180px;
+    --tabs-height: 30px;
 
     .tabs-container {
-      display: none;
+      top: 0;
+      right: 0;
+      left: var(--details-width);
+
+      div.tab-segment-content {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        div.text {
+          font-size: 14px;
+          margin-left: 6px;
+        }
+        ion-badge {
+          font-size: 11px;
+          --padding-top: 2px;
+          --padding-bottom: 2px;
+          border-radius: 6px;
+          margin-left: 2px;
+          margin-bottom: 10px;
+        }
+      }
     }
     .bottom-sheet-container {
       left: var(--details-width);
@@ -162,7 +228,7 @@
       border-right: 1px solid var(--ion-color-light);
     }
     .map-container {
-      top: 0;
+      top: var(--tabs-height);
       left: var(--details-width);
       right: 0;
     }
@@ -174,6 +240,15 @@
       background-color: rgba(var(--ion-color-light-rgb), 0.5);
       transition: top 0.3s ease-in-out;
     }
+    &.tab-photos .trail-photos-tab {
+      left: var(--details-width);
+    }
+    &.tab-reviews .trail-reviews-tab {
+      left: var(--details-width);
+    }
+    &.tab-waypoints .trail-waypoints-tab {
+      left: var(--details-width);
+    }
   }
 
   &.small {
@@ -181,19 +256,20 @@
       top: 0;
       left: 0;
       right: 0;
-      height: var(--tabs-height);
+      div.tab-segment-content {
+        ion-badge {
+          position: absolute;
+          top: 7px;
+          right: 2px;
+          font-size: 11px;
+          --padding-top: 2px;
+          --padding-bottom: 2px;
+          border-radius: 6px;
+        }
+      }
     }
 
     &.tab-details {
-      .map-container {
-        display: none;
-      }
-      .bottom-sheet-container {
-        display: none;
-      }
-      .graph-container {
-        display: none;
-      }
       .trail-details {
         top: var(--tabs-height);
         left: 0;
@@ -202,45 +278,14 @@
       }
     }
 
-    &.tab-photos, &.tab-reviews, &.tab-waypoints {
-      .map-container {
-        display: none;
-      }
-      .bottom-sheet-container {
-        display: none;
-      }
-      .graph-container {
-        display: none;
-      }
-      .trail-details {
-        display: none;
-      }
-      .trail-photos-tab, .trail-reviews-tab, .trail-waypoints-tab {
-        display: block;
-        top: calc(var(--tabs-height) + 10px);
-        left: 0;
-        right: 0;
-        bottom: 0;
-      }
+    &.tab-photos .trail-photos-tab {
+      left: 0;
     }
-    &.tab-photos {
-      .trail-photos-tab app-photos-popup {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        height: 100%;
-      }
+    &.tab-reviews .trail-reviews-tab {
+      left: 0;
     }
-    &.tab-waypoints {
-      .trail-waypoints-tab {
-        overflow-y: auto;
-        border-top: 1px solid var(--ion-color-light);
-      }
-    }
-    &.tab-reviews {
-      .trail-reviews-tab {
-        overflow-y: auto;
-      }
+    &.tab-waypoints .trail-waypoints-tab {
+      left: 0;
     }
 
     &.tab-map {
@@ -441,15 +486,10 @@
 }
 
 .trail-photos {
-  cursor: pointer;
   padding-top: 5px;
   display: flex;
   flex-direction: column;
   position: relative;
-
-  &:hover {
-    background-color: rgba(var(--ion-text-color-rgb), 0.05);
-  }
 
   .cover {
     align-self: center;
@@ -460,13 +500,6 @@
       border-radius: 10px;
       padding: 2px;
     }
-  }
-
-  ion-button.edit {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    z-index: 10;
   }
 }
 

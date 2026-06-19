@@ -41,6 +41,7 @@ export class GradientEffectPlugin implements C.Plugin<"line"> {
     const endX = Math.floor(xAxis.right) + 1;
     for (let x = startX; x <= endX; ++x) values.push({val: 0, nb: 0});
     for (const data of dataset.data) {
+      if (Number.isNaN(data.y)) continue;
       const i = Math.max(0, Math.min(values.length - 1, Math.round(data.x) - startX));
       values[i].val += data.y;
       values[i].nb++;
@@ -69,6 +70,7 @@ export class GradientEffectPlugin implements C.Plugin<"line"> {
         }
       }
       const y = v.val / v.nb;
+      if (Number.isNaN(y)) continue;
       let gradient = ctx.createLinearGradient(x, y, x, yAxis.bottom);
       gradient.addColorStop(0, this.c1)
       gradient.addColorStop(0.5, this.c1);

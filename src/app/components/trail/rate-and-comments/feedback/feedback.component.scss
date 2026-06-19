@@ -1,16 +1,19 @@
 :host {
   margin-bottom: 6px;
-  background-color: rgba(var(--ion-text-color-rgb), 0.05);
   border-radius: 8px;
 }
 div.feedback {
   display: block;
   border-radius: 8px;
   padding: 5px;
+  max-width: 800px;
+  background-color: rgba(var(--ion-color-tertiary-rgb), 0.2);
 
   &.reply {
-    margin-left: 25px;
+    margin-left: calc(min(max(25px, 10%), 80px));
     padding-top: 7px;
+    margin-top: 3px;
+    background-color: rgba(var(--ion-color-tertiary-rgb), 0.3);
   }
 }
 div.header {

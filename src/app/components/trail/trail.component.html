@@ -140,22 +140,17 @@
           }
         }
 
-        @if (photos !== undefined && !isSmall && (editable || photos.length !== 0 || !!recording)) {
-          <div class="trail-photos" (click)="openSlider()">
+        @if (photos !== undefined && (editable || photos.length !== 0 || !!recording)) {
+          <div class="trail-photos">
             @if (photos.length === 0) {
               <div class="no-photo">
                 <ion-icon name="photos" color="secondary"></ion-icon>
                 <span>{{i18n.texts.pages.trail.no_photo_message}}</span>
               </div>
             } @else {
-              <div class="cover">
+              <div class="cover" (click)="openSlider()">
                 <app-photo [photo]="photos[0]" [maxWidth]="300" [maxHeight]="200"></app-photo>
               </div>
-              @if (editable || !!recording) {
-                <ion-button class="edit" fill="solid" shape="round" color="secondary" (click)="openPhotos(); $event.stopPropagation();">
-                  <ion-icon name="edit" slot="icon-only"></ion-icon>
-                </ion-button>
-              }
             }
           </div>
         }
@@ -481,16 +476,6 @@
               (unhighlightWaypoint)="unhighlightWayPoint($event.wp, $event.force)"
             ></app-trail-waypoints>
           </div>
-
-          @if (trail1 && !trail2 && trail1WithInfo?.source?.isExternalOnly && (trail1.owner === 'trailence' || trail1WithInfo?.source?.info !== undefined)) {
-            <div class="section">
-              <div class="section-title">
-                <ion-icon name="chat-bubbles"></ion-icon>
-                <div>{{ i18n.texts.pages.trail.sections.comments.title }}</div>
-              </div>
-              <app-rate-and-comments [trail]="trail1" id="rate-{{id}}"></app-rate-and-comments>
-            </div>
-          }
         }
       </div>
     }
@@ -539,42 +524,52 @@
     }
   }
   <div class="tabs-container">
-    @if (isSmall) {
-      <ion-segment [value]="tab" color="secondary" (ionChange)="setTab($event.detail.value!.toString())">
+    <ion-segment [value]="tab" color="secondary" (ionChange)="setTabString($event.detail.value!.toString())">
+      @if (isSmall) {
         <ion-segment-button value="details">
-          <div>
+          <div class="tab-segment-content">
             <ion-icon name="info"></ion-icon>
             <div class="text">{{i18n.texts.pages.trail.tabs.details}}</div>
           </div>
         </ion-segment-button>
-        <ion-segment-button value="map">
-          <div>
-            <ion-icon name="map"></ion-icon>
-            <div class="text">{{i18n.texts.pages.trail.tabs.map}}</div>
+      }
+      <ion-segment-button value="map">
+        <div class="tab-segment-content">
+          <ion-icon name="map"></ion-icon>
+          <div class="text">{{i18n.texts.pages.trail.tabs.map}}</div>
+        </div>
+      </ion-segment-button>
+      <ion-segment-button value="photos">
+        <div class="tab-segment-content">
+          <ion-icon name="photos"></ion-icon>
+          <div class="text">
+            {{i18n.texts.pages.trail.tabs.photos}}
           </div>
-        </ion-segment-button>
-        <ion-segment-button value="photos">
-          <div>
-            <ion-icon name="photos"></ion-icon>
-            <div class="text">{{i18n.texts.pages.trail.tabs.photos}}</div>
-          </div>
-        </ion-segment-button>
+          @if (photos !== undefined) {
+            <ion-badge [color]="photos.length > 0 ? 'secondary' : 'medium'">{{photos.length}}</ion-badge>
+          }
+        </div>
+      </ion-segment-button>
+      @if (isSmall) {
         <ion-segment-button value="waypoints">
-          <div>
+          <div class="tab-segment-content">
             <ion-icon name="location"></ion-icon>
             <div class="text">{{i18n.texts.pages.trail.tabs.waypoints}}</div>
           </div>
         </ion-segment-button>
-        @if (!trail2 && trail1 && trail1WithInfo?.source?.isExternalOnly && (trail1.owner === 'trailence' || trail1WithInfo?.source?.info !== undefined)) {
-          <ion-segment-button value="reviews">
-            <div>
-              <ion-icon name="chat-bubbles"></ion-icon>
-              <div class="text">{{i18n.texts.pages.trail.tabs.comments}}</div>
-            </div>
-          </ion-segment-button>
-        }
-      </ion-segment>
-    }
+      }
+      @if (!trail2 && trail1 && trail1WithInfo?.source?.isExternalOnly && (trail1.owner === 'trailence' || trail1WithInfo?.source?.info !== undefined)) {
+        <ion-segment-button value="reviews">
+          <div class="tab-segment-content">
+            <ion-icon name="chat-bubbles"></ion-icon>
+            <div class="text">{{i18n.texts.pages.trail.tabs.comments}}</div>
+            @if (trail1WithInfo?.feedbackCount !== undefined) {
+              <ion-badge [color]="trail1WithInfo!.feedbackCount! > 0 ? 'secondary' : 'medium'">{{trail1WithInfo!.feedbackCount}}</ion-badge>
+            }
+          </div>
+        </ion-segment-button>
+      }
+    </ion-segment>
   </div>
   <div class="map-container">
     @if (trail1 || recording) {
@@ -647,7 +642,7 @@
       </app-map>
     }
   </div>
-  @if (!isSmall || tab === 'map') {
+  @if (tab === 'map') {
     <div class="bottom-sheet-container">
       <div class="bottom-sheet-button">
         @if (bottomSheetOpen) {
@@ -685,32 +680,30 @@
       }
     </div>
   }
-  @if (isSmall) {
-    @switch (tab) {
-      @case ('photos') {
-        @if (photos !== undefined) {
-          <div class="trail-photos-tab">
-            <app-photos-popup [trails$]="trailsForPhotoPopup" [popup]="false" (positionOnMapRequested)="positionPhotoOnMap($event)"></app-photos-popup>
-          </div>
-        }
-      }
-      @case ('waypoints') {
-        <div class="trail-waypoints-tab">
-          <app-trail-waypoints
-            [trails]="trailsWaypoints"
-            [lang]="trail1WithInfo?.source?.info?.lang"
-            [editTools]="editTools"
-            [showSource]="showTextHtml"
-            (highlightWaypoint)="highlightWayPoint($event.wp, $event.click)"
-            (unhighlightWaypoint)="unhighlightWayPoint($event.wp, $event.force)"
-          ></app-trail-waypoints>
+  @switch (tab) {
+    @case ('photos') {
+      @if (photos !== undefined) {
+        <div class="trail-photos-tab">
+          <app-photos [trails$]="trailsForPhotoPopup" (positionOnMapRequested)="positionPhotoOnMap($event)"></app-photos>
         </div>
       }
-      @case ('reviews') {
-        <div class="trail-reviews-tab">
-          <app-rate-and-comments [trail]="trail1!"></app-rate-and-comments>
-        </div>
-      }
+    }
+    @case ('waypoints') {
+      <div class="trail-waypoints-tab">
+        <app-trail-waypoints
+          [trails]="trailsWaypoints"
+          [lang]="trail1WithInfo?.source?.info?.lang"
+          [editTools]="editTools"
+          [showSource]="showTextHtml"
+          (highlightWaypoint)="highlightWayPoint($event.wp, $event.click)"
+          (unhighlightWaypoint)="unhighlightWayPoint($event.wp, $event.force)"
+        ></app-trail-waypoints>
+      </div>
+    }
+    @case ('reviews') {
+      <div class="trail-reviews-tab">
+        <app-rate-and-comments [trail]="trail1!"></app-rate-and-comments>
+      </div>
     }
   }
 </div>

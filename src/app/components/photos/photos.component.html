@@ -1,14 +1,4 @@
-@if (popup) {
-  <ion-header>
-    <ion-toolbar color="primary">
-      <ion-title>
-        <ion-icon name="photos" style="margin-right: 10px"></ion-icon>
-        <ion-label>{{i18n.texts.pages.photos_popup.title}}</ion-label>
-      </ion-title>
-    </ion-toolbar>
-  </ion-header>
-}
-<div class="modal-content" style="flex: 1 1 100%; display:flex; flex-direction: column; overflow: hidden">
+<div style="flex: 1 1 100%; display:flex; flex-direction: column; overflow: hidden">
 
   @if (loaded) {
     @if (tabs.length > 1) {
@@ -165,9 +155,6 @@
             <span>{{i18n.texts.pages.trail.take_photo}}</span>
           </ion-button>
         }
-      }
-      @if (popup) {
-        <ion-button (click)="close()">{{i18n.texts.buttons.close}}</ion-button>
       }
     </ion-buttons>
   </ion-toolbar>

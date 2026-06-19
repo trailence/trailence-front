@@ -8,7 +8,7 @@ import { Track } from 'src/app/model/track';
 import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { AsyncPipe, NgClass, NgComponentOutlet, NgStyle, NgTemplateOutlet } from '@angular/common';
-import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonCheckbox, AlertController, IonSpinner, ModalController, ToastController, IonInput } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonCheckbox, AlertController, IonSpinner, ModalController, ToastController, IonInput, IonBadge } from "@ionic/angular/standalone";
 import { TrackMetadataComponent, TrackMetadataConfig } from '../track-metadata/track-metadata.component';
 import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
@@ -23,7 +23,6 @@ import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended'
 import { PhotoService } from 'src/app/services/database/photo.service';
 import { Photo } from 'src/app/model/photo';
 import { PhotoComponent } from '../photo/photo.component';
-import { PhotosPopupComponent } from '../photos-popup/photos-popup.component';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { Arrays } from 'src/app/utils/arrays';
 import { MapPhoto } from '../map/markers/map-photo';
@@ -77,7 +76,8 @@ import { TrackWayPoint } from 'src/app/utils/track-waypoints/track-waypoint';
 import { buildOsmTrack } from 'src/app/utils/track-computed-data/build-osm-track';
 import { TrackOsmStatsComponent } from './osm-stats/track-osm-stats.component';
 import { TrackSection } from 'src/app/utils/track-computed-data/track-osm-stats';
-import { SimplifiedPoint, SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
+import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
+import { PhotosComponent } from '../photos/photos.component';
 
 interface TrailSource {
   isExternal: boolean;
@@ -90,11 +90,16 @@ interface TrailSource {
   publishedFromTrail?: Trail;
 }
 
+const ALL_TABS = ['details', 'map', 'photos', 'waypoints', 'reviews'];
+const LARGE_TABS = ['map', 'photos', 'reviews'];
+type TAB_TYPE = 'details' | 'map' | 'photos' | 'waypoints' | 'reviews';
+
 class TrailWithInfo {
   public source?: TrailSource;
   public tagsNames: string[] | undefined;
   public collection?: TrailCollection;
   public collectionName?: string;
+  public feedbackCount?: number;
 
   constructor(
     public readonly trail: Trail,
@@ -125,13 +130,13 @@ class TrailWithInfo {
     styleUrls: ['./trail.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        IonSpinner, IonCheckbox, IonTextarea, IonButton, IonIcon, IonSegmentButton, IonSegment, IonInput,
+        IonSpinner, IonCheckbox, IonTextarea, IonButton, IonIcon, IonSegmentButton, IonSegment, IonInput, IonBadge,
         FormsModule,
         MapComponent,
         TrackMetadataComponent,
         TrailGraphComponent,
         PhotoComponent,
-        PhotosPopupComponent,
+        PhotosComponent,
         I18nPipe,
         TrackEditToolsComponent,
         ToolbarComponent,
@@ -156,7 +161,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   @Input() trail1$?: Observable<Trail | null>;
   @Input() trail2$?: Observable<Trail | null>;
   @Input() recording$?: Observable<Recording | null>;
-  @Input() tab = 'map';
+  @Input() tab: TAB_TYPE = 'map';
 
   showOriginal$ = new BehaviorSubject<boolean>(false);
   showOsmTrack$ = new BehaviorSubject<boolean>(false);
@@ -471,6 +476,11 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         this.changesDetection.detectChanges();
       })
     }
+    this.listenForTags();
+    this.listenForLanguageChange();
+    this.listenForCollections();
+    this.listenForSource();
+    this.listenForCommentsCount();
   }
 
   protected override destroyComponent(): void {
@@ -514,13 +524,9 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     if (this.trail1$) this.trailsForPhotoPopup.push(this.trail1$);
     if (this.trail2$) this.trailsForPhotoPopup.push(this.trail2$);
     this.listenForTracks();
-    this.listenForTags();
     this.listenForPhotos();
     this.listenForPhotosOnMap();
     this.listenForRecordingUpdates();
-    this.listenForLanguageChange();
-    this.listenForCollections();
-    this.listenForSource();
     this.listenMyFeedback();
     this.listenForPublished();
     this.listenCurrentPublic();
@@ -576,13 +582,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       }
     }
     if (this.goToRate > 0 && this.goToRate > Date.now() - 1000) {
-      if (this.isSmall) {
-        this.setTab('reviews');
-        this.goToRate = 0;
-      } else if (this.tab !== 'reviews') {
-        const rateElement = globalThis.document.getElementById('rate-' + this.id);
-        if (rateElement) rateElement.scrollIntoView({behavior: 'smooth', block: 'start', inline: 'start'});
-      }
+      this.setTab('reviews');
+      this.goToRate = 0;
     }
   }
 
@@ -788,7 +789,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this._listenForSource(this.trail2WithInfo$);
   }
   private _listenForSource(trailWithInfo$: Observable<TrailWithInfo | null>) {
-    this.byStateAndVisible.subscribe(
+    this.whenVisible.subscribe(
       combineLatest([
         trailWithInfo$,
         this.injector.get(FetchSourceService).isReady$,
@@ -954,34 +955,40 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   }
 
   private listenForPublished(): void {
-    combineLatest([this.trail1$ ?? of(undefined), this.trail2$ ?? of(undefined), this.injector.get(MyPublicTrailsService).myPublicTrails$])
-    .pipe(
-      switchMap(([trail1, trail2, myPublicTrails]) => {
-        if (trail1 && !trail2 && trail1.owner === this.auth.email) {
-          const publicTrail = myPublicTrails.find(t => t.privateUuid === trail1.uuid);
-          if (publicTrail)
-            return this.injector.get(FetchSourceService).getTrail$('trailence', publicTrail.publicUuid);
-        }
-        return of(undefined);
-      })
-    )
-    .subscribe((publicTrail) => {
-      this.publishedTrail = publicTrail ?? undefined;
-    });
+    this.byStateAndVisible.subscribe(
+      combineLatest([this.trail1$ ?? of(undefined), this.trail2$ ?? of(undefined), this.injector.get(MyPublicTrailsService).myPublicTrails$])
+      .pipe(
+        switchMap(([trail1, trail2, myPublicTrails]) => {
+          if (trail1 && !trail2 && trail1.owner === this.auth.email) {
+            const publicTrail = myPublicTrails.find(t => t.privateUuid === trail1.uuid);
+            if (publicTrail)
+              return this.injector.get(FetchSourceService).getTrail$('trailence', publicTrail.publicUuid);
+          }
+          return of(undefined);
+        })
+      ),
+      (publicTrail) => {
+        this.publishedTrail = publicTrail ?? undefined;
+        this.changesDetection.detectChanges();
+      }
+    );
   }
 
   private listenCurrentPublic(): void {
     if (!this.trail1$) return;
-    this.trail1$.pipe(
-      filterDefined(),
-      filter(t => t.fromModeration && !!t.publishedFromUuid),
-      switchMap(t => this.injector.get(ModerationService).getPublicUuid(t.publishedFromUuid!, t.owner)), // NOSONAR
-      take(1),
-    ).subscribe(uuid => {
-      this.currentPublicTrailUuid = uuid;
-      this.toolbarItems = [...this.toolbarItems];
-      this.changesDetection.detectChanges();
-    })
+    this.byStateAndVisible.subscribe(
+      this.trail1$.pipe(
+        filterDefined(),
+        filter(t => t.fromModeration && !!t.publishedFromUuid),
+        switchMap(t => this.injector.get(ModerationService).getPublicUuid(t.publishedFromUuid!, t.owner)), // NOSONAR
+        take(1),
+      ),
+      uuid => {
+        this.currentPublicTrailUuid = uuid;
+        this.toolbarItems = [...this.toolbarItems];
+        this.changesDetection.detectChanges();
+      }
+    );
   }
 
   private listenForLiveGroups(): void {
@@ -1011,7 +1018,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this._listenForTags(this.trail2WithInfo$);
   }
   private _listenForTags(trailWithInfo$: Observable<TrailWithInfo | null>) {
-    this.byStateAndVisible.subscribe(
+    this.whenVisible.subscribe(
       trailWithInfo$.pipe(
         switchMap(trailWithInfo => {
           if (trailWithInfo && trailWithInfo.trail.owner === this.auth.email)
@@ -1399,6 +1406,23 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     );
   }
 
+  private listenForCommentsCount(): void {
+    this.whenVisible.subscribe(
+      this.trail1WithInfo$.pipe(
+        filter(t => !!t && t.trail.owner === 'trailence'),
+        switchMap(trail1Info =>
+          this.injector.get(FeedbackService).countFeedbacks(trail1Info!.trail.uuid).pipe(
+            map(count => ({trail1Info, count}))
+          )
+        )
+      ),
+      result => {
+        result.trail1Info!.feedbackCount = result.count;
+        this.changesDetection.detectChanges();
+      }
+    );
+  }
+
   private updateDisplay(): void {
     if (!this.visible) {
       this.updateVisibility(false, false, false);
@@ -1410,11 +1434,12 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       this.displayMode = 'large';
       this.isSmall = false;
       if (this.bottomSheetTab === 'info') this.bottomSheetTab = 'elevation';
-      this.updateVisibility(true, this.bottomSheetOpen, true);
+      if (!LARGE_TABS.includes(this.tab)) this.tab = 'map';
+      this.updateVisibility(this.tab === 'map', this.tab === 'map' && this.bottomSheetOpen, true);
     } else {
       this.displayMode = h > 500 || w < 500 ? 'small' : 'small small-height bottom-sheet-tab-open-' + this.bottomSheetTab;
       this.isSmall = true;
-      this.updateVisibility(this.tab === 'map', this.bottomSheetTab === 'elevation' || this.bottomSheetTab === 'speed', this.tab === 'details');
+      this.updateVisibility(this.tab === 'map', this.tab === 'map' && (this.bottomSheetTab === 'elevation' || this.bottomSheetTab === 'speed'), this.tab === 'details');
     }
     this.mapToolbarTopRightMaxItems = w > 600 ? undefined : Math.floor((w - 90) / 48);
     this.maxBottomSheetHeight = Math.min(h - 100, 350);
@@ -1433,9 +1458,11 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   }
 
   protected override getChildVisibility(child: AbstractComponent): boolean | undefined {
-    if (child instanceof MapComponent) return !this.isSmall || this.tab === 'map';
+    if (child instanceof MapComponent) return this.tab === 'map';
     if (child instanceof TrailGraphComponent)
-      return this.bottomSheetTab === 'elevation' || this.bottomSheetTab === 'speed';
+      return this.tab === 'map' && (this.bottomSheetTab === 'elevation' || this.bottomSheetTab === 'speed');
+    if (child instanceof TrackOsmStatsComponent)
+      return !this.isSmall || this.tab === 'details';
     return undefined;
   }
 
@@ -1443,10 +1470,21 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     // no
   }
 
-  setTab(tab: string): void {
-    if (tab === this.tab) return;
+  private setTab(tab: TAB_TYPE): void {
+    if (tab === this.tab || !this.allowedTabs().includes(tab)) return;
     this.tab = tab;
     this.updateDisplay();
+  }
+  setTabString(tab: string): void {
+    if (!this.allowedTabs().includes(tab)) {
+      Console.error('Invalid tab value', tab);
+      return;
+    }
+    this.setTab(tab as TAB_TYPE);
+  }
+
+  private allowedTabs(): string[] {
+    return this.isSmall ? ALL_TABS : LARGE_TABS;
   }
 
   openBottomSheet(): void {
@@ -1508,13 +1546,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     }
   }
 
-  openPhotos(): void {
-    this.photoService.openPopupForTrails(this.trailsForPhotoPopup)
-    .then(photo => {
-      if (photo) this.positionPhotoOnMap(photo);
-    });
-  }
-
   positionningOnMap$ = new BehaviorSubject<Photo | undefined>(undefined);
   mapToolbarPositionningPhotoItems: MenuItem[] = [
     new MenuItem().setSectionTitle(true).setI18nLabel('pages.trail.select_photo_position').setTextColor('secondary').setTextSize('12px'),
@@ -1535,7 +1566,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       .setAction(() => this.positionningOnMap$.next(undefined)),
   ];
   positionPhotoOnMap(photo: Photo): void {
-    if (this.isSmall) this.setTab('map');
+    this.setTab('map');
 
     this.trailsWaypoints.showBreaksOnMapLocked = true;
     this.trailsWaypoints.updateElementsShown();
@@ -1557,16 +1588,12 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       if (showOriginalBefore) this.showOriginal$.next(true);
       this.refreshMapToolbarRight();
       this.changesDetection.detectChanges();
-      if (this.isSmall) this.setTab('photos');
-      else this.openPhotos();
+      this.setTab('photos');
     });
   }
 
   openSlider(): void {
-    if (!this.photos || this.photos.length === 0)
-      this.openPhotos();
-    else
-      this.photoService.openSliderPopup(this.photos, 0);
+    this.photoService.openSliderPopup(this.photos!, 0);
   }
 
   goToDeparture(): void {

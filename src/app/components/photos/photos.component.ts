@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonFooter, IonButtons, IonCheckbox, ModalController, IonTextarea, AlertController, IonSegment, IonSegmentButton } from "@ionic/angular/standalone";
+import { IonToolbar, IonIcon, IonLabel, IonButton, IonFooter, IonButtons, IonCheckbox, IonTextarea, AlertController, IonSegment, IonSegmentButton } from "@ionic/angular/standalone";
 import { BehaviorSubject, combineLatest, firstValueFrom, map, Observable, of, switchMap, tap } from 'rxjs';
 import { Photo } from 'src/app/model/photo';
 import { PhotoService } from 'src/app/services/database/photo.service';
@@ -34,19 +34,18 @@ interface PhotoWithInfo {
 }
 
 @Component({
-  selector: 'app-photos-popup',
-  templateUrl: './photos-popup.component.html',
-  styleUrls: ['./photos-popup.component.scss'],
+  selector: 'app-photos',
+  templateUrl: './photos.component.html',
+  styleUrls: ['./photos.component.scss'],
   imports: [
-    IonCheckbox, IonButtons, IonFooter, IonButton, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, IonTextarea, IonSegment, IonSegmentButton,
+    IonCheckbox, IonButtons, IonFooter, IonButton, IonLabel, IonIcon, IonToolbar, IonTextarea, IonSegment, IonSegmentButton,
     PhotoComponent,
     NgClass, NgStyle,
   ]
 })
-export class PhotosPopupComponent  implements OnInit, OnChanges, OnDestroy {
+export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
 
   @Input() trails$!: Observable<Trail | null>[];
-  @Input() popup = true;
   @Output() positionOnMapRequested = new EventEmitter<Photo>();
 
   loaded = false;
@@ -82,7 +81,6 @@ export class PhotosPopupComponent  implements OnInit, OnChanges, OnDestroy {
     private readonly progressService: ProgressService,
     private readonly browser: BrowserService,
     private readonly auth: AuthService,
-    private readonly modalController: ModalController,
     private readonly changesDetector: ChangeDetectorRef,
     private readonly errorService: ErrorService,
     private readonly trackService: TrackService,
@@ -98,7 +96,7 @@ export class PhotosPopupComponent  implements OnInit, OnChanges, OnDestroy {
   private updateSize(browser: BrowserService): void {
     this.width = browser.width;
     this.height = browser.height;
-    this.maxWidth = this.popup ? Math.min(Math.floor(this.width * 0.9) - 20, 250) : this.width - 35;
+    this.maxWidth = this.width > 500 ? Math.min(Math.floor(this.width * 0.9) - 20, 250) : this.width - 35;
     this.maxHeight = Math.min(Math.floor(this.height * 0.4) - 50, 300);
     this.metaColumns = this.maxWidth >= 250 ? 'two-columns' : 'one-column';
   }
@@ -191,10 +189,6 @@ export class PhotosPopupComponent  implements OnInit, OnChanges, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  close(data: Photo | null = null): void {
-    this.modalController.dismiss(data, 'close');
-  }
-
   setTab(value: any) {
     const index = value as number;
     if (this.tabIndex === index) return;
@@ -221,8 +215,7 @@ export class PhotosPopupComponent  implements OnInit, OnChanges, OnDestroy {
   }
 
   positionOnMap(photo: Photo): void {
-    if (this.popup) this.close(photo);
-    else this.positionOnMapRequested.emit(photo);
+    this.positionOnMapRequested.emit(photo);
   }
 
   clearPosition(photo: PhotoWithInfo): void {

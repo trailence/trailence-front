@@ -1,8 +1,14 @@
+:host {
+  display: block;
+  max-width: 900px;
+  margin: auto;
+}
 div.rating {
   margin: 5px 8px;
   border: 1px solid rgba(var(--ion-color-secondary-rgb), 0.33);
   border-radius: 5px;
   padding: 5px;
+  max-width: 800px;
 
   table {
     th {
