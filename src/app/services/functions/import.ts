@@ -210,7 +210,7 @@ export function importGpx(injector: Injector, file: ArrayBuffer, owner: string, 
                 photoDto.dateTaken,
                 photoDto.latitude,
                 photoDto.longitude,
-                photoDto.isCover,
+                photoDto.cover,
               )
             ));
           }

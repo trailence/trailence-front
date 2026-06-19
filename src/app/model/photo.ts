@@ -25,7 +25,7 @@ export class Photo extends Owned {
     this._dateTaken$ = new BehaviorSubject(dto.dateTaken);
     this._latitude$ = new BehaviorSubject(dto.latitude === undefined || dto.latitude === null ? undefined : PointDtoMapper.readCoordValue(dto.latitude));
     this._longitude$ = new BehaviorSubject(dto.longitude === undefined || dto.longitude === null ? undefined : PointDtoMapper.readCoordValue(dto.longitude));
-    this._isCover$ = new BehaviorSubject(dto.isCover ?? false);
+    this._isCover$ = new BehaviorSubject(dto.cover ?? false);
     this._index$ = new BehaviorSubject(dto.index ?? 1);
   }
 
@@ -70,7 +70,7 @@ export class Photo extends Owned {
       dateTaken: this.dateTaken,
       latitude: this.latitude === undefined ? undefined : PointDtoMapper.writeCoordValue(this.latitude),
       longitude: this.longitude === undefined ? undefined : PointDtoMapper.writeCoordValue(this.longitude),
-      isCover: this.isCover,
+      cover: this.isCover,
       index: this.index
     };
   }

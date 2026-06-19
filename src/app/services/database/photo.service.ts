@@ -180,6 +180,17 @@ export class PhotoService {
     );
   }
 
+  public setCover(trail: Trail, photo: Photo): void {
+    if (photo.isCover) return;
+    this.getPhotosForTrailReady$(trail).pipe(first()).subscribe(photos => {
+      const newCover = photos.find(p => p.uuid === photo.uuid);
+      if (!newCover) return;
+      const currentCover = photos.find(p => p.isCover);
+      if (currentCover) this.update(currentCover, p => p.isCover = false);
+      this.update(newCover, p => p.isCover = true);
+    });
+  }
+
   public update(photo: Photo, updater: (photo: Photo) => void, ondone?: (photo: Photo) => void): void {
     if (photo.fromModeration) {
       updater(photo);
@@ -340,7 +351,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> implements StoreWithCleanin
             const headers: any = {
               'Content-Type': 'application/octet-stream',
               'X-Description': encodeURIComponent(dto.description),
-              'X-Cover': dto.isCover ? 'true' : 'false',
+              'X-Cover': dto.cover ? 'true' : 'false',
               'X-Index': dto.index,
             };
             if (dto.dateTaken) headers['X-DateTaken'] = dto.dateTaken;

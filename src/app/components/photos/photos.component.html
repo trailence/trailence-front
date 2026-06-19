@@ -31,6 +31,9 @@
                 <div class="controls">
                   <ion-checkbox [checked]="photoWithInfo.selected" (ionChange)="setSelected(photoWithInfo, $event.detail.checked)"></ion-checkbox>
                   <div class="buttons">
+                    <ion-button shape="round" size="small" fill="clear" color="dark" (click)="toggleCover(photoWithInfo.photo)">
+                      <ion-icon slot="icon-only" [name]="photoWithInfo.photo.isCover ? 'star-filled' : 'star-empty'" [ngStyle]="{'color': photoWithInfo.photo.isCover ? 'var(--star-color)' : undefined}"></ion-icon>
+                    </ion-button>
                     @if ($index > 0) {
                       <ion-button shape="round" size="small" fill="clear" color="dark" (click)="moveBack($index)">
                         <ion-icon slot="icon-only" name="arrow-up"></ion-icon>

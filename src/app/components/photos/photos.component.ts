@@ -346,6 +346,30 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
     this.moveBack(index + 1);
   }
 
+  toggleCover(photo: Photo): void {
+    const trail = this.activeTrail$.value;
+    if (!trail) return;
+    if (trail === this.traceRecorder.current?.trail) {
+      const photos = this.traceRecorder.current?.photos$.value;
+      if (!photos) return;
+      const newCover = photos.find(p => p.uuid === photo.uuid);
+      if (!newCover) return;
+      const currentCover = photos.find(p => p.isCover === true);
+      if (currentCover) currentCover.isCover = false;
+      newCover.isCover = true;
+      this.traceRecorder.current.photos$.next(photos);
+      return;
+    }
+    if (photo.isCover) {
+      photo.isCover = false;
+      this.photoService.update(photo, p => p.isCover = false);
+    } else {
+      this.photoService.setCover(trail, photo);
+      photo.isCover = true;
+    }
+    this.changesDetector.detectChanges();
+  }
+
   private getSelection(): Photo[] {
     return this.photos.filter(p => p.selected).map(p => p.photo);
   }

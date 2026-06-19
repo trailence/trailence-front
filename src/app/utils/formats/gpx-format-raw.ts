@@ -105,7 +105,7 @@ export class GpxFormatRaw {
               latitude: TypeUtils.toFloat(photoNode.getAttribute('lat')),
               longitude: TypeUtils.toFloat(photoNode.getAttribute('lng')),
               index: TypeUtils.toInteger(photoNode.getAttribute('index')) ?? 1,
-              isCover: photoNode.getAttribute('cover') === 'true',
+              cover: photoNode.getAttribute('cover') === 'true',
             };
             photos.push(photo);
             photosFilenames.set(photo, photoNode.getAttribute('filename') ?? '');

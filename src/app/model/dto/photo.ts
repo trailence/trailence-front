@@ -7,7 +7,7 @@ export interface PhotoDto extends OwnedDto {
   dateTaken?: number;
   latitude?: number;
   longitude?: number;
-  isCover: boolean;
+  cover: boolean;
   index: number;
 
 }
