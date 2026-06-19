@@ -16,7 +16,6 @@ import { List } from 'immutable';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import * as L from 'leaflet';
 import { MapBubble } from '../map/bubble/map-bubble';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { SearchPlaceComponent } from '../search-place/search-place.component';
 import { Place } from 'src/app/services/geolocation/place';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
@@ -28,6 +27,8 @@ import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.s
 import { TrackMetadataConfig } from '../track-metadata/track-metadata.component';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { AsyncPipe } from '@angular/common';
+import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { Console } from 'src/app/utils/console';
 
 @Component({
     selector: 'app-trails-and-map',
@@ -141,8 +142,11 @@ export class TrailsAndMapComponent extends AbstractComponent {
                     if (!showBubbles) return trail.fromModeration ? this.injector.get(ModerationService).getSimplifiedTrack$(trail.uuid, trail.owner, trackUuid) : this.trackService.getSimplifiedTrack$(trackUuid, trail.owner);
                     return this.trackService.getMetadata$(trackUuid, trail.owner);
                   }),
-                  filterDefined(),
-                  map(data => ({trail, data})),
+                  debounceTimeExtended(1000, 1000, undefined, (p,n) => !!n),
+                  map(data => {
+                    if (!data) Console.warn('Track not found after 1s for trail', trail.owner, trail.uuid, trail.name);
+                    return {trail, data};
+                  }),
                 )
               ).toArray()
             ).pipe(
@@ -162,7 +166,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     );
   }
 
-  private update(zoom: number | undefined, trails: {trail: Trail, data: SimplifiedTrackSnapshot | TrackMetadataSnapshot}[], showBubbles: boolean, bubbles: MapBubble[]): void {
+  private update(zoom: number | undefined, trails: {trail: Trail, data: SimplifiedTrackSnapshot | TrackMetadataSnapshot | null}[], showBubbles: boolean, bubbles: MapBubble[]): void {
     if (this.highlightedTrail)
       this.highlightedTrail = trails.find(t => t.trail.owner === this.highlightedTrail?.owner && t.trail.uuid === this.highlightedTrail?.uuid)?.trail;
     if (!showBubbles) {
@@ -173,7 +177,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
           this.mapTracks$.next([]);
         return;
       }
-      this.mapTracks$.next(this.mapTracksMapper.update(trails as {trail: Trail, data: SimplifiedTrackSnapshot}[]));
+      this.mapTracks$.next(this.mapTracksMapper.update(trails.filter(t => !!t.data) as {trail: Trail, data: SimplifiedTrackSnapshot}[]));
       this.setHighlighted(this.highlightedTrail);
       return;
     }
@@ -185,8 +189,8 @@ export class TrailsAndMapComponent extends AbstractComponent {
     }
     this.mapBubbles$.next(zoom === undefined ? [] : MapBubble.build(trails.map(
       trail => {
-        const meta = trail.data as TrackMetadataSnapshot;
-        if (!meta.bounds) return undefined;
+        const meta = trail.data as (TrackMetadataSnapshot | null);
+        if (!meta?.bounds) return undefined;
         //[[north, east], [south, west]]
         return L.latLng(meta.bounds[0][0] + (meta.bounds[1][0] - meta.bounds[0][0]) / 2, meta.bounds[0][1] + (meta.bounds[1][1] - meta.bounds[0][1]) / 2);
       }

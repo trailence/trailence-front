@@ -446,10 +446,10 @@ export class TrackDatabase implements StoreWithCleaning {
               updatedLocally: 0,
               track: dto,
             }),
-            simplifiedTrack$.then(s => this.tableSimplifiedTrack.addOne$({
+            from(simplifiedTrack$).pipe(switchMap(s => this.tableSimplifiedTrack.addOne$({
               ...s,
               key,
-            })),
+            }))),
             this.tableMeta.addOne$({
               ...metadata,
               key,
@@ -502,10 +502,10 @@ export class TrackDatabase implements StoreWithCleaning {
               updatedLocally: 1,
               track: dto,
             }),
-            simplifiedTrack$.then(simplified => this.tableSimplifiedTrack.setOne$({
+            from(simplifiedTrack$).pipe(switchMap(simplified => this.tableSimplifiedTrack.setOne$({
               ...simplified,
               key,
-            })),
+            }))),
             this.tableMeta.setOne$({
               ...metadata,
               key,
