@@ -2,7 +2,7 @@ import { Component, Injector, Input, ViewChild } from '@angular/core';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { BehaviorSubject, EMPTY, map, of, switchMap, combineLatest, Observable, debounceTime, Subscription, catchError, from, concat } from 'rxjs';
+import { BehaviorSubject, EMPTY, map, of, switchMap, combineLatest, Observable, debounceTime, from, concat } from 'rxjs';
 import { Router } from '@angular/router';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { HeaderComponent } from 'src/app/components/header/header.component';
@@ -18,26 +18,16 @@ import { Console } from 'src/app/utils/console';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { AuthResponse } from 'src/app/services/auth/auth-response';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
-import * as L from 'leaflet';
-import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
-import { ErrorService } from 'src/app/services/progress/error.service';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { FetchSourcePlugin, SearchBubblesResult, SearchBubblesTileResult, SearchResult } from 'src/app/services/fetch-source/fetch-source.interfaces';
-import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { ModerationService } from 'src/app/services/moderation/moderation.service';
-import { AlertController, NavController } from '@ionic/angular/standalone';
-import { MapBubble } from 'src/app/components/map/bubble/map-bubble';
-import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { NavController } from '@ionic/angular/standalone';
 import { MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
 import { MySelectionService } from 'src/app/services/database/my-selection.service';
-import { Filters, FiltersUtils } from 'src/app/components/trails-list/filters';
+import { Filters } from 'src/app/components/trails-list/filters';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { isPublicationCollection } from 'src/app/model/dto/trail-collection';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { AsyncPipe } from '@angular/common';
-import { LeafletUtils } from 'src/app/utils/leaflet-utils';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { HttpService } from 'src/app/services/http/http.service';
 import { environment } from 'src/environments/environment';
 import { Arrays } from 'src/app/utils/arrays';
@@ -45,6 +35,11 @@ import { UserProfile } from 'src/app/services/contribution/contribution.service'
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { AvatarComponent } from 'src/app/components/avatar/avatar.component';
 import { ContributionsBadgesComponent } from 'src/app/components/contributions-badges/contribution-badges.component';
+import { SearchTrailsService } from 'src/app/services/search-trails/search-trails.service';
+import { MapBubble } from 'src/app/components/map/bubble/map-bubble';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
+import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
@@ -71,17 +66,11 @@ export class TrailsPage extends AbstractPage {
   trails$ = new BehaviorSubject<List<Observable<Trail | null>> | undefined>(undefined);
   bubbles$ = new BehaviorSubject<MapBubble[]>([]);
   actions: MenuItem[] = [];
+  message?: string;
+  loading = true;
 
   viewId?: string;
   titleLongPressEvent?: () => void;
-
-  searching = false;
-  searchMode: 'trails' | 'bubbles' | undefined = undefined;
-  searchMessage?: string;
-  hasSearchResult = false;
-  availableSearchPlugins: FetchSourcePlugin[] = [];
-  selectedSearchPlugins: string[] = [];
-  searchPluginsSubscription?: Subscription;
 
   userProfile?: UserProfile;
 
@@ -97,7 +86,6 @@ export class TrailsPage extends AbstractPage {
   get trailsAndMap() { return this._trailsAndMap$.value; }
 
   private readonly filters$: Observable<Filters | undefined>;
-  private searchFiltersSubscription?: Subscription;
 
   constructor(
     injector: Injector,
@@ -224,6 +212,7 @@ export class TrailsPage extends AbstractPage {
         const newList = List(trails.map(t => t.item$));
         if (first || !newList.equals(this.trails$.value)) {
           first = false;
+          this.loading = false;
           const index = this.actions.findIndex(a => a.isSeparator());
           if (index > 0) this.actions.splice(index, this.actions.length - index);
           const actions = this.injector.get(TrailMenuService).getTrailsMenu(trails.map(t => t.item), false, collection, true);
@@ -258,6 +247,7 @@ export class TrailsPage extends AbstractPage {
         const newList = List(allTrails.filter(t => t.item.owner === owner && collectionsWithoutPub.some(col => col.uuid === t.item.collectionUuid)).map(t => t.item$));
         if (first || !newList.equals(this.trails$.value)) {
           first = false;
+          this.loading = false;
           this.ngZone.run(() => this.trails$.next(newList));
         }
       }
@@ -278,7 +268,7 @@ export class TrailsPage extends AbstractPage {
       this.injector.get(MySelectionService).getMySelection()
       .pipe(
         map(selection => {
-          this.searchMessage = undefined;
+          this.message = undefined;
           let nbMissing = 0;
           const trails$: Observable<Trail | null>[] = [];
           for (const selectedTrail of selection) {
@@ -292,10 +282,10 @@ export class TrailsPage extends AbstractPage {
                       isMissing = true;
                       nbMissing++;
                     }
-                    this.searchMessage = 'pages.trails.missing_trails_because_offline';
+                    this.message = 'pages.trails.missing_trails_because_offline';
                   } else if (isMissing) {
                     isMissing = false;
-                    if (--nbMissing === 0) this.searchMessage = undefined;
+                    if (--nbMissing === 0) this.message = undefined;
                   }
                   return trail;
                 })
@@ -310,6 +300,7 @@ export class TrailsPage extends AbstractPage {
         const newList = List(trails);
         if (first || !newList.equals(this.trails$.value)) {
           first = false;
+          this.loading = false;
           this.ngZone.run(() => this.trails$.next(newList));
         }
       }
@@ -341,6 +332,7 @@ export class TrailsPage extends AbstractPage {
       result => {
         if (current === undefined || !Arrays.sameContent(current, result.trails)) {
           current = result.trails;
+          this.loading = false;
           this.ngZone.run(() => this.trails$.next(List(result.trails.map(t => of(t)))));
           this.changesDetection.detectChanges();
         }
@@ -382,6 +374,7 @@ export class TrailsPage extends AbstractPage {
         const newList = List(result.trails);
         if (!newList.equals(this.trails$.value))
           this.trails$.next(newList);
+        this.loading = false;
         this.initView('share-' + result.share.uuid + '-' + result.share.owner);
         this.actions = this.injector.get(ShareService).getShareMenu(result.share);
         this.changesDetection.detectChanges();
@@ -389,9 +382,7 @@ export class TrailsPage extends AbstractPage {
     );
   }
 
-  private searchActive = false;
   private initSearch(): void {
-    this.searchActive = false;
     // title
     this.byStateAndVisible.subscribe(
       this.i18n.texts$,
@@ -403,7 +394,24 @@ export class TrailsPage extends AbstractPage {
     this.initView('search-trails');
     if (this.bubblesToolAvailable$.value)
       this.bubblesToolAvailable$.next(false);
-    // search trails
+
+    // search service
+    const service = this.injector.get(SearchTrailsService);
+    // searching
+    this.loading = false;
+    this.byStateAndVisible.subscribe(service.searching$, searching => {
+      if (this.loading !== searching) {
+        this.loading = searching;
+        this.changesDetection.detectChanges();
+      }
+    });
+    this.byStateAndVisible.subscribe(service.searchMeassage$, message => {
+      if (this.message !== message) {
+        this.message = message;
+        this.changesDetection.detectChanges();
+      }
+    });
+    // map state change
     this.byStateAndVisible.subscribe(
       this._trailsAndMap$.pipe(
         switchMap(c => c ? c.map$ : of(undefined)),
@@ -412,65 +420,13 @@ export class TrailsPage extends AbstractPage {
           map(() => ({bounds: c.getBounds(), zoom: c.getState().zoom}))
         ) : of(undefined))
       ),
-      state => {
-        const modeBefore = this.searchMode;
-        this.setSearchBounds(state?.bounds, state?.zoom);
-        if (!this.searching && this.selectedSearchPlugins.length > 0 && this.networkService.internet && this.networkService.server &&
-          modeBefore === 'bubbles' && this.searchMode !== undefined && this.searchZoom && this.searchBounds && this.lastSearchZoom && this.lastSearchBounds &&
-          this.searchActive &&
-          (this.lastSearchZoom !== this.searchZoom || L.CRS.EPSG3857.latLngToPoint(this.searchBounds.getCenter(), this.searchZoom).distanceTo(L.CRS.EPSG3857.latLngToPoint(this.lastSearchBounds.getCenter(), this.lastSearchZoom)) > 50)
-        ) {
-          this.doSearch(this.selectedSearchPlugins);
-        }
-      }
+      state => service.mapStateChanged(state)
     );
     // map toolbar
-    this.mapTopToolbar$.next([
-      new MenuItem()
-        .setIcon('search-map')
-        .setI18nLabel(() => this.searching ? 'pages.trails.search.searching' : 'pages.trails.search.search_in_this_area')
-        .setDisabled(() => this.searching || !this.networkService.internet || !this.networkService.server || this.searchMode === undefined || this.selectedSearchPlugins.length === 0)
-        .setAction(() => {
-          if (!this.searching && this.selectedSearchPlugins.length > 0 && this.networkService.internet && this.networkService.server && this.searchMode !== undefined)
-            this.doSearch(this.selectedSearchPlugins);
-        }),
-      new MenuItem()
-        .setIcon('trash').setI18nLabel('pages.trails.search.clear_search_results')
-        .setVisible(() => this.hasSearchResult)
-        .setAction(() => this.clearSearchResult()),
-      new MenuItem()
-        .setIcon('radio-group').setI18nLabel('pages.trails.search.sources')
-        .setVisible(() => this.availableSearchPlugins.length > 1)
-        .setAction(() => {
-          this.injector.get(AlertController).create({
-            header: this.i18n.texts.pages.trails.search.sources,
-            inputs: this.availableSearchPlugins.map(plugin => ({
-              label: plugin.name,
-              value: plugin.name,
-              type: 'radio',
-              checked: this.selectedSearchPlugins.includes(plugin.name),
-            })),
-            buttons: [{
-              text: this.i18n.texts.buttons.ok,
-              role: 'ok',
-              handler: (value) => {
-                if (value) {
-                  this.selectedSearchPlugins = [value];
-                  this.mapTopToolbar$.next(this.mapTopToolbar$.value);
-                }
-                this.injector.get(AlertController).dismiss();
-              },
-            }]
-          }).then(a => a.present());
-        }),
-    ]);
-    // available plugins
-    this.searchPluginsSubscription = this.injector.get(FetchSourceService).getAllowedPlugins$().subscribe(list => {
-      Console.info('Allowed search plugins: ', list.map(p => p.name));
-      this.availableSearchPlugins = list.filter(p => p.canSearchByArea());
-      this.mapTopToolbar$.next([...this.mapTopToolbar$.value]);
+    this.byStateAndVisible.subscribe(service.mapTopToolbar$, toolbar => {
+      this.mapTopToolbar$.next(toolbar);
+      this.changesDetection.detectChanges();
     });
-    this.selectedSearchPlugins = ['Trailence'];
     // refresh toolbar when network change or size change or filters change
     this.byStateAndVisible.subscribe(combineLatest([
       this.connected$,
@@ -480,206 +436,33 @@ export class TrailsPage extends AbstractPage {
     ]), () => {
       this.mapTopToolbar$.next([...this.mapTopToolbar$.value]);
     });
-  }
-
-  private searchBounds?: L.LatLngBounds;
-  private searchZoom?: number;
-  private lastSearchBounds?: L.LatLngBounds;
-  private lastSearchZoom?: number;
-  private setSearchBounds(bounds?: L.LatLngBounds, zoom?: number, forceRefresh: boolean = false): void {
-    this.ngZone.run(() => {
-      if (bounds) {
-        bounds = LeafletUtils.normalizeBounds(bounds);
-      }
-      this.searchBounds = bounds;
-      this.searchZoom = zoom;
-      this.searchMessage = undefined;
-      let changed = false;
-      if (!bounds || !zoom) {
-        if (this.searchMode !== undefined) {
-          this.searchMode = undefined;
-          changed = true;
-        }
-      } else if (
-        zoom <= 10 && (
-          bounds.getSouthEast().distanceTo(bounds.getSouthWest()) > 100000 ||
-          bounds.getSouthEast().distanceTo(bounds.getNorthEast()) > 100000
-        )
-      ) {
-        if (this.injector.get(FetchSourceService).getPluginsByName(this.selectedSearchPlugins).some(p => p.canSearchBubbles())) {
-          if (this.searchMode !== 'bubbles') {
-            this.searchMode = 'bubbles';
-            changed = true;
-          }
-        } else if (this.searchMode !== undefined) {
-          this.searchMode = undefined;
-          this.searchMessage = 'pages.trails.search.needs_zoom';
-          changed = true;
-        }
-      } else if (this.searchMode !== 'trails') {
-        this.searchMode = 'trails';
-        changed = true;
-      }
-      if (changed || forceRefresh) {
-        this.mapTopToolbar$.next([...this.mapTopToolbar$.value]);
+    // results
+    this.byStateAndVisible.subscribe(service.trails$, trails => {
+      this.trails$.next(trails);
+      this.changesDetection.detectChanges();
+    });
+    this.byStateAndVisible.subscribe(service.bubbles$, bubbles => {
+      this.bubbles$.next(bubbles);
+      this.changesDetection.detectChanges();
+    });
+    this.byStateAndVisible.subscribe(service.showBubbles$, show => {
+      if (show !== this.showBubbles$.value) {
+        this.showBubbles$.next(show);
+        this.changesDetection.detectChanges();
       }
     });
-  }
-
-  doSearch(plugins: string[]): void {
-    if (this.searchMode === undefined || this.searching) return;
-    this.ngZone.run(() => {
-      this.searching = true;
-      this.searchMessage = undefined;
-      this.hasSearchResult = false;
-    });
-    this.lastSearchBounds = this.searchBounds;
-    this.lastSearchZoom = this.searchZoom;
-    this.searchActive = true;
-    this.mapTopToolbar$.next(this.mapTopToolbar$.value);
-    if (this.searchMode === 'trails')
-      this.doSearchTrails(plugins);
-    else
-      this.doSearchBubbles(plugins);
-  }
-
-  private doSearchTrails(plugins: string[]): void {
-    this.showBubbles$.next(false);
-    if (this.bubblesToolAvailable$.value)
-      this.bubblesToolAvailable$.next(false);
-    let firstResult = true;
-    this.searchFiltersSubscription?.unsubscribe();
-    this.searchFiltersSubscription = undefined;
-    const fillResults = (result: SearchResult) => {
-      if (firstResult) this.bubbles$.next([]);
-      Console.info('search result', result.trails.length, result.end, result.tooManyResults);
-      const newTrails = result.trails.map(t => of(t));
-      const newList = List(firstResult ? newTrails : [...(this.trails$.value ?? []), ...newTrails]);
-      firstResult = false;
-      this.ngZone.run(() => {
-        if (!newList.equals(this.trails$.value))
-          this.trails$.next(newList);
-        if (result.end) {
-          this.searching = false;
-          this.setSearchBounds(this.searchBounds, this.searchZoom, true);
-        }
-        if (result.tooManyResults) this.searchMessage = 'pages.trails.search.too_much_results';
-        if (result.trails.length > 0) this.hasSearchResult = true;
-      });
-    };
-    Console.info('Start search on bounds ', this.searchBounds, 'using plugins', plugins);
-    this.injector.get(FetchSourceService).searchByArea(this.searchBounds!, 200, plugins).subscribe({ // NOSONAR
-      next: result => fillResults(result),
-      error: e => {
-        Console.error('Error searching trails on ' + plugins.join(',') + ' with bounds', this.searchBounds, 'error', e);
-        this.injector.get(ErrorService).addNetworkError(e, 'pages.trails.search.error', []);
-        this.searching = false;
-        this.setSearchBounds(this.searchBounds, this.searchZoom, true);
+    this.byStateAndVisible.subscribe(service.bubblesToolAvailable$, available => {
+      if (available !== this.bubblesToolAvailable$.value) {
+        this.bubblesToolAvailable$.next(available);
+        this.changesDetection.detectChanges();
       }
     });
+    this.byState.add(this.visible$.subscribe(visible => {
+      if (!visible) service.setFilters(undefined);
+    }));
+    service.setFilters(this.filters$);
   }
 
-  private doSearchBubbles(plugins: string[]): void {
-    this.showBubbles$.next(true);
-    if (this.bubblesToolAvailable$.value)
-      this.bubblesToolAvailable$.next(false);
-    const bounds = this.searchBounds!;
-    const zoom = this.searchZoom!;
-    Console.info('Start search bubbles on bounds ', bounds, 'zoom', zoom, 'using plugins', plugins);
-    this.searchFiltersSubscription?.unsubscribe();
-    let searchCount = 0;
-    const plugin = this.injector.get(FetchSourceService).getPluginByName(plugins[0]);
-    this.searchFiltersSubscription = this.filters$.pipe(
-      debounceTimeExtended(0, 1000),
-      switchMap(filters => {
-        const count = ++searchCount;
-        this.ngZone.run(() => {
-          this.searching = true;
-        });
-        return (plugin?.searchBubbles(bounds, zoom, filters ?? FiltersUtils.createEmpty(), this.injector.get(PreferencesService).preferences.lang) ?? of({trailsByTile: [], uuids: undefined})).pipe(
-          catchError(e => {
-            Console.error('Error searching bubbles on ' + plugins.join(',') + ' with bounds', bounds, 'and zoom', zoom, 'error', e);
-            this.injector.get(ErrorService).addNetworkError(e, 'pages.trails.search.error', []);
-            if (searchCount === count) {
-              this.searching = false;
-              this.setSearchBounds(bounds, zoom, true);
-            }
-            return EMPTY;
-          }),
-          map(result => ([result, count]) as [SearchBubblesResult, number]),
-        );
-      })
-    ).subscribe(([result, count]) => {
-      this.ngZone.run(() => {
-        if (searchCount !== count) return;
-        this.bubbles$.next(result.trailsByTile.map(r => this.searchBubbleResultToMapBubble(r, zoom)));
-        Console.info('Search bubbles found', result.trailsByTile.length);
-        if (result.uuids?.length) {
-          plugin!!.getTrails(result.uuids)
-          .catch(e => {
-            Console.error('Get trails by uuids error', e);
-            return [] as Trail[];
-          })
-          .then(trails => {
-            this.trails$.next(List(trails.map(t => of(t))));
-            this.searching = false;
-            this.hasSearchResult = result.trailsByTile.length > 0;
-            this.setSearchBounds(bounds, zoom, true);
-            this.bubblesToolAvailable$.next(true);
-          });
-        } else {
-          this.trails$.next(List());
-          this.searching = false;
-          this.hasSearchResult = result.trailsByTile.length > 0;
-          this.setSearchBounds(bounds, zoom, true);
-        }
-      });
-    });
-  }
-
-  private searchBubbleResultToMapBubble(r: SearchBubblesTileResult, zoom: number): MapBubble {
-    const pos = L.latLng(r.pos);
-    const centerPoint = L.CRS.EPSG3857.latLngToPoint(pos, zoom);
-    const bubbleBoundsPoint = L.bounds(L.point(centerPoint.x - 60, centerPoint.y - 60), L.point(centerPoint.x + 60, centerPoint.y + 60));
-    const bubbleBounds = L.latLngBounds(L.CRS.EPSG3857.pointToLatLng(bubbleBoundsPoint.getBottomLeft(), zoom), L.CRS.EPSG3857.pointToLatLng(bubbleBoundsPoint.getTopRight(), zoom));
-    const boundsPoint = L.bounds(L.point(centerPoint.x - 64, centerPoint.y - 64), L.point(centerPoint.x + 64, centerPoint.y + 64));
-    const bounds = L.latLngBounds(L.CRS.EPSG3857.pointToLatLng(boundsPoint.getBottomLeft(), zoom), L.CRS.EPSG3857.pointToLatLng(boundsPoint.getTopRight(), zoom));
-    return new MapBubble(
-      bubbleBounds,
-      bounds,
-      '#80808080',
-      '#C0C0C0C0',
-      '' + r.count,
-      20,
-      '#000000',
-    ).onClick(map => {
-      let called = false;
-      const listener = () => {
-        if (called) return;
-        called = true;
-        map.removeEventListener('zoomend', listener);
-        setTimeout(() => {
-          const zoom = this.trailsAndMap?.map?.getState()?.zoom;
-          if (!this.searching && zoom && this.lastSearchZoom !== zoom)
-            this.doSearch(this.selectedSearchPlugins);
-        }, 100);
-      };
-      map.addEventListener('zoomend', listener);
-      map.fitBounds(bounds);
-      setTimeout(() => {
-        if (!called) listener();
-      }, 2000);
-    });
-  }
-
-  clearSearchResult(): void {
-    this.ngZone.run(() => {
-      this.hasSearchResult = false;
-      this.searchActive = false;
-      this.trails$.next(undefined);
-      this.bubbles$.next([]);
-    });
-  }
 
   private initModeration(): void {
     this.viewId = 'moderation';
@@ -766,17 +549,10 @@ export class TrailsPage extends AbstractPage {
     this.bubblesToolAvailable$.next(true);
     this.showBubbles$.next(false);
     this.actions = [];
-    this.searching = false;
-    this.searchMessage = undefined;
-    this.searchMode = undefined;
+    this.message = undefined;
+    this.loading = true;
     this.listToolbar = undefined;
     this.mapTopToolbar$.next([]);
-    this.searchPluginsSubscription?.unsubscribe();
-    this.searchPluginsSubscription = undefined;
-    this.availableSearchPlugins = [];
-    this.selectedSearchPlugins = [];
-    this.searchFiltersSubscription?.unsubscribe();
-    this.searchFiltersSubscription = undefined;
     this.titleLongPressEvent = undefined;
     this.userProfile = undefined;
   }

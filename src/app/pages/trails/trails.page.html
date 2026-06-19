@@ -16,13 +16,13 @@
     [viewId]="viewId"
     [collectionUuid]="trailsType === 'collection' ? trailsId : undefined"
     [type]="trailsType"
-    [message]="searchMessage"
+    [message]="message"
     [enableRemoveByGesture]="trailsType === 'search'"
     [enableSearchPlace]="true"
     [mapTopToolbar$]="trailsType === 'search' ? mapTopToolbar$ : undefined"
     [listToolbar]="listToolbar"
     [showPublished]="trailsType === 'collection' || trailsType === 'all-collections'"
-    [searching]="searching"
+    [searching]="loading"
   >
     @if (userProfile) {
       <div class="before-list-toolbar">
