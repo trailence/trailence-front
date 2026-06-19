@@ -8,21 +8,34 @@
 <ion-content>
   <ion-list>
     @if (multiple) {
-      @for (item of list; track item.activity) {
-        <ion-item (click)="setSelected(item, !item.selected)" class="activity-{{item.activity ?? 'unspecified'}}">
-          <ion-checkbox slot="start" [checked]="item.selected" (ionChange)="setSelected(item, $event.detail.checked)" color="tertiary" (click)="$event.stopPropagation()"></ion-checkbox>
-          <ion-icon slot="start" [name]="item.icon" color="secondary"></ion-icon>
-          <ion-label>{{ i18n.texts.activity[item.activity ?? 'unspecified'] }}</ion-label>
+      @for (group of groups; track group.group) {
+        <ion-item class="activity-group" (click)="toggleGroupSelected(group)" class="activity-group-{{group.group}}">
+          <ion-checkbox slot="start" [checked]="isGroupFullySelected(group)" [indeterminate]="isGroupPartiallySelected(group)" (ionChange)="setGroupSelected(group, $event.detail.checked)" color="tertiary" (click)="$event.stopPropagation()"></ion-checkbox>
+          @if (group.icon) { <ion-icon slot="start" [name]="group.icon" color="secondary"></ion-icon> }
+          <ion-label>{{ i18n.texts.activities_groups[group.group] }}</ion-label>
         </ion-item>
-      }
-    } @else {
-      <ion-radio-group [value]="(selection.length > 0 ? selection[0] : undefined) ?? ''" (ionChange)="setSelection([$event.detail.value])">
-        @for (item of list; track item.activity) {
-          <ion-item (click)="setSelected(item, true)" class="activity-{{item.activity ?? 'unspecified'}}">
-            <ion-radio slot="start" [value]="item.activity ?? ''" color="tertiary"></ion-radio>
+        @for (item of group.items; track item.activity) {
+          <ion-item class="activity-item" (click)="setItemSelected(item, !item.selected)" class="activity-{{item.activity ?? 'unspecified'}}">
+            <ion-checkbox slot="start" [checked]="item.selected" (ionChange)="setItemSelected(item, $event.detail.checked)" color="tertiary" (click)="$event.stopPropagation()"></ion-checkbox>
             <ion-icon slot="start" [name]="item.icon" color="secondary"></ion-icon>
             <ion-label>{{ i18n.texts.activity[item.activity ?? 'unspecified'] }}</ion-label>
           </ion-item>
+        }
+      }
+    } @else {
+      <ion-radio-group [value]="(selection.length > 0 ? selection[0] : undefined) ?? ''" (ionChange)="setSelection([$event.detail.value])">
+        @for (group of groups; track group.group) {
+          <ion-item class="activity-group" class="activity-group-{{group.group}}">
+            @if (group.icon) { <ion-icon slot="start" [name]="group.icon" color="secondary"></ion-icon> }
+            <ion-label>{{ i18n.texts.activities_groups[group.group] }}</ion-label>
+          </ion-item>
+          @for (item of group.items; track item.activity) {
+            <ion-item class="activity-item" (click)="setItemSelected(item, true)" class="activity-{{item.activity ?? 'unspecified'}}">
+              <ion-radio slot="start" [value]="item.activity ?? ''" color="tertiary"></ion-radio>
+              <ion-icon slot="start" [name]="item.icon" color="secondary"></ion-icon>
+              <ion-label>{{ i18n.texts.activity[item.activity ?? 'unspecified'] }}</ion-label>
+            </ion-item>
+          }
         }
       </ion-radio-group>
     }

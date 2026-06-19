@@ -1045,7 +1045,7 @@
       },
       "activity": {
         "title": "Type d'activité renseigné",
-        "description_start": "Pensez à distinguer la marche de la randonnée: si le parcours est court, avec peu de dénivelé et peu de difficulté, ou s'il s'agit d'un parcours urbain, cela correspond davantage à de la marche. La randonnée conerne plutôt les parcours en pleine nature, souvent de plus d'une heure..."
+        "description_start": "Choisissez l’activité principale du parcours. Elle permet aux autres utilisateurs de mieux interpréter sa durée et d’identifier les itinéraires adaptés et réellement praticables pour cette activité."
       },
       "track": {
         "title": "Qualité de la trace",
@@ -1247,18 +1247,28 @@
     "sl": "Petite boucle",
     "ob": "Aller retour"
   },
+  "activities_groups": {
+    "pedestrian": "À pied",
+    "bike": "En vélo",
+    "snow": "Sur neige",
+    "water": "Sur l'eau",
+    "others": "Autres"
+  },
   "activity": {
     "walking": "Marche",
     "hiking": "Randonnée",
+    "trail": "Trail",
     "moutain-biking": "VTT",
+    "gravel-biking": "Vélo gravel",
     "road-biking": "Vélo de route",
     "snowshoeing": "Raquettes",
-    "on-water": "Sur l'eau",
+    "on-water": "Bateau",
     "skiing": "Ski",
     "running": "Course",
     "horseback-riding": "Cheval",
     "via-ferrata": "Via Ferrata",
     "rock-climbing": "Escalade",
+    "canoe": "Canoë-kayak",
     "unspecified": "Non spécifié"
   },
   "tags_filter": {

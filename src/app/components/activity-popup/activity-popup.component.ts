@@ -3,7 +3,7 @@ import { Trail } from 'src/app/model/trail';
 import { ModalController, IonContent, IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonFooter, IonButtons, IonButton, IonList, IonItem, IonRadio, IonCheckbox, IonRadioGroup } from '@ionic/angular/standalone';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrailService } from 'src/app/services/database/trail.service';
-import { TrailActivity } from 'src/app/model/dto/trail-activity';
+import { TrailActivitiesGroups, TrailActivity, TrailActivityGroup } from 'src/app/model/dto/trail-activity';
 import { TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
 
 export async function openActivityDialog(injector: Injector, trails: Trail[], isRecording: boolean = false) {
@@ -60,6 +60,7 @@ export async function openActivitiesSelectionPopup(
 
 @Component({
   templateUrl: './activity-popup.component.html',
+  styleUrl: './activity-popup.component.scss',
   imports: [
     IonRadioGroup, IonCheckbox, IonRadio, IonItem, IonList, IonButton, IonButtons, IonFooter, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, IonContent,
   ]
@@ -69,18 +70,21 @@ export class ActivityPopup implements OnInit {
   @Input() selection: (TrailActivity | undefined)[] = [];
   @Input() multiple = false;
 
-  list: Item[];
+  groups: Group[];
 
   constructor(
     public readonly i18n: I18nService,
     private readonly modalController: ModalController,
     trailService: TrailService,
   ) {
-    this.list = Object.keys(TrailActivity).map(k => {
-      const activity = (TrailActivity as any)[k];
-      return {activity, icon: trailService.getActivityIcon(activity), selected: false};
+    this.groups = TrailActivitiesGroups.map(group => {
+      return {
+        group: group.key,
+        icon: trailService.getActivityGroupIcon(group.key),
+        items: group.activities.map(activity => ({activity, icon: trailService.getActivityIcon(activity), selected: false})),
+      }
     });
-    this.list.push({activity: undefined, icon: 'question', selected: false});
+    this.groups.find(g => g.group === TrailActivityGroup.OTHERS)?.items?.push({activity: undefined, icon: 'question', selected: false});
   }
 
   ngOnInit(): void {
@@ -92,21 +96,51 @@ export class ActivityPopup implements OnInit {
   }
 
   setSelection(selected: any[]): void {
-    for (const item of this.list) {
-      item.selected = selected.some(s => item.activity === s || (item.activity === undefined && s === ''));
+    for (const group of this.groups) {
+      for (const item of group.items) {
+        item.selected = selected.some(s => item.activity === s || (item.activity === undefined && s === ''));
+      }
     }
-    this.selection = this.list.filter(item => item.selected).map(item => item.activity);
+    this.refreshSelection();
   }
 
-  setSelected(item: Item, selected: boolean): void {
+  setItemSelected(item: Item, selected: boolean): void {
     item.selected = selected;
     if (!this.multiple) {
-      for (const i of this.list)
-        if (i !== item) i.selected = false;
+      for (const group of this.groups)
+        for (const i of group.items)
+          if (i !== item) i.selected = false;
     }
-    this.selection = this.list.filter(item => item.selected).map(item => item.activity);
+    this.refreshSelection();
   }
 
+  isGroupFullySelected(group: Group): boolean {
+    return group.items.every(i => i.selected);
+  }
+
+  isGroupPartiallySelected(group: Group): boolean {
+    return group.items.some(i => i.selected) && !this.isGroupFullySelected(group);
+  }
+
+  setGroupSelected(group: Group, selected: boolean) {
+    group.items.forEach(i => i.selected = selected);
+    this.refreshSelection();
+  }
+
+  toggleGroupSelected(group: Group): void {
+    this.setGroupSelected(group, !group.items.some(i => i.selected));
+  }
+
+  private refreshSelection(): void {
+    this.selection = this.groups.flatMap(g => g.items).filter(item => item.selected).map(item => item.activity);
+  }
+
+}
+
+interface Group {
+  group: TrailActivityGroup;
+  icon: string | undefined;
+  items: Item[];
 }
 
 interface Item {

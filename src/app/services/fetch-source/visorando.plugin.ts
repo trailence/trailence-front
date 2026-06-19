@@ -93,7 +93,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
               case 'ski': result.activity = TrailActivity.SKIING; break;
               case 'cheval': result.activity = TrailActivity.HORSEBACK_RIDING; break;
               case 'raquettes': result.activity = TrailActivity.SNOWSHOEING; break;
-              case 'canoe': result.activity = TrailActivity.ON_WATER; break;
+              // TODO case 'canoe': result.activity = TrailActivity.ON_WATER; break;
               case 'veloroute': case 'route': result.activity = TrailActivity.ROAD_BIKING; break;
             }
           }

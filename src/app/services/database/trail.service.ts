@@ -22,7 +22,7 @@ import { QuotaService } from '../auth/quota.service';
 import { ModerationService } from '../moderation/moderation.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { TrailLoopType } from 'src/app/model/dto/trail-loop-type';
-import { TrailActivity } from 'src/app/model/dto/trail-activity';
+import { TrailActivity, TrailActivityGroup } from 'src/app/model/dto/trail-activity';
 import { ErrorService } from '../progress/error.service';
 import { Track } from 'src/app/model/track';
 import * as L from 'leaflet';
@@ -231,15 +231,29 @@ export class TrailService {
     switch (activity) {
       case TrailActivity.WALKING: return 'walk';
       case TrailActivity.HIKING: return 'hiking';
-      case TrailActivity.MOUNTAIN_BIKING: return 'bicycle';
+      case TrailActivity.MOUNTAIN_BIKING: return 'mountain-biking';
+      case TrailActivity.GRAVEL_BIKING: return 'gravel-bike';
       case TrailActivity.ROAD_BIKING: return 'road-bike';
-      case TrailActivity.SNOWSHOEING: return 'snow';
-      case TrailActivity.ON_WATER: return 'boat';
+      case TrailActivity.SNOWSHOEING: return 'snow-shoeing';
+      case TrailActivity.BOAT: return 'boat';
       case TrailActivity.SKIING: return 'ski';
       case TrailActivity.RUNNING: return 'running';
+      case TrailActivity.TRAIL_RUNNING: return 'trail-activity';
       case TrailActivity.HORSEBACK_RIDING: return 'horse-riding';
       case TrailActivity.VIA_FERRATA: return 'carabiner';
       case TrailActivity.ROCK_CLIMBING: return 'climbing';
+      case TrailActivity.CANOE: return 'kayak';
+      default: return 'question';
+    }
+  }
+
+  public getActivityGroupIcon(key: TrailActivityGroup): string | undefined {
+    switch (key) {
+      case TrailActivityGroup.PEDESTRIAN: return 'shoe';
+      case TrailActivityGroup.BIKE: return 'bicycle';
+      case TrailActivityGroup.SNOW: return 'snow';
+      case TrailActivityGroup.WATER: return 'water';
+      default: return undefined;
     }
   }
 

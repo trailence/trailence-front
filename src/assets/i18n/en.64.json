@@ -1044,7 +1044,7 @@
       },
       "activity": {
         "title": "Type of activity provided",
-        "description_start": "Make sure to clearly distinguish between walking and hiking: If the track is short, with little elevation gain and few difficulties, or if it’s an urban trail, it’s more appropriate to classify it as walking. Hiking usually refers to tracks in nature, typically over an hour long, often with elevation gain..."
+        "description_start": "Choose the primary activity for this route. It helps other users better understand its duration and identify routes that are suitable and actually accessible for that activity."
       },
       "track": {
         "title": "Track quality",
@@ -1243,18 +1243,28 @@
     "sl": "Small loop",
     "ob": "Out and back"
   },
+  "activities_groups": {
+    "pedestrian": "Pedestrian",
+    "bike": "Bike",
+    "snow": "On snow",
+    "water": "On water",
+    "others": "Others"
+  },
   "activity": {
     "walking": "Walking",
     "hiking": "Hiking",
+    "trail": "Trail running",
     "moutain-biking": "Mountain Biking",
+    "gravel-biking": "Gravel Biking",
     "road-biking": "Road Biking",
     "snowshoeing": "Snowshoeing",
-    "on-water": "On Water",
+    "on-water": "Boat",
     "skiing": "Skiing",
     "running": "Running",
     "horseback-riding": "Horseback Riding",
     "via-ferrata": "Via Ferrata",
     "rock-climbing": "Rock Climbing",
+    "canoe": "Canoeing / Kayaking",
     "unspecified": "Unspecified"
   },
   "tags_filter": {

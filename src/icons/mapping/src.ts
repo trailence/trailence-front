@@ -57,6 +57,7 @@ export const SRC_ICONS: {[name: string]: string} = {
   'export': 'export.1.svg', // download-outline
   'file': 'file.1.svg', // document-outline
   'filters': 'filters.1.svg', // funnel-outline
+  'gravel-bike': 'gravel-bike.svg',
   'half-loop': 'half-loop.1.svg',
   'heart-outline': 'heart-outline.1.svg', // heart-outline
   'help-circle': 'help-circle.1.svg', // help-circle-outline
@@ -67,6 +68,7 @@ export const SRC_ICONS: {[name: string]: string} = {
   'i18n': 'language.1.svg', // language-outline
   'info': 'info-circle.1.svg', // information-circle-outline
   'item-menu': 'item-menu.1.svg', // ellipsis-vertical
+  'kayak': 'kayak.svg',
   'key': 'key.1.svg', // key-outline
   'layers': 'layers.1.svg', // layers-outline
   'link': 'link.1.svg', // bootstrap link-45deg
@@ -88,6 +90,7 @@ export const SRC_ICONS: {[name: string]: string} = {
   'minus': 'minus.1.svg', // remove
   'mobile': 'mobile.1.svg',
   'more-menu': 'more-menu.1.svg', // ellipsis-horizontal
+  'mountain-biking': 'mountain-biking.svg',
   'move': 'move.1.svg', // move-outline
   'negative-elevation': 'negative-elevation.1.svg',
   'notification': 'notification.1.svg', // notifications-outline
@@ -134,9 +137,11 @@ export const SRC_ICONS: {[name: string]: string} = {
   'settings': 'settings.1.svg', // settings
   'share': 'share.1.svg', // share-social
   'share-outline': 'share-outline.1.svg',  // share-social-outline
+  'shoe': 'shoe.svg',
   'ski': 'ski.1.svg',
   'small-loop': 'small-loop.1.svg',
   'snow': 'snow.1.svg',
+  'snow-shoeing': 'snow-shoeing.svg',
   'speed': 'speed.1.svg', // speedometer-outline
   'star-empty': 'star-empty.1.svg', // star-outline
   'star-half': 'star-half.1.svg', // star-half
@@ -150,6 +155,7 @@ export const SRC_ICONS: {[name: string]: string} = {
   'tags': 'tags.1.svg', // pricetags-outline
   'text': 'text.1.svg', // reader-outline
   'tool': 'tool.1.svg', // hammer-outline
+  'trail-activity': 'trail-activity.svg',
   'trash': 'trash.1.svg', // trash
   'theme': 'theme.1.svg', // color-palette-outline
   'theme-light': 'theme-light.1.svg', // sunny-outline
@@ -160,6 +166,7 @@ export const SRC_ICONS: {[name: string]: string} = {
   'undo': 'undo.1.svg', // arrow-undo-outline
   'walk': 'walk.1.svg',
   'warning': 'warning.2.svg', // warning-outline
+  'water': 'water.svg',
   'web': 'web.1.svg', // globe-outline
   'windows': 'windows.1.svg', // logo-windows
   'zoom-in': 'zoom-in.1.svg',
