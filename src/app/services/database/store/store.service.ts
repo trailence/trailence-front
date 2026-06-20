@@ -7,6 +7,7 @@ import { NetworkService } from '../../network/network.service';
 import { AuthService } from '../../auth/auth.service';
 import { DbStatus } from '../storage/db-table';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { CleanupService } from '../cleanup/cleanup.service';
 
 const AUTO_UPDATE_FROM_SERVER_EVERY = 30 * 60 * 1000;
 const MINIMUM_SYNC_INTERVAL = 15 * 1000;
@@ -26,7 +27,7 @@ export interface StoreRegistration {
 
 export interface StoreWithCleaning {
   cleaningDependencies(): string[];
-  doCleaning(): Observable<any>;
+  doCleaning(): Promise<string>;
 }
 
 @Injectable({providedIn: 'root'})
@@ -164,7 +165,8 @@ export class StoreService {
   public hardDeleteLocalData(): void {
     const pauseId = this.pauseSync();
     this._cleaningSubscription?.unsubscribe();
-    if (this._cleaningTimeout) clearTimeout(this._cleaningTimeout);
+    if (this._cleaningId) this.storeInterface.injector.get(CleanupService).remove(this._cleaningId);
+    this._cleaningId = undefined;
     this._stores.pipe(
       switchMap(stores => stores.length === 0 ? of([]) : combineLatest(stores.map(store => store.hardDeleteLocalData())))
     ).subscribe(() => {
@@ -173,7 +175,7 @@ export class StoreService {
     });
   }
 
-  private _cleaningTimeout: any;
+  private _cleaningId?: string;
   private _cleaningSubscription?: Subscription;
   private startDatabaseCleaning(): void {
     this.storeInterface.injector.get(NgZone).runOutsideAngular(() =>
@@ -192,36 +194,36 @@ export class StoreService {
           );
         }),
       ).subscribe(r => {
-        if (this._cleaningTimeout) clearTimeout(this._cleaningTimeout);
+        if (this._cleaningId) this.storeInterface.injector.get(CleanupService).remove(this._cleaningId);
+        this._cleaningId = undefined;
         if (!r) return;
-        const lastCleanStr = localStorage.getItem('trailence.db-cleaning.last-time.' + r.auth.email);
-        const lastCleanTime = lastCleanStr ? Number.parseInt(lastCleanStr) : undefined;
-        const nextCleanTime = lastCleanTime && !Number.isNaN(lastCleanTime) ? lastCleanTime + 24 * 60 * 60 * 1000 : Date.now() + 60000;
-        const nextTimeout = Math.max(nextCleanTime - Date.now(), 60000);
-        this._cleaningTimeout = setTimeout(() => this.cleanDatabase(r.stores).subscribe(done => {
-          if (done) {
-            Console.info('Database cleaned, next cleaning in 24 hours')
-            localStorage.setItem('trailence.db-cleaning.last-time.' + r.auth.email, '' + Date.now());
-          }
-        }), nextTimeout);
+        this._cleaningId = 'db-cleaning.' + r.auth.email;
+        this.storeInterface.injector.get(CleanupService).add({
+          id: this._cleaningId,
+          name: 'Database cleaning',
+          every: 24 * 60 * 60 * 1000,
+          execute: () => this.cleanDatabase(r.stores)
+        });
       })
     );
   }
 
-  private cleanDatabase(stores: {name: string, cleaning: StoreWithCleaning}[]): Observable<boolean> {
+  private cleanDatabase(stores: {name: string, cleaning: StoreWithCleaning}[]): Promise<string> {
     const remaining = [...stores];
     const done: string[] = [];
-    const next: () => Observable<boolean> = () => {
-      if (remaining.length === 0) return of(true);
+    const next: (results: string[]) => Promise<string> = (results) => {
+      if (remaining.length === 0) return Promise.resolve(results.join(','));
       const index = remaining.findIndex(s => s.cleaning.cleaningDependencies().every(dep => done.includes(dep)));
-      if (index < 0) return of(false);
+      if (index < 0) return Promise.resolve(results.join(','));
       const store = remaining.splice(index, 1)[0];
-      return store.cleaning.doCleaning().pipe(switchMap(() => {
+      return store.cleaning.doCleaning()
+      .then(result => {
+        results.push(store.name + ': ' + result);
         done.push(store.name);
-        return next();
-      }));
+        return next(results);
+      });
     };
-    return next();
+    return next([]);
   }
 
 }

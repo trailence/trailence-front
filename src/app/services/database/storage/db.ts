@@ -1,7 +1,7 @@
 import { Injector, NgZone } from '@angular/core';
 import { AuthService } from '../../auth/auth.service';
 import Dexie from 'dexie';
-import { BehaviorSubject, EMPTY, filter, from, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, EMPTY, filter, from, map, Observable, of, Subject, Subscription, switchMap, tap } from 'rxjs';
 import { Console } from 'src/app/utils/console';
 import { DbTable } from './db-table';
 import { LocalFilesService } from '../../local-files/local-files.service';
@@ -21,6 +21,10 @@ export interface DbReady {
   updatedFrom: number | undefined;
 }
 
+export interface DbClosed {
+  email: string | undefined;
+}
+
 export class Db {
 
   constructor(
@@ -34,6 +38,7 @@ export class Db {
   private readonly tableChangedSubscriptions = new Map<string, Subscription>();
   private closing: Promise<any> | undefined = undefined;
   private opening: Promise<any> | undefined = undefined;
+  private _closed$ = new Subject<DbClosed>();
   private _openCounter = 0;
 
   start(): void {
@@ -61,6 +66,7 @@ export class Db {
     if (this.ready$.value) return of(false);
     return of(true);
   }
+  public get onClosed$(): Observable<DbClosed> { return this._closed$; }
 
   public tableLocalDir$(tableName: string): Observable<string> {
     return this.ready$.pipe(
@@ -194,6 +200,7 @@ export class Db {
       await table.shutdown();
     ready.db.close();
     Console.info('DB closed: ' + ready.db.name);
+    this._closed$.next({email: ready.email});
   }
 
   private async restoreBackups(db: Dexie, localDir: string, stillValid: () => boolean) {

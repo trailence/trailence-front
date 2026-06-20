@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { OwnedStore, UpdatesResponse } from './store/owned-store';
 import { HttpService } from '../http/http.service';
-import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, defaultIfEmpty, filter, first, from, map, of, switchMap, take, tap, zip } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, defaultIfEmpty, filter, first, firstValueFrom, from, map, of, switchMap, take, tap, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Trail } from 'src/app/model/trail';
 import { TrailDto } from 'src/app/model/dto/trail';
@@ -409,10 +409,10 @@ class TrailStore extends OwnedStore<TrailDto, Trail> implements StoreWithCleanin
 
   cleaningDependencies(): string[] { return [] };
 
-  doCleaning(): Observable<any> {
+  doCleaning(): Promise<string> {
     const status = this._storeLoaded$.value;
-    if (!status) return of(undefined);
-    return zip([
+    if (!status) return Promise.resolve('not loaded');
+    return firstValueFrom(zip([
       this.getAll$().pipe(collection$items()),
       this.collectionService.getAllCollectionsReady$(),
       this.injector.get(ShareService).getAll$().pipe(collection$items()),
@@ -421,15 +421,14 @@ class TrailStore extends OwnedStore<TrailDto, Trail> implements StoreWithCleanin
       switchMap(([trails, collections, shares]) => {
         return new Observable<any>(subscriber => {
           if (!this.isStillValid(status)) {
-            subscriber.next(false);
+            subscriber.next('database changed, cancelled');
             subscriber.complete();
             return;
           }
           const maxDate = Date.now() - 24 * 60 * 60 * 1000;
           let count = 0;
           const ondone = new CompositeOnDone(() => {
-            Console.info('Trails database cleaned: ' + count + ' removed');
-            subscriber.next(true);
+            subscriber.next('' + count);
             subscriber.complete();
           });
           for (const trail of trails) {
@@ -457,7 +456,7 @@ class TrailStore extends OwnedStore<TrailDto, Trail> implements StoreWithCleanin
           ondone.start();
         });
       })
-    );
+    ));
   }
 
 }

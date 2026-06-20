@@ -7,7 +7,6 @@ import { Observable, bufferCount, catchError, combineLatest, firstValueFrom, map
 import { RequestLimiter } from 'src/app/utils/request-limiter';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { PreferencesService } from '../preferences/preferences.service';
-import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
 import { ErrorService } from '../progress/error.service';
 import { I18nError, TranslatedString } from '../i18n/i18n-string';
 import { Console } from 'src/app/utils/console';
@@ -18,6 +17,7 @@ import { Pois } from './pois';
 import { AssetsService } from '../assets/assets.service';
 import { Ways } from './ways';
 import { POI_TYPES, POIType } from './poi';
+import { CleanupService } from '../database/cleanup/cleanup.service';
 
 interface TileMetadata {
   key: string;
@@ -32,8 +32,6 @@ export class OfflineMapService {
 
   private readonly db: Db;
   private readonly tilesTables = new Map<string, DbTablesMetaBlob<TileMetadata>>();
-  private _cleanExpiredTimeout?: any;
-  private _dbCounter = 0;
 
   readonly pois: Pois;
   readonly ways: Ways;
@@ -55,13 +53,9 @@ export class OfflineMapService {
     this.ways = new Ways(injector);
     tables.push(this.ways.table);
     this.db = new Db(injector, 'trailence_offline_map', false, tables);
+    this.db.onClosed$.subscribe(closed => this.unregisterCleaning())
     this.db.dbReady$.subscribe(ready => {
-      this._dbCounter++;
-      if (ready) this.cleanExpiredTimeout(ready.email);
-      else {
-        if (this._cleanExpiredTimeout) clearTimeout(this._cleanExpiredTimeout);
-        this._cleanExpiredTimeout = undefined;
-      }
+      if (ready) this.registerCleaning();
     });
     this.db.start();
   }
@@ -150,48 +144,34 @@ export class OfflineMapService {
     );
   }
 
-  private cleanExpiredTimeout(email: string | undefined) {
-    if (!email) return; // TODO when migrated to non-user-specific
-    const dbCounter = this._dbCounter;
-    const lastClean = localStorage.getItem('trailence.map-offline.last-cleaning.' + email);
-    const lastCleanTime = lastClean ? Number.parseInt(lastClean) : undefined;
-    const nextClean = lastCleanTime && !Number.isNaN(lastCleanTime) ? lastCleanTime + 24 * 60 * 60 * 1000 : Date.now() + 60000;
-    this._cleanExpiredTimeout = setTimeout(() => {
-      if (dbCounter !== this._dbCounter) return;
-      this._cleanExpiredTimeout = undefined;
-      if (this.injector.get(TraceRecorderService).recording) {
-        this.cleanExpiredTimeout(email);
-        return;
-      }
-      this.cleanExpired(dbCounter, email);
-    }, Math.max(nextClean - Date.now(), 60000));
-  }
-
-  private cleanExpired(dbCounter: number, email: string): void {
-    for (let i = 0; i < this.layers.layers.length; ++i) {
-      const name = this.layers.layers[i].name;
-      setTimeout(() => this.cleanExpiredLayer(dbCounter, name), 60000 + i * 15000);
+  private unregisterCleaning(): void {
+    const service = this.injector.get(CleanupService);
+    for (const layer of this.layers.layers) {
+      service.remove('offline-map-' + layer.name);
     }
-    setTimeout(() => {
-      if (this._dbCounter === dbCounter) {
-        localStorage.setItem('trailence.map-offline.last-cleaning.' + email, '' + Date.now());
-        Console.info('All offline maps cleaned, next cleaning in 24 hours');
-      }
-    }, 60000 + this.layers.layers.length * 15000 + 30000);
   }
 
-  private cleanExpiredLayer(dbCounter: number, layerName: string): void {
-    if (dbCounter !== this._dbCounter) return;
+  private registerCleaning(): void {
+    const service = this.injector.get(CleanupService);
+    for (const layer of this.layers.layers) {
+      service.add({
+        id: 'offline-map-' + layer.name,
+        name: 'Offline map ' + layer.displayName,
+        every: 24 * 60 * 60 * 1000,
+        execute: () => this.cleanExpiredLayer(layer.name)
+      });
+    }
+  }
+
+  private cleanExpiredLayer(layerName: string): Promise<string> {
     const table = this.tilesTables.get(layerName);
-    if (!table) return;
-    Console.info('Cleaning offline maps: ' + layerName);
-    table.metadata.keysWhere$(new DbTableWhereLessThan('date', Date.now() - this.preferencesService.preferences.offlineMapMaxKeepDays * 24 * 60 * 60 * 1000))
-    .pipe(
-      switchMap(keys => {
-        if (dbCounter !== this._dbCounter) return of(undefined);
-        return table.deleteMany$(keys).pipe(tap(() => Console.info('Offline maps removed: ', layerName, keys.length)));
-      })
-    ).subscribe();
+    if (!table) return Promise.resolve('table not found');
+    return firstValueFrom(
+      table.metadata.keysWhere$(new DbTableWhereLessThan('date', Date.now() - this.preferencesService.preferences.offlineMapMaxKeepDays * 24 * 60 * 60 * 1000))
+      .pipe(
+        switchMap(keys => table.deleteMany$(keys).pipe(map(() => '' + keys.length)))
+      )
+    );
   }
 
   public removeAll(): Observable<any> {

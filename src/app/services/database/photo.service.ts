@@ -401,9 +401,9 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> implements StoreWithCleanin
     return ['trails'];
   }
 
-  doCleaning(): Observable<any> {
+  doCleaning(): Promise<string> {
     const status = this._storeLoaded$.value;
-    if (!status) return of(undefined);
+    if (!status) return Promise.resolve('not loaded');
     const photosCleant$ = zip([
       this.getAll$().pipe(collection$items()),
       this.trails.getAll$().pipe(collection$items()),
@@ -447,14 +447,14 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> implements StoreWithCleanin
       })
     );
 
-    return photosCleant$.pipe(
+    return firstValueFrom(photosCleant$.pipe(
       switchMap(references => {
-        if (!references) return of(undefined);
+        if (!references) return of('0');
         return this.injector.get(StoredFilesService).cleanExpiredFiles('photo', Date.now() - this.injector.get(PreferencesService).preferences.photoCacheDays).pipe(
           switchMap(() => this.injector.get(StoredFilesService).cleanUnreferencedFiles('photo', references, Date.now() - 3 * 24 * 60 * 60 * 1000)),
         );
       })
-    );
+    ));
   }
 
 }

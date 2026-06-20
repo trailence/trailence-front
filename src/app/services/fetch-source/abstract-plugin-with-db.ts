@@ -16,6 +16,7 @@ import { SimplifiedPoint, SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 
 import { debounceTime, filter, first, firstValueFrom, from, switchMap } from 'rxjs';
 import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from 'src/app/worker/web-app';
+import { CleanupService } from '../database/cleanup/cleanup.service';
 
 export interface TrailInfoBaseDto {
   info: TrailInfo;
@@ -42,10 +43,12 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
   ) {
     super(injector, searchTrailsFeatureName);
     injector.get(NgZone).runOutsideAngular(() => {
-      this._allowed$.pipe(filter(a => a), first()).subscribe(() => {
-        if (dbByUser) injector.get(AuthService).userChanged$.subscribe(auth => this.openDb(dbName + (auth ? '_' + auth.email : '')));
-        else this.openDb(dbName);
-      });
+      setTimeout(() => {
+        this._allowed$.pipe(filter(a => a), first()).subscribe(() => {
+          if (dbByUser) injector.get(AuthService).userChanged$.subscribe(auth => this.openDb(dbName + (auth ? '_' + auth.email : '')));
+          else this.openDb(dbName);
+        });
+      }, 0);
     });
   }
 
@@ -73,7 +76,12 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
     this.tableMetadata = new DelayedTable(ngZone, this.db.table<TrackMetadataSnapshot, string>('metadata'), 'uuid', 100, 15000, 5000);
     this.tableTrails = new DelayedTable(ngZone, this.db.table<TrailDto, string>('trails'), 'uuid', 100, 20000, 10000);
     this.tableInfos = new DelayedTable(ngZone, this.db.table<TRAIL_INFO_DTO, string>('infos'), this.trailInfoId, 100, 20000, 10000);
-    this.injector.get(NgZone).runOutsideAngular(() => setTimeout(() => this.clean(), 10000));
+    this.injector.get(CleanupService).add({
+      id: 'fetch-plugin.' + this.owner,
+      name: 'Plugin ' + this.name,
+      every: 3 * 24 * 60 * 60 * 1000,
+      execute: () => this.clean(),
+    })
   }
 
   public override getTrail(uuid: string): Promise<Trail | null> {
@@ -264,22 +272,20 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
     ]);
   }
 
-  private clean(): void {
-    Console.info('Start cleaning ' + this.owner);
-    this.tableInfos.table.where('fetchDate').below(Date.now() - EXPIRATION_TIMEOUT).primaryKeys().then(toRemove => {
-      Console.info('Found ' + toRemove.length + ' to remove from ' + this.owner);
-      if (toRemove.length === 0) return;
+  private clean(): Promise<string> {
+    return this.tableInfos.table.where('fetchDate').below(Date.now() - EXPIRATION_TIMEOUT).primaryKeys().then(toRemove => {
+      if (toRemove.length === 0) return '0';
       const tracks: string[] = [];
       for (const id of toRemove)
         tracks.push(id + '-original', id + '-improved');
-      const startTime = Date.now();
-      Promise.all([
+      return Promise.all([
         this.tableInfos.table.bulkDelete(toRemove),
         this.tableTrails.table.bulkDelete(toRemove),
         this.tableFullTracks.table.bulkDelete(tracks),
         this.tableSimplifiedTracks.table.bulkDelete(tracks),
         this.tableMetadata.table.bulkDelete(tracks),
-      ]).then(() => Console.info('' + toRemove.length + ' trails removed from ' + this.owner + ' in ' + (Date.now() - startTime) + 'ms.'));
+      ])
+      .then(() => '' + toRemove.length);
     });
   }
 

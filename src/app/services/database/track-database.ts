@@ -243,15 +243,15 @@ export class TrackDatabase implements StoreWithCleaning {
     return ['trails'];
   }
 
-  doCleaning(): Observable<any> {
+  doCleaning(): Promise<string> {
     // remove all tracks not linked by any trail
     const status = this.loaded$.value;
-    if (!status) return of(false);
-    return this.injector.get(TrailService).getAll$().pipe(
+    if (!status) return Promise.resolve('not loaded');
+    return firstValueFrom(this.injector.get(TrailService).getAll$().pipe(
       switchMap(trails$ => trails$.length === 0 ? of([]) : combineLatest(trails$)),
       first(),
       switchMap(trails => {
-        if (status.counter !== this.loaded$.value?.counter) return of(false);
+        if (status.counter !== this.loaded$.value?.counter) return of('database changed, cancelled');
         const allKnownKeys: string[] = [];
         for (const trail of trails) {
           if (trail) {
@@ -276,17 +276,16 @@ export class TrackDatabase implements StoreWithCleaning {
             return this.tableMeta.getByKeys$(keys);
           }),
           map(items => {
-            if (status.counter !== this.loaded$.value?.counter) return false;
+            if (status.counter !== this.loaded$.value?.counter) return 'database changed, cancelled';
             items = items.filter(i => i.localUpdate < Date.now() - 24 * 60 * 60 * 1000 && i.updatedAt < Date.now() - 24 * 60 * 60 * 1000);
-            Console.info('Tracks cleanup: ' + items.length + ' to delete');
             for (const item of items) {
               this.injector.get(TrackService).deleteByUuidAndOwner(item.uuid, item.owner);
             }
-            return true;
+            return '' + items.length;
           })
         )
       })
-    );
+    ));
   }
 
   private readonly metadata = new Map<string, DatabaseSubject<TrackMetadataSnapshot>>();

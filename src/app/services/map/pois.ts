@@ -1,4 +1,4 @@
-import { catchError, combineLatest, concat, debounceTime, firstValueFrom, from, map, Observable, of, switchMap } from 'rxjs';
+import { catchError, combineLatest, concat, firstValueFrom, from, map, Observable, of, switchMap } from 'rxjs';
 import { DbTableWithBlob } from '../database/storage/db-table-with-blob';
 import { Injector } from '@angular/core';
 import { HttpService } from '../http/http.service';
@@ -11,6 +11,7 @@ import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended'
 import { DbTableWhereLessThan } from '../database/storage/db-table';
 import { WorkerService } from 'src/app/worker/web-app';
 import { POI, POIType } from './poi';
+import { CleanupService } from '../database/cleanup/cleanup.service';
 
 const CACHE_EXPIRATION = 90 * 24 * 60 * 60 * 1000;
 const CACHE_NULL = -CACHE_EXPIRATION + 3 * 60 * 60 * 1000;
@@ -30,7 +31,12 @@ export class Pois {
     this.http = injector.get(HttpService);
     this.network = injector.get(NetworkService);
     this.worker = injector.get(WorkerService);
-    this.table.whenReady$().pipe(debounceTime(120000)).subscribe(() => this.clean());
+    this.table.whenReady$().subscribe(() => injector.get(CleanupService).add({
+      id: 'pois',
+      name: 'POIs cache',
+      every: 24 * 60 * 60 * 1000,
+      execute: () => this.clean(),
+    }));
   }
 
   public getPois(bounds: L.LatLngBounds, types: POIType[]): Observable<PoisResponse> {
@@ -147,9 +153,8 @@ export class Pois {
     return tiles;
   }
 
-  private clean(): void {
-    this.table.deleteWhere$(new DbTableWhereLessThan('lastUsed', Date.now() - CACHE_EXPIRATION))
-    .subscribe(nb => Console.info(nb, 'pois not used since 90 days cleant'));
+  private clean(): Promise<string> {
+    return firstValueFrom(this.table.deleteWhere$(new DbTableWhereLessThan('lastUsed', Date.now() - CACHE_EXPIRATION))).then(nb => '' + nb);
   }
 }
 

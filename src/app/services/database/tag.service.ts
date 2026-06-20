@@ -4,7 +4,7 @@ import { TagDto } from "src/app/model/dto/tag";
 import { Tag } from "src/app/model/tag";
 import { TrailTagDto } from "src/app/model/dto/trail-tag";
 import { TrailTag } from "src/app/model/trail-tag";
-import { EMPTY, Observable, combineLatest, filter, first, map, of, switchMap, tap, throwError, zip } from "rxjs";
+import { EMPTY, Observable, combineLatest, filter, first, firstValueFrom, map, of, switchMap, tap, throwError, zip } from "rxjs";
 import { HttpService } from "../http/http.service";
 import { environment } from "src/environments/environment";
 import { TrailCollectionService } from "./trail-collection.service";
@@ -15,7 +15,6 @@ import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { Progress } from '../progress/progress.service';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
-import { Console } from 'src/app/utils/console';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { QuotaService } from '../auth/quota.service';
 import { SimpleStoreWithoutUpdate } from './store/simple-store-without-update';
@@ -275,10 +274,10 @@ class TagStore extends OwnedStore<TagDto, Tag> implements StoreWithCleaning {
 
   cleaningDependencies() { return []; }
 
-  doCleaning(): Observable<any> {
+  doCleaning(): Promise<string> {
     const status = this._storeLoaded$.value;
-    if (!status) return of(undefined);
-    return zip([
+    if (!status) return Promise.resolve('not loaded');
+    return firstValueFrom(zip([
       this.getAll$().pipe(collection$items()),
       this.collectionService.getMyCollectionsReady$(),
     ]).pipe(
@@ -286,15 +285,14 @@ class TagStore extends OwnedStore<TagDto, Tag> implements StoreWithCleaning {
       switchMap(([tags, collections]) => {
         return new Observable<any>(subscriber => {
           if (!this.isStillValid(status)) {
-            subscriber.next(false);
+            subscriber.next('database changed, cancelled');
             subscriber.complete();
             return;
           }
           const maxDate = Date.now() - 24 * 60 * 60 * 1000;
           let count = 0;
           const ondone = new CompositeOnDone(() => {
-            Console.info('Tags database cleaned: ' + count + ' removed');
-            subscriber.next(true);
+            subscriber.next('' + count);
             subscriber.complete();
           });
           for (const tag of tags) {
@@ -318,7 +316,7 @@ class TagStore extends OwnedStore<TagDto, Tag> implements StoreWithCleaning {
           ondone.start();
         });
       })
-    );
+    ));
   }
 
 }
@@ -401,26 +399,25 @@ class TrailTagStore extends SimpleStoreWithoutUpdate<TrailTagDto, TrailTag> impl
     return ['trails', 'tags']
   }
 
-  doCleaning(): Observable<any> {
+  doCleaning(): Promise<string> {
     const status = this._storeLoaded$.value;
-    if (!status) return of(undefined);
-    return zip([
+    if (!status) return Promise.resolve('not loaded');
+    return firstValueFrom(zip([
       this.getAll$().pipe(collection$items()),
       this.tagService.getAllTags$().pipe(collection$items()),
       this.trailService.getAll$().pipe(collection$items()),
     ]).pipe(
       first(),
       switchMap(([trailsTags, tags, trails]) => {
-        return new Observable<any>(subscriber => {
+        return new Observable<string>(subscriber => {
           if (!this.isStillValid(status)) {
-            subscriber.next(false);
+            subscriber.next('database changed, cancelled');
             subscriber.complete();
             return;
           }
           let count = 0;
           const ondone = new CompositeOnDone(() => {
-            Console.info('TrailTags database cleaned: ' + count + ' removed');
-            subscriber.next(true);
+            subscriber.next('' + count);
             subscriber.complete();
           });
           for (const trailTag of trailsTags) {
@@ -433,6 +430,6 @@ class TrailTagStore extends SimpleStoreWithoutUpdate<TrailTagDto, TrailTag> impl
           ondone.start();
         });
       })
-    );
+    ));
   }
 }

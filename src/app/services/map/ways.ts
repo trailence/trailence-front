@@ -11,6 +11,7 @@ import { Console } from 'src/app/utils/console';
 import { Way } from './way';
 import { DbTableWhereLessThan } from '../database/storage/db-table';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { CleanupService } from '../database/cleanup/cleanup.service';
 
 const CACHE_EXPIRATION = 90 * 24 * 60 * 60 * 1000;
 const CACHE_NULL = -CACHE_EXPIRATION + 3 * 60 * 60 * 1000;
@@ -30,7 +31,12 @@ export class Ways {
     this.http = injector.get(HttpService);
     this.network = injector.get(NetworkService);
     this.worker = injector.get(WorkerService);
-    this.table.whenReady$().pipe(debounceTime(180000)).subscribe(() => this.clean());
+    this.table.whenReady$().subscribe(() => injector.get(CleanupService).add({
+      id: 'ways',
+      name: 'ways cache',
+      every: 24 * 60 * 60 * 1000,
+      execute: () => this.clean(),
+    }));
   }
 
   public getWays(bounds: L.LatLngBounds, retryOnPartial: boolean): Observable<WaysResponse> {
@@ -164,9 +170,8 @@ export class Ways {
     return tiles;
   }
 
-  private clean(): void {
-    this.table.deleteWhere$(new DbTableWhereLessThan('lastUsed', Date.now() - CACHE_EXPIRATION))
-    .subscribe(nb => Console.info(nb, 'ways not used since 90 days cleant'));
+  private clean(): Promise<string> {
+    return firstValueFrom(this.table.deleteWhere$(new DbTableWhereLessThan('lastUsed', Date.now() - CACHE_EXPIRATION))).then(nb => '' + nb);
   }
 
 }
