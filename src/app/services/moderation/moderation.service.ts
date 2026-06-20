@@ -151,7 +151,7 @@ export class ModerationService {
       switchMap(fromCache => {
         if (fromCache) return of(fromCache);
         return this.http.get<TrackDto>(environment.apiBaseUrl + '/moderation/v1/trackFromReview/' + trailUuid + '/' + trailOwner + '/' + trackUuid).pipe(
-          map(dto => new Track(dto, this.preferencesService, this.mapService, this.injector.get(WorkerService))),
+          map(dto => new Track(dto, false, this.preferencesService, this.mapService, this.injector.get(WorkerService))),
           tap(track => this.trackCache.feedItem(trackUuid + ' ' + trailOwner, track))
         );
       })

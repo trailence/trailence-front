@@ -26,7 +26,7 @@ export class GpxFormat {
   public static importGpx(file: ArrayBuffer, user: string, collectionUuid: string, preferencesService: PreferencesService, mapService: OfflineMapService, workerService: WorkerService, trailSourceType: TrailSourceType | undefined, trailSource: string | undefined, trailSourceDate: number | undefined): ImportedTrail { // NOSONAR
     const raw = GpxFormatRaw.importGpxRaw(file, user, collectionUuid, trailSourceType, trailSource, trailSourceDate, new DOMParser());
     const tracks = raw.tracks.map(trackRaw => {
-      const track = new Track({owner: user}, preferencesService, mapService, workerService);
+      const track = new Track({owner: user}, false, preferencesService, mapService, workerService);
       for (const segmentRaw of trackRaw.segments) {
         const segment = track.newSegment();
         segment.appendMany(segmentRaw);

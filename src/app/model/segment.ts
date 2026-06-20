@@ -11,14 +11,14 @@ export class Segment {
 
   private readonly _points = new BehaviorSubject<PointImpl[]>([]);
   private readonly _meta = new SegmentMetadata(this._points.value);
-  private readonly _pointsChanges$ = new Subject<any>();
+  private readonly _pointsChanges$ = new Subject<string>();
 
   public get points(): Point[] { return this._points.value; }
   public get points$(): Observable<Point[]> { return this._points; }
 
   public get metadata(): SegmentMetadata {return this._meta; }
 
-  public get changes$(): Observable<any> {
+  public get changes$(): Observable<string> {
     let first = true;
     return this._points.pipe(
       switchMap(() => {
@@ -26,7 +26,7 @@ export class Segment {
           first = false;
           return this._pointsChanges$;
         }
-        return concat(of(true), this._pointsChanges$);
+        return concat(of('initial segment event'), this._pointsChanges$);
       }),
     );
   }
@@ -261,7 +261,7 @@ export class PointImpl implements Point {
     descriptor: PointDescriptor,
     private _previous: PointImpl | undefined,
     private _next: PointImpl | undefined,
-    private readonly _changes$: Subject<any>,
+    private readonly _changes$: Subject<string>,
   ) {
     this._pos = L.latLng(descriptor.pos.lat, descriptor.pos.lng);
     this._ele = descriptor.ele;
@@ -283,7 +283,7 @@ export class PointImpl implements Point {
     this.updateDistance();
     this._next?.updateDistance();
     this.meta?.positionChanged(this);
-    this._changes$.next(true);
+    this._changes$.next('pos changed');
   }
 
   public get ele(): number | undefined { return this._ele; }
@@ -292,7 +292,7 @@ export class PointImpl implements Point {
     this._ele = value;
     this.updateElevation();
     this._next?.updateElevation();
-    this._changes$.next(true);
+    this._changes$.next('ele changed');
   }
 
   public get time(): number | undefined { return this._time; }
@@ -301,35 +301,35 @@ export class PointImpl implements Point {
     this._time = value;
     this.updateDuration();
     this._next?.updateDuration();
-    this._changes$.next(true);
+    this._changes$.next('time changed');
   }
 
   public get posAccuracy(): number | undefined { return this._posAccuracy; }
   public set posAccuracy(value: number | undefined) {
     if (this._posAccuracy === value) return;
     this._posAccuracy = value;
-    this._changes$.next(true);
+    this._changes$.next('posAccuracy changed');
   }
 
   public get eleAccuracy(): number | undefined { return this._eleAccuracy; }
   public set eleAccuracy(value: number | undefined) {
     if (this._eleAccuracy === value) return;
     this._eleAccuracy = value;
-    this._changes$.next(true);
+    this._changes$.next('eleAccuracy changed');
   }
 
   public get heading(): number | undefined { return this._heading; }
   public set heading(value: number | undefined) {
     if (this._heading === value) return;
     this._heading = value;
-    this._changes$.next(true);
+    this._changes$.next('heading changed');
   }
 
   public get speed(): number | undefined { return this._speed; }
   public set speed(value: number | undefined) {
     if (this._speed === value) return;
     this._speed = value;
-    this._changes$.next(true);
+    this._changes$.next('speed changed');
   }
 
   public get distanceFromPreviousPoint(): number { return this._distanceFromPrevious; }

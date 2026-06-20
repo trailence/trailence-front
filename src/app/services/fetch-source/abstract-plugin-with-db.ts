@@ -147,7 +147,7 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
   }
 
   public override getFullTrack(uuid: string): Promise<Track | null> {
-    return this.tableFullTracks.get(uuid).then(t => t ? new Track(t, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService)) : this.fetchFullTrackById(uuid));
+    return this.tableFullTracks.get(uuid).then(t => t ? new Track(t, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService)) : this.fetchFullTrackById(uuid));
   }
 
   protected fetchFullTrackById(uuid: string): Promise<Track | null> {

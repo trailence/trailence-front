@@ -68,7 +68,7 @@ export class TrackBuilder {
   }
 
   start(): void {
-    this.track = new Track({owner: this.injector.get(AuthService).email}, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService));
+    this.track = new Track({owner: this.injector.get(AuthService).email}, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService));
     this.enablePutAnchor();
     this.updateWays();
     this.saveToLocalStorage();
@@ -468,7 +468,7 @@ export class TrackBuilder {
     try {
       const points = JSON.parse(pointsInStorage) as {s: number, p: number}[];
       const dto = JSON.parse(trackInStorage) as Partial<TrackDto>;
-      this.track = new Track(dto, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService));
+      this.track = new Track(dto, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService));
       for (let i = 0; i < points.length; ++i) {
         const p = points[i];
         if (i > 0) {

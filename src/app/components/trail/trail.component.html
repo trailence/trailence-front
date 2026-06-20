@@ -734,6 +734,7 @@
         </div>
       </div>
     </div>
+    @let remaining = remaining$ | async;
     @if (remaining) {
       <div class="bottom-sheet-remaining-separator"><span>{{ i18n.texts.pages.trail.remaining_metadata_title }}</span></div>
       <div class="metadata-item-container">

@@ -169,7 +169,7 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
           const track = new Track({
             owner: this.owner,
             uuid: ot.id,
-          }, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService));
+          }, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService));
           const segment = track.newSegment();
           segment.appendMany(ot.points.map((p, index) => ({pos: { lat: p.lat, lng: p.lng }, ele: p.ele, time: p.time ?? (index === 0 ? ot.date ?? undefined : undefined) })));
 

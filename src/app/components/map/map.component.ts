@@ -428,7 +428,7 @@ export class MapComponent extends AbstractComponent {
         this._initZoomTimestamp = 1;
         this._locationMarker.addTo(this._map$.value);
         if (this._followingLocation$.value) {
-          this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), 16));
+          this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), 13));
         } else {
           this._map$.value.panInside(this._locationMarker.getLatLng(), {padding: [25,25]})
         }
@@ -454,36 +454,19 @@ export class MapComponent extends AbstractComponent {
     let bounds = map.getBounds();
     const sw = map.latLngToContainerPoint(bounds.getSouthWest());
     const ne = map.latLngToContainerPoint(bounds.getNorthEast());
-    ne.y += 55;
-    sw.y -= 40;
-    ne.x -= 65;
-    sw.x += 65;
-    if (sw.y - ne.y > 600) {
-      ne.y += 120;
-      sw.y -= 120;
-    } else if (sw.y - ne.y > 400) {
-      ne.y += 80;
-      sw.y -= 80;
-    } else if (sw.y - ne.y > 300) {
-      ne.y += 60;
-      sw.y -= 60;
-    } else if (sw.y - ne.y > 200) {
-      ne.y += 40;
-      sw.y -= 40;
-    }
-    if (ne.x - sw.x > 600) {
-      sw.x += 120;
-      ne.x -= 120;
-    } else if (ne.x - sw.x > 400) {
-      sw.x += 80;
-      ne.x -= 80;
-    } else if (ne.x - sw.x > 300) {
-      sw.x += 60;
-      ne.x -= 60;
-    } else if (ne.x - sw.x > 200) {
-      sw.x += 40;
-      ne.x -= 40;
-    }
+    // apply insets for visible part (toolbars...)
+    ne.y += 57;
+    sw.y -= 30;
+    ne.x -= 47;
+    sw.x += 47;
+    // reduce to 40%
+    const percent = 0.6;
+    const width = ne.x - sw.x;
+    sw.x += Math.round(width * percent * 0.5);
+    ne.x -= Math.round(width * percent * 0.5);
+    const height = sw.y - ne.y;
+    ne.y += Math.round(height * percent * 0.5);
+    sw.y -= Math.round(height * percent * 0.5);
     return L.latLngBounds(map.containerPointToLatLng(sw), map.containerPointToLatLng(ne));
   }
 
@@ -553,8 +536,10 @@ export class MapComponent extends AbstractComponent {
         // action from user
         this._initZoomTimestamp = 1;
         if (this._followingLocation$.value) {
-          this._followingLocation$.next(false);
-          this.refreshTools();
+          if (this._locationMarker && !this.getFollowLocationBounds(map).contains(this._locationMarker.getLatLng())) {
+            this._followingLocation$.next(false);
+            this.refreshTools();
+          }
         }
       }
     });
@@ -617,6 +602,8 @@ export class MapComponent extends AbstractComponent {
       )
     );
     this.refreshTools();
+
+    //L.rectangle(this.getFollowLocationBounds(map), {color: 'yellow'}).addTo(map);
   }
 
   private getEvent(map: L.Map, e: L.LeafletMouseEvent): MapTrackPointReference[] { // NOSONAR

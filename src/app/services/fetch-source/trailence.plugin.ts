@@ -330,7 +330,7 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
           updatedAt: Date.now(),
         }
         this.tableFullTracks.put(dto);
-        return new Track(dto, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService));
+        return new Track(dto, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService));
       })
     );
   }

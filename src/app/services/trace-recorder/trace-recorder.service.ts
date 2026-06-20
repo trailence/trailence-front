@@ -128,8 +128,8 @@ export class TraceRecorderService {
       this.collectionService.getMyTrails$().pipe(timeout(30000)).subscribe({
         next: myTrails => {
           if (!this._email) { reject(); return; }
-          const track = new Track({ owner: this._email }, this.preferencesService, this.mapService, this.workerService);
-          const rawTrack = new Track({ owner: this._email }, this.preferencesService, this.mapService, this.workerService);
+          const track = new Track({ owner: this._email }, true, this.preferencesService, this.mapService, this.workerService);
+          const rawTrack = new Track({ owner: this._email }, true, this.preferencesService, this.mapService, this.workerService);
           const trail = new Trail({
             owner: this._email,
             name: this.i18n.texts.trace_recorder.trail_name_start + ' ' + this.i18n.timestampToDateTimeString(Date.now()),
@@ -623,8 +623,8 @@ export class Recording {
   }
 
   static fromDto(dto: RecordingDto, preferencesService: PreferencesService, mapService: OfflineMapService, workerService: WorkerService): Recording {
-    const rawTrack = new Track(dto.rawTrack, preferencesService, mapService, workerService);
-    const improvedTrack = new Track(dto.track, preferencesService, mapService, workerService);
+    const rawTrack = new Track(dto.rawTrack, true, preferencesService, mapService, workerService);
+    const improvedTrack = new Track(dto.track, true, preferencesService, mapService, workerService);
     const r = new Recording(
       new Trail(dto.trail),
       improvedTrack,

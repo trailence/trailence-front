@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, combineLatest, skip } from 'rxjs';
+import { BehaviorSubject, Observable, map, merge, skip } from 'rxjs';
 import { PointDtoMapper } from './point-dto-mapper';
 import { copyPoint, PointDescriptor, pointsAreEqual } from './point-descriptor';
 import { WayPointDto } from './dto/way-point';
@@ -44,9 +44,12 @@ export class WayPoint {
   public get descriptionTranslations$(): Observable<{[lang: string]: string} | undefined> { return this._descriptionTranslations; }
   public set descriptionTranslations(value: {[lang: string]: string} | undefined) { if (!ObjectUtils.sameContent(this._descriptionTranslations.value, value)) this._descriptionTranslations.next(value ? {...value} : undefined); }
 
-  public get changes$(): Observable<any> {
-    return combineLatest([this.name$, this.description$, this.nameTranslations$, this.descriptionTranslations$]).pipe(
-      skip(1)
+  public get changes$(): Observable<string> {
+    return merge(
+      this.name$.pipe(skip(1), map(n => 'name changed to: ' + n)),
+      this.description$.pipe(skip(1), map(n => 'description changed to: ' + n)),
+      this.nameTranslations$.pipe(skip(1), map(() => 'name translations changed')),
+      this.descriptionTranslations$.pipe(skip(1), map(() => 'description translations changed')),
     );
   }
 

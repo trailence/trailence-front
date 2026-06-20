@@ -23,10 +23,10 @@ export function computeTrackWayPoints(track: Track, breaksSections: BreakPointSe
       return;
     }
     bounds = extendsAround(bounds, GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT + 1);
-    const pois$ = mapService.pois.getPois(bounds, ['guidepost']).pipe(filter(p => p.done), map(p => p.pois)); // TODO put in track computed data to avoid recomputing each time ?
+    const pois$ = track.isRecording ? of([]) : mapService.pois.getPois(bounds, ['guidepost']).pipe(filter(p => p.done), map(p => p.pois)); // TODO put in track computed data to avoid recomputing each time ?
     const ways$ = of([]);// track.computed.osmWays$.pipe(first());
-    let poisDone = false;
-    let waysDone = false;
+    let poisDone = track.isRecording;
+    let waysDone = track.isRecording;
     combineLatest([concat(of(undefined), pois$), concat(of(undefined), ways$)]).pipe(debounceTimeExtended(250, 250, undefined, (p,n) => n[0] !== undefined && n[1] !== undefined)).subscribe({
       next: result => {
         const newList = [...list];

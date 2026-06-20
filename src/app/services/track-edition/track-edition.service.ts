@@ -24,7 +24,7 @@ export class TrackEditionService {
   ) {}
 
   public applyDefaultImprovments(track: Track): Track {
-    const newTrack = new Track({...track.toDto(), uuid: undefined}, this.preferencesService, this.mapService, this.workerService);
+    const newTrack = new Track({...track.toDto(), uuid: undefined}, false, this.preferencesService, this.mapService, this.workerService);
     this.applyDefaultImprovmentsOnTrack(newTrack);
     return newTrack;
   }

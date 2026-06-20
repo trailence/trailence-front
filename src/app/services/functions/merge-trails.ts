@@ -27,8 +27,8 @@ export function mergeTrails(injector: Injector, trails: Trail[], collectionUuid:
     trailsAndTracks.sort((t1, t2) => (t1.track1.metadata.startDate ?? 0) - (t2.track1.metadata.startDate ?? 0))
     const owner = injector.get(AuthService).email!;
     const preferences = injector.get(PreferencesService);
-    const originalTrack = new Track({owner}, preferences, mapService, workerService);
-    const editedTrack = new Track({owner}, preferences, mapService, workerService);
+    const originalTrack = new Track({owner}, false, preferences, mapService, workerService);
+    const editedTrack = new Track({owner}, false, preferences, mapService, workerService);
     const merge = new Trail({
       owner,
       collectionUuid,

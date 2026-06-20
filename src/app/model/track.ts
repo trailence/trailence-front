@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, combineLatest, concat, map, of, skip, switchMap } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, combineLatest, map, merge, switchMap } from 'rxjs';
 import { Segment, SegmentMetadata } from './segment';
 import { Point } from './point';
 import { PointDtoMapper } from './point-dto-mapper';
@@ -32,28 +32,31 @@ export class Track extends Owned {
   public get metadata(): TrackMetadata { return this._meta };
   public get computed(): TrackComputedData { return this._computed; }
 
-  public get segmentChanges$(): Observable<any> {
+  public get segmentChanges$(): Observable<string> {
     return this.segments$.pipe(
-      switchMap(segments => segments.length === 0 ? of([]) : combineLatest(segments.map(s => concat(of([]), s.changes$)))),
-      skip(1),
+      switchMap(segments =>
+        segments.length === 0 ? EMPTY :
+        merge(...segments.map((s, index) => s.changes$.pipe(map(e => 'segment ' + index + ': ' + e))))
+      ),
     );
   }
 
-  public get changes$(): Observable<any> {
-    return combineLatest([
-      this.segments$.pipe(
-        switchMap(segments => segments.length === 0 ? of([]) : combineLatest(segments.map(s => concat(of([]), s.changes$)))),
+  public get waypointChanges$(): Observable<string> {
+    return this.wayPoints$.pipe(
+      switchMap(wayPoints =>
+        wayPoints.length === 0 ? EMPTY :
+        merge(...wayPoints.map((wp, index) => wp.changes$.pipe(map(e => 'way point ' + index + ': ' + e))))
       ),
-      this.wayPoints$.pipe(
-        switchMap(wayPoints => wayPoints.length === 0 ? of([]) : combineLatest(wayPoints.map(wp => concat(of([]), wp.changes$)))),
-      )
-    ]).pipe(
-      skip(1)
     );
+  }
+
+  public get changes$(): Observable<string> {
+    return merge(this.segmentChanges$, this.waypointChanges$);
   }
 
   constructor(
     dto: Partial<TrackDto>,
+    public readonly isRecording: boolean,
     public readonly preferencesService: PreferencesService,
     public readonly mapService: OfflineMapService,
     public readonly workerService: WorkerService,
@@ -146,7 +149,7 @@ export class Track extends Owned {
       s: this.segments.reverse().map(segment => segment.reverseDto()),
       wp: this.wayPoints.map(wp => wp.toDto()),
       sizeUsed: this.sizeUsed
-    }, this.preferencesService, this.mapService, this.workerService);
+    }, this.isRecording, this.preferencesService, this.mapService, this.workerService);
   }
 
   public override toDto(): TrackDto {
@@ -242,7 +245,7 @@ export class Track extends Owned {
   }
 
   public subTrack(startSegment: number, startPoint: number, endSegment: number, endPoint: number): Track {
-    const sub = new Track({owner: 'nobody'}, this.preferencesService, this.mapService, this.workerService);
+    const sub = new Track({owner: 'nobody'}, this.isRecording, this.preferencesService, this.mapService, this.workerService);
     const newPoints: PointDescriptor[] = [];
     for (let si = startSegment; si <= endSegment; si++) {
       const s = this._segments.value[si];
@@ -306,7 +309,7 @@ export class Track extends Owned {
       version: undefined,
       createdAt: undefined,
       updatedAt: undefined
-    }, this.preferencesService, this.mapService, this.workerService);
+    }, false, this.preferencesService, this.mapService, this.workerService);
   }
 
   public newTrack(owner: string): Track {
@@ -318,7 +321,7 @@ export class Track extends Owned {
         createdAt: undefined,
         updatedAt: undefined,
       },
-      this.preferencesService, this.mapService, this.workerService
+      false, this.preferencesService, this.mapService, this.workerService
     );
   }
 

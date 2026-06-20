@@ -23,7 +23,6 @@ export class TrailsWaypoints {
   trails: TrailWaypoints[] = [];
   changes$ = new BehaviorSubject<any>(undefined);
 
-  private _mapTracks: MapTrack[] = [];
   public showBreaksOnMapLocked = false;
   public showWaypointsOnMap = true;
 
@@ -36,10 +35,10 @@ export class TrailsWaypoints {
   ) {}
 
   public reset(): void {
-    this.update([], []);
+    this.update([]);
   }
 
-  public update(trails: {trail: Trail, track: Track, recording: boolean}[], mapTracks: MapTrack[]): void {
+  public update(trails: {trail: Trail, track: Track, recording: boolean, mapTrack: MapTrack}[]): void {
     const toRemove = [...this.trails];
     const newTrails: TrailWaypoints[] = [];
     for (const trail of trails) {
@@ -48,33 +47,28 @@ export class TrailsWaypoints {
         newTrails.push(toRemove[index]);
         toRemove.splice(index, 1);
       } else {
-        newTrails.push(new TrailWaypoints(this, trail.trail, trail.track, trail.recording, this.photosWithPosition, () => this.wayPointsUpdated()));
+        newTrails.push(new TrailWaypoints(this, trail.trail, trail.track, trail.recording, trail.mapTrack, this.photosWithPosition, () => this.wayPointsUpdated()));
       }
     }
     for (const t of toRemove) t.destroy();
     this.trails = newTrails;
-    this._mapTracks = mapTracks;
-    this._mapTracks.forEach(mt => mt.showWayPointsAnchors(this.showWaypointsOnMap));
+    this.trails.forEach(t => t.mapTrack.showWayPointsAnchors(this.showWaypointsOnMap));
     this.updateElementsShown();
   }
 
   public updateElementsShown(): void {
     if (this.canShowBreaksOnMap()) {
       const multiple = this.trails.filter(t => t.showBreaks).length > 1;
-      for (const mt of this._mapTracks) {
-        const t = this.trails.find(twp => twp.trail.owner === mt.trail?.owner && twp.trail.uuid === mt.trail?.uuid);
-        if (t) mt.showBreaksAnchors(t.showBreaks ? (multiple ? 'colored' : 'normal') : undefined);
+      for (const t of this.trails) {
+        t.mapTrack.showBreaksAnchors(t.showBreaks ? (multiple ? 'colored' : 'normal') : undefined);
       }
     } else {
-      for (const mt of this._mapTracks) mt.showBreaksAnchors(undefined);
+      for (const t of this.trails) t.mapTrack.showBreaksAnchors(undefined);
     }
     if (this.canShowGuidepostsOnMap()) {
-      for (const mt of this._mapTracks) {
-        const t = this.trails.find(twp => twp.trail.owner === mt.trail?.owner && twp.trail.uuid === mt.trail?.uuid);
-        if (t) mt.showGuideposts(t.showGuideposts);
-      }
+      for (const t of this.trails) t.mapTrack.showGuideposts(t.showGuideposts);
     } else {
-      for (const mt of this._mapTracks) mt.showGuideposts(false);
+      for (const t of this.trails) t.mapTrack.showGuideposts(false);
     }
     this.changes$.next(true);
   }
@@ -91,7 +85,7 @@ export class TrailsWaypoints {
 
   public toggleShowWaypointsOnMap(): void {
     this.showWaypointsOnMap = !this.showWaypointsOnMap;
-    this._mapTracks.forEach(mt => mt.showWayPointsAnchors(this.showWaypointsOnMap));
+    for (const t of this.trails) t.mapTrack.showWayPointsAnchors(this.showWaypointsOnMap);
   }
 
   public isShowingAllGuideposts(): boolean {
@@ -165,10 +159,7 @@ export class TrailsWaypoints {
     }
     this._highlightedWayPoint = wp;
     this._highlightedWayPointFromClick = click;
-    if (trail) {
-      const mapTrack = this._mapTracks.find(mt => mt.track === trail.track);
-      mapTrack?.highlightWayPoint(wp);
-    }
+    if (trail) trail.mapTrack.highlightWayPoint(wp);
   }
 
   private waypointClick(wp: TrackWayPoint, trail: TrailWaypoints | undefined): void {
@@ -191,10 +182,7 @@ export class TrailsWaypoints {
       if (this.selection.selectedWayPoint$.value === WayPointFromTrack.from(wp)?.wayPoint)
         this.selection.selectedWayPoint$.next(undefined);
       const trail = this.trails.find(t => t.wayPoints.some(w => w.waypoint === wp));
-      if (trail) {
-        const mapTrack = this._mapTracks.find(mt => mt.track === trail.track);
-        mapTrack?.unhighlightWayPoint(wp);
-      }
+      if (trail) trail.mapTrack.unhighlightWayPoint(wp);
       return true;
     }
     return false;
@@ -253,6 +241,7 @@ export class TrailWaypoints {
     public readonly trail: Trail,
     public readonly track: Track,
     public readonly recording: boolean,
+    public readonly mapTrack: MapTrack,
     readonly initialPhotos: {photos: Photo[], point: L.LatLngExpression}[],
     readonly onUpdated: () => void,
   ) {

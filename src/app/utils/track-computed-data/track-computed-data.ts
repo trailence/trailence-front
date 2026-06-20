@@ -1,8 +1,8 @@
 import { Track } from 'src/app/model/track';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { BehaviorSubjectOnDemand, BehaviorSubjectOnDemandWithSnapshot } from '../rxjs/behavior-subject-ondemand';
-import { BreakPointSection, detectLongBreaksFromTrack, TrackLongBreaks } from 'src/app/services/track-edition/time/break-detection';
-import { debounceTime, EMPTY, from, Observable, of, switchMap } from 'rxjs';
+import { detectLongBreaksFromTrack, TrackLongBreaks } from 'src/app/services/track-edition/time/break-detection';
+import { debounceTime, defer, EMPTY, from, Observable, of, switchMap } from 'rxjs';
 import { estimateTimeForTrack, TrackTimeEstimation } from 'src/app/services/track-edition/time/time-estimation';
 import { TrackWayPoint } from '../track-waypoints/track-waypoint';
 import { computeTrackWayPoints } from '../track-waypoints/compute-track-way-points';
@@ -11,6 +11,7 @@ import { WorkerService } from 'src/app/worker/web-app';
 import { OsmWaysTrackPoint } from './match-osm-ways';
 import { Way } from 'src/app/services/map/way';
 import { TrackOsmStats } from './track-osm-stats';
+import { debounceTimeExtended } from '../rxjs/debounce-time-extended';
 
 export class TrackComputedData {
 
@@ -23,12 +24,12 @@ export class TrackComputedData {
 
   private readonly _breaks = new BehaviorSubjectOnDemandWithSnapshot<TrackLongBreaks>(
     () => detectLongBreaksFromTrack(this.track, this.preferencesService.preferences.longBreakMinimumDuration, this.preferencesService.preferences.longBreakMaximumDistance),
-    this.track.changes$.pipe(debounceTime(250))
+    this.track.changes$.pipe(this.track.isRecording ? debounceTimeExtended(0, 5000, 25) : debounceTime(250)),
   );
 
   private readonly _estimatedDuration = new BehaviorSubjectOnDemandWithSnapshot<TrackTimeEstimation>(
     () => estimateTimeForTrack(this.track, this.preferencesService.preferences.estimatedBaseSpeed),
-    this.track.changes$.pipe(debounceTime(250))
+    this.track.changes$.pipe(this.track.isRecording ? debounceTimeExtended(0, 5000, 25) : debounceTime(250)),
   );
 
   // TODO once calculated, with a good debounceTime (or when BehaviorSubjectOnDemand is unloading), save in cache ? with the version of the track, and version of osm-data
@@ -56,7 +57,7 @@ export class TrackComputedData {
           })
         )
       : of(null),
-    this.track.changes$.pipe(debounceTime(250)),
+    this.track.changes$.pipe(this.track.isRecording ? debounceTimeExtended(0, 5000, 25) : debounceTime(250)),
     120000,
   );
 
@@ -70,7 +71,7 @@ export class TrackComputedData {
 
   private readonly _wayPoints = new BehaviorSubjectOnDemand<TrackWayPoint[]>(
     () => computeTrackWayPoints(this.track, this._breaks.snapshot().sections, this.mapService),
-    this.track.changes$.pipe(debounceTime(250)),
+    this.track.changes$.pipe(this.track.isRecording ? debounceTimeExtended(0, 5000, 25) : debounceTime(250)),
     60000,
   );
 
