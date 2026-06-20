@@ -54,29 +54,25 @@ export class AddOsmPath extends AddPointsTool {
 
   override enableAddPoints(ctx: AddPointsContext): void {
     if (this.waysSubscription === undefined) {
-      let cumulativeWays: Way[] = [];
       this.waysSubscription = combineLatest([ctx.map.getState().center$, ctx.map.getState().zoomInt$]).pipe(
         distinctUntilChanged(),
-        switchMap(([center, zoom]) => zoom < MIN_ZOOM ? of({ways: []}) : ctx.injector.get(OfflineMapService).ways.getWays(ctx.map.getBounds()!)),
-      ).subscribe({
-        next: response => cumulativeWays.push(...response.ways),
-        complete: () => {
-          const ways = WayUtils.mergeWays(cumulativeWays, () => true) // TODO merge those which have compatible permission = same color
-          this.allWays = ways;
-          this.allMapTracks = ways.map(way => {
-            const mapTrack = new MapTrack(
-              undefined,
-              {
-                points: way.points
-              },
-              DEFAULT_COLOR,
-              1, false, ctx.injector.get(I18nService)
-            );
-            mapTrack.data = way;
-            return mapTrack;
-          });
-          this._init(ctx);
-        }
+        switchMap(([center, zoom]) => zoom < MIN_ZOOM ? of({ways: []}) : ctx.injector.get(OfflineMapService).ways.getAllWays(ctx.map.getBounds()!, false)),
+      ).subscribe(waysResponse => {
+        const ways = WayUtils.mergeWays(waysResponse.ways, () => true) // TODO merge those which have compatible permission = same color
+        this.allWays = ways;
+        this.allMapTracks = ways.map(way => {
+          const mapTrack = new MapTrack(
+            undefined,
+            {
+              points: way.points
+            },
+            DEFAULT_COLOR,
+            1, false, ctx.injector.get(I18nService)
+          );
+          mapTrack.data = way;
+          return mapTrack;
+        });
+        this._init(ctx);
       });
     } else {
       this._init(ctx);

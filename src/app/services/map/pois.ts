@@ -67,6 +67,10 @@ export class Pois {
         if (server && dto.version < server.osmDataVersions[1])
           return this.requestAndCacheV1(tile, server.osmDataVersions[1]).pipe(map(blob => blob || this.used(dto).blob));
         return of(this.used(dto).blob);
+      }),
+      catchError(e => {
+        Console.warn('Error getting poi tile', tile, e);
+        return of(undefined);
       })
     );
   }

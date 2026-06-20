@@ -422,17 +422,11 @@ export class TrackBuilder {
       setTimeout(() => this.updateWays(), 100);
       return;
     }
-    let allWays: Way[] = [];
     this.injector.get(OfflineMapService)
-      .ways.getWays(bounds)
-      .subscribe({
-        next: response => {
-          allWays.push(...response.ways);
-        },
-        complete: () => {
-          this.updateWaysFromService(WayUtils.mergeWays(allWays, (w1, w2) => this.getWayColor(w1) === this.getWayColor(w2)));
+      .ways.getAllWays(bounds, true)
+      .subscribe(allWays => {
+          this.updateWaysFromService(WayUtils.mergeWays(allWays.ways, (w1, w2) => this.getWayColor(w1) === this.getWayColor(w2)));
           this.searchingWays = false;
-        },
       });
   }
 

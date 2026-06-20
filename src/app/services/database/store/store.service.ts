@@ -6,6 +6,7 @@ import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended'
 import { NetworkService } from '../../network/network.service';
 import { AuthService } from '../../auth/auth.service';
 import { DbStatus } from '../storage/db-table';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 const AUTO_UPDATE_FROM_SERVER_EVERY = 30 * 60 * 1000;
 const MINIMUM_SYNC_INTERVAL = 15 * 1000;
@@ -353,7 +354,13 @@ class RegisteredStore implements StoreRegistration {
         this.status$.pipe(map(s => !!(s?.inProgress)), debounceTime(60000), filter(progress => progress)).subscribe(() => {
           Console.warn('Store ' + this.name + ' is in progress since more than 1 minute !');
         });
-        this.loadStatus$.pipe(filter(s => !!s), timeout({first: 20000})).subscribe({
+        this.service.injector.get(AuthService).userChanged$.pipe(
+          filterDefined(),
+          switchMap(() => this.loadStatus$.pipe(
+            filterDefined(),
+            timeout({first: 20000}),
+          )),
+        ).subscribe({
           error: e => Console.warn('Store ' + this.name + ' is still not loaded after 20 seconds !', e),
           next: () => { Console.info('Store loaded: ' + this.name); }
         });

@@ -4,12 +4,13 @@ import { HttpService } from '../http/http.service';
 import { NetworkService } from '../network/network.service';
 import { PendingRequests } from 'src/app/utils/pending-requests';
 import { Injector } from '@angular/core';
-import { catchError, debounceTime, filter, firstValueFrom, forkJoin, from, map, Observable, of, Subscriber, switchMap, tap } from 'rxjs';
+import { catchError, debounceTime, filter, first, firstValueFrom, forkJoin, from, map, Observable, of, Subscriber, switchMap, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { ApiError } from '../http/api-error';
 import { Console } from 'src/app/utils/console';
 import { Way } from './way';
 import { DbTableWhereLessThan } from '../database/storage/db-table';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 const CACHE_EXPIRATION = 90 * 24 * 60 * 60 * 1000;
 const CACHE_NULL = -CACHE_EXPIRATION + 3 * 60 * 60 * 1000;
@@ -32,24 +33,28 @@ export class Ways {
     this.table.whenReady$().pipe(debounceTime(180000)).subscribe(() => this.clean());
   }
 
-  public getWays(bounds: L.LatLngBounds): Observable<WaysResponse> {
+  public getWays(bounds: L.LatLngBounds, retryOnPartial: boolean): Observable<WaysResponse> {
     const boundsTiles = this.boundsToTiles(bounds);
     if (boundsTiles.length === 0) return of({ways: [], done: true, partial: false});
     return new Observable<WaysResponse>(subscriber => {
-      this.processWaysTiles([], boundsTiles, bounds, false, subscriber);
+      this.processWaysTiles([], boundsTiles, bounds, false, subscriber, retryOnPartial, 0);
     });
   }
 
-  public getAllWays(bounds: L.LatLngBounds): Observable<Way[]> {
-    const allWays: Way[] = [];
-    return this.getWays(bounds).pipe(
+  public getAllWays(bounds: L.LatLngBounds, retryOnPartial: boolean): Observable<{ways: Way[], partial: boolean}> {
+    let allWays: Way[] = [];
+    return this.getWays(bounds, retryOnPartial).pipe(
       tap(response => allWays.push(...response.ways)),
       filter(response => response.done),
-      map(() => allWays),
+      map(response => {
+        const result = allWays;
+        allWays = [];
+        return {ways: result, partial: response.partial};
+      }),
     );
   }
 
-  private processWaysTiles(tilesProcessed: number[], tilesToProcess: number[], bounds: L.LatLngBounds, partial: boolean, subscriber: Subscriber<WaysResponse>) {
+  private processWaysTiles(tilesProcessed: number[], tilesToProcess: number[], bounds: L.LatLngBounds, partial: boolean, subscriber: Subscriber<WaysResponse>, retryOnPartial: boolean, retry: number) {
     forkJoin(tilesToProcess.map(tileNumber =>
       this.getTile('' + tileNumber).pipe(
         switchMap(blob => {
@@ -76,9 +81,13 @@ export class Ways {
       }
       if (newToProcess.length === 0 || tilesProcessed.length > 0) { // only one level of references
         subscriber.next({ways: [], done: true, partial});
-        subscriber.complete();
+        if (!partial || !retryOnPartial) {
+          subscriber.complete();
+        } else {
+          this.network.server$.pipe(debounceTime(retry * 10000 + 2500), filterDefined(), first()).subscribe(() => this.processWaysTiles([], newProcessed, bounds, false, subscriber, true, retry + 1));
+        }
       } else {
-        this.processWaysTiles(newProcessed, newToProcess, bounds, partial, subscriber);
+        this.processWaysTiles(newProcessed, newToProcess, bounds, partial, subscriber, retryOnPartial, retry);
       }
     });
   }
@@ -95,6 +104,10 @@ export class Ways {
         if (server && dto.version < server.osmDataVersions[1])
           return this.requestAndCacheV1(tile, server.osmDataVersions[1]).pipe(map(blob => blob || this.used(dto).blob));
         return of(this.used(dto).blob);
+      }),
+      catchError(e => {
+        Console.warn('Error getting way tile', tile, e);
+        return of(undefined);
       })
     );
   }

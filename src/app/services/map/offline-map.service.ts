@@ -11,8 +11,6 @@ import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
 import { ErrorService } from '../progress/error.service';
 import { I18nError, TranslatedString } from '../i18n/i18n-string';
 import { Console } from 'src/app/utils/console';
-import { GeoService } from '../geolocation/geo.service';
-import { OverpassClient } from '../geolocation/overpass-client.service';
 import { Db } from '../database/storage/db';
 import { BlobDto, DbTablesMetaBlob } from '../database/storage/db-tables-meta-blob';
 import { DbTable, DbTableWhereLessThan } from '../database/storage/db-table';
@@ -25,16 +23,6 @@ interface TileMetadata {
   key: string;
   size: number;
   date: number;
-}
-
-interface OsmDataEntryDto {
-  north: number;
-  south: number;
-  west: number;
-  east: number;
-  date: number;
-  offline: boolean;
-  elements: any[];
 }
 
 @Injectable({
@@ -54,9 +42,7 @@ export class OfflineMapService {
     private readonly layers: MapLayersService,
     private readonly preferencesService: PreferencesService,
     private readonly ngZone: NgZone,
-    private readonly geoService: GeoService,
     private readonly injector: Injector,
-    private readonly overpass: OverpassClient,
   ) {
     const tables: DbTable<any>[] = [];
     for (const layer of this.layers.possibleLayers) {
@@ -68,8 +54,7 @@ export class OfflineMapService {
     tables.push(this.pois.table);
     this.ways = new Ways(injector);
     tables.push(this.ways.table);
-    // TODO migrate to non-user-specific database
-    this.db = new Db(injector, 'trailence_offline_map', true, tables);
+    this.db = new Db(injector, 'trailence_offline_map', false, tables);
     this.db.dbReady$.subscribe(ready => {
       this._dbCounter++;
       if (ready) this.cleanExpiredTimeout(ready.email);
@@ -96,7 +81,7 @@ export class OfflineMapService {
     for (const b of bounds) {
       // TODO progress
       this.pois.getPois(b, POI_TYPES).subscribe();
-      this.ways.getWays(b).subscribe();
+      this.ways.getWays(b, true).subscribe();
     }
   }
 

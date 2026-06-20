@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from '../http/http.service';
-import { BehaviorSubject, from, map, Observable, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, filter, from, map, Observable, switchMap, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { DynamicCacheObservables } from 'src/app/utils/rxjs/dynamic-cache-observable';
+import { NetworkService } from '../network/network.service';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable({providedIn: 'root'})
 export class FeedbackService {
@@ -14,6 +16,8 @@ export class FeedbackService {
 
   constructor(
     private readonly http: HttpService,
+    private readonly network: NetworkService,
+    private readonly auth: AuthService,
     private readonly fetchService: FetchSourceService,
   ) {}
 
@@ -59,7 +63,12 @@ export class FeedbackService {
   }
 
   private getCount(uuid: string): Observable<number> {
-    return this.http.get<number>(environment.apiBaseUrl + '/public_trail_feedback/v1/' + uuid + '/count');
+    return this.auth.auth$.pipe(
+      filter(auth => !!auth && !auth.isAnonymous),
+      switchMap(() => this.network.server$),
+      filter(server => !!server),
+      switchMap(() => this.http.get<number>(environment.apiBaseUrl + '/public_trail_feedback/v1/' + uuid + '/count')),
+    );
   }
 
   public sendFeedback(trailUuid: string, rate?: number, comment?: string): Observable<any> {

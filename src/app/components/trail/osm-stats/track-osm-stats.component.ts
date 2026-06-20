@@ -6,7 +6,11 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { HikingDifficulty, WaySurface, WayType, WayVisibility } from 'src/app/services/map/way';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { TrackOsmStatInfo, TrackOsmStats, TrackSection, trackSectionsComparator } from 'src/app/utils/track-computed-data/track-osm-stats';
-import { PercentCircleComponent } from '../../percent-circle/percent-circle.component';
+import { ProgressBarComponent } from '../../progress-bar/progress-bar.component';
+import { IonSpinner } from '@ionic/angular/standalone';
+import { I18nPipe } from 'src/app/services/i18n/i18n-string';
+import { TrackPointReference } from 'src/app/utils/track-computed-data/types';
+import { computePercentagesWithoutDecimal } from 'src/app/utils/math-utils';
 
 type Stat<T> = {value: T | 'unknown' | 'others', percent: number, distance: number, sections: TrackSection[]}
 
@@ -21,7 +25,7 @@ interface Stats {
   selector: 'app-track-osm-stats',
   templateUrl: './track-osm-stats.component.html',
   styleUrl: './track-osm-stats.component.scss',
-  imports: [NgTemplateOutlet, NgClass, PercentCircleComponent]
+  imports: [NgTemplateOutlet, NgClass, ProgressBarComponent, IonSpinner, I18nPipe]
 })
 export class TrackOsmStatsComponent extends AbstractComponent {
 
@@ -30,6 +34,8 @@ export class TrackOsmStatsComponent extends AbstractComponent {
 
   stats: Stats | null | undefined;
   previousSelection?: TrackSection[];
+  loading = true;
+  message?: string;
 
   constructor(
     injector: Injector,
@@ -43,17 +49,37 @@ export class TrackOsmStatsComponent extends AbstractComponent {
   }
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
+    this.loading = true;
+    this.message = undefined;
     this.byStateAndVisible.subscribe(
       this.track ? this.track.computed.osmStats$ : of(undefined),
-      stats => this.stats = this.processStats(stats)
+      stats => {
+        this.stats = this.processStats(stats);
+        this.changesDetection.detectChanges();
+      }
     )
   }
 
   private processStats(stats: TrackOsmStats | null | undefined): Stats | null | undefined {
     this.trackSectionsHighlighted.emit(null);
     this.previousSelection = undefined;
-    if (!stats) return stats;
-    if (stats.osmTotalDistanceMeters === 0) return undefined;
+    this.loading = false;
+    if (!stats) {
+      if (this.track) {
+        if (stats === null) {
+          this.message = 'osm_stats.messages.no_data';
+        }
+      }
+      return stats;
+    }
+    if (stats.osmTotalDistanceMeters === 0) {
+      this.message = 'osm_stats.messages.no_match';
+      return undefined;
+    }
+    if (stats.isPartial)
+      this.message = 'osm_stats.messages.partial_data';
+    else
+      this.message = undefined;
     return {
       wayType: this.mapToStat(stats, stats.wayType, new Map()),
       surface: this.mapToStat(stats, stats.surface, new Map([[3, 2], [4, 5]])),
@@ -82,32 +108,61 @@ export class TrackOsmStatsComponent extends AbstractComponent {
     const result:{value: T | 'unknown' | 'others', percent: number, distance: number, sections: TrackSection[]}[] = [];
     let remaining = stats.osmTotalDistanceMeters;
     let others = 0;
+    let othersSections: TrackSection[] = [];
     for (const entry of mergedMap.entries()) {
       const value = entry[0];
       const info = entry[1];
-      const percent = Math.floor(info.distance * 100 / stats.osmTotalDistanceMeters);
+      const percent = info.distance * 100 / stats.osmTotalDistanceMeters;
       remaining -= info.distance;
-      if (percent >= 1)
+      if (percent >= 1) {
         result.push({value, percent, distance: info.distance, sections: info.sections});
-      else
+      } else {
         others += info.distance;
+        othersSections.push(...info.sections);
+      }
     }
+    let remainingSections: TrackSection[] = [];
     if (remaining > 0) {
-      const percent = Math.floor(remaining * 100 / stats.osmTotalDistanceMeters);
-      if (percent >= 50) return undefined; // more than helf is unknown, not interesting
+      const percent = remaining * 100 / stats.osmTotalDistanceMeters;
+      if (percent > 75) return undefined; // not enough data, hide the section
+      remainingSections = this.remainingSections([...othersSections, ...result.flatMap(r => r.sections)].sort(trackSectionsComparator));
       if (percent >= 3) {
-        result.push({value: 'unknown', percent, distance: remaining, sections: []});
+        result.push({value: 'unknown', percent, distance: remaining, sections: remainingSections});
         remaining = 0;
       }
     }
     if (others + remaining > 0) {
-      const percent = Math.floor((others + remaining) * 100 / stats.osmTotalDistanceMeters);
-      if (percent >= 1) {
-        result.push({value: 'others', percent, distance: others + remaining, sections: []});
-      }
+      const percent = (others + remaining) * 100 / stats.osmTotalDistanceMeters;
+      result.push({value: 'others', percent, distance: others + remaining, sections: [...othersSections, ...remainingSections].sort(trackSectionsComparator)});
     }
     result.sort((s1, s2) => s2.distance - s1.distance);
-    return result;
+    computePercentagesWithoutDecimal(result, 'percent');
+    return result.filter(r => r.percent > 0);
+  }
+
+  private remainingSections(known: TrackSection[]): TrackSection[] {
+    const remaining: TrackSection[] = [];
+    let next: TrackPointReference = {segmentIndex: 0, pointIndex: 0};
+    for (const s of known) {
+      if (s.start.segmentIndex > next.segmentIndex || s.start.pointIndex > next.pointIndex) {
+        remaining.push({start: next, end: this.pointBefore(s.start)});
+      }
+      next = this.pointAfter(s.end);
+    }
+    if (next.segmentIndex < this.track!.segments.length)
+      remaining.push({start: next, end: {segmentIndex: this.track!.segments.length - 1, pointIndex: this.track!.segments.at(-1)!.points.length - 1}});
+    return remaining;
+  }
+
+  private pointBefore(ref: TrackPointReference): TrackPointReference {
+    if (ref.pointIndex > 0) return {segmentIndex: ref.segmentIndex, pointIndex: ref.pointIndex - 1};
+    return {segmentIndex: ref.segmentIndex - 1, pointIndex: this.track!.segments[ref.segmentIndex - 1].points.length - 1};
+  }
+
+  private pointAfter(ref: TrackPointReference): TrackPointReference {
+    if (ref.pointIndex < this.track!.segments[ref.segmentIndex].points.length - 1)
+      return {segmentIndex: ref.segmentIndex, pointIndex: ref.pointIndex + 1};
+    return {segmentIndex: ref.segmentIndex + 1, pointIndex: 0};
   }
 
   highlightSections(stat: Stat<any>): void {

@@ -23,28 +23,17 @@ interface PointMatch {
 }
 
 export function matchOsmWays(segments: EarthPoint[][], ways: Way[]): OsmWaysTrackPoint[][] {
-  const t1 = Date.now();
   // way map
   const wayMap = new Map<string, Way>();
   for (const way of ways) wayMap.set(way.id, way);
-  const t2 = Date.now();
-  console.log('way map in', t2 - t1);
   // match every point with ways
   const matches = matchPoints(segments, ways, wayMap);
-  const t3 = Date.now();
-  console.log('match points in', t3 - t2);
   // sort points by distance
   for (const segment of matches) for (const point of segment) point.sort((p1, p2) => p1.closest.distanceMeters - p2.closest.distanceMeters);
-  const t4 = Date.now();
-  console.log('sort in', t4 - t3);
   // resolve ambiguities
   resolveAmbiguities(matches);
-  const t5 = Date.now();
-  console.log('resolve ambiguities in', t5 - t4);
   // unresolved
   processUnresolved(matches, segments);
-  const t6 = Date.now();
-  console.log('process unresolved in', t6 - t5);
   // result
   const result: OsmWaysTrackPoint[][] = [];
   for (let si = 0; si < matches.length; ++si) {
@@ -56,7 +45,7 @@ export function matchOsmWays(segments: EarthPoint[][], ways: Way[]): OsmWaysTrac
       const point = segment[pi];
       const resolved: PointMatch | undefined = point[0];
       if (previousResolved && resolved) addOsmPathBetween(segmentResult, previousResolved, resolved, wayMap);
-      if (point.length > 1) console.log('unresolved ambiguity', pi, segmentResult.length, point);
+      //if (point.length > 1) console.log('unresolved ambiguity', pi, segmentResult.length, point);
       const pointResult: OsmWaysTrackPoint = {
         originalTrackPoint: {segmentIndex: si, pointIndex: pi},
       };
@@ -72,11 +61,11 @@ export function matchOsmWays(segments: EarthPoint[][], ways: Way[]): OsmWaysTrac
       previousResolved = resolved;
     }
   }
-  const t7 = Date.now();
-  console.log('result in', t7 - t6);
+  /*
   console.log('----------------------------------')
   console.log(result)
   console.log('----------------------------------')
+  */
   return result;
 }
 
@@ -191,34 +180,34 @@ interface ResolveResult {
 }
 
 function resolveAmbiguities(matches: PointMatch[][][]) {
-  const logStart = 0;
-  const logEnd = -1;
-  for (let i = logStart; i <= logEnd; ++i) console.log(i, matches[0][i]);
+  // const logStart = 0;
+  // const logEnd = -1;
+  // for (let i = logStart; i <= logEnd; ++i) console.log(i, matches[0][i]);
 
   let result = resolveAmbiguitiesBasedOnNonAmbiguous(matches, true);
-  console.log('ambiguities based on non ambiguous', result);
-  for (let i = logStart; i <= logEnd; ++i) console.log(i, matches[0][i]);
+  // console.log('ambiguities based on non ambiguous', result);
+  // for (let i = logStart; i <= logEnd; ++i) console.log(i, matches[0][i]);
   if (!result.remaining) return;
 
   result = resolveAmbiguitiesBasedOnEachSideGoingBackToSameWayInShortDistance(matches, false);
-  console.log('ambiguities based on each side going back to same way in short distance, only using non ambiguous sides', result);
-  for (let i = logStart; i <= logEnd; ++i) console.log(i, matches[0][i]);
+  // console.log('ambiguities based on each side going back to same way in short distance, only using non ambiguous sides', result);
+  // for (let i = logStart; i <= logEnd; ++i) console.log(i, matches[0][i]);
   if (!result.remaining) return;
 
   result = resolveAmbiguitiesBasedOnNonAmbiguous(matches, false);
-  console.log('ambiguities based on non ambiguous, including non best', result);
-  for (let i = logStart; i <= logEnd; ++i) console.log(i, matches[0][i]);
+  // console.log('ambiguities based on non ambiguous, including non best', result);
+  // for (let i = logStart; i <= logEnd; ++i) console.log(i, matches[0][i]);
   if (!result.remaining) return;
 
   // when a previous non ambiguous is different from a subsequent non ambiguous, and that both have a node in common, we most probably changed way on that node
   result = resolveAmbiguitiesBasedOnNonAmbiguousChangeOfConnectedWays(matches);
-  console.log('ambiguities based on non ambiguous change of connected ways', result);
-  for (let i = logStart; i <= logEnd; ++i) console.log(i, matches[0][i]);
+  // console.log('ambiguities based on non ambiguous change of connected ways', result);
+  // for (let i = logStart; i <= logEnd; ++i) console.log(i, matches[0][i]);
   if (!result.remaining) return;
 
   result = resolveAmbiguitiesBasedImpossibleConnectionThenPossibleConnection(matches);
-  console.log('ambiguities based on change of connected ways event with ambiguities', result);
-  for (let i = logStart; i <= logEnd; ++i) console.log(i, matches[0][i]);
+  // console.log('ambiguities based on change of connected ways event with ambiguities', result);
+  // for (let i = logStart; i <= logEnd; ++i) console.log(i, matches[0][i]);
   if (!result.remaining) return;
 
   /*

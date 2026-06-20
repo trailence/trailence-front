@@ -32,34 +32,37 @@ export class TrackComputedData {
   );
 
   // TODO once calculated, with a good debounceTime (or when BehaviorSubjectOnDemand is unloading), save in cache ? with the version of the track, and version of osm-data
-  private readonly _osmWaysMatch = new BehaviorSubjectOnDemand<{waysOnTrack: Map<string, Way>, allWays: Map<string, Way>, osmTrackPoints: OsmWaysTrackPoint[][]} | undefined>(
+  private readonly _osmWaysMatch = new BehaviorSubjectOnDemand<{waysOnTrack: Map<string, Way>, allWays: Map<string, Way>, osmTrackPoints: OsmWaysTrackPoint[][], isPartial: boolean} | null>(
     () => this.track.metadata.bounds ?
-        this.mapService.ways.getAllWays(this.track.metadata.bounds).pipe(
-          switchMap(ways => from(
-            this.workerService.matchOsmWays(this.track.segments.map(s => s.points.map(p => ({lat: p.pos.lat, lng: p.pos.lng}))), ways)
-            .then(osmTrackPoints => {
-              const waysIds = new Set<string>();
-              for (const segment of osmTrackPoints)
-                for (const p of segment)
-                  if (p.osm) waysIds.add(p.osm.wayId);
-              const waysOnTrack = new Map<string, Way>();
-              const allWays = new Map<string, Way>();
-              for (const way of ways) {
-                if (waysIds.has(way.id)) waysOnTrack.set(way.id, way);
-                allWays.set(way.id, way);
-              }
-              return {waysOnTrack, allWays, osmTrackPoints};
-            })
-          ))
+        this.mapService.ways.getAllWays(this.track.metadata.bounds, true).pipe(
+          switchMap(allWaysResponse => {
+            if (allWaysResponse.ways.length === 0) return of(null);
+            return from(
+              this.workerService.matchOsmWays(this.track.segments.map(s => s.points.map(p => ({lat: p.pos.lat, lng: p.pos.lng}))), allWaysResponse.ways)
+              .then(osmTrackPoints => {
+                const waysIds = new Set<string>();
+                for (const segment of osmTrackPoints)
+                  for (const p of segment)
+                    if (p.osm) waysIds.add(p.osm.wayId);
+                const waysOnTrack = new Map<string, Way>();
+                const allWays = new Map<string, Way>();
+                for (const way of allWaysResponse.ways) {
+                  if (waysIds.has(way.id)) waysOnTrack.set(way.id, way);
+                  allWays.set(way.id, way);
+                }
+                return {waysOnTrack, allWays, osmTrackPoints, isPartial: allWaysResponse.partial};
+              })
+            );
+          })
         )
-      : of(undefined),
+      : of(null),
     this.track.changes$.pipe(debounceTime(250)),
     120000,
   );
 
   private readonly _osmStats = new BehaviorSubjectOnDemand<TrackOsmStats | null>(
     () => this.osmWays$.pipe(
-      switchMap(osmWays => osmWays ? this.workerService.getTrackOsmStats(osmWays.waysOnTrack, osmWays.osmTrackPoints) : of(null)),
+      switchMap(osmWays => osmWays ? this.workerService.getTrackOsmStats(osmWays.waysOnTrack, osmWays.osmTrackPoints, osmWays.isPartial) : of(null)),
     ),
     EMPTY,
     120000,
@@ -89,7 +92,7 @@ export class TrackComputedData {
     return this._wayPoints.asObservable();
   }
 
-  public get osmWays$(): Observable<{waysOnTrack: Map<string, Way>, allWays: Map<string, Way>, osmTrackPoints: OsmWaysTrackPoint[][]} | undefined> {
+  public get osmWays$(): Observable<{waysOnTrack: Map<string, Way>, allWays: Map<string, Way>, osmTrackPoints: OsmWaysTrackPoint[][], isPartial: boolean} | null> {
     return this._osmWaysMatch.asObservable();
   }
 

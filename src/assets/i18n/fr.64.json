@@ -1696,6 +1696,11 @@
           "6": "Aucune"
         }
       }
+    },
+    "messages": {
+      "no_match": "Aucune information disponible",
+      "partial_data": "Certaines information n'ont pas été téléchargées, les résultats sont incomplets",
+      "no_data": "Pas de données téléchargées"
     }
   }
 }

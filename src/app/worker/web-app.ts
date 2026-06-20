@@ -48,10 +48,10 @@ export class WorkerService {
     });
   }
 
-  public getTrackOsmStats(ways: Map<string, Way>, osmTrackPoints: OsmWaysTrackPoint[][]): Promise<TrackOsmStats> {
+  public getTrackOsmStats(ways: Map<string, Way>, osmTrackPoints: OsmWaysTrackPoint[][], isPartial: boolean): Promise<TrackOsmStats> {
     return this.request<TrackOsmStats>({
       request: WorkerRequest.TRACK_OSM_STATS,
-      payload: {ways, osmTrackPoints},
+      payload: {ways, osmTrackPoints, isPartial},
       transferable: [],
     });
   }

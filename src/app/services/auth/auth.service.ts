@@ -22,6 +22,7 @@ import { DbRegistryService } from '../database/storage/db.registry.service';
 import { LocalFilesService } from '../local-files/local-files.service';
 import { I18nService } from '../i18n/i18n.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { isRobot } from '../http/robot';
 
 export const ANONYMOUS_USER = 'anonymous@trailence.org';
 
@@ -522,12 +523,17 @@ export class AuthService {
       request.url === environment.apiBaseUrl + '/donation/v1/status' ||
       (request.url.startsWith(environment.apiBaseUrl + '/public/') && !request.url.endsWith('/mine')) ||
       request.url.startsWith(environment.apiBaseUrl + '/trail-link/v1/trail/') ||
-      request.url.startsWith(environment.apiBaseUrl + '/trail-link/v1/photo/') ||
-      request.url.startsWith(environment.apiBaseUrl + '/live-group/v1')
+      request.url.startsWith(environment.apiBaseUrl + '/trail-link/v1/photo/')
       ;
+    const optionalNoRobot =
+      request.url.startsWith(environment.apiBaseUrl + '/live-group/v1') ||
+      request.url.startsWith(environment.apiBaseUrl + '/geo-data/')
+      ;
+
     return this.requireAuth().pipe(
       filter(auth => {
         if (auth || optional) return true;
+        if (optionalNoRobot && !isRobot()) return true;
         Console.warn('Request cancelled because no authentication', request.url);
         return false; // cancel request if not authenticated
       }),

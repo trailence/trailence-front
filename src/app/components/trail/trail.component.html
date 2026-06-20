@@ -435,10 +435,6 @@
           }
         }
 
-        @if (proposeToPublish) {
-          <div class="propose-to-publish" (click)="openPublish()">{{i18n.texts.pages.trail.propose_to_publish[proposeToPublish]}}</div>
-        }
-
         @if (!trail2) {
           <app-track-osm-stats [track]="tracks[0]" (trackSectionsHighlighted)="highlightSections($event)"></app-track-osm-stats>
         }
@@ -460,6 +456,9 @@
           </div>
         }
 
+        @if (proposeToPublish) {
+          <div class="propose-to-publish" (click)="openPublish()">{{i18n.texts.pages.trail.propose_to_publish[proposeToPublish]}}</div>
+        }
 
         @if (!isSmall) {
           <div class="section">

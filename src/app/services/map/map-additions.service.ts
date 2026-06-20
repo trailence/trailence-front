@@ -61,7 +61,7 @@ export class MapAdditionsService {
         if (options.permissiveWays && way.footPermission === WayPermission.PERMISSIVE) return true;
         return false;
       };
-      requests.push(this.mapOffline.ways.getWays(bounds).pipe(map(r => ({pois: [] as POI[], ways: r.ways.filter(wayFilter), done: false}))));
+      requests.push(this.mapOffline.ways.getWays(bounds, false).pipe(map(r => ({pois: [] as POI[], ways: r.ways.filter(wayFilter), done: false}))));
     }
     if (requests.length === 0) return this.END;
     return concat(merge(...requests), this.END);
