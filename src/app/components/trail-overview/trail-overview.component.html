@@ -158,6 +158,9 @@
             @if (photoEnabled && photoCanBeOnLeft && photos.length > 0) {
               <div class="photos round-img">
                 <app-photos-slider #slider [photos]="photos" [width]="100" [height]="85" [preLoadNext]="false" (click)="$event.stopPropagation(); openPhotos(slider);"></app-photos-slider>
+                @if (photos.length > 1) {
+                  <ion-badge>{{photos.length}}</ion-badge>
+                }
               </div>
             } @else if (!photoEnabled && smallMapEnabled && fullTrack) {
               <div class="photos" [ngStyle]="{'width': (photoCanBeOnLeft ? 100 : maxWidth) + 'px', 'max-width': (photoCanBeOnLeft ? 100 : maxWidth) + 'px'}">
@@ -208,6 +211,9 @@
             @if (photoEnabled && !photoCanBeOnLeft && photos.length > 0) {
               <div class="photos" [ngStyle]="{'margin-left': ((maxWidth - 140) / 2) + 'px'}">
                 <app-photos-slider #slider [photos]="photos" [width]="140" [height]="85" [preLoadNext]="false" (click)="$event.stopPropagation(); openPhotos(slider);"></app-photos-slider>
+                @if (photos.length > 1) {
+                  <ion-badge>{{photos.length}}</ion-badge>
+                }
               </div>
             } @else if (elevationProfile && fullTrack && !photoCanBeOnLeft) {
               <div class="photos" [ngStyle]="{'width': maxWidth + 'px', 'max-width': maxWidth + 'px'}">

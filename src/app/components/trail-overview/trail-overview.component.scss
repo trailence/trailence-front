@@ -244,6 +244,23 @@ div.metadata-with-photos.photo-block {
   }
 }
 
+div.photos {
+  position: relative;
+
+  ion-badge {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    font-size: 11px;
+    font-weight: normal;
+    --padding-top: 2px;
+    --padding-bottom: 2px;
+    --padding-start: 2px;
+    --padding-bottom: 2px;
+  }
+}
+
 .inner-metadata-container.smaller {
   font-size: 10px;
   ion-icon, ::ng-deep .metadata-item-container .metadata-item svg {

@@ -4,7 +4,7 @@ import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { TrackMetadataComponent, TrackMetadataConfig } from '../track-metadata/track-metadata.component';
 import { Track } from 'src/app/model/track';
 import { TrackService } from 'src/app/services/database/track.service';
-import { IonIcon, IonCheckbox, IonButton, IonSpinner, PopoverController, DomController, Platform } from "@ionic/angular/standalone";
+import { IonIcon, IonCheckbox, IonButton, IonSpinner, PopoverController, DomController, Platform, IonBadge } from "@ionic/angular/standalone";
 import { BehaviorSubject, combineLatest, concat, EMPTY, firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MenuContentComponent } from '../menus/menu-content/menu-content.component';
@@ -76,7 +76,7 @@ interface State {
     styleUrls: ['./trail-overview.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-      IonSpinner, IonButton, IonCheckbox, IonIcon,
+      IonSpinner, IonButton, IonCheckbox, IonIcon, IonBadge,
       PhotosSliderComponent, TrailSmallMapComponent, TrailSmallElevationProfileComponent,
       RateComponent,
       LongPressDirective,

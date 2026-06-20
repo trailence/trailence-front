@@ -28,7 +28,6 @@ export function samePosition(p1?: L.LatLngLiteral, p2?: L.LatLngLiteral): boolea
   if (!p1) return !p2;
   if (!p2) return false;
   return p1.lat === p2.lat && p1.lng === p2.lng;
-
 }
 
 export function samePositionRound(p1: L.LatLngLiteral, p2: L.LatLngLiteral, roundFactor = 1000000): boolean {
@@ -37,5 +36,4 @@ export function samePositionRound(p1: L.LatLngLiteral, p2: L.LatLngLiteral, roun
   const lat2 = Math.round(p2.lat * roundFactor);
   const lng2 = Math.round(p2.lng * roundFactor);
   return Math.abs(lat1 - lat2) <= 1 && Math.abs(lng1 - lng2) <= 1;
-
 }
