@@ -1299,38 +1299,42 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             p[2] !== n[2] ||
             p[3] !== n[3]
         ),
-      ),
-      ([r, g, tab, track]) => {
-        previousDistance = r ? r.track.metadata.distance : 0;
-        let remaining: Track | undefined = undefined;
-        const pt = r?.track.arrivalPoint;
-        let closestPoint: { segmentIndex: number, pointIndex: number } | undefined = undefined;
-        if (track === r?.track) track = undefined;
-        if (pt && track) {
-          closestPoint = TrackUtils.findNextClosestPointInTrack(pt.pos, track, 250, this.remaining$.value?.segmentIndex ?? 0, this.remaining$.value?.pointIndex ?? 0);
-          if (closestPoint) {
-            remaining = track.subTrack(closestPoint.segmentIndex, closestPoint.pointIndex, track.segments.length - 1, track.segments.at(-1)!.points.length - 1);
+        switchMap(([r, g, tab, track]) => {
+          previousDistance = r ? r.track.metadata.distance : 0;
+          let remaining: Track | undefined = undefined;
+          const pt = r?.track.arrivalPoint;
+          let closestPoint: { segmentIndex: number, pointIndex: number } | undefined = undefined;
+          if (track === r?.track) track = undefined;
+          if (pt && track) {
+            closestPoint = TrackUtils.findNextClosestPointInTrack(pt.pos, track, 250, this.remaining$.value?.segmentIndex ?? 0, this.remaining$.value?.pointIndex ?? 0);
+            if (closestPoint) {
+              remaining = track.subTrack(closestPoint.segmentIndex, closestPoint.pointIndex, track.segments.length - 1, track.segments.at(-1)!.points.length - 1);
+            }
           }
-        }
-        if (remaining) {
-          const mapTrack = new MapTrack(undefined, remaining, 'red', 1, false, this.i18n);
+          if (pt && this.graph) {
+            this.graph.updateRecording(r.track, track, closestPoint?.segmentIndex, closestPoint?.pointIndex);
+          }
+          if (!remaining) return of(undefined);
+          return remaining.computed.timeEstimation$.pipe(first(), map(timeEstimation => ({remaining, closestPoint, timeEstimation})))
+        })
+      ),
+      r => {
+        if (r) {
+          const mapTrack = new MapTrack(undefined, r.remaining, 'red', 1, false, this.i18n);
           mapTrack.data = 'remaining';
           this.remaining$.next({
-            originalTime: remaining.metadata.duration,
-            estimatedTime: remaining.computed.timeEstimationSnapshot.total, // TODO do not use snapshot
-            distance: remaining.metadata.distance,
-            ascent: remaining.metadata.positiveElevation,
-            descent: remaining.metadata.negativeElevation,
-            segmentIndex: closestPoint?.segmentIndex,
-            pointIndex: closestPoint?.pointIndex,
-            subTrack: remaining,
+            originalTime: r.remaining.metadata.duration,
+            estimatedTime: r.timeEstimation.total,
+            distance: r.remaining.metadata.distance,
+            ascent: r.remaining.metadata.positiveElevation,
+            descent: r.remaining.metadata.negativeElevation,
+            segmentIndex: r.closestPoint?.segmentIndex,
+            pointIndex: r.closestPoint?.pointIndex,
+            subTrack: r.remaining,
             mapTrack,
           });
         } else if (this.remaining$.value) {
           this.remaining$.next(undefined);
-        }
-        if (pt && this.graph) {
-          this.graph.updateRecording(r.track, track, this.remaining$.value?.segmentIndex, this.remaining$.value?.pointIndex);
         }
         this.refreshMapToolbarTop();
         this.changesDetection.detectChanges();

@@ -15,6 +15,7 @@ import { debounceTimeExtended } from '../rxjs/debounce-time-extended';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { TrackComputedDataCacheService } from 'src/app/services/database/track-computed-data-cache.service';
 import { AllWaysResponse } from 'src/app/services/map/ways';
+import { PoisResponse } from 'src/app/services/map/pois';
 
 export class TrackComputedData {
 
@@ -32,6 +33,13 @@ export class TrackComputedData {
       filter(data => !data.isRecording && !!data.value?.osmDataVersion),
     ).subscribe(data => {
       if (data.trackVersion === this.track.version) cacheService.setAllWays(track, data.value!);
+    });
+    this._guideposts.onNewValue$.pipe(
+      map(value => ({value, trackVersion: this.track.version, isRecording: this.track.isRecording})),
+      debounceTime(30000),
+      filter(data => !data.isRecording && !!data.value?.osmDataVersion),
+    ).subscribe(data => {
+      if (data.trackVersion === this.track.version) cacheService.setGuideposts(track, data.value!);
     });
     this._osmWaysMatch.onNewValue$.pipe(
       map(value => ({value, trackVersion: this.track.version, isRecording: this.track.isRecording})),
@@ -57,6 +65,24 @@ export class TrackComputedData {
   private readonly _estimatedDuration = new BehaviorSubjectOnDemandWithSnapshot<TrackTimeEstimation>(
     () => estimateTimeForTrack(this.track, this.preferencesService.preferences.estimatedBaseSpeed),
     this.track.changes$.pipe(this.track.isRecording ? debounceTimeExtended(0, 5000, 25) : debounceTime(250)),
+  );
+
+  private readonly _guideposts = new BehaviorSubjectOnDemand<PoisResponse | null, string>(
+    event => {
+      const bounds = this.track.metadata.bounds;
+      if (event || !bounds) this.cacheService.removeGuideposts(this.track);
+      if (!bounds) return of(null);
+      return (event ? of(undefined) : this.cacheService.getGuideposts(this.track)).pipe(
+        switchMap(fromCache => {
+          const server = this.networkService.server;
+          if (fromCache && server && fromCache.osmDataVersion === server.osmDataVersions[this.mapService.geoDataVersion])
+            return of({pois: fromCache.pois, partial: false, done: true, osmDataVersion: fromCache.osmDataVersion});
+          return this.mapService.pois.getPois(bounds, ['guidepost']).pipe(filter(p => p.done));
+        })
+      );
+    },
+    this.track.changes$.pipe(this.track.isRecording ? debounceTimeExtended(0, 5000, 25) : debounceTime(250)),
+    120000,
   );
 
   private readonly _osmWays = new BehaviorSubjectOnDemand<AllWaysResponse | null, string>(
@@ -178,6 +204,10 @@ export class TrackComputedData {
 
   public get osmStats$(): Observable<TrackOsmStats | null> {
     return this._osmStats.asObservable();
+  }
+
+  public get guidpostsOnTrackBounds$(): Observable<PoisResponse | null> {
+    return this._guideposts.asObservable();
   }
 
 }

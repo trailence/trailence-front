@@ -41,14 +41,14 @@ export class Pois {
 
   public getPois(bounds: L.LatLngBounds, types: POIType[]): Observable<PoisResponse> {
     const tiles = this.toTiles(bounds, types);
-    if (tiles.length === 0) return of({pois: [], done: true, partial: false});
+    if (tiles.length === 0) return of({pois: [], done: true, partial: false, osmDataVersion: undefined});
     return combineLatest(tiles.map(t => concat(
-      of({pois: [], done: false, partial: false} as PoisResponse),
+      of({pois: [], done: false, partial: false, osmDataVersion: undefined} as PoisResponse),
       this.getTile(t.tile).pipe(
-        switchMap(blob => {
-          if (blob === undefined) return of({pois: [], done: true, partial: true} as PoisResponse);
-          if (blob === null) return of({pois: [], done: true, partial: false} as PoisResponse);
-          return this.worker.parsePois(blob, t.type, bounds).then(pois => ({pois, done: true, partial: false}));
+        switchMap(tile => {
+          if (tile === undefined) return of({pois: [], done: true, partial: true, osmDataVersion: undefined} as PoisResponse);
+          if (tile.blob === null) return of({pois: [], done: true, partial: false, osmDataVersion: tile.version} as PoisResponse);
+          return this.worker.parsePois(tile.blob, t.type, bounds).then(pois => ({pois, done: true, partial: false, osmDataVersion: tile.version}));
         })
       )
     ))).pipe(
@@ -57,22 +57,23 @@ export class Pois {
         pois: responses.flatMap(r => r.pois),
         done: responses.every(r => r.done),
         partial: !responses.every(r => !r.partial),
+        osmDataVersion: responses.map(r => r.osmDataVersion as number | undefined | null).reduce((p,n) => p === undefined ? n : (p === n ? n : null), undefined) ?? undefined,
       }))
     );
   }
 
   /** return the blob, or null if no blob exists, or undefined if not in cache and no network */
-  private getTile(tile: string): Observable<Blob | null | undefined> {
+  private getTile(tile: string): Observable<{blob: Blob | null, version: number} | undefined> {
     return this.table.getByKey$(tile).pipe(
       switchMap(dto => {
         const server = this.network.server;
         if (!dto) {
           if (!server) return of(undefined);
-          return this.requestAndCacheV1(tile, server.osmDataVersions[1]);
+          return this.requestAndCacheV1(tile, server.osmDataVersions[1]).pipe(map(blob => (blob === undefined ? undefined : {blob, version: server.osmDataVersions[1]})));
         }
         if (server && dto.version < server.osmDataVersions[1])
-          return this.requestAndCacheV1(tile, server.osmDataVersions[1]).pipe(map(blob => blob || this.used(dto).blob));
-        return of(this.used(dto).blob);
+          return this.requestAndCacheV1(tile, server.osmDataVersions[1]).pipe(map(blob => (blob === undefined ? undefined : {blob: blob || this.used(dto).blob, version: server.osmDataVersions[1]})));
+        return of({blob: this.used(dto).blob, version: dto.version});
       }),
       catchError(e => {
         Console.warn('Error getting poi tile', tile, e);
@@ -162,6 +163,7 @@ export interface PoisResponse {
   pois: POI[];
   done: boolean;
   partial: boolean;
+  osmDataVersion: number | undefined;
 }
 
 interface DbDto {

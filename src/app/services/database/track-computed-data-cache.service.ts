@@ -10,6 +10,8 @@ import { OsmWayMatchResponse } from 'src/app/utils/track-computed-data/track-com
 import { TrackOsmStatInfo, TrackOsmStats } from 'src/app/utils/track-computed-data/track-osm-stats';
 import { CleanupService } from './cleanup/cleanup.service';
 import { TrackService } from './track.service';
+import { POI } from '../map/poi';
+import { PoisResponse } from '../map/pois';
 
 export interface CacheItem {
   key: string;
@@ -37,6 +39,11 @@ export interface OsmStatsItem extends CacheItem {
   visibility: Map<WayVisibility, TrackOsmStatInfo>;
 }
 
+export interface GuidepostsItem extends CacheItem {
+  osmDataVersion: number | undefined;
+  pois: POI[],
+}
+
 function key(track: Track) {
   return track.uuid + '#' + track.version + '#' + track.owner;
 }
@@ -50,10 +57,12 @@ export class TrackComputedDataCacheService {
 
   constructor(private readonly injector: Injector) {
     this.tableAllWays = new DbTable<AllWaysItem>(injector, 'all_ways', 'key, ownerUuid', 'key');
+    this.tableGuideposts = new DbTable<GuidepostsItem>(injector, 'osm_guideposts', 'key, ownerUuid', 'key');
     this.tableOsmWaysMatch = new DbTable<OsmWaysMatchItem>(injector, 'osm_ways_match', 'key, ownerUuid', 'key');
     this.tableOsmStats = new DbTable<OsmStatsItem>(injector, 'osm_stats', 'key, ownerUuid', 'key');
     this.db = new Db(injector, 'trailence_track_data_cache', true, [
       this.tableAllWays,
+      this.tableGuideposts,
       this.tableOsmWaysMatch,
       this.tableOsmStats,
     ]);
@@ -72,6 +81,7 @@ export class TrackComputedDataCacheService {
 
   private readonly db: Db;
   private readonly tableAllWays: DbTable<AllWaysItem>;
+  private readonly tableGuideposts: DbTable<GuidepostsItem>;
   private readonly tableOsmWaysMatch: DbTable<OsmWaysMatchItem>;
   private readonly tableOsmStats: DbTable<OsmStatsItem>;
 
@@ -104,6 +114,24 @@ export class TrackComputedDataCacheService {
 
   public removeAllWays(track: Track): void {
     this.remove(this.tableAllWays, track);
+  }
+
+  public getGuideposts(track: Track): Observable<GuidepostsItem | undefined> {
+    return this.get(this.tableGuideposts, track);
+  }
+
+  public setGuideposts(track: Track, guideposts: PoisResponse): void {
+    this.set(this.tableGuideposts, {
+      key: key(track),
+      ownerUuid: ownerUuid(track),
+      trackVersion: track.version,
+      osmDataVersion: guideposts.osmDataVersion!,
+      pois: guideposts.pois,
+    })
+  }
+
+  public removeGuideposts(track: Track): void {
+    this.remove(this.tableGuideposts, track);
   }
 
   public getOsmWaysMatch(track: Track): Observable<OsmWaysMatchItem | undefined> {
@@ -150,9 +178,10 @@ export class TrackComputedDataCacheService {
   private cleanup(): Promise<string> {
     return Promise.all([
       this.cleanupTable(this.tableAllWays),
+      this.cleanupTable(this.tableGuideposts),
       this.cleanupTable(this.tableOsmWaysMatch),
       this.cleanupTable(this.tableOsmStats),
-    ]).then(r => 'all_ways: ' + r[0] + ', ways_match: ' + r[1] + ', stats: ' + r[2]);
+    ]).then(r => 'all_ways: ' + r[0] + + ', guideposts: ' + r[1] + ', ways_match: ' + r[2] + ', stats: ' + r[3]);
   }
 
   private cleanupTable<T extends CacheItem>(table: DbTable<T>): Promise<number> {
