@@ -207,6 +207,12 @@ export class DbTable<DTO> {
     );
   }
 
+  public exist(keys: string[]): Observable<string[]> {
+    return this.onceReady$().pipe(
+      switchMap(status => status.table.where(this.dtoKeyField).anyOf(keys).primaryKeys())
+    );
+  }
+
   public addOne$(dto: DTO): Observable<DTO> {
     return this.onceReady$().pipe(
       switchMap(async status => {
@@ -276,7 +282,7 @@ export class DbTable<DTO> {
     );
   }
 
-  public deleteWhen$(chunk: number, keyPredicate?: (key: string) => boolean, dtoPredicate?: (dto: Partial<DTO>) => boolean): Observable<number> {
+  public deleteWhen$(chunk: number, keyPredicate?: (key: string) => boolean, dtoPredicate?: (dto: Partial<DTO>) => boolean, filter$?: (items: Partial<DTO>[]) => Promise<Partial<DTO>[]>): Observable<number> {
     return this.onceReady$().pipe(
       switchMap(status => {
         let count = 0;
@@ -288,7 +294,9 @@ export class DbTable<DTO> {
             if (!this.isStillValid(status)) return Promise.resolve(count);
             const end = Math.min(i + chunk, keys.length);
             const bunch = keys.slice(i, end);
-            const dtos$ = status.table.bulkGet(bunch).then(dtos => dtos.filter(dto => !!dto && (dtoPredicate ? dtoPredicate(dto) : true)));
+            const dtos$ = status.table.bulkGet(bunch)
+              .then(dtos => dtos.filter(dto => !!dto && (dtoPredicate ? dtoPredicate(dto) : true)) as (Partial<DTO>[]))
+              .then(dtos => filter$ ? filter$(dtos) : dtos);
             const nextKeys$ = dtos$.then(dtos => dtos.map(dto => (dto as any)[this.dtoKeyField] as string));
             return nextKeys$.then(toRemove => {
               if (!this.isStillValid(status)) return count;

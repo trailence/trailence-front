@@ -793,7 +793,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
                 if (!includeOsmMatch || !showOsm) return of([trail, track, mapTrack, undefined, undefined] as [Trail | null, Track | undefined, MapTrack | undefined, Track | undefined, MapTrack | undefined]);
                 return concat(
                   of(undefined),
-                  track.computed.osmWays$
+                  track.computed.osmWaysMatch$
                 ).pipe(
                   map(osm => {
                     if (!osm) return ([trail, track, mapTrack, undefined, undefined]) as [Trail | null, Track | undefined, MapTrack | undefined, Track | undefined, MapTrack | undefined];

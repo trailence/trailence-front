@@ -36,6 +36,8 @@ export class OfflineMapService {
   readonly pois: Pois;
   readonly ways: Ways;
 
+  readonly geoDataVersion = 1;
+
   constructor(
     private readonly layers: MapLayersService,
     private readonly preferencesService: PreferencesService,

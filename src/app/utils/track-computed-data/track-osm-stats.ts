@@ -8,6 +8,7 @@ export type TrackSection = {start: TrackPointReference, end: TrackPointReference
 export type TrackOsmStatInfo = {distance: number, sections: TrackSection[]};
 
 export interface TrackOsmStats {
+  osmDataVersion: number | undefined,
   isPartial: boolean;
   osmTotalDistanceMeters: number;
   wayType: Map<WayType, TrackOsmStatInfo>;
@@ -16,8 +17,9 @@ export interface TrackOsmStats {
   visibility: Map<WayVisibility, TrackOsmStatInfo>;
 }
 
-export function getTrackOsmStats(ways: Map<string, Way>, osmTrackPoints: OsmWaysTrackPoint[][], isPartial: boolean): TrackOsmStats {
+export function getTrackOsmStats(ways: Map<string, Way>, osmTrackPoints: OsmWaysTrackPoint[][], isPartial: boolean, osmDataVersion: number | undefined): TrackOsmStats {
   const stats: TrackOsmStats = {
+    osmDataVersion,
     osmTotalDistanceMeters: 0,
     wayType: new Map<WayType, TrackOsmStatInfo>(),
     surface: new Map<WaySurface, TrackOsmStatInfo>(),

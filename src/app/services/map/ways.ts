@@ -16,6 +16,19 @@ import { CleanupService } from '../database/cleanup/cleanup.service';
 const CACHE_EXPIRATION = 90 * 24 * 60 * 60 * 1000;
 const CACHE_NULL = -CACHE_EXPIRATION + 3 * 60 * 60 * 1000;
 
+export interface WaysResponse {
+  ways: Way[];
+  done: boolean;
+  partial: boolean;
+  osmDataVersion: number | undefined,
+}
+
+export interface AllWaysResponse {
+  ways: Way[],
+  partial: boolean,
+  osmDataVersion: number | undefined,
+}
+
 export class Ways {
 
   readonly table: DbTableWithBlob<DbDto>;
@@ -41,21 +54,26 @@ export class Ways {
 
   public getWays(bounds: L.LatLngBounds, retryOnPartial: boolean): Observable<WaysResponse> {
     const boundsTiles = this.boundsToTiles(bounds);
-    if (boundsTiles.length === 0) return of({ways: [], done: true, partial: false});
+    if (boundsTiles.length === 0) return of({ways: [], done: true, partial: false, osmDataVersion: undefined});
     return new Observable<WaysResponse>(subscriber => {
       this.processWaysTiles([], boundsTiles, bounds, false, subscriber, retryOnPartial, 0);
     });
   }
 
-  public getAllWays(bounds: L.LatLngBounds, retryOnPartial: boolean): Observable<{ways: Way[], partial: boolean}> {
+  public getAllWays(bounds: L.LatLngBounds, retryOnPartial: boolean): Observable<AllWaysResponse> {
     let allWays: Way[] = [];
+    let version: number | undefined | null = undefined;
     return this.getWays(bounds, retryOnPartial).pipe(
-      tap(response => allWays.push(...response.ways)),
+      tap(response => {
+        allWays.push(...response.ways);
+        if (version === undefined) version = response.osmDataVersion;
+        else if (response.osmDataVersion && response.osmDataVersion !== version) version = null;
+      }),
       filter(response => response.done),
       map(response => {
         const result = allWays;
         allWays = [];
-        return {ways: result, partial: response.partial};
+        return {ways: result, partial: response.partial, osmDataVersion: version ?? undefined};
       }),
     );
   }
@@ -63,13 +81,13 @@ export class Ways {
   private processWaysTiles(tilesProcessed: number[], tilesToProcess: number[], bounds: L.LatLngBounds, partial: boolean, subscriber: Subscriber<WaysResponse>, retryOnPartial: boolean, retry: number) {
     forkJoin(tilesToProcess.map(tileNumber =>
       this.getTile('' + tileNumber).pipe(
-        switchMap(blob => {
-          if (blob === undefined) return of(undefined);
-          if (blob === null) return of(null);
-          return this.worker.parseWays(blob, bounds);
+        switchMap(tile => {
+          if (tile === undefined) return of(undefined);
+          if (tile.blob === null) return of(null);
+          return this.worker.parseWays(tile.blob, bounds).then(response => ({response, version: tile.version}));
         }),
         tap(response => {
-          if (response) subscriber.next({ways: response.ways, done: false, partial: false});
+          if (response) subscriber.next({ways: response.response.ways, done: false, partial: false, osmDataVersion: response.version});
         })
       )
     )).subscribe(responses => {
@@ -77,7 +95,7 @@ export class Ways {
       const newToProcess: number[] = [];
       for (const response of responses) {
         if (response) {
-          for (const reference of response.references) {
+          for (const reference of response.response.references) {
             if (!newProcessed.includes(reference.tile) && !newToProcess.includes(reference.tile))
               newToProcess.push(reference.tile);
           }
@@ -86,7 +104,7 @@ export class Ways {
         }
       }
       if (newToProcess.length === 0 || tilesProcessed.length > 0) { // only one level of references
-        subscriber.next({ways: [], done: true, partial});
+        subscriber.next({ways: [], done: true, partial, osmDataVersion: undefined});
         if (!partial || !retryOnPartial) {
           subscriber.complete();
         } else {
@@ -99,17 +117,17 @@ export class Ways {
   }
 
   /** return the blob, or null if no blob exists, or undefined if not in cache and no network */
-  private getTile(tile: string): Observable<Blob | null | undefined> {
+  private getTile(tile: string): Observable<{blob: Blob | null, version: number} | undefined> {
     return this.table.getByKey$(tile).pipe(
       switchMap(dto => {
         const server = this.network.server;
         if (!dto) {
           if (!server) return of(undefined);
-          return this.requestAndCacheV1(tile, server.osmDataVersions[1]);
+          return this.requestAndCacheV1(tile, server.osmDataVersions[1]).pipe(map(blob => blob === undefined ? undefined : ({blob, version: server.osmDataVersions[1]})));
         }
         if (server && dto.version < server.osmDataVersions[1])
-          return this.requestAndCacheV1(tile, server.osmDataVersions[1]).pipe(map(blob => blob || this.used(dto).blob));
-        return of(this.used(dto).blob);
+          return this.requestAndCacheV1(tile, server.osmDataVersions[1]).pipe(map(blob => blob === undefined ? undefined : ({blob: blob || this.used(dto).blob, version: server.osmDataVersions[1]})));
+        return of({blob: this.used(dto).blob, version: dto.version});
       }),
       catchError(e => {
         Console.warn('Error getting way tile', tile, e);
@@ -181,10 +199,4 @@ interface DbDto {
   version: number;
   lastUsed: number;
   blob: Blob | null;
-}
-
-export interface WaysResponse {
-  ways: Way[];
-  done: boolean;
-  partial: boolean;
 }

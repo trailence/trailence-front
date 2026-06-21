@@ -26,6 +26,9 @@ import { DbTable, DbTableWhereEquals, DbTableWhereGreaterThan, DbTableWhereLessT
 import { Db, DbReady } from './storage/db';
 import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from 'src/app/worker/web-app';
+import { TrackComputedDataCacheService } from './track-computed-data-cache.service';
+import { NetworkService } from '../network/network.service';
+import { OwnerUuid } from 'src/app/model/dto/owned';
 
 interface MetadataItem extends TrackMetadataSnapshot {
   key: string;
@@ -204,7 +207,7 @@ export class TrackDatabase implements StoreWithCleaning {
             return this.tableFullTrack.forEach$(trackItem => {
               if (!trackItem.track || trackItem.version === -1) return;
               count++;
-              const track = new Track(trackItem.track, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService));
+              const track = new Track(trackItem.track, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService), this.injector.get(TrackComputedDataCacheService), this.injector.get(NetworkService));
               let meta$ = this.metadata.get(trackItem.key);
               if (meta$?.loadedValue) {
                 countInMemory++;
@@ -397,7 +400,7 @@ export class TrackDatabase implements StoreWithCleaning {
   private loadFullTrack(key: string): Promise<Track | null> {
     return firstValueFrom(this.tableFullTrack.getByKey$(key).pipe(
       map(item => {
-        if (item?.track) return new Track(item.track, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService));
+        if (item?.track) return new Track(item.track, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService), this.injector.get(TrackComputedDataCacheService), this.injector.get(NetworkService));
         return null;
       })
     ));
@@ -930,7 +933,9 @@ export class TrackDatabase implements StoreWithCleaning {
         const prefs = this.injector.get(PreferencesService);
         const mapService = this.injector.get(OfflineMapService);
         const workerService = this.injector.get(WorkerService);
-        const entities = tracks.map(track => new Track(track, false, prefs, mapService, workerService));
+        const cacheService = this.injector.get(TrackComputedDataCacheService);
+        const networkService = this.injector.get(NetworkService);
+        const entities = tracks.map(track => new Track(track, false, prefs, mapService, workerService, cacheService, networkService));
         for (const entity of entities) this.fullTracks.get(entity.uuid + '#' + entity.owner)?.newValue(entity);
         const simplified$ = Promise.all(
           entities.map(track => this.injector.get(WorkerService).simplifyTrack(track).then(simplified => ({...simplified, key: track.uuid + '#' + track.owner})))
@@ -979,6 +984,12 @@ export class TrackDatabase implements StoreWithCleaning {
         subscriber.complete();
       }),
     ]);
+  }
+
+  public getUnknownTracks<T extends OwnerUuid>(tracks: T[]): Observable<T[]> {
+    return this.tableMeta.exist(tracks.map(t => t.uuid + '#' + t.owner)).pipe(
+      map(existing => tracks.filter(t => !existing.includes(t.uuid + '#' + t.owner)))
+    );
   }
 
 }

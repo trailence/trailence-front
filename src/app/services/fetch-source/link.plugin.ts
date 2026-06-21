@@ -13,6 +13,8 @@ import { TrackDatabase } from '../database/track-database';
 import { PointDtoMapper } from 'src/app/model/point-dto-mapper';
 import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from 'src/app/worker/web-app';
+import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
+import { NetworkService } from '../network/network.service';
 
 export class LinkPlugin extends FetchSourcePlugin {
 
@@ -95,7 +97,7 @@ export class LinkPlugin extends FetchSourcePlugin {
       version: 1,
       owner: this.owner,
       uuid: link,
-    }, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService));
+    }, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService), this.injector.get(TrackComputedDataCacheService), this.injector.get(NetworkService));
   }
 
   private toMetadata(link: string, cache: LinkCache): TrackMetadataSnapshot {

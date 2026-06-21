@@ -14,6 +14,8 @@ import { TrailSourceType } from 'src/app/model/dto/trail';
 import { OverpassClient } from '../geolocation/overpass-client.service';
 import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from 'src/app/worker/web-app';
+import { NetworkService } from '../network/network.service';
+import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   id: string;
@@ -108,7 +110,7 @@ export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
       source: 'Open Street Map',
       sourceDate: Date.now(),
     });
-    const track = new Track({ owner: this.owner, uuid: circuit.id + '-original' }, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService));
+    const track = new Track({ owner: this.owner, uuid: circuit.id + '-original' }, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService), this.injector.get(TrackComputedDataCacheService), this.injector.get(NetworkService));
     this.fillTrack(track, members);
 
     const metaOverride = {} as any;

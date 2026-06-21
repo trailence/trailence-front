@@ -22,6 +22,8 @@ import { Console } from 'src/app/utils/console';
 import { StoreService } from '../database/store/store.service';
 import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from 'src/app/worker/web-app';
+import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
+import { NetworkService } from '../network/network.service';
 
 const CP437 = "\0☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ ".split("");
 
@@ -171,7 +173,7 @@ export function importGpx(injector: Injector, file: ArrayBuffer, owner: string, 
   allDone: Promise<{trailUuid: string, tags: string[][], source?: string}>
 } {
   try {
-    const imported = GpxFormat.importGpx(file, owner, collectionUuid, injector.get(PreferencesService), injector.get(OfflineMapService), injector.get(WorkerService), sourceType, source, sourceDate);
+    const imported = GpxFormat.importGpx(file, owner, collectionUuid, injector.get(PreferencesService), injector.get(OfflineMapService), injector.get(WorkerService), injector.get(TrackComputedDataCacheService), injector.get(NetworkService), sourceType, source, sourceDate);
     if (imported.tracks.length === 1) {
       const improved = injector.get(TrackEditionService).applyDefaultImprovments(imported.tracks[0]);
       if (!improved.isEquals(imported.tracks[0])) {

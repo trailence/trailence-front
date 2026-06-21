@@ -17,6 +17,8 @@ import { debounceTime, filter, first, firstValueFrom, from, switchMap } from 'rx
 import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from 'src/app/worker/web-app';
 import { CleanupService } from '../database/cleanup/cleanup.service';
+import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
+import { NetworkService } from '../network/network.service';
 
 export interface TrailInfoBaseDto {
   info: TrailInfo;
@@ -155,7 +157,7 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
   }
 
   public override getFullTrack(uuid: string): Promise<Track | null> {
-    return this.tableFullTracks.get(uuid).then(t => t ? new Track(t, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService)) : this.fetchFullTrackById(uuid));
+    return this.tableFullTracks.get(uuid).then(t => t ? new Track(t, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService), this.injector.get(TrackComputedDataCacheService), this.injector.get(NetworkService)) : this.fetchFullTrackById(uuid));
   }
 
   protected fetchFullTrackById(uuid: string): Promise<Track | null> {

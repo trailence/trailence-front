@@ -11,6 +11,8 @@ import { removeUnprobablePointsBasedOnAccuracyOnSegment, removeUnprobablePointsB
 import { removeBreaksMovesOnSegment, removeBreaksMovesOnTrack } from './path-analysis/remove-breaks-moves';
 import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from 'src/app/worker/web-app';
+import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
+import { NetworkService } from '../network/network.service';
 
 @Injectable({
   providedIn: 'root'
@@ -21,10 +23,12 @@ export class TrackEditionService {
     private readonly preferencesService: PreferencesService,
     private readonly mapService: OfflineMapService,
     private readonly workerService: WorkerService,
+    private readonly trackCacheService: TrackComputedDataCacheService,
+    private readonly networkService: NetworkService,
   ) {}
 
   public applyDefaultImprovments(track: Track): Track {
-    const newTrack = new Track({...track.toDto(), uuid: undefined}, false, this.preferencesService, this.mapService, this.workerService);
+    const newTrack = new Track({...track.toDto(), uuid: undefined}, false, this.preferencesService, this.mapService, this.workerService, this.trackCacheService, this.networkService);
     this.applyDefaultImprovmentsOnTrack(newTrack);
     return newTrack;
   }

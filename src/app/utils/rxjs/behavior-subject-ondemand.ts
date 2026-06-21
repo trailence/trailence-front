@@ -1,10 +1,10 @@
-import { concat, first, Observable, of, Subscriber, Subscription, switchMap, timeout } from 'rxjs';
+import { concat, first, Observable, of, Subject, Subscriber, Subscription, switchMap, timeout } from 'rxjs';
 
-export class BehaviorSubjectOnDemand<T> {
+export class BehaviorSubjectOnDemand<T, E> {
 
   constructor(
-    private readonly valueProvider: () => Observable<T>,
-    private readonly invalidateValueEvent$: Observable<any>,
+    private readonly valueProvider: (event: E | undefined) => Observable<T>,
+    private readonly invalidateValueEvent$: Observable<E>,
     private readonly timeout: number,
   ) {}
 
@@ -12,6 +12,8 @@ export class BehaviorSubjectOnDemand<T> {
   private subscription?: Subscription;
   private timeoutSubscription?: Subscription;
   private readonly observers: Subscriber<T>[] = [];
+
+  public readonly onNewValue$ = new Subject<T>();
 
   public asObservable(): Observable<T> {
     return new Observable(observer => {
@@ -40,14 +42,15 @@ export class BehaviorSubjectOnDemand<T> {
       this.timeoutSubscription = undefined;
     }
     if (this.subscription) return;
-    const event$ = this.lastValue ? this.invalidateValueEvent$ : concat(of(false), this.invalidateValueEvent$);
+    const event$ = this.lastValue ? this.invalidateValueEvent$ : concat(of(undefined), this.invalidateValueEvent$);
     this.subscription = event$.pipe(
-      switchMap(() => this.valueProvider())
+      switchMap(event => this.valueProvider(event))
     ).subscribe(value => {
       if (value === this.lastValue) return;
       this.lastValue = value;
       const list = [...this.observers];
       for (const o of list) o.next(value);
+      this.onNewValue$.next(value);
     });
   }
 

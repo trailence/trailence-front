@@ -34,6 +34,8 @@ import { BinaryContent } from 'src/app/utils/binary-content';
 import { CameraService } from '../camera/camera.service';
 import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from 'src/app/worker/web-app';
+import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
+import { NetworkService } from '../network/network.service';
 
 @Injectable({
   providedIn: 'root'
@@ -67,6 +69,8 @@ export class TraceRecorderService {
     private readonly cameraService: CameraService,
     private readonly mapService: OfflineMapService,
     private readonly workerService: WorkerService,
+    private readonly trackCacheService: TrackComputedDataCacheService,
+    private readonly networkService: NetworkService,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -109,7 +113,7 @@ export class TraceRecorderService {
     this._table = this._db.table<RecordingDto | {key: string, photo: ArrayBuffer}, string>('record');
     this._table.get('1')
     .then(dto => {
-      const recording = dto ? Recording.fromDto(dto as RecordingDto, this.preferencesService, this.mapService, this.workerService) : null;
+      const recording = dto ? Recording.fromDto(dto as RecordingDto, this.preferencesService, this.mapService, this.workerService, this.trackCacheService, this.networkService) : null;
       if (recording) {
         Console.info('Trace in progress found in DB, start it');
         this._recording$.next(recording);
@@ -128,8 +132,8 @@ export class TraceRecorderService {
       this.collectionService.getMyTrails$().pipe(timeout(30000)).subscribe({
         next: myTrails => {
           if (!this._email) { reject(); return; }
-          const track = new Track({ owner: this._email }, true, this.preferencesService, this.mapService, this.workerService);
-          const rawTrack = new Track({ owner: this._email }, true, this.preferencesService, this.mapService, this.workerService);
+          const track = new Track({ owner: this._email }, true, this.preferencesService, this.mapService, this.workerService, this.trackCacheService, this.networkService);
+          const rawTrack = new Track({ owner: this._email }, true, this.preferencesService, this.mapService, this.workerService, this.trackCacheService, this.networkService);
           const trail = new Trail({
             owner: this._email,
             name: this.i18n.texts.trace_recorder.trail_name_start + ' ' + this.i18n.timestampToDateTimeString(Date.now()),
@@ -257,6 +261,8 @@ export class TraceRecorderService {
       switchMap(() =>
         new Observable<Observable<Trail | null>>(subscriber => {
           const onSaved = new CompositeOnDone(() => subscriber.complete());
+          recording.rawTrack.isRecording = false;
+          recording.track.isRecording = false;
           this.trackService.create(recording.rawTrack, onSaved.add(() => progress.addWorkDone(1)));
           this.trackService.create(recording.track, onSaved.add(() => progress.addWorkDone(1)));
           const trail$ = this.trailService.create(recording.trail, onSaved.add(() => progress.addWorkDone(1)));
@@ -622,9 +628,9 @@ export class Recording {
     }
   }
 
-  static fromDto(dto: RecordingDto, preferencesService: PreferencesService, mapService: OfflineMapService, workerService: WorkerService): Recording {
-    const rawTrack = new Track(dto.rawTrack, true, preferencesService, mapService, workerService);
-    const improvedTrack = new Track(dto.track, true, preferencesService, mapService, workerService);
+  static fromDto(dto: RecordingDto, preferencesService: PreferencesService, mapService: OfflineMapService, workerService: WorkerService, trackCacheService: TrackComputedDataCacheService, networkService: NetworkService): Recording {
+    const rawTrack = new Track(dto.rawTrack, true, preferencesService, mapService, workerService, trackCacheService, networkService);
+    const improvedTrack = new Track(dto.track, true, preferencesService, mapService, workerService, trackCacheService, networkService);
     const r = new Recording(
       new Trail(dto.trail),
       improvedTrack,

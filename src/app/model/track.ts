@@ -13,6 +13,8 @@ import { OfflineMapService } from '../services/map/offline-map.service';
 import { TrackComputedData } from '../utils/track-computed-data/track-computed-data';
 import { WorkerService } from '../worker/web-app';
 import { TrackPointReference } from '../utils/track-computed-data/types';
+import { NetworkService } from '../services/network/network.service';
+import { TrackComputedDataCacheService } from '../services/database/track-computed-data-cache.service';
 
 export class Track extends Owned {
 
@@ -56,10 +58,12 @@ export class Track extends Owned {
 
   constructor(
     dto: Partial<TrackDto>,
-    public readonly isRecording: boolean,
-    public readonly preferencesService: PreferencesService,
-    public readonly mapService: OfflineMapService,
-    public readonly workerService: WorkerService,
+    public isRecording: boolean,
+    preferencesService: PreferencesService,
+    mapService: OfflineMapService,
+    workerService: WorkerService,
+    cacheService: TrackComputedDataCacheService,
+    networkService: NetworkService,
   ) {
     super(dto);
     this.sizeUsed = dto.sizeUsed;
@@ -81,7 +85,7 @@ export class Track extends Owned {
           time: wp.t,
         }, wp.na ?? '', wp.de ?? '', wp.nt, wp.dt));
       }
-    this._computed = new TrackComputedData(this, preferencesService, mapService, workerService);
+    this._computed = new TrackComputedData(this, preferencesService, mapService, workerService, cacheService, networkService);
   }
 
   public newSegment(): Segment {
@@ -149,7 +153,7 @@ export class Track extends Owned {
       s: this.segments.reverse().map(segment => segment.reverseDto()),
       wp: this.wayPoints.map(wp => wp.toDto()),
       sizeUsed: this.sizeUsed
-    }, this.isRecording, this.preferencesService, this.mapService, this.workerService);
+    }, this.isRecording, this.computed.preferencesService, this.computed.mapService, this.computed.workerService, this.computed.cacheService, this.computed.networkService);
   }
 
   public override toDto(): TrackDto {
@@ -245,7 +249,7 @@ export class Track extends Owned {
   }
 
   public subTrack(startSegment: number, startPoint: number, endSegment: number, endPoint: number): Track {
-    const sub = new Track({owner: 'nobody'}, this.isRecording, this.preferencesService, this.mapService, this.workerService);
+    const sub = new Track({owner: 'nobody'}, this.isRecording, this.computed.preferencesService, this.computed.mapService, this.computed.workerService, this.computed.cacheService, this.computed.networkService);
     const newPoints: PointDescriptor[] = [];
     for (let si = startSegment; si <= endSegment; si++) {
       const s = this._segments.value[si];
@@ -309,7 +313,7 @@ export class Track extends Owned {
       version: undefined,
       createdAt: undefined,
       updatedAt: undefined
-    }, false, this.preferencesService, this.mapService, this.workerService);
+    }, false, this.computed.preferencesService, this.computed.mapService, this.computed.workerService, this.computed.cacheService, this.computed.networkService);
   }
 
   public newTrack(owner: string): Track {
@@ -321,7 +325,7 @@ export class Track extends Owned {
         createdAt: undefined,
         updatedAt: undefined,
       },
-      false, this.preferencesService, this.mapService, this.workerService
+      false, this.computed.preferencesService, this.computed.mapService, this.computed.workerService, this.computed.cacheService, this.computed.networkService
     );
   }
 

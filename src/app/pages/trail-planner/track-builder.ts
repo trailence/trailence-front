@@ -27,6 +27,8 @@ import { SimplifiedPoint, SimplifiedTrackSnapshot } from 'src/app/model/snapshot
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { Way, WayPermission } from 'src/app/services/map/way';
 import { WorkerService } from 'src/app/worker/web-app';
+import { TrackComputedDataCacheService } from 'src/app/services/database/track-computed-data-cache.service';
+import { NetworkService } from 'src/app/services/network/network.service';
 
 export const WAY_MAPTRACK_DEFAULT_COLOR = '#0000FF80'
 export const WAY_MAPTRACK_HIGHLIGHTED_COLOR = '#000080FF'
@@ -68,7 +70,7 @@ export class TrackBuilder {
   }
 
   start(): void {
-    this.track = new Track({owner: this.injector.get(AuthService).email}, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService));
+    this.track = new Track({owner: this.injector.get(AuthService).email}, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService), this.injector.get(TrackComputedDataCacheService), this.injector.get(NetworkService));
     this.enablePutAnchor();
     this.updateWays();
     this.saveToLocalStorage();
@@ -468,7 +470,7 @@ export class TrackBuilder {
     try {
       const points = JSON.parse(pointsInStorage) as {s: number, p: number}[];
       const dto = JSON.parse(trackInStorage) as Partial<TrackDto>;
-      this.track = new Track(dto, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService));
+      this.track = new Track(dto, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService), this.injector.get(TrackComputedDataCacheService), this.injector.get(NetworkService));
       for (let i = 0; i < points.length; ++i) {
         const p = points[i];
         if (i > 0) {

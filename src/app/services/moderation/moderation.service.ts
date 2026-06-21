@@ -29,6 +29,7 @@ import { NetworkService } from '../network/network.service';
 import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from 'src/app/worker/web-app';
 import { detectLongBreaksFromTrack } from '../track-edition/time/break-detection';
+import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
 
 @Injectable({providedIn: 'root'})
 export class ModerationService {
@@ -151,7 +152,7 @@ export class ModerationService {
       switchMap(fromCache => {
         if (fromCache) return of(fromCache);
         return this.http.get<TrackDto>(environment.apiBaseUrl + '/moderation/v1/trackFromReview/' + trailUuid + '/' + trailOwner + '/' + trackUuid).pipe(
-          map(dto => new Track(dto, false, this.preferencesService, this.mapService, this.injector.get(WorkerService))),
+          map(dto => new Track(dto, false, this.preferencesService, this.mapService, this.injector.get(WorkerService), this.injector.get(TrackComputedDataCacheService), this.injector.get(NetworkService))),
           tap(track => this.trackCache.feedItem(trackUuid + ' ' + trailOwner, track))
         );
       })

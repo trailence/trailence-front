@@ -6,6 +6,7 @@ import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { Progress } from '../progress/progress.service';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { OwnerUuid } from 'src/app/model/dto/owned';
 
 @Injectable({
   providedIn: 'root'
@@ -93,5 +94,9 @@ export class TrackService {
   }
 
   public get storeLoaded$() { return this.db.isLoaded$; }
+
+  public getUnknownTracks<T extends OwnerUuid>(tracks: T[]): Observable<T[]> {
+    return this.db.getUnknownTracks(tracks);
+  }
 
 }

@@ -48,7 +48,7 @@ export function processWorkerMessage(request: WorkerMessage): Promise<{response:
         result = Promise.resolve({result: matchOsmWays(request.payload.track, request.payload.osmWays), transferable: []});
         break;
       case WorkerRequest.TRACK_OSM_STATS:
-        result = Promise.resolve({result: getTrackOsmStats(request.payload.ways, request.payload.osmTrackPoints, request.payload.isPartial), transferable: []});
+        result = Promise.resolve({result: getTrackOsmStats(request.payload.ways, request.payload.osmTrackPoints, request.payload.isPartial, request.payload.osmDataVersion), transferable: []});
         break;
       default:
         result = Promise.reject(new Error('Unknown worker message: ' + request.request));

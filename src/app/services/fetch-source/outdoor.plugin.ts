@@ -15,6 +15,8 @@ import { Console } from 'src/app/utils/console';
 import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from 'src/app/worker/web-app';
+import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
+import { NetworkService } from '../network/network.service';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   id: string;
@@ -169,7 +171,7 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
           const track = new Track({
             owner: this.owner,
             uuid: ot.id,
-          }, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService));
+          }, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService), this.injector.get(TrackComputedDataCacheService), this.injector.get(NetworkService));
           const segment = track.newSegment();
           segment.appendMany(ot.points.map((p, index) => ({pos: { lat: p.lat, lng: p.lng }, ele: p.ele, time: p.time ?? (index === 0 ? ot.date ?? undefined : undefined) })));
 

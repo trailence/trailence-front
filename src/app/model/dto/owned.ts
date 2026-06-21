@@ -9,3 +9,9 @@ export interface VersionDto {
   owner: string;
   version: number;
 }
+
+
+export interface OwnerUuid {
+  owner: string;
+  uuid: string;
+}
