@@ -366,27 +366,27 @@ export class FetchSourceService {
     }));
   }
 
-  public getPluginNameByOwner(owner: string): string | undefined {
-    return this.plugins$.value.find(p => p.owner === owner)?.name;
+  public getPluginByOwner(owner: string): FetchSourcePlugin | undefined {
+    return this.plugins$.value.find(p => p.owner === owner);
   }
 
   public getPluginByOwner$(owner: string): Observable<FetchSourcePlugin | undefined> {
     return this.plugins$.pipe(map(plugins => plugins.find(p => p.owner === owner)));
   }
 
-  public getPluginNameByUrl(url: string): string | undefined {
+  public getPluginByUrl(url: string): FetchSourcePlugin | undefined {
     for (const plugin of this.plugins$.value) {
       if (plugin.canFetchTrailInfoByUrl(url) || plugin.canFetchTrailByUrl(url))
-        return plugin.name;
+        return plugin;
     }
     return undefined;
   }
 
-  public getPluginNameBySource(source?: string): string | undefined {
+  public getPluginBySource(source?: string): FetchSourcePlugin | undefined {
     if (!source) return undefined;
     for (const plugin of this.plugins$.value) {
       if (plugin.name === source || plugin.owner === source || plugin.canFetchTrailInfoByUrl(source) || plugin.canFetchTrailByUrl(source))
-        return plugin.name;
+        return plugin;
     }
     return undefined;
   }

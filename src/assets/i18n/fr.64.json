@@ -387,6 +387,7 @@
         "file_import_unknown": "Importé depuis un fichier",
         "external": "Trouvé dans {{1}}",
         "following": " en suivant :*:{{1}}:*:{{2}}:*:",
+        "following_a_deleted_track": " en suivant un parcours (supprimé à présent)",
         "initially_found_on": " initiallement trouvé dans :*:{{1}}:*:{{2}}:*:",
         "following_found_on": " en suivant un parcours trouvé sur :*:{{1}}:*:{{2}}:*:",
         "source_url": "Source :",

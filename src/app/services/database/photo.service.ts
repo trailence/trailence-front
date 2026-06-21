@@ -92,9 +92,7 @@ export class PhotoService {
         .then(response => response.blob())
         .catch(e => {
           const fetchSourceService = this.injector.get(FetchSourceService)
-          const pluginName = fetchSourceService.getPluginNameByOwner(photo.owner);
-          if (!pluginName) throw e;
-          const plugin = fetchSourceService.getPluginByName(pluginName);
+          const plugin = fetchSourceService.getPluginByOwner(photo.owner);
           if (!plugin) throw e;
           return plugin.fetchPhoto(photo.uuid)
             .then(b => {

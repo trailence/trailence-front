@@ -61,6 +61,8 @@ export abstract class FetchSourcePlugin {
   public canSearchBubbles(): boolean { return false; };
   public searchBubbles(bounds: L.LatLngBounds, zoom: number, filters: Filters, lang: string): Observable<SearchBubblesResult> { return of({trailsByTile: [], uuids: undefined}); }
 
+  public getTrailenceUrlFromUrl(url: string): string | undefined { return undefined; }
+
   public abstract getInfo(uuid: string): Promise<TrailInfo | null>;
   public abstract getInfos(uuids: string[]): Promise<{uuid: string, info: TrailInfo}[]>;
   public abstract getTrail(uuid: string): Promise<Trail | null>;

@@ -386,6 +386,7 @@
         "file_import_unknown": "Imported from a file",
         "external": "Found on {{1}}",
         "following": " by following :*:{{1}}:*:{{2}}:*:",
+        "following_a_deleted_track": " by following a track (deleted now)",
         "initially_found_on": " initially found on :*:{{1}}:*:{{2}}:*:",
         "following_found_on": " by following a track found on :*:{{1}}:*:{{2}}:*:",
         "source_url": "Source:",

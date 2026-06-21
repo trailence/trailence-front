@@ -38,6 +38,13 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     super(injector, 'visorando', 'visorando', 'keyNumber, keyGpx, url', 'keyNumber');
   }
 
+  public override getTrailenceUrlFromUrl(url: string): string | undefined {
+    if (!url.startsWith('https://www.visorando.com/randonnee-')) return undefined;
+    let slug = url.substring(36);
+    if (slug.endsWith('/')) slug = slug.substring(0, slug.length - 1);
+    return '/trail/visorando/' + slug;
+  }
+
   public override canFetchTrailInfoByUrl(url: string): boolean {
     return url.startsWith('https://www.visorando.com/') && !url.startsWith('https://www.visorando.com/page-');
   }
@@ -501,9 +508,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
   }
 
   protected override fetchTrailById(uuid: string): Promise<Trail | null> {
-    const keyNumber = Number.parseInt(uuid);
-    if (!Number.isNaN(keyNumber)) return this.fetchTrailByUrl('https://www.visorando.com/randonnee-' + keyNumber);
-    return Promise.resolve(null);
+    return this.fetchTrailByUrl('https://www.visorando.com/randonnee-' + uuid);
   }
 
   /*

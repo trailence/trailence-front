@@ -34,6 +34,12 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
   public override readonly owner = 'outdooractive';
   public override readonly canFetchFromUrl = true;
 
+  public override getTrailenceUrlFromUrl(url: string): string | undefined {
+    const id = this.idFromUrl(url);
+    if (!id) return undefined;
+    return '/trail/outdooractive/' + id;
+  }
+
   public override canFetchTrailInfoByUrl(url: string): boolean {
     return this.idFromUrl(url) !== undefined;
   }

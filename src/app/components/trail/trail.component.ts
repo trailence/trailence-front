@@ -838,7 +838,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
               if (trailWithInfo.trail.owner === 'trailence')
                 source.externalUrl = undefined;
             }
-            source.externalAppName = source.externalUrl ? this.injector.get(FetchSourceService).getPluginNameByUrl(source.externalUrl) : undefined;
+            source.externalAppName = source.externalUrl ? this.injector.get(FetchSourceService).getPluginByUrl(source.externalUrl)?.name : undefined;
             if (source.externalAppName === 'Trailence' && source.externalUrl?.startsWith(environment.baseUrl))
               source.externalUrl = source.externalUrl.substring(environment.baseUrl.length);
           }
@@ -879,9 +879,9 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   private getFollowedTrailInfo(trail: Trail): Observable<TrailInfo | null> {
     const url = trail.followedUrl;
     if (!url) return of(null);
-    const pluginName = this.injector.get(FetchSourceService).getPluginNameBySource(url);
-    if (pluginName === 'Trailence')
-      return this.injector.get(FetchSourceService).plugin$('trailence').pipe(
+    const plugin = this.injector.get(FetchSourceService).getPluginBySource(url);
+    if (plugin?.owner === 'trailence')
+      return this.injector.get(FetchSourceService).getTrailence$().pipe(
         switchMap(p => p ? from(p.fetchTrailInfoByUrl(url)) : of(null)),
       );
     return of(null);
@@ -904,19 +904,19 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             ),
             map(s => {
               if (!trail.followedUrl) return s;
-              const pluginName = this.injector.get(FetchSourceService).getPluginNameBySource(trail.followedUrl);
-              if (!pluginName) return s;
-              return new CompositeI18nString([s, new TranslatedString('pages.trail.source.initially_found_on', [trail.followedUrl, pluginName])]);
+              const plugin = this.injector.get(FetchSourceService).getPluginBySource(trail.followedUrl);
+              if (!plugin) return s;
+              const url = plugin.getTrailenceUrlFromUrl(trail.followedUrl) || trail.followedUrl;
+              return new CompositeI18nString([s || new TranslatedString('pages.trail.source.following_a_deleted_track'), new TranslatedString('pages.trail.source.initially_found_on', [url, plugin.name])]);
             })
           ));
         } else if (trail.followedUrl) {
-          const pluginName = this.injector.get(FetchSourceService).getPluginNameBySource(trail.followedUrl);
-          if (pluginName) {
-            const plugin = this.injector.get(FetchSourceService).getPluginByName(pluginName)!;
+          const plugin = this.injector.get(FetchSourceService).getPluginBySource(trail.followedUrl);
+          if (plugin) {
             if (trail.followedOwner === plugin.owner && !!trail.followedUuid && plugin.allowed) {
-              src.push(of(new TranslatedString('pages.trail.source.following_found_on', ['/trail/' + trail.followedOwner + '/' + trail.followedUuid, pluginName])));
+              src.push(of(new TranslatedString('pages.trail.source.following_found_on', ['/trail/' + trail.followedOwner + '/' + trail.followedUuid, plugin.name])));
             } else {
-              src.push(of(new TranslatedString('pages.trail.source.following_found_on', [trail.followedUrl, pluginName])));
+              src.push(of(new TranslatedString('pages.trail.source.following_found_on', [trail.followedUrl, plugin.name])));
             }
           }
         }
@@ -937,9 +937,9 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           src.push(of(new TranslatedString('pages.trail.source.with_date', [new DateTimeI18nString(trail.sourceDate)])));
         break;
       case TrailSourceType.EXTERNAL: {
-        const pluginName = this.injector.get(FetchSourceService).getPluginNameBySource(trail.source);
-        if (pluginName) {
-          src.push(of(new TranslatedString('pages.trail.source.external', [pluginName])));
+        const plugin = this.injector.get(FetchSourceService).getPluginBySource(trail.source);
+        if (plugin) {
+          src.push(of(new TranslatedString('pages.trail.source.external', [plugin.name])));
           if (trail.sourceDate && trail.sourceDate !== trail.createdAt)
             src.push(of(new TranslatedString('pages.trail.source.with_date', [new DateTimeI18nString(trail.sourceDate)])));
         }
