@@ -3,7 +3,7 @@ import { TrailPage } from '../../app/pages/trail-page';
 import { TrailsPage } from '../../app/pages/trails-page';
 import { TagsPopup } from '../../components/tags-popup';
 import { TrailsList } from '../../components/trails-list.component';
-import { expectedFromFiles, ExpectedTrail, expectListContains, importTrails } from '../../utils/import-trails';
+import { expectedFromFiles, ExpectedTrail, expectListContains } from '../../utils/import-trails';
 
 describe('Trails Tools', () => {
 

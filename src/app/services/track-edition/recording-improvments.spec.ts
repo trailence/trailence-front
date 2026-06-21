@@ -25,11 +25,11 @@ describe('Test improvments while recording', () => {
 
   it('gpx-001 improvments are same when importing and while recording', async () => {
     const file = await firstValueFrom(http.get('/assets/test/gpx-001.gpx', { responseType: 'arraybuffer'}));
-    const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService, undefined, undefined, undefined);
+    const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService, undefined as any, undefined as any, undefined as any, undefined as any, undefined, undefined, undefined);
 
     const track = imported.tracks[0];
     const improved = trackEdition.applyDefaultImprovments(track);
-    const recording = new Track({owner: 'test@example.com'}, preferencesService);
+    const recording = new Track({owner: 'test@example.com'}, false, preferencesService, undefined as any, undefined as any, undefined as any, undefined as any);
     let lastTime = undefined;
     for (const originalSegment of track.segments) {
       const segment = recording.newSegment();

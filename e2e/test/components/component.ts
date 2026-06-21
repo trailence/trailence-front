@@ -22,4 +22,12 @@ export abstract class Component extends AppElement {
     return this._element;
   }
 
+  public static async scrollIntoView(element: ChainablePromiseElement | WebdriverIO.Element) {
+    await (element as any).scrollIntoView({block: 'center', inline: 'center'});
+  }
+
+  public async scrollIntoView() {
+    await Component.scrollIntoView(this.getElement());
+  }
+
 }

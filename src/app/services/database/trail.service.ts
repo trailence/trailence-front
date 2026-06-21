@@ -434,11 +434,9 @@ class TrailStore extends OwnedStore<TrailDto, Trail> implements StoreWithCleanin
           for (const trail of trails) {
             if (trail.createdAt > maxDate || trail.updatedAt > maxDate) continue;
             if (trail.owner === status.email) {
-              const collection = collections.find(c => c.uuid === trail.collectionUuid && c.owner === status.email);
-              if (collection) continue;
+              if (collections.some(c => c.uuid === trail.collectionUuid && c.owner === status.email)) continue;
             }
-            const share = shares.find(s => s.owner === trail.owner && s.trails.includes(trail.uuid));
-            if (share) continue;
+            if (shares.some(s => s.owner === trail.owner && s.trails.includes(trail.uuid))) continue;
             const d = ondone.add();
             this.getLocalUpdate(trail).then(date => {
               if (!this.isStillValid(status)) {

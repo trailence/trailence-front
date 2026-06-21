@@ -29,7 +29,7 @@ export const all = (injector: Injector) => {
     tags.storeLoaded$,
     links.storeLoaded$,
   ]).pipe(
-    filter(loaded => loaded.every(l => l)),
+    filter(loaded => loaded.every(Boolean)),
     first(),
   );
 };

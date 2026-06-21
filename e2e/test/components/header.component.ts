@@ -20,7 +20,7 @@ export class HeaderComponent extends Component {
   public getTitle(): Promise<string> {
     return Promise.race([
       this._getTitle(),
-      new Promise<string>((resolve, reject) => setTimeout(() => {reject('Header getTitle timeout')}, 10000))
+      new Promise<string>((_, reject) => setTimeout(() => {reject('Header getTitle timeout')}, 10000))
     ]);
   }
 

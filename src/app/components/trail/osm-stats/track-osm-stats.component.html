@@ -7,6 +7,7 @@
     <div class="message">{{message | i18nString}}</div>
   }
   @if (stats) {
+    <div class="stats-attribution">{{i18n.texts.osm_stats.attribution}}</div>
     <div class="stats-content">
       <ng-container *ngTemplateOutlet="statProgressBarTemplate; context: {array: stats.wayType, i18n_type: 'wayType'}"></ng-container>
       <ng-container *ngTemplateOutlet="statProgressBarTemplate; context: {array: stats.surface, i18n_type: 'surface'}"></ng-container>

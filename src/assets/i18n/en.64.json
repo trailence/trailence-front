@@ -284,6 +284,7 @@
       "show_osm": "Show trace with known trails",
       "show_breaks": "Show breaks",
       "show_guideposts": "Show guideposts",
+      "show_intersections": "Show intersections",
       "map_elements": {
         "photos": "Photos",
         "breaks": "Breaks",
@@ -1158,6 +1159,9 @@
     "padding": "Extend the area to download (%)",
     "padding_explaination_for_trail": "Percentage of the area to download in around the track area (100% means only the track area). Allows you to see more around the track in offline mode.",
     "padding_explaination_for_map": "Percentage of the area to download in around the currently displayed area (100% means only the track area). Allows you to see a larger area in offline mode.",
+    "percent_done": "downloaded",
+    "remaining": "remaining element(s)",
+    "todo": "element(s) to download",
     "downloading": {
       "progress_title": "Downloading from {{1}}"
     }
@@ -1543,6 +1547,8 @@
     "guidepost": "Signposts",
     "water": "Water points",
     "toilets": "Toilets",
+    "way_foot": "Pedestrian",
+    "way_bicycle": "By bike",
     "way_forbidden": "Forbidden ways",
     "way_permissive": "Permissive ways",
     "overlays": {
@@ -1639,5 +1645,66 @@
       ]
     }
   },
-  "open_web_version": "Open web version"
+  "open_web_version": "Open web version",
+    "osm_stats": {
+    "title": "Trail characteristics",
+    "attribution": "Data from Open Street Map",
+    "types": {
+      "wayType": {
+        "title": "Path type",
+        "descriptions": {
+          "unknown": "Unknown",
+          "others": "Others",
+          "1": "Road, street…",
+          "2": "Path",
+          "3": "Stairs",
+          "4": "Via ferrata",
+          "5": "Ladder"
+        }
+      },
+      "surface": {
+        "title": "Surface",
+        "descriptions": {
+          "unknown": "Unknown",
+          "others": "Others",
+          "1": "Hard (asphalt…)",
+          "2": "Fairly hard (gravel…)",
+          "5": "Soft (dirt, grass…)",
+          "6": "Difficult soft ground (mud, sand…)",
+          "7": "Rocky"
+        }
+      },
+      "hikingDifficulty": {
+        "title": "Difficulty",
+        "descriptions": {
+          "unknown": "Unknown",
+          "others": "Others",
+          "1": "Very easy",
+          "2": "Easy",
+          "3": "Moderate",
+          "4": "Difficult",
+          "5": "Very difficult",
+          "6": "Impassable"
+        }
+      },
+      "visibility": {
+        "title": "Trail visibility",
+        "descriptions": {
+          "unknown": "Unknown",
+          "others": "Others",
+          "1": "Excellent",
+          "2": "Good",
+          "3": "Moderate",
+          "4": "Poor",
+          "5": "Difficult",
+          "6": "None"
+        }
+      }
+    },
+    "messages": {
+      "no_match": "No information available",
+      "partial_data": "Some data has not been downloaded, results are incomplete",
+      "no_data": "No data downloaded"
+    }
+  }
 }

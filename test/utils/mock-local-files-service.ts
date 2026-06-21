@@ -74,6 +74,12 @@ class MockPlugin implements LocalFilesPlugin {
     return createPromise().then(() => d.delete());
   }
 
+  public async renameDirectory(call: {previousPath: string, newPath: string}) {
+    const d = await this.getDir(call.previousPath, false);
+    if (!d) throw new Error('Directory not found');
+    d.rename(call.newPath);
+  }
+
   public readBinaryFile(call: {dir: string, filename: string}) {
     return this._root.startReadBinary(call.dir, call.filename);
   }
@@ -108,11 +114,15 @@ class MockDir {
 
   constructor(
     private readonly parent: MockDir | null,
-    private readonly name: string,
+    private name: string,
   ) {}
 
   private readonly subDirs: MockDir[] = [];
   private files: MockFile[] = [];
+
+  public rename(newName: string) {
+    this.name = newName;
+  }
 
   public delete(): Promise<any> {
     if (!this.parent) return Promise.reject('Cannot delete root dir');

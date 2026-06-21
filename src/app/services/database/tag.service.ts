@@ -198,7 +198,7 @@ export class TagService {
     );
   }
 
-  public get storeLoaded$() { return combineLatest([this._tagStore.isLoaded$, this._trailTagStore.isLoaded$]).pipe(filter(loaded => loaded.every(l => l))); }
+  public get storeLoaded$() { return combineLatest([this._tagStore.isLoaded$, this._trailTagStore.isLoaded$]).pipe(filter(loaded => loaded.every(Boolean))); }
 
 }
 
@@ -297,8 +297,7 @@ class TagStore extends OwnedStore<TagDto, Tag> implements StoreWithCleaning {
           });
           for (const tag of tags) {
             if (tag.createdAt > maxDate || tag.updatedAt > maxDate) continue;
-            const collection = collections.find(c => c.uuid === tag.collectionUuid && c.owner === status.email);
-            if (collection) continue;
+            if (collections.some(c => c.uuid === tag.collectionUuid && c.owner === status.email)) continue;
             const d = ondone.add();
             this.getLocalUpdate(tag).then(date => {
               if (!this.isStillValid(status)) {
@@ -421,9 +420,8 @@ class TrailTagStore extends SimpleStoreWithoutUpdate<TrailTagDto, TrailTag> impl
             subscriber.complete();
           });
           for (const trailTag of trailsTags) {
-            const tag = tags.find(t => t.uuid === trailTag.tagUuid);
-            const trail = trails.find(t => t.uuid === trailTag.trailUuid && t.owner === status.email);
-            if (tag && trail) continue;
+            if (tags.some(t => t.uuid === trailTag.tagUuid) &&
+                trails.some(t => t.uuid === trailTag.trailUuid && t.owner === status.email)) continue;
             count++;
             this.delete(trailTag, ondone.add());
           }

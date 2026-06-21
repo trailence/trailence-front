@@ -3,7 +3,6 @@ import { TrailsPage } from '../../app/pages/trails-page';
 import { ExportTrailModal } from '../../components/export-trail.modal';
 import { ImportTagsPopup } from '../../components/import-tags-popup.component';
 import { FilesUtils } from '../../utils/files-utils';
-import { OpenFile } from '../../utils/open-file';
 import { ExpectedTrail, expectedTrailsByFile, expectListContains } from '../../utils/import-trails';
 
 describe('Export', () => {

@@ -44,6 +44,10 @@ services:
       - OUTDOOR_ACTIVE_ROLE=upgraded
       - VISORANDO_ROLE=upgraded
       - THUNDERFOREST_ROLE=upgraded
+      - TRAILENCE_CONFIG_FILE=/trailence-config/storage.yaml
+    volumes:
+      - ../config/storage.yaml:/trailence-config/storage.yaml:ro
+      - ../osm_data:/osm_data:ro
   front:
     build:
       context: ./docker

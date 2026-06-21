@@ -13,7 +13,7 @@ export class TrailOverview extends Component {
     if (name.trim().length > 0) return name;
     try {
       await browser.waitUntil(async () => {
-        await this.getElement().scrollIntoView({block: 'center', inline: 'center'});
+        await this.scrollIntoView();
         name = await this.getElement().$('div.trail-name').getText();
         return name.trim().length > 0;
       }, { timeout: 5000 });
@@ -61,7 +61,7 @@ export class TrailOverview extends Component {
   public async openMenu() {
     await TestUtils.retry(async () => {
       const button = new IonicButton(this.getElement().$('div.trail-name-row ion-button.trail-menu-button'));
-      await button.getElement().scrollIntoView({block: 'center', inline: 'center'});
+      await button.scrollIntoView();
       await button.click();
     }, 2, 100);
     return new MenuContent(await App.waitPopover());
@@ -93,14 +93,14 @@ export class TrailOverview extends Component {
   }
 
   public async getTrailMetadata(icon: string, scroll: boolean = true) {
-    if (scroll) await this.getElement().scrollIntoView({block: 'center', inline: 'center'});
+    if (scroll) await this.scrollIntoView();
     const iconElement = this.getElement().$('div.metadata-item-container div.metadata-item ion-icon[name=' + icon + ']');
     if (!(await iconElement.isExisting())) return undefined;
     return await iconElement.nextElement().$('div.metadata-primary').getText();
   }
 
   public async getTrackMetadata(scroll: boolean = true) {
-    if (scroll) await this.getElement().scrollIntoView({block: 'center', inline: 'center'});
+    if (scroll) await this.scrollIntoView();
     const titles = await this.getElement().$$('div.metadata-item-container div.metadata-item div.metadata-content div.metadata-title').getElements();
     const meta = new Map<string, string>();
     for (const titleElement of titles) {

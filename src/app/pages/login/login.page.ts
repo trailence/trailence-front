@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, Injector } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { IonCard, IonCardContent, IonInput, IonItem, IonList, IonButton, IonSpinner, IonLabel, ModalController, NavController, IonToolbar } from '@ionic/angular/standalone';
-import { combineLatest, filter, first } from 'rxjs';
+import { catchError, combineLatest, filter, first, of, timeout } from 'rxjs';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { CaptchaService } from 'src/app/services/captcha/captcha.service';
@@ -87,6 +87,10 @@ export class LoginPage extends PublicPage {
     return this.email.length > 0 && this.password.length > 0 && (!this.captchaNeeded || !!this.captchaToken);
   }
 
+  update(): void {
+    this.changesDetection.detectChanges();
+  }
+
   signin(): void {
     if (this.catpchaInitialized) {
       this.injector.get(CaptchaService).unload('captcha-login');
@@ -119,6 +123,8 @@ export class LoginPage extends PublicPage {
             this.router.events.pipe(
               filter(e => e instanceof NavigationEnd),
               first(),
+              timeout({first: 10000}),
+              catchError(() => of(null))
             ).subscribe(() => {
               this.inprogress = false;
             });

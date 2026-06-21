@@ -41,12 +41,15 @@ export class Db {
   private readonly _closed$ = new Subject<DbClosed>();
   private _openCounter = 0;
   private readonly hooksBeforeCreatingDb: ((email: string | undefined) => Promise<boolean>)[] = [];
+  private _started = false;
 
   addHookBeforeCreatingDb(hook: (email: string | undefined) => Promise<boolean>): void {
     this.hooksBeforeCreatingDb.push(hook);
   }
 
   start(): void {
+    if (this._started) return;
+    this._started = true;
     this.injector.get(DbRegistryService).register(this.dbName, {
       isByUser: this.dbByUser,
       close$: () => this.close(),
@@ -63,6 +66,10 @@ export class Db {
     } else {
       this.open();
     }
+  }
+
+  stop(): Promise<any> {
+    return this.close();
   }
 
   public get dbReady$(): Observable<DbReady | undefined> { return this.ready$; }
@@ -111,7 +118,8 @@ export class Db {
 
   private async _open(email: string | undefined, counter: number) {
     const dbName = this.dbName + (email ? '_' + email : '');
-    Console.info('Opening DB ' + dbName);
+    const start = Date.now();
+    Console.info('[DB] Opening ' + dbName);
     const stillValid = () => this._openCounter === counter && (!email || email === this.injector.get(AuthService).email);
 
     let dbExists = await Dexie.exists(dbName);
@@ -140,6 +148,7 @@ export class Db {
     for (const table of this.tables) schema[table.name] = table.schema;
     schema[INTERNAL_TABLE_NAME] = INTERNAL_KEY;
     db.version(1).stores(schema);
+    Console.info('[DB] ' + dbName + ' opened after ' + (Date.now() - start));
 
     // restore backups
     if (!dbExists) {
@@ -156,7 +165,7 @@ export class Db {
     if (!stillValid()) return;
     const initialVersion = dbExists ? 1100 : trailenceAppVersionCode;
     const appVersion: number | undefined = versions?.appVersion;
-    Console.info('Database ' + this.dbName + ': current version is ' + trailenceAppVersionCode + ', stored =', versions);
+    Console.info('[DB] Database ' + this.dbName + ': current version is ' + trailenceAppVersionCode + ', stored =', versions, 'start time', Date.now() - start);
     if (dbExists && appVersion && appVersion < trailenceAppVersionCode) openStatus.updatedFrom = appVersion;
     const newVersions: any = versions ? { ...versions } : {};
     newVersions[INTERNAL_KEY] = INTERNAL_VERSION_KEY;
@@ -181,13 +190,13 @@ export class Db {
     }
 
     // ready
-    Console.info('DB ready ' + dbName);
+    Console.info('[DB]', dbName, 'ready after', Date.now() - start);
     this.ready$.next(openStatus);
     for (const table of this.tables) {
       await table.start(this, openStatus, db.table(table.name), openStatus.localDir + '/' + table.name, stillValid);
       if (!stillValid()) return;
     }
-    Console.info('DB ready and all tables started' + dbName);
+    Console.info('[DB]', dbName, 'ready and all tables started after', Date.now() - start);
 
     // backups
     this.registerBackups(openStatus);
@@ -206,7 +215,7 @@ export class Db {
   private async _close(): Promise<any> {
     const ready = this.ready$.value;
     if (!ready) return;
-    Console.info('Closing DB ' + ready.db.name);
+    Console.info('[DB] Closing', ready.db.name);
     this._openCounter++;
     this.ready$.next(undefined);
     for (const s of this.tableChangedSubscriptions.values()) s.unsubscribe();
@@ -214,7 +223,7 @@ export class Db {
     for (const table of this.tables)
       await table.shutdown();
     ready.db.close();
-    Console.info('DB closed: ' + ready.db.name);
+    Console.info('[DB] Closed', ready.db.name);
     this._closed$.next({email: ready.email});
   }
 

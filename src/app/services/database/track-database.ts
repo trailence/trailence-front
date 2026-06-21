@@ -432,11 +432,11 @@ export class TrackDatabase implements StoreWithCleaning {
     this.ngZone.runOutsideAngular(() => {
       const key = track.uuid + '#' + track.owner;
       const dto = track.toDto();
-      const simplifiedTrack$ = this.injector.get(WorkerService).simplifyTrack(track);
+      const simplifiedTrackFromWorker$ = this.injector.get(WorkerService).simplifyTrack(track);
       const metadata = TrackDatabase.toMetadata(track);
       const status = this.loaded$.value;
       if (!status) return;
-      this.operations.push('Create track', () => {
+      this.operations.push('Create track', () => simplifiedTrackFromWorker$.then(simplified => {
         if (status.counter !== this.loaded$.value?.counter) return Promise.reject(new Error('track DB changed'));
         const tx = this.database.transaction$(false, [this.tableMeta.name, this.tableSimplifiedTrack.name, this.tableFullTrack.name], () =>
           firstValueFrom(forkJoin([
@@ -448,10 +448,10 @@ export class TrackDatabase implements StoreWithCleaning {
               updatedLocally: 0,
               track: dto,
             }),
-            from(simplifiedTrack$).pipe(switchMap(s => this.tableSimplifiedTrack.addOne$({
-              ...s,
+            this.tableSimplifiedTrack.addOne$({
+              ...simplified,
               key,
-            }))),
+            }),
             this.tableMeta.addOne$({
               ...metadata,
               key,
@@ -466,11 +466,9 @@ export class TrackDatabase implements StoreWithCleaning {
         const full$ = this.fullTracks.get(key);
         if (full$) full$.newValue(track);
         else this.fullTracks.set(key, this.subjectService.create<Track>('Track', () => this.loadFullTrack(key), undefined, track));
-        simplifiedTrack$.then(simplified => {
-          const simplified$ = this.simplifiedTracks.get(key);
-          if (simplified$) simplified$.newValue(simplified);
-          else this.simplifiedTracks.set(key, this.subjectService.create<SimplifiedTrackSnapshot>('SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), undefined, simplified));
-        });
+        const simplified$ = this.simplifiedTracks.get(key);
+        if (simplified$) simplified$.newValue(simplified);
+        else this.simplifiedTracks.set(key, this.subjectService.create<SimplifiedTrackSnapshot>('SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), undefined, simplified));
         const metadata$ = this.metadata.get(key);
         if (metadata$) metadata$.newValue(metadata);
         else this.metadata.set(key, this.subjectService.create<TrackMetadataSnapshot>('TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
@@ -479,7 +477,7 @@ export class TrackDatabase implements StoreWithCleaning {
           this.syncStatus$.next(this.syncStatus$.value);
           if (ondone) ondone();
         });
-      });
+      }));
     });
   }
 
@@ -488,11 +486,11 @@ export class TrackDatabase implements StoreWithCleaning {
       const key = track.uuid + '#' + track.owner;
       track.updatedAt = Date.now();
       const dto = track.toDto();
-      const simplifiedTrack$ = this.injector.get(WorkerService).simplifyTrack(track);
+      const simplifiedTrackFromWorker$ = this.injector.get(WorkerService).simplifyTrack(track);
       const metadata = TrackDatabase.toMetadata(track);
       const status = this.loaded$.value;
       if (!status) return;
-      this.operations.push('Update track', () => {
+      this.operations.push('Update track', () => simplifiedTrackFromWorker$.then(simplified => {
         if (status.counter !== this.loaded$.value?.counter) return Promise.reject(new Error('track DB changed'));
         const tx = this.database.transaction$(false, [this.tableMeta.name, this.tableSimplifiedTrack.name, this.tableFullTrack.name], () =>
           firstValueFrom(forkJoin([
@@ -504,10 +502,10 @@ export class TrackDatabase implements StoreWithCleaning {
               updatedLocally: 1,
               track: dto,
             }),
-            from(simplifiedTrack$).pipe(switchMap(simplified => this.tableSimplifiedTrack.setOne$({
+            this.tableSimplifiedTrack.setOne$({
               ...simplified,
               key,
-            }))),
+            }),
             this.tableMeta.setOne$({
               ...metadata,
               key,
@@ -522,11 +520,9 @@ export class TrackDatabase implements StoreWithCleaning {
         const full$ = this.fullTracks.get(key);
         if (full$) full$.newValue(track);
         else this.fullTracks.set(key, this.subjectService.create<Track>('Track', () => this.loadFullTrack(key), undefined, track));
-        simplifiedTrack$.then(simplified => {
-          const simplified$ = this.simplifiedTracks.get(key);
-          if (simplified$) simplified$.newValue(simplified);
-          else this.simplifiedTracks.set(key, this.subjectService.create<SimplifiedTrackSnapshot>('SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), undefined, simplified));
-        });
+        const simplified$ = this.simplifiedTracks.get(key);
+        if (simplified$) simplified$.newValue(simplified);
+        else this.simplifiedTracks.set(key, this.subjectService.create<SimplifiedTrackSnapshot>('SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), undefined, simplified));
         const metadata$ = this.metadata.get(key);
         if (metadata$) metadata$.newValue(metadata);
         else this.metadata.set(key, this.subjectService.create<TrackMetadataSnapshot>('TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
@@ -534,7 +530,7 @@ export class TrackDatabase implements StoreWithCleaning {
           this.syncStatus$.value!.hasLocalUpdates = true;
           this.syncStatus$.next(this.syncStatus$.value);
         });
-      });
+      }));
     });
   }
 
@@ -905,51 +901,52 @@ export class TrackDatabase implements StoreWithCleaning {
     if (tracks.length === 0 && deleted.length === 0) return of(true);
     for (const t of tracks) this._errors.itemSuccess(t.uuid + '#' + t.owner);
     for (const t of deleted) this._errors.itemSuccess(t.uuid + '#' + t.owner);
-    return from(this.database.transaction$(false, [this.tableMeta.name, this.tableSimplifiedTrack.name, this.tableFullTrack.name], async () => {
-      if (deleted.length > 0) {
-        const keys = deleted.map(item => item.uuid + '#' + item.owner);
-        await firstValueFrom(forkJoin([
-          this.tableMeta.deleteMany$(keys),
-          this.tableSimplifiedTrack.deleteMany$(keys),
-          this.tableFullTrack.deleteMany$(keys),
-        ]));
-        if (status.counter !== this.loaded$.value?.counter) return;
-        for (const key of keys) {
-          this.fullTracks.get(key)?.newValue(null);
-          this.simplifiedTracks.get(key)?.newValue(null);
-          this.metadata.get(key)?.newValue(null);
+
+    const prefs = this.injector.get(PreferencesService);
+    const mapService = this.injector.get(OfflineMapService);
+    const workerService = this.injector.get(WorkerService);
+    const cacheService = this.injector.get(TrackComputedDataCacheService);
+    const networkService = this.injector.get(NetworkService);
+
+    const entities = tracks.map(track => new Track(track, false, prefs, mapService, workerService, cacheService, networkService));
+    const fulls = tracks.map(track => ({
+      key: track.uuid + '#' + track.owner,
+      uuid: track.uuid,
+      owner: track.owner,
+      version: track.version,
+      updatedLocally: 0,
+      track: track,
+    }));
+    const metadata = entities.map(track => ({...TrackDatabase.toMetadata(track), key: track.uuid + '#' + track.owner}));
+    const simplified$ = Promise.all(entities.map(track => this.injector.get(WorkerService).simplifyTrack(track).then(simplified => ({...simplified, key: track.uuid + '#' + track.owner}))));
+
+    return from(simplified$).pipe(
+      switchMap(simplified => from(this.database.transaction$(false, [this.tableMeta.name, this.tableSimplifiedTrack.name, this.tableFullTrack.name], async () => {
+        if (deleted.length > 0) {
+          const keys = deleted.map(item => item.uuid + '#' + item.owner);
+          await firstValueFrom(forkJoin([
+            this.tableMeta.deleteMany$(keys),
+            this.tableSimplifiedTrack.deleteMany$(keys),
+            this.tableFullTrack.deleteMany$(keys),
+          ]));
+          if (status.counter !== this.loaded$.value?.counter) return;
+          for (const key of keys) {
+            this.fullTracks.get(key)?.newValue(null);
+            this.simplifiedTracks.get(key)?.newValue(null);
+            this.metadata.get(key)?.newValue(null);
+          }
         }
-      }
-      if (tracks.length > 0) {
-        const fulls = tracks.map(track => ({
-          key: track.uuid + '#' + track.owner,
-          uuid: track.uuid,
-          owner: track.owner,
-          version: track.version,
-          updatedLocally: 0,
-          track: track,
-        }));
-        const fulls$ = firstValueFrom(this.tableFullTrack.setMany$(fulls));
-        const prefs = this.injector.get(PreferencesService);
-        const mapService = this.injector.get(OfflineMapService);
-        const workerService = this.injector.get(WorkerService);
-        const cacheService = this.injector.get(TrackComputedDataCacheService);
-        const networkService = this.injector.get(NetworkService);
-        const entities = tracks.map(track => new Track(track, false, prefs, mapService, workerService, cacheService, networkService));
-        for (const entity of entities) this.fullTracks.get(entity.uuid + '#' + entity.owner)?.newValue(entity);
-        const simplified$ = Promise.all(
-          entities.map(track => this.injector.get(WorkerService).simplifyTrack(track).then(simplified => ({...simplified, key: track.uuid + '#' + track.owner})))
-        ).then(simplified => {
-          for (const s of simplified) this.simplifiedTracks.get(s.key)?.newValue(s);
-          return firstValueFrom(this.tableSimplifiedTrack.setMany$(simplified));
-        });
-        const metadata = entities.map(track => ({...TrackDatabase.toMetadata(track), key: track.uuid + '#' + track.owner}));
-        const meta$ = firstValueFrom(this.tableMeta.setMany$(metadata));
         for (const m of metadata) this.metadata.get(m.key)?.newValue(m);
-        await Promise.all([fulls$, simplified$, meta$]);
+        await firstValueFrom(this.tableMeta.setMany$(metadata));
+
+        for (const s of simplified) this.simplifiedTracks.get(s.key)?.newValue(s);
+        await firstValueFrom(this.tableSimplifiedTrack.setMany$(simplified));
+
+        await firstValueFrom(this.tableFullTrack.setMany$(fulls));
+        for (const entity of entities) this.fullTracks.get(entity.uuid + '#' + entity.owner)?.newValue(entity);
+
         if (status.counter !== this.loaded$.value?.counter) return;
-      }
-    })).pipe(
+      }))),
       defaultIfEmpty(true),
       catchError(error => {
         Console.error('Error saving tracks in database', error);

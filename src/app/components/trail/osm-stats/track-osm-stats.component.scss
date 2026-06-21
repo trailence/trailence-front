@@ -24,6 +24,13 @@ div.stats-container {
     font-style: italic;
     color: rgba(var(--ion-text-color-rgb), 0.7);
   }
+
+  div.stats-attribution {
+    padding: 2px 8px;
+    font-size: 13px;
+    font-style: italic;
+    color: rgba(var(--ion-text-color-rgb), 0.7);
+  }
 }
 
 div.stat-type {

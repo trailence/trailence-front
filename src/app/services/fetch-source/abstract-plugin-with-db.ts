@@ -50,7 +50,7 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
           if (dbByUser) injector.get(AuthService).userChanged$.subscribe(auth => this.openDb(dbName + (auth ? '_' + auth.email : '')));
           else this.openDb(dbName);
         });
-      }, 0);
+      }, 1000); // delayed to let more critical stuff to be initialized
     });
   }
 
@@ -92,6 +92,7 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
   }
 
   public override getTrails(uuids: string[]): Promise<Trail[]> {
+    if (!this.tableTrails) return firstValueFrom(this._allowed$.pipe(debounceTime(10), switchMap(() => from(this.getTrails(uuids)))));
     return this.tableTrails.bulkGet(uuids)
     .then(dtos => {
       const result: Trail[] = [];

@@ -208,7 +208,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     }
   }
 
-  protected override onComponentStateChanged(previousState: any, newState: any): void {
+  protected override onComponentStateChanged(previousState: any, newState: any): void { // NOSONAR
     this.reset(previousState, newState);
     if (!this.trail) {
       this.removeTrackMetadata();
@@ -571,7 +571,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     if (this._symbol === symbol) return this._generatedSymbol!;
     const svg = this.injector.get(OsmcSymbolService).generateSymbol(symbol);
     this._symbol = symbol;
-    this._generatedSymbol = this.injector.get(DomSanitizer).bypassSecurityTrustHtml(svg);
+    this._generatedSymbol = this.injector.get(DomSanitizer).bypassSecurityTrustHtml(svg); // NOSONAR
     return this._generatedSymbol;
   }
 

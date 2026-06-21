@@ -613,7 +613,7 @@ public class LocalFilesPlugin extends Plugin {
       if (newPath == null || newPath.isBlank()) throw new LocalFilesException(LocalFilesException.Code.INVALID_INPUT, "Missing newPath");
       File previousFile = new File(root, previousPath);
       File newFile = new File(root, newPath);
-      if (newFile.exists()) throw new LocalFilesException((LocalFilesException.Code.INVALID_INPUT, "newPath already exists"));
+      if (newFile.exists()) throw new LocalFilesException(LocalFilesException.Code.INVALID_INPUT, "newPath already exists");
       if (previousFile.exists()) previousFile.renameTo(newFile);
       call.resolve();
     } catch (LocalFilesException e) {

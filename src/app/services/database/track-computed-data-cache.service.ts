@@ -1,9 +1,9 @@
-import { Injectable, Injector } from '@angular/core';
+import { Injectable, Injector, NgZone, OnDestroy } from '@angular/core';
 import { firstValueFrom, Observable } from 'rxjs';
 import { Track } from 'src/app/model/track';
 import { HikingDifficulty, Way, WaySurface, WayType, WayVisibility } from '../map/way';
 import { DbTable, DbTableWhereEquals } from './storage/db-table';
-import { Db, DbReady } from './storage/db';
+import { Db } from './storage/db';
 import { AllWaysResponse } from '../map/ways';
 import { OsmWaysTrackPoint } from 'src/app/utils/track-computed-data/match-osm-ways';
 import { OsmWayMatchResponse } from 'src/app/utils/track-computed-data/track-computed-data';
@@ -53,7 +53,7 @@ function ownerUuid(track: Track) {
 }
 
 @Injectable({providedIn: 'root'})
-export class TrackComputedDataCacheService {
+export class TrackComputedDataCacheService implements OnDestroy {
 
   constructor(private readonly injector: Injector) {
     this.tableAllWays = new DbTable<AllWaysItem>(injector, 'all_ways', 'key, ownerUuid', 'key');
@@ -66,9 +66,9 @@ export class TrackComputedDataCacheService {
       this.tableOsmWaysMatch,
       this.tableOsmStats,
     ]);
-    this.db.onClosed$.subscribe(closed => injector.get(CleanupService).remove('track-computed-data-cache-' + closed.email));
+    this.db.onClosed$.subscribe(closed => { if (!this._destroyed) injector.get(CleanupService).remove('track-computed-data-cache-' + closed.email); });
     this.db.dbReady$.subscribe(ready => {
-      if (ready)
+      if (ready && !this._destroyed)
         injector.get(CleanupService).add({
           id: 'track-computed-data-cache-' + ready.email,
           name: 'Track computed data cache',
@@ -76,7 +76,8 @@ export class TrackComputedDataCacheService {
           execute: () => this.cleanup(),
         });
     });
-    this.db.start();
+    // delayed start as non required at the beginning
+    injector.get(NgZone).runOutsideAngular(() => setTimeout(() => { if (!this._destroyed) this.db.start(); }, 1500));
   }
 
   private readonly db: Db;
@@ -84,6 +85,12 @@ export class TrackComputedDataCacheService {
   private readonly tableGuideposts: DbTable<GuidepostsItem>;
   private readonly tableOsmWaysMatch: DbTable<OsmWaysMatchItem>;
   private readonly tableOsmStats: DbTable<OsmStatsItem>;
+  private _destroyed = false;
+
+  ngOnDestroy(): void {
+    this._destroyed = true;
+    this.db.stop();
+  }
 
   private get<T extends CacheItem>(table: DbTable<T>, track: Track): Observable<T | undefined> {
     return table.getByKey$(key(track));

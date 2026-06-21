@@ -9,12 +9,12 @@ export class DbTestsUtils {
   };
 
   public static randomData(): Uint8Array<ArrayBuffer>[] {
-    const nbChunks = Math.abs(Math.random() % 3) + 1;
+    const nbChunks = Math.abs(Math.random() % 3) + 1; // NOSONAR
     const chunks = [];
     for (let i = 0; i < nbChunks; ++i) {
-      const chunkSize = Math.abs(Math.random() % 25000) + 1;
+      const chunkSize = Math.abs(Math.random() % 25000) + 1; // NOSONAR
       const bytes = [];
-      for (let j = 0; j < chunkSize; ++j) bytes.push(Math.abs(Math.random() % 256));
+      for (let j = 0; j < chunkSize; ++j) bytes.push(Math.abs(Math.random() % 256)); // NOSONAR
       const chunk = new Uint8Array(bytes);
       chunks.push(chunk);
     }

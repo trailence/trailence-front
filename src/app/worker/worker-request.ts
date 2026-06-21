@@ -19,4 +19,5 @@ export enum WorkerRequest {
   CONVERT_JPEG = 'convert-jpeg',
   MATCH_OSM_WAYS = 'match_osm_ways',
   TRACK_OSM_STATS = 'track_osm_stats',
+  _CODE_COVERAGE = '_code_coverage',
 }

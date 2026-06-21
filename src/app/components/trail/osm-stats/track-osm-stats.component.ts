@@ -88,23 +88,25 @@ export class TrackOsmStatsComponent extends AbstractComponent {
     };
   }
 
-  private mapToStat<T>(stats: TrackOsmStats, map: Map<T, TrackOsmStatInfo>, merges: Map<T,T>): {value: T | 'unknown' | 'others', percent: number, distance: number, sections: TrackSection[]}[] | undefined {
-    let mergedMap: Map<T, TrackOsmStatInfo>;
-    if (merges.size === 0) mergedMap = map;
-    else {
-      mergedMap = new Map<T, TrackOsmStatInfo>();
-      for (const entry of map.entries()) {
-        const mergedKey = merges.get(entry[0]) ?? entry[0];
-        const previousValue = mergedMap.get(mergedKey);
-        if (previousValue) {
-          previousValue.distance += entry[1].distance;
-          previousValue.sections.push(...entry[1].sections);
-          previousValue.sections.sort(trackSectionsComparator);
-        } else {
-          mergedMap.set(mergedKey, {distance: entry[1].distance, sections: [...entry[1].sections]});
-        }
+  private merge<T>(map: Map<T, TrackOsmStatInfo>, merges: Map<T,T>): Map<T, TrackOsmStatInfo> {
+    if (merges.size === 0) return map;
+    const mergedMap = new Map<T, TrackOsmStatInfo>();
+    for (const entry of map.entries()) {
+      const mergedKey = merges.get(entry[0]) ?? entry[0];
+      const previousValue = mergedMap.get(mergedKey);
+      if (previousValue) {
+        previousValue.distance += entry[1].distance;
+        previousValue.sections.push(...entry[1].sections);
+        previousValue.sections.sort(trackSectionsComparator);
+      } else {
+        mergedMap.set(mergedKey, {distance: entry[1].distance, sections: [...entry[1].sections]});
       }
     }
+    return mergedMap;
+  }
+
+  private mapToStat<T>(stats: TrackOsmStats, map: Map<T, TrackOsmStatInfo>, merges: Map<T,T>): {value: T | 'unknown' | 'others', percent: number, distance: number, sections: TrackSection[]}[] | undefined {
+    const mergedMap = this.merge(map, merges);
     const result:{value: T | 'unknown' | 'others', percent: number, distance: number, sections: TrackSection[]}[] = [];
     let remaining = stats.osmTotalDistanceMeters;
     let others = 0;

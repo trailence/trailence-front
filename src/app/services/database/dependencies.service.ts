@@ -132,7 +132,7 @@ export class DependenciesService {
           const key = keys[i];
           const dbItem = dbItems.find(i => i.key === key);
           if (dbItem) {
-            const itemOp = dbItem.operations.find(o => o.operation === operation);
+            const itemOp = dbItem.operations.some(o => o.operation === operation);
             if (itemOp) {
               // has dependencis => not ok
             } else {

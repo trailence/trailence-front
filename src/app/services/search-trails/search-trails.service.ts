@@ -231,7 +231,7 @@ export class SearchTrailsService {
     const zoom = this.searchZoom;
     const plugin = this.pluginService.getPluginByName(this._selectedSearchPlugins[0])!;
     let searchCount = 0;
-    Console.info('Start search bubbles on bounds ', bounds, 'zoom', zoom, 'using plugins', plugin);
+    Console.info('Start search bubbles on bounds ', bounds, 'zoom', zoom, 'using plugin', plugin.name);
     this._searchFiltersSubscription = this._filters$?.pipe(
       debounceTimeExtended(0, 1000),
       switchMap(filters => {
@@ -239,7 +239,7 @@ export class SearchTrailsService {
         this._searching$.next(true);
         return (plugin?.searchBubbles(bounds, zoom, filters ?? FiltersUtils.createEmpty(), this.injector.get(PreferencesService).preferences.lang) ?? of({trailsByTile: [], uuids: undefined})).pipe(
           catchError(e => {
-            Console.error('Error searching bubbles on ' + plugin + ' with bounds', bounds, 'and zoom', zoom, 'error', e);
+            Console.error('Error searching bubbles on ' + plugin?.name + ' with bounds', bounds, 'and zoom', zoom, 'error', e);
             this.injector.get(ErrorService).addNetworkError(e, 'pages.trails.search.error', []);
             if (searchCount === count) {
               this._searching$.next(false);
@@ -265,7 +265,7 @@ export class SearchTrailsService {
           this._searching$.next(false);
           this._hasSearchResult = result.trailsByTile.length > 0;
           this.setSearchBounds(bounds, zoom, true);
-          this._showBubbles$.next(false);
+          //this._showBubbles$.next(false);
           this._bubblesToolAvailable$.next(true);
         });
       } else {
@@ -293,22 +293,7 @@ export class SearchTrailsService {
       20,
       '#000000',
     ).onClick(map => {
-      let called = false;
-      const listener = () => {
-        if (called) return;
-        called = true;
-        map.removeEventListener('zoomend', listener);
-        setTimeout(() => {
-          const zoom = map.getZoom();
-          if (!this.searching && zoom && this.lastSearchZoom !== zoom)
-            this.doSearch();
-        }, 100);
-      };
-      map.addEventListener('zoomend', listener);
       map.fitBounds(bounds);
-      setTimeout(() => {
-        if (!called) listener();
-      }, 2000);
     });
   }
 

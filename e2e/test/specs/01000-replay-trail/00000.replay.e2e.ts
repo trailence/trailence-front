@@ -37,10 +37,10 @@ describe('Replay trail', () => {
     }
 
     await browser.execute((segments) => {
-      window.navigator.geolocation.getCurrentPosition = function(success, error) {
+      window.navigator.geolocation.getCurrentPosition = function(_, error) {
         if (error) error({code: GeolocationPositionError.POSITION_UNAVAILABLE, message: 'Fake!'} as GeolocationPositionError);
       };
-      window.navigator.geolocation.watchPosition = function(success, error) {
+      window.navigator.geolocation.watchPosition = function(success, _) {
         let segmentIndex = (window as any)._resumeSegment ?? 0;
         let pointIndex = (window as any)._resumePoint ?? 0;
         let count = 0;
@@ -84,7 +84,7 @@ describe('Replay trail', () => {
         }
         return 1;
       };
-      window.navigator.geolocation.clearWatch = function(id) {
+      window.navigator.geolocation.clearWatch = function() {
         // nothing
       };
     }, segments);
@@ -99,6 +99,7 @@ describe('Replay trail', () => {
     await startButton.click();
   });
 
+  let paused = false;
   it('Go to map and wait until pause', async () => {
     await browser.execute(() => (window as any)._startTrail = true);
     await trailPage.trailComponent.openMap();

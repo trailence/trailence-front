@@ -12,7 +12,6 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 import { FeedbackComponent } from './feedback/feedback.component';
 import { combineLatest, EMPTY, first, Subscription, switchMap } from 'rxjs';
 import { NetworkService } from 'src/app/services/network/network.service';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 @Component({
   selector: 'app-rate-and-comments',

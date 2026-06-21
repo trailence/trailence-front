@@ -26,7 +26,7 @@ export class TrailsList extends Component {
 
   public async getItemTrailOverview(item: WebdriverIO.Element) {
     if (!await item.isDisplayed()) {
-      await item.scrollIntoView({block: 'center', inline: 'center'});
+      await Component.scrollIntoView(item);
     }
     return new TrailOverview(item.$('app-trail-overview'));
   }
@@ -45,7 +45,7 @@ export class TrailsList extends Component {
         if (name.length === 0) {
           try {
             await browser.waitUntil(async () => {
-              await overview.getElement().scrollIntoView({block: 'center', inline: 'center'});
+              await overview.scrollIntoView();
               name = (await overview.getTrailName()).trim();
               return name.length > 0;
             }, { timeout: 5000 });
@@ -105,7 +105,7 @@ export class TrailsList extends Component {
     await TestUtils.retry(async (trial) => {
       if (trial > 1 && await trailPage.isDisplayed()) return;
       const link = trail.getElement(trial > 1).$('div.trail-name a');
-      await link.scrollIntoView({block: 'center', inline: 'center'});
+      await Component.scrollIntoView(link);
       await link.click();
       await browser.waitUntil(() => link.isDisplayed().then(d => !d), { timeout: 5000 });
     }, 5, 100);

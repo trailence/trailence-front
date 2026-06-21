@@ -1,3 +1,4 @@
+import { Component } from '../../components/component';
 import { IonicButton } from '../../components/ionic/ion-button';
 import { IonicInput } from '../../components/ionic/ion-input';
 import { IonicRange } from '../../components/ionic/ion-range';
@@ -14,24 +15,24 @@ export class PreferencesPage extends PageWithHeader {
 
   public async getOptionSegmentByTitle(title: string) {
     const segment = new IonicSegment(this.getElement().$('div.title=' + title).parentElement().$('div.value'), 'ion-segment');
-    await segment.getElement().scrollIntoView({block: 'center', inline: 'center'});
+    await segment.scrollIntoView();
     return segment;
   }
 
   public async getRangeByTitle(title: string) {
     const range = new IonicRange(this.getElement().$('div.title=' + title).parentElement().$('div.value'), 'ion-range');
-    await range.getElement().scrollIntoView({block: 'center', inline: 'center'});
+    await range.scrollIntoView();
     return range;
   }
 
   public async getInputByTitle(title: string) {
     const input = new IonicInput(this.getElement().$('div.title=' + title).parentElement().$('div.value'), 'ion-input');
-    await input.getElement().scrollIntoView({block: 'center', inline: 'center'});
+    await input.scrollIntoView();
     return input;
   }
 
   public async getPhotosSizes() {
-    await this.getElement().$('ion-button#button-remove-all-photos').scrollIntoView({block: 'center', inline: 'center'});
+    await Component.scrollIntoView(this.getElement().$('ion-button#button-remove-all-photos'));
     const cells = await this.getElement().$('div.title=Downloaded photos').parentElement().$$('table tr td').getElements();
     const sizes: string[] = [];
     for (const cell of cells) {

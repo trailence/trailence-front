@@ -102,7 +102,7 @@ export class MapComponent extends Component {
     await this.rightToolbar.clickByIcon('layers');
     const modal = await App.waitModal();
     await browser.waitUntil(() => modal.$('>>>div.layer.layer-' + name).isExisting());
-    await modal.$('div.layer.layer-' + name).scrollIntoView({block: 'center', inline: 'center'});
+    await Component.scrollIntoView(modal.$('div.layer.layer-' + name));
     await browser.waitUntil(() => modal.$('>>>div.layer.layer-' + name).isDisplayed());
     await modal.$('div.layer.layer-' + name).click();
     await browser.waitUntil(() => modal.isDisplayed().then(d => !d));
@@ -145,7 +145,7 @@ export class MapComponent extends Component {
     const layerSelection = modal.$('>>>app-map-layer-selection');
     const layersContainers = await layerSelection.$$('div.layer').getElements();
     for (const layerContainer of layersContainers) {
-      await layerContainer.scrollIntoView({block: 'center', inline: 'center'});
+      await Component.scrollIntoView(layerContainer);
       const layerClass = await layerContainer.getAttribute('class');
       const layerName = layerClass.substring(layerClass.indexOf('layer-') + 6).trim();
       const layerCheckbox = new IonicCheckbox(layerContainer.$('ion-checkbox'));

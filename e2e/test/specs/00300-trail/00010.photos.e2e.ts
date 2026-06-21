@@ -2,7 +2,7 @@ import { App } from '../../app/app';
 import { PreferencesPage } from '../../app/pages/preferences-page';
 import { TrailPage } from '../../app/pages/trail-page';
 import { TrailsPage } from '../../app/pages/trails-page';
-import { PhotosPopup } from '../../components/photos-popup.component';
+import { PhotosComponent } from '../../components/photos.component';
 import { TestUtils } from '../../utils/test-utils';
 
 describe('Trail - Photos', () => {
@@ -23,22 +23,22 @@ describe('Trail - Photos', () => {
     trailPage = await trailsList.openTrail(trail);
   });
 
-  let photosPopup: PhotosPopup;
+  let photosComponent: PhotosComponent;
 
   it('Import PNG', async () => {
-    photosPopup = await trailPage.trailComponent.openPhotos();
-    await photosPopup.addPhoto('test.png');
-    await browser.waitUntil(() => photosPopup.getPhotosContainers().length.then(nb => nb === 1));
-    let photos = await photosPopup.collectPhotosInfos();
+    photosComponent = await trailPage.trailComponent.openPhotos();
+    await photosComponent.addPhoto('test.png');
+    await browser.waitUntil(() => photosComponent.getPhotosContainers().length.then(nb => nb === 1));
+    let photos = await photosComponent.collectPhotosInfos();
     expect(photos.size).toBe(1);
     expect(photos.get('test.png')).toBeDefined();
   });
 
   it('Import JPEG with date', async () => {
-    await photosPopup.addPhoto('20230605_101849.jpg');
-    await browser.waitUntil(() => photosPopup.getPhotosContainers().length.then(nb => nb === 2));
+    await photosComponent.addPhoto('20230605_101849.jpg');
+    await browser.waitUntil(() => photosComponent.getPhotosContainers().length.then(nb => nb === 2));
     await browser.waitUntil(async () => {
-      let photos = await photosPopup.collectPhotosInfos();
+      let photos = await photosComponent.collectPhotosInfos();
       return photos.size === 2 &&
         photos.get('20230605_101849.jpg') &&
         photos.get('20230605_101849.jpg')!.metadata.get('date') === '6/5/2023 10:18 AM' &&
@@ -47,9 +47,9 @@ describe('Trail - Photos', () => {
   });
 
   it('Import JPEG with date and geolocation', async () => {
-    await photosPopup.addPhoto('20240823_123625.jpg');
-    await browser.waitUntil(() => photosPopup.getPhotosContainers().length.then(nb => nb === 3));
-    let photos = await photosPopup.collectPhotosInfos();
+    await photosComponent.addPhoto('20240823_123625.jpg');
+    await browser.waitUntil(() => photosComponent.getPhotosContainers().length.then(nb => nb === 3));
+    let photos = await photosComponent.collectPhotosInfos();
     expect(photos.size).toBe(3);
     expect(photos.get('20240823_123625.jpg')).toBeDefined();
     expect(photos.get('20240823_123625.jpg')?.metadata.get('date')).toBe('8/23/2024 12:36 PM');
@@ -64,16 +64,16 @@ describe('Trail - Photos', () => {
   });
 
   it('Remove third photo', async() => {
-    await photosPopup.selectPhotoByDescription('20240823_123625.jpg');
-    await photosPopup.removeSelected();
-    await browser.waitUntil(() => photosPopup.getPhotosContainers().length.then(nb => nb === 2));
+    await photosComponent.selectPhotoByDescription('20240823_123625.jpg');
+    await photosComponent.removeSelected();
+    await browser.waitUntil(() => photosComponent.getPhotosContainers().length.then(nb => nb === 2));
   });
 
   it('Move second to first', async() => {
-    expect(await photosPopup.getIndexByDescription('20230605_101849.jpg')).toBe(2);
-    await photosPopup.moveUpByDescription('20230605_101849.jpg');
+    expect(await photosComponent.getIndexByDescription('20230605_101849.jpg')).toBe(2);
+    await photosComponent.moveUpByDescription('20230605_101849.jpg');
     const index = await TestUtils.retry(async () => {
-      const result = await photosPopup.getIndexByDescription('20230605_101849.jpg');
+      const result = await photosComponent.getIndexByDescription('20230605_101849.jpg');
       if (result != 1) throw Error('Expect photo to be first');
       return result;
     }, 2, 1000);
@@ -81,19 +81,19 @@ describe('Trail - Photos', () => {
   });
 
   it('Set cover description', async () => {
-    await photosPopup.setDescription('20230605_101849.jpg', 'A nice picture');
-    expect(await photosPopup.getIndexByDescription('A nice picture')).toBe(1);
+    await photosComponent.setDescription('20230605_101849.jpg', 'A nice picture');
+    expect(await photosComponent.getIndexByDescription('A nice picture')).toBe(1);
   });
 
   it('Open slider on first photo', async () => {
-    const slider = await photosPopup.openSliderByDescription('A nice picture');
+    const slider = await photosComponent.openSliderByDescription('A nice picture');
     expect(await slider.slider.moveNextButton.isEnabled()).toBeTrue();
     expect(await slider.slider.movePreviousButton.isEnabled()).toBeFalse();
     await slider.close();
   });
 
   it('Open slider on second photo', async () => {
-    const slider = await photosPopup.openSliderByDescription('test.png');
+    const slider = await photosComponent.openSliderByDescription('test.png');
     expect(await slider.slider.moveNextButton.isEnabled()).toBeFalse();
     expect(await slider.slider.movePreviousButton.isEnabled()).toBeTrue();
     await slider.slider.movePreviousButton.click();
@@ -105,7 +105,6 @@ describe('Trail - Photos', () => {
     expect(await slider.slider.moveNextButton.isEnabled()).toBeFalse();
     expect(await slider.slider.movePreviousButton.isEnabled()).toBeTrue();
     await slider.close();
-    await photosPopup.close();
   });
 
   it('Show photos on map', async () => {
@@ -144,9 +143,8 @@ describe('Trail - Photos', () => {
     const collectionPage = await menu.openCollection('Test Trail');
     const trailsList = await collectionPage.trailsAndMap.openTrailsList();
     trailPage = await trailsList.openTrailByName('My test trail');
-    photosPopup = await trailPage.trailComponent.openPhotos();
-    await browser.waitUntil(() => photosPopup.getPhotosContainers().length.then(nb => nb === 2));
-    await photosPopup.close();
+    photosComponent = await trailPage.trailComponent.openPhotos();
+    await browser.waitUntil(() => photosComponent.getPhotosContainers().length.then(nb => nb === 2));
   });
 
   it('Delete collection and synchronize', async () => {

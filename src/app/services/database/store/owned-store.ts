@@ -421,7 +421,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
             const notUpdatedDtos: StoredItem<DTO>[] = [];
             let notUpdated: string[] = [];
             for (const entity of readyEntities) {
-              const updated = result.find(d => d.uuid === entity.uuid && d.owner === entity.owner);
+              const updated = result.some(d => d.uuid === entity.uuid && d.owner === entity.owner);
               if (!updated) {
                 // no update needed by the server: remove the updatedLocally from the DB
                 notUpdated.push(entity.uuid + '#' + entity.owner);

@@ -50,6 +50,9 @@ export function processWorkerMessage(request: WorkerMessage): Promise<{response:
       case WorkerRequest.TRACK_OSM_STATS:
         result = Promise.resolve({result: getTrackOsmStats(request.payload.ways, request.payload.osmTrackPoints, request.payload.isPartial, request.payload.osmDataVersion), transferable: []});
         break;
+      case WorkerRequest._CODE_COVERAGE:
+        result = Promise.resolve({result: JSON.stringify((globalThis as any).__coverage__) ?? '', transferable: []});
+        break;
       default:
         result = Promise.reject(new Error('Unknown worker message: ' + request.request));
         break;

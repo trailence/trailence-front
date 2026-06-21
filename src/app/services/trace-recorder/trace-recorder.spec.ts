@@ -95,7 +95,7 @@ describe('Test Trace Recorder', () => {
     expect(result).not.toBeNull();
 
     const original = await firstValueFrom(trackService.getFullTrackReady$(result!.originalTrackUuid, userEmail));
-    expect(original.getAllPositions().length).toBe(2);
+    expect(original.getAllPositions()).toHaveSize(2);
     expect(original.departurePoint!.pos.lat).toBe(100);
     expect(original.departurePoint!.pos.lng).toBe(200);
     expect(original.departurePoint!.ele).toBe(300);
@@ -104,7 +104,7 @@ describe('Test Trace Recorder', () => {
     expect(original.arrivalPoint!.ele).toBe(302);
 
     const improved = await firstValueFrom(trackService.getFullTrackReady$(result!.currentTrackUuid, userEmail));
-    expect(improved.getAllPositions().length).toBe(2);
+    expect(improved.getAllPositions()).toHaveSize(2);
     expect(improved.departurePoint!.pos.lat).toBe(100);
     expect(improved.departurePoint!.pos.lng).toBe(200);
     expect(improved.departurePoint!.ele).toBe(300);
@@ -139,9 +139,9 @@ describe('Test Trace Recorder', () => {
     expect(result).not.toBeNull();
 
     const original = await firstValueFrom(trackService.getFullTrackReady$(result!.originalTrackUuid, userEmail));
-    expect(original.segments.length).toBe(1);
+    expect(original.segments).toHaveSize(1);
     let points = original.segments[0].points;
-    expect(points.length).toBe(3);
+    expect(points).toHaveSize(3);
     // first point original should really be the first point
     expect(points[0].pos.lat).toBe(41);
     expect(points[0].pos.lng).toBe(6);
@@ -156,9 +156,9 @@ describe('Test Trace Recorder', () => {
     expect(points[2].ele).toBe(180);
 
     const improved = await firstValueFrom(trackService.getFullTrackReady$(result!.currentTrackUuid, userEmail));
-    expect(improved.segments.length).toBe(1);
+    expect(improved.segments).toHaveSize(1);
     points = improved.segments[0].points;
-    expect(points.length).toBe(3);
+    expect(points).toHaveSize(3);
     // first point should be the one 10 seconds later because far better
     expect(points[0].pos.lat).toBe(41.1);
     expect(points[0].pos.lng).toBe(6.1);
@@ -214,14 +214,14 @@ describe('Test Trace Recorder', () => {
     expect(result).not.toBeNull();
 
     const original = await firstValueFrom(trackService.getFullTrackReady$(result!.originalTrackUuid, userEmail));
-    expect(original.segments.length).toBe(2);
-    expect(original.segments[0].points.length).toBe(3);
-    expect(original.segments[1].points.length).toBe(2);
+    expect(original.segments).toHaveSize(2);
+    expect(original.segments[0].points).toHaveSize(3);
+    expect(original.segments[1].points).toHaveSize(2);
 
     const improved = await firstValueFrom(trackService.getFullTrackReady$(result!.currentTrackUuid, userEmail));
-    expect(improved.segments.length).toBe(2);
-    expect(improved.segments[0].points.length).toBe(3);
-    expect(improved.segments[1].points.length).toBe(2);
+    expect(improved.segments).toHaveSize(2);
+    expect(improved.segments[0].points).toHaveSize(3);
+    expect(improved.segments[1].points).toHaveSize(2);
   });
 
 });

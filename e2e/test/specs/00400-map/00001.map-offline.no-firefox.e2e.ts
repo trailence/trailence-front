@@ -34,7 +34,7 @@ describe('Map offline', () => {
   });
 
   it('Offline, IGN Plan cannot be loaded', async () => {
-    await browser.throttleNetwork('offline');
+    //await browser.throttleNetwork('offline');
     await browser.setNetworkConditions({ latency: 0, throughput: 0, offline: true });
     await map.selectLayer('ign');
     await browser.waitUntil(async () => {
@@ -89,8 +89,9 @@ describe('Map offline', () => {
   });
 
   it('Back to online, fallback go to online', async () => {
-    await browser.throttleNetwork('online');
-    await browser.setNetworkConditions({}, 'No throttling');
+    //await browser.throttleNetwork('online');
+    await browser.setNetworkConditions({ latency: 0, throughput: 0, offline: false });
+    //await browser.setNetworkConditions({ latency: 0, throughput: 0, offline: false }, 'No throttling');
     await browser.waitUntil(async () => {
       const tiles = await map.tiles.getElements();
       if (tiles.length === 0) throw Error('No tile');
@@ -104,7 +105,7 @@ describe('Map offline', () => {
   });
 
   it('Back to offline, select IGN, tiles in error', async () => {
-    await browser.throttleNetwork('offline');
+    //await browser.throttleNetwork('offline');
     await browser.setNetworkConditions({ latency: 0, throughput: 0, offline: true });
     await map.selectLayer('ign');
     await browser.waitUntil(async () => {
@@ -119,8 +120,9 @@ describe('Map offline', () => {
   });
 
   it('Back to online, tiles become online', async () => {
-    await browser.throttleNetwork('online');
-    await browser.setNetworkConditions({}, 'No throttling');
+    //await browser.throttleNetwork('online');
+    //await browser.setNetworkConditions({}, 'No throttling');
+    await browser.setNetworkConditions({ latency: 0, throughput: 0, offline: false });
     await browser.waitUntil(async () => {
       const tiles = await map.tiles.getElements();
       if (tiles.length === 0) return false;

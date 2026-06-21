@@ -18,6 +18,7 @@
     @if (selectedTrail.hasBreaks) {
       <div class="show-breaks">
         <ion-checkbox labelPlacement="end"
+          name="show-breaks"
           [checked]="selectedTrail.showBreaks"
           (ionChange)="toggleShowBreaks(selectedTrail, $event.detail.checked)"
           [disabled]="trails.showBreaksOnMapLocked"
@@ -27,6 +28,7 @@
     @if (selectedTrail.hasGuideposts) {
       <div class="show-breaks">
         <ion-checkbox labelPlacement="end"
+          name="show-guideposts"
           [checked]="selectedTrail.showGuideposts"
           (ionChange)="toggleShowGuideposts(selectedTrail, $event.detail.checked)"
           [disabled]="trails.showBreaksOnMapLocked"
@@ -36,6 +38,7 @@
     @if (selectedTrail.hasIntersections) {
       <div class="show-breaks">
         <ion-checkbox labelPlacement="end"
+          name="show-intersections"
           [checked]="selectedTrail.showIntersections"
           (ionChange)="toggleShowIntersections(selectedTrail, $event.detail.checked)"
           [disabled]="trails.showBreaksOnMapLocked"

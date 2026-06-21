@@ -2,8 +2,6 @@ import { App } from '../app/app';
 import { TrailsPage } from '../app/pages/trails-page';
 import { ImportTagsPopup } from '../components/import-tags-popup.component';
 import { TrailsList } from '../components/trails-list.component';
-import { FilesUtils } from './files-utils';
-import { OpenFile } from './open-file';
 import { TestUtils } from './test-utils';
 
 export interface ExpectedTrail {
@@ -129,7 +127,7 @@ export async function expectListContains(list: TrailsList, expectedTrails: Expec
     const trail = await list.findItemByTrailName(expected.name);
     expect(trail).withContext('Expected trail ' + expected.name).toBeDefined();
     const tags = await TestUtils.retry(async (trial) => {
-      if (trial > 1) await trail!.getElement().scrollIntoView({block: 'center', inline: 'center'});
+      if (trial > 1) await trail!.scrollIntoView();
       let list = await trail!.getTags();
       if (list.length !== expected.tags.length) return Promise.reject(new Error('Expected tags ' + expected.tags + ' found ' + list + ' on trail ' + expected.name));
       return list;
@@ -141,7 +139,7 @@ export async function expectListContains(list: TrailsList, expectedTrails: Expec
     if (expected.photos > 0) {
       let hasSlider = false;
       await TestUtils.retry(async (trial) => {
-        if (trial > 1) await trail!.getElement().scrollIntoView({block: 'center', inline: 'center'});
+        if (trial > 1) await trail!.scrollIntoView();
         const slider = trail!.getPhotosSliderElement();
         hasSlider = await slider.isExisting() && await slider.isDisplayed();
         if (!hasSlider) throw Error('Trails expected photos: ' + expected.name);

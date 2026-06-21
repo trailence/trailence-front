@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnInit, Output } from '@angular/core';
 import { IonInput, IonTextarea, IonButton, IonSpinner, IonIcon, AlertController } from "@ionic/angular/standalone";
 import { ModerationService } from 'src/app/services/moderation/moderation.service';
 import { Trail } from 'src/app/model/trail';
@@ -54,15 +54,16 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges {
   ngOnInit(): void {
     this.i18n.getTranslationLanguages().subscribe(l => {
       this.sourceLanguages = l.map(e => ({code: e.code, name: e.name}));
-      this.changesDetector.detectChanges();
       this.populate();
       this.checkReady();
+      this.changesDetector.detectChanges();
     });
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
+  ngOnChanges(): void {
     this.populate();
     this.checkReady();
+    this.changesDetector.detectChanges();
   }
 
   private checkReady(): void {

@@ -1,6 +1,6 @@
 import { catchError, combineLatest, concat, firstValueFrom, from, map, Observable, of, switchMap } from 'rxjs';
 import { DbTableWithBlob } from '../database/storage/db-table-with-blob';
-import { Injector } from '@angular/core';
+import { Injector, NgZone } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { NetworkService } from '../network/network.service';
 import { PendingRequests } from 'src/app/utils/pending-requests';
@@ -31,12 +31,20 @@ export class Pois {
     this.http = injector.get(HttpService);
     this.network = injector.get(NetworkService);
     this.worker = injector.get(WorkerService);
-    this.table.whenReady$().subscribe(() => injector.get(CleanupService).add({
-      id: 'pois',
-      name: 'POIs cache',
-      every: 24 * 60 * 60 * 1000,
-      execute: () => this.clean(),
-    }));
+    injector.get(NgZone).runOutsideAngular(() => setTimeout(() => {
+      if (this._destroyed) return;
+      injector.get(CleanupService).add({
+        id: 'pois',
+        name: 'POIs cache',
+        every: 24 * 60 * 60 * 1000,
+        execute: () => this.clean(),
+      });
+    }, 1000));
+  }
+
+  private _destroyed = false;
+  stop(): void {
+    this._destroyed = true;
   }
 
   public getPois(bounds: L.LatLngBounds, types: POIType[]): Observable<PoisResponse> {

@@ -39,7 +39,7 @@ function runTests(withFiles: boolean) {
       db.start();
 
       // empty
-      expect((await firstValueFrom(table.metadata.getAll$())).length).toBe(0);
+      expect((await firstValueFrom(table.metadata.getAll$()))).toHaveSize(0);
 
       const expectedDtos = new Map<string, {key: string, meta: string}>();
       const expectedBlobs = new Map<string, {key: string, blob: Blob}>();
@@ -89,7 +89,7 @@ function runTests(withFiles: boolean) {
         const blobFound = await firstValueFrom(table.getBlob$('key' + i));
         await DbTestsUtils.expectBlob(expectedBlobs.get('key'+i)!.blob, blobFound, 'getBlob$ key' + i);
       }
-      expect(dtos.length).toBe(10);
+      expect(dtos).toHaveSize(10);
 
       // deleteMany
       await firstValueFrom(table.deleteMany$(['key3', 'key7', 'key9', 'key10']));
@@ -111,7 +111,7 @@ function runTests(withFiles: boolean) {
         const blobFound = await firstValueFrom(table.getBlob$(key));
         await DbTestsUtils.expectBlob(expectedBlobs.get(key)!.blob, blobFound, 'getBlob$ ' + key);
       }
-      expect(dtos.length).toBe(6);
+      expect(dtos).toHaveSize(6);
       expect(await firstValueFrom(table.getBlob$('key3'))).toBeUndefined();
       expect(await firstValueFrom(table.getBlob$('key7'))).toBeUndefined();
       expect(await firstValueFrom(table.getBlob$('key9'))).toBeUndefined();
@@ -119,10 +119,12 @@ function runTests(withFiles: boolean) {
 
       // deleteAll
       await firstValueFrom(table.deleteAll$());
-      expect((await firstValueFrom(table.metadata.getAll$())).length).toBe(0);
+      expect(await firstValueFrom(table.metadata.getAll$())).toHaveSize(0);
       for (let i = 1; i <= 10; ++i) {
         expect(await firstValueFrom(table.getBlob$('key' + i))).toBeUndefined();
       }
+
+      await db.stop();
     });
 
     it('Load from existing database', async () => {
@@ -171,7 +173,9 @@ function runTests(withFiles: boolean) {
         const blobFound = await firstValueFrom(table.getBlob$(key));
         await DbTestsUtils.expectBlob(expectedBlobs.get(key)!.blob, blobFound, 'getBlob$ ' + key);
       }
-      expect(dtos.length).toBe(3);
+      expect(dtos).toHaveSize(3);
+
+      await db.stop();
     });
 
 
@@ -182,7 +186,7 @@ function runTests(withFiles: boolean) {
         const db = new Db(injector, 'test_db_meta_blob_restore', true, table.getTables());
         db.start();
         // empty
-        expect((await firstValueFrom(table.metadata.getAll$())).length).toBe(0);
+        expect(await firstValueFrom(table.metadata.getAll$())).toHaveSize(0);
         // fill it
         let dtos: MyDto[] = [];
         let blobs: BlobDto[] = [];
@@ -206,7 +210,7 @@ function runTests(withFiles: boolean) {
 
         // should be restored
         const restored = await firstValueFrom(table.metadata.getAll$());
-        expect(restored.length).toBe(10);
+        expect(restored).toHaveSize(10);
         for (let i = 1; i <= 10; ++i) {
           const dto = dtos.find(d => d.key === 'key'+i)!;
           const dtoRead = restored.find(d => d.key === 'key'+i);
@@ -216,6 +220,8 @@ function runTests(withFiles: boolean) {
           const expectedBlob = blobs[i-1];
           await DbTestsUtils.expectBlob(expectedBlob.blob, blobFound, 'getBlob$ key' + i);
         }
+
+        await db.stop();
       });
     }
 

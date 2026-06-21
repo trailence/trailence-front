@@ -3,7 +3,7 @@ import { DbTableWithBlob } from '../database/storage/db-table-with-blob';
 import { HttpService } from '../http/http.service';
 import { NetworkService } from '../network/network.service';
 import { PendingRequests } from 'src/app/utils/pending-requests';
-import { Injector } from '@angular/core';
+import { Injector, NgZone } from '@angular/core';
 import { catchError, debounceTime, filter, first, firstValueFrom, forkJoin, from, map, Observable, of, Subscriber, switchMap, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { ApiError } from '../http/api-error';
@@ -44,12 +44,20 @@ export class Ways {
     this.http = injector.get(HttpService);
     this.network = injector.get(NetworkService);
     this.worker = injector.get(WorkerService);
-    this.table.whenReady$().subscribe(() => injector.get(CleanupService).add({
-      id: 'ways',
-      name: 'ways cache',
-      every: 24 * 60 * 60 * 1000,
-      execute: () => this.clean(),
-    }));
+    injector.get(NgZone).runOutsideAngular(() => setTimeout(() => {
+      if (this._destroyed) return;
+      injector.get(CleanupService).add({
+        id: 'ways',
+        name: 'ways cache',
+        every: 24 * 60 * 60 * 1000,
+        execute: () => this.clean(),
+      });
+    }, 1000));
+  }
+
+  private _destroyed = false;
+  stop(): void {
+    this._destroyed = true;
   }
 
   public getWays(bounds: L.LatLngBounds, retryOnPartial: boolean): Observable<WaysResponse> {

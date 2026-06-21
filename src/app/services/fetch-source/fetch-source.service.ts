@@ -87,13 +87,6 @@ export class FetchSourceService {
 
   public get isReady$(): Observable<boolean> { return this.ready$; }
 
-  public getSource(url: string): FetchSourcePlugin | undefined {
-    for (const plugin of this.plugins$.value) {
-      if (plugin.canFetchTrailInfoByUrl(url) || plugin.canFetchTrailByUrl(url)) return plugin;
-    }
-    return undefined;
-  }
-
   public canFetchTrailInfo(url: string): FetchSourcePlugin | undefined {
     for (const plugin of this.plugins$.value) {
       if (plugin.canFetchTrailInfoByUrl(url)) return plugin;

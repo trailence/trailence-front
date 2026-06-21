@@ -3,6 +3,7 @@ import { TrailsPage } from '../../app/pages/trails-page';
 import { ModalComponent } from '../../components/modal';
 import { TrailsList } from '../../components/trails-list.component';
 import { Key } from 'webdriverio'
+import { TestUtils } from '../../utils/test-utils';
 
 describe('Import data from Visorando', () => {
 
@@ -34,7 +35,11 @@ describe('Import data from Visorando', () => {
     const trailPage = await trailsList.openTrailByName(hautMontetName);
     const description = await trailPage.trailComponent.getDescription();
     expect(description).toBe(hautMontetDescription);
-    const waypoints = await trailPage.trailComponent.getWayPoints();
+    const waypoints = await TestUtils.retry(async (trial) => {
+      const wp = await trailPage.trailComponent.getWayPoints(1);
+      if (trial > 1 && (wp.length === 0 || wp[0].description === '')) throw new Error()
+      return wp;
+    }, 2, 500);
     expect(waypoints[0].name).toBe(hautMontetWayPoint1Name);
     expect(waypoints[0].description).toBe(hautMontetWayPoint1Description);
     const location = await trailPage.trailComponent.getLocation();
@@ -43,7 +48,6 @@ describe('Import data from Visorando', () => {
     const photosInfos = await photos.collectPhotosInfos();
     if (!photosInfos.has('Station Radar')) throw new Error('Expected photo not found: ' + photosInfos);
     if (!photosInfos.has('Prairies et Rocaille')) throw new Error('Expected photo not found: ' + photosInfos);
-    await photos.close();
 
     await (await trailPage.header.openActionsMenu()).clickItemWithText('Delete');
     await (await App.waitAlert()).clickButtonWithRole('danger');

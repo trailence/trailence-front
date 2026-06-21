@@ -38,6 +38,9 @@ import { BoundsBuilder } from 'src/app/utils/leaflet-utils';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
+const FOLLOW_LOCATION_DEFAULT_ZOOM = 16;
+const FOLLOW_LOCATION_MIN_ZOOM = 13;
+
 @Component({
     selector: 'app-map',
     templateUrl: './map.component.html',
@@ -428,7 +431,7 @@ export class MapComponent extends AbstractComponent {
         this._initZoomTimestamp = 1;
         this._locationMarker.addTo(this._map$.value);
         if (this._followingLocation$.value) {
-          this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), 13));
+          this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), FOLLOW_LOCATION_DEFAULT_ZOOM));
         } else {
           this._map$.value.panInside(this._locationMarker.getLatLng(), {padding: [25,25]})
         }
@@ -473,7 +476,7 @@ export class MapComponent extends AbstractComponent {
   private centerOnLocation(): void {
     this.ngZone.runOutsideAngular(() => {
       if (this._map$.value && this._locationMarker) {
-        this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), 16));
+        this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), FOLLOW_LOCATION_MIN_ZOOM));
       }
       if (!this._followingLocation$.value)
         this._followingLocation$.next(true);

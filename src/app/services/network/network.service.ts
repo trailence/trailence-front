@@ -75,7 +75,11 @@ export class NetworkService implements INetworkService, OnDestroy {
   private checkInternet(): Promise<boolean> {
     return globalThis.fetch('https://www.google.com', {mode: 'no-cors'})
     .then(() => true)
-    .catch(() => false);
+    .catch(() => false)
+    .then(result => {
+      Console.info('Internet connection', result);
+      return result;
+    });
   }
 
   private checkServerConnection(count: number, trial: number): void {
@@ -89,7 +93,7 @@ export class NetworkService implements INetworkService, OnDestroy {
         Console.info('Server ping response received: connected (' + (Date.now() - start) + 'ms.)', response.body);
         status = response.body
       } else {
-        Console.info('Server ping response error (' + response.status + '): not connected');
+        Console.info('Server ping response error (' + response.status + '): not connected', Date.now() - start, 'ms.');
         status = null;
         if (trial < 3) setTimeout(() => this.checkServerConnection(count, trial + 1), trial * 250);
         else if (trial < 10) setTimeout(() => this.checkServerConnection(count, trial + 1), 1000);

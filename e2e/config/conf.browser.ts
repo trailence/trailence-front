@@ -10,6 +10,12 @@ function chromeCaps(downloadPath: string, userDataPath: string, isCi: boolean) {
         '--disk-cache-size=1',
         '--aggressive-cache-discard',
         '--user-data-dir=' + userDataPath,
+        '--hide-crash-restore-bubble',
+        '--disable-updater-scheduler',
+        '--no-first-run',
+        '--enable-automation',
+        '--disable-extensions',
+        '--disable-crash-reporter',
         ...(isCi ? [
           '--no-sandbox',
           '--disable-infobars',
@@ -20,12 +26,10 @@ function chromeCaps(downloadPath: string, userDataPath: string, isCi: boolean) {
           '--disable-background-timer-throttling',
           '--disable-backgrounding-occluded-windows',
           '--disable-breakpad',
-          '--disable-crash-reporter',
           '--disable-client-side-phishing-detection',
           '--disable-component-extensions-with-background-pages',
           '--disable-default-apps',
           '--disable-dev-shm-usage',
-          '--disable-extensions',
           // BlinkGenPropertyTrees disabled due to crbug.com/937609
           '--disable-features=TranslateUI,BlinkGenPropertyTrees',
           '--disable-hang-monitor',
@@ -35,8 +39,6 @@ function chromeCaps(downloadPath: string, userDataPath: string, isCi: boolean) {
           '--disable-sync',
           '--force-color-profile=srgb',
           '--metrics-recording-only',
-          '--no-first-run',
-          '--enable-automation',
           '--password-store=basic',
           '--use-mock-keychain',
         ] : [])
@@ -51,7 +53,7 @@ function chromeCaps(downloadPath: string, userDataPath: string, isCi: boolean) {
   };
 }
 
-function firefoxCaps(downloadPath: string, userDataPath: string, isCi: boolean) {
+function firefoxCaps(downloadPath: string, _: string, isCi: boolean) {
   return {
     browserName: 'firefox',
     'moz:firefoxOptions': {

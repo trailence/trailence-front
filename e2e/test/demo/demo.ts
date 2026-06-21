@@ -3,7 +3,7 @@ import { TrailPage } from '../app/pages/trail-page';
 import { TrailsPage } from '../app/pages/trails-page';
 import { MapComponent } from '../components/map.component';
 import { importTrail } from '../utils/import-trails';
-import { DemoScenario, openMyTrails, runDemo, setLang } from './demo-utils';
+import { openMyTrails, runDemo, setLang } from './demo-utils';
 
 describe('Demo', () => {
 

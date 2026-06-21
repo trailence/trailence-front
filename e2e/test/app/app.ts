@@ -50,7 +50,7 @@ export class App {
           console.log('Test error: take a screen shot');
           promise = promise
             .then(() => browser.saveScreenshot('./output/wdio_error_' + App.config.instance + '_' + result.id + '_' + Date.now() + '.png').then().catch(() => Promise.resolve()))
-            .then(() => browser.getUrl()).catch(e => Promise.resolve('error')).then(url => { console.log('Browser URL was: ' + url); return true; });
+            .then(() => browser.getUrl()).catch(_ => Promise.resolve('error')).then(url => { console.log('Browser URL was: ' + url); return true; });
         }
         promise = promise.then(() => browser.execute(name => {
           const history = [...(window as any)['_consoleHistory'], ' *** End of ' + name + ' ***'];
@@ -105,23 +105,51 @@ export class App {
 
   public static async end() {
     console.log('Retrieving code coverage...');
+    await browser.setTimeout({'script': 120000});
+    // launch retrieval of workers coverage
+    browser.execute(() => {
+      const fct = (window as any).__workerCoverage;
+      if (fct) fct(); else (window as any).__workerCoverageResult = [];
+    });
+    // main thread covergae
+    await browser.execute(() => { (window as any).__coverage__str = JSON.stringify((window as any).__coverage__) ?? ''; });
+    await this.retrieveAndWriteCoverage(
+      'main_thread',
+      // getSize
+      () => browser.execute(() => (window as any).__coverage__str.length),
+      // getChunk
+      (pos, step) => browser.execute((pos, step) => (window as any).__coverage__str.substring(pos, pos + step), pos, step),
+    );
+    console.log('Wait for workers coverage to be ready');
+    await browser.waitUntil(() => browser.execute(() => (window as any).__workerCoverageResult !== undefined));
+    const nbWorkers = await browser.execute(() => (window as any).__workerCoverageResult.length);
+    console.log('Coverage of ' + nbWorkers + ' workers ready');
+    for (let i = 1; i <= nbWorkers; ++i)
+      await this.retrieveAndWriteCoverage(
+        'worker_' + i,
+        () => browser.execute((index) => (window as any).__workerCoverageResult[index].length, i - 1),
+        (pos, step) => browser.execute((pos, step, index) => (window as any).__workerCoverageResult[index].substring(pos, pos + step), pos, step, i - 1),
+      );
+  }
+
+  private static async retrieveAndWriteCoverage(
+    description: string,
+    getSize: () => Promise<number>,
+    getChunk: (pos: number, step: number) => Promise<string>,
+  ) {
     const start = Date.now();
     const step = 15000000;
-    await browser.setTimeout({'script': 120000});
-    const size = await browser.execute(() => {
-      (window as any).__coverage__str = JSON.stringify((window as any).__coverage__) ?? '';
-      return (window as any).__coverage__str.length;
-    });
+    const size = await getSize();
     let coverage = '';
     let pos = 0;
     do {
-      const part = await browser.execute((pos, step) => (window as any).__coverage__str.substring(pos, pos + step), pos, step);
+      const part = await getChunk(pos, step);
       coverage += part;
       pos += part.length;
     } while (pos < size);
-    console.log('Coverage retrieved in ' + (Date.now() - start) + ' ms. with size = ' + coverage.length);
+    console.log('Coverage for ' + description + ' retrieved in ' + (Date.now() - start) + ' ms. with size = ' + coverage.length);
     const fs = await import('fs');
-    const name = 'cov_' + App.config.instance + '_' + Date.now() + '.json';
+    const name = 'cov_' + App.config.instance + '_' + description + '_' + Date.now() + '.json';
     console.log('Writing coverage to ' + name);
     try {
       fs.writeFileSync(
@@ -226,6 +254,14 @@ export class App {
 
   public static getPopoverContent(popoverContainer: ChainablePromiseElement): ChainablePromiseElement {
     return popoverContainer.$('>>>.popover-viewport');
+  }
+
+  public static async closePopover() {
+    await TestUtils.retry(async () => {
+      const pos = await this.getPopoverContent(this.getPopoverContainer()).getLocation();
+      await browser.action('pointer').move({x: pos.x - 10, y: pos.y - 10, origin: 'viewport'}).pause(10).down().pause(50).up().perform();
+      await this.waitNoPopover({timeout: 3000});
+    }, 3, 500);
   }
 
   public static async waitNoPopover(opts?: WaitUntilOptions) {

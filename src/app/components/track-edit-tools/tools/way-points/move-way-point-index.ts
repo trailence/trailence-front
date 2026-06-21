@@ -24,15 +24,17 @@ export class MoveWayPointIndexTool {
           wayPoint = TrackUtils.getWayPointAt(r[0].track, point.point.pos);
           if (!wayPoint) return [];
         }
-        const computed = r[0].wayPoints.find(wp => WayPointFromTrack.from(wp)?.wayPoint === wayPoint) as WayPointFromTrack | undefined;
-        if (!computed) return [];
+        const computedWp = r[0].wayPoints.find(wp => WayPointFromTrack.from(wp)?.wayPoint === wayPoint);
+        if (!computedWp) return [];
+        const computed = WayPointFromTrack.from(computedWp)!;
         if (computed.otherPossibleIndexes.length === 0) return [];
         const currentIndex = r[0].track.wayPoints.indexOf(computed.wayPoint);
         if (currentIndex < 0) return [];
         const subItems: MenuItem[] = [];
         for (const newPossibility of computed.otherPossibleIndexes) {
-          const newTarget = r[0].wayPoints.find(w => WayPointFromTrack.from(w)?.index === newPossibility.newIndex) as WayPointFromTrack | undefined;
-          if (!newTarget) continue;
+          const newTargetWp = r[0].wayPoints.find(w => WayPointFromTrack.from(w)?.index === newPossibility.newIndex);
+          if (!newTargetWp) continue;
+          const newTarget = WayPointFromTrack.from(newTargetWp)!;
           const newTargetIndex = r[0].track.wayPoints.indexOf(newTarget.wayPoint);
           const newIndex = newTargetIndex >= 0 ? newTargetIndex : r[0].track.wayPoints.length;
           subItems.push(

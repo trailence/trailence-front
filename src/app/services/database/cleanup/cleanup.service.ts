@@ -1,4 +1,4 @@
-import { Injectable, Injector, NgZone } from '@angular/core';
+import { Injectable, Injector, NgZone, OnDestroy } from '@angular/core';
 import { Console } from 'src/app/utils/console';
 import { TraceRecorderService } from '../../trace-recorder/trace-recorder.service';
 
@@ -20,7 +20,7 @@ interface Cleanup extends ToCleanup {
 }
 
 @Injectable({providedIn: 'root'})
-export class CleanupService {
+export class CleanupService implements OnDestroy {
 
   constructor(
     private readonly ngZone: NgZone,
@@ -34,6 +34,12 @@ export class CleanupService {
   private nextTimeout = 0;
   private lastRun = 0;
   private readonly todo: Cleanup[] = [];
+  private _destroyed = false;
+
+  ngOnDestroy(): void {
+    this._destroyed = true;
+    if (this.timeout) clearTimeout(this.timeout);
+  }
 
   public add(toCleanup: ToCleanup): void {
     this.remove(toCleanup.id);
@@ -53,6 +59,7 @@ export class CleanupService {
   }
 
   private sort(): void {
+    if (this._destroyed) return;
     this.todo.sort((t1, t2) => t1.nextRun - t2.nextRun);
 
     if (!this.started) {
@@ -91,6 +98,7 @@ export class CleanupService {
   }
 
   private run(): void {
+    if (this._destroyed) return;
     let todo = this.todo.at(0);
     if (!todo) return; // should never happen
     if (todo.nextRun > Date.now()) {

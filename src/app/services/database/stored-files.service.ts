@@ -2,6 +2,7 @@ import { Injectable, Injector } from '@angular/core';
 import { map, Observable, reduce } from 'rxjs';
 import { Db } from './storage/db';
 import { DbTableWithBlob } from './storage/db-table-with-blob';
+import { Arrays } from 'src/app/utils/arrays';
 
 interface StoredFileDto {
   key: string;
@@ -68,8 +69,8 @@ export class StoredFilesService {
   }
 
   public cleanUnreferencedFiles(type: string, references: {owner: string, uuid: string}[], maxDateStored: number): Observable<string> {
-    const keys = references.map(r => this.getKey(r.owner, type, r.uuid));
-    return this.table.deleteWhen$(25, k => !keys.includes(k) && k.indexOf('#' + type + '#') > 0, dto => !!dto.dateStored && dto.dateStored < maxDateStored)
+    const keys = Arrays.mapToSet(references, r => this.getKey(r.owner, type, r.uuid));
+    return this.table.deleteWhen$(25, k => !keys.has(k) && k.indexOf('#' + type + '#') > 0, dto => !!dto.dateStored && dto.dateStored < maxDateStored)
     .pipe(map(nb => '' + nb));
   }
 

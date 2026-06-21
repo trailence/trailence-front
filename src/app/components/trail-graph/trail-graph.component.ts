@@ -448,8 +448,7 @@ export class TrailGraphComponent extends AbstractComponent {
     } as any;
     this.fillDataSet(ds, track);
     if (withGradeFilling) {
-      this.chartData!.datasets.push(ds);
-      this.chartData!.datasets.push(...GradeDatasetBuilder.buildGradeDatasets(ds));
+      this.chartData!.datasets.push(ds, ...GradeDatasetBuilder.buildGradeDatasets(ds));
     } else {
       ds.fill = 'origin';
       ds.backgroundColor = new Color(colorBase).setAlpha(0.2).toString();

@@ -25,7 +25,7 @@ describe('Test Gpx Format', () => {
 
   it('Import gpx-001', async () => {
     const file = await firstValueFrom(http.get('/assets/test/gpx-001.gpx', { responseType: 'arraybuffer'}));
-    const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService, undefined, undefined, undefined);
+    const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService, undefined as any, undefined as any, undefined as any, undefined as any, undefined, undefined, undefined);
     expect(imported).not.toBeNull();
     const trail = imported.trail;
     expect(trail.name).toBe('Randonnée du 05/06/2023 à 08:58');
@@ -70,25 +70,25 @@ describe('Test Gpx Format', () => {
   }
 
   const compareSegments = (segment1: Segment, segment2: Segment) => {
-    expect(segment2.points.length).toBe(segment1.points.length);
+    expect(segment2.points).toHaveSize(segment1.points.length);
     for (let i = 0; i < segment1.points.length; ++i)
       comparePoints(segment1.points[i], segment2.points[i]);
   }
 
   const compareTracks = (track1: Track, track2: Track) => {
-    expect(track2.segments.length).toBe(track1.segments.length);
+    expect(track2.segments).toHaveSize(track1.segments.length);
     for (let i = 0; i < track1.segments.length; ++i)
       compareSegments(track1.segments[i], track2.segments[i]);
   }
 
   it('Import gpx-001, then export, then import again', async () => {
     const file = await firstValueFrom(http.get('/assets/test/gpx-001.gpx', { responseType: 'arraybuffer'}));
-    const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService, undefined, undefined, undefined);
+    const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService, undefined as any, undefined as any, undefined as any, undefined as any, undefined, undefined, undefined);
     const exported = await GpxFormat.exportGpx(imported.trail, imported.tracks, [], [], new Map<Photo,string>()).toArrayBuffer();
-    const imported2 = GpxFormat.importGpx(exported, 'test@example.com', '0', preferencesService, undefined, undefined, undefined);
+    const imported2 = GpxFormat.importGpx(exported, 'test@example.com', '0', preferencesService, undefined as any, undefined as any, undefined as any, undefined as any, undefined, undefined, undefined);
     expect(imported2).not.toBeNull();
     compareTrails(imported.trail, imported2.trail);
-    expect(imported.tracks.length).toBe(imported2.tracks.length);
+    expect(imported.tracks).toHaveSize(imported2.tracks.length);
     for (let i = 0; i < imported.tracks.length; ++i)
       compareTracks(imported.tracks[i], imported2.tracks[i]);
   });

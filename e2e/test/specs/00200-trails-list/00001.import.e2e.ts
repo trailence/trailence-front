@@ -4,8 +4,6 @@ import { TrailsPage } from '../../app/pages/trails-page';
 import { ErrorsModal } from '../../components/errors.modal';
 import { ImportTagsPopup } from '../../components/import-tags-popup.component';
 import { TagsPopup } from '../../components/tags-popup';
-import { FilesUtils } from '../../utils/files-utils';
-import { OpenFile } from '../../utils/open-file';
 import { TestUtils } from '../../utils/test-utils';
 
 describe('Trails list', () => {
@@ -211,7 +209,6 @@ describe('Trails list', () => {
     const photosPopup = await trailPage.trailComponent.openPhotos();
     const photos = photosPopup.getPhotosContainers();
     expect(await photos.length).toBe(1);
-    await photosPopup.close();
   });
 
   it('Synchronize', async () => {

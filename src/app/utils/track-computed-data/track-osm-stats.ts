@@ -74,12 +74,12 @@ export function getTrackOsmStats(ways: Map<string, Way>, osmTrackPoints: OsmWays
 
 function addStat<T>(map: Map<T, TrackOsmStatInfo>, value: T, distance: number, section: TrackSection | undefined): void {
   const stat = map.get(value);
-  if (!stat) {
-    map.set(value, {distance, sections: section ? [section] : []});
-  } else {
+  if (stat) {
     stat.distance += distance;
     if (section)
       stat.sections.push(section);
+  } else {
+    map.set(value, {distance, sections: section ? [section] : []});
   }
 }
 

@@ -1648,6 +1648,7 @@
   "open_web_version": "Voir sur la version web",
   "osm_stats": {
     "title": "Caractéristiques du parcours",
+    "attribution": "Données issues d'Open Street Map",
     "types": {
       "wayType": {
         "title": "Type de chemin",

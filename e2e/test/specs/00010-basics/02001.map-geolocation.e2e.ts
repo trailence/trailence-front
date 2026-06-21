@@ -12,10 +12,10 @@ describe('Locate me on map', () => {
     myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
     await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
     await browser.execute(() => {
-      window.navigator.geolocation.watchPosition = function(success, error) {
+      window.navigator.geolocation.watchPosition = function() {
         return 1;
       }
-      window.navigator.geolocation.clearWatch = function(id) {
+      window.navigator.geolocation.clearWatch = function() {
         // nothing
       }
     });

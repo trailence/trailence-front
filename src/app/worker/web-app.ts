@@ -22,6 +22,7 @@ export class WorkerService {
 
   constructor() {
     Console.info('[WORKER] max workers', this.maxWorkers, 'for', navigator.hardwareConcurrency, 'cpus');
+    (globalThis as any).__workerCoverage = () => this._codeCoverage().then(result => (globalThis as any).__workerCoverageResult = result);
   }
 
   public parsePois(blob: Blob, type: POIType, bounds: L.LatLngBounds): Promise<POI[]> {
@@ -82,11 +83,10 @@ export class WorkerService {
     .then(result => ({
       blob: new Blob([result.jpeg], {type: 'image/jpeg'}),
       photo: new Photo({
+        ...result.photo,
         owner,
         uuid: photoUuid,
         trailUuid,
-        description,
-        index,
       }, false, fromRecording)
     }))
     .catch(e => {
@@ -108,8 +108,22 @@ export class WorkerService {
     }));
   }
 
+  public _codeCoverage(): Promise<string[]> {
+    return this.request<string[]>({
+      request: WorkerRequest._CODE_COVERAGE,
+      payload: {},
+      transferable: []
+    });
+  }
+
   private request<R>(request: Request): Promise<R> {
     return new Promise<R>((resolve, reject) => {
+      if (request.request === WorkerRequest._CODE_COVERAGE) {
+        const results: Promise<string>[] = [];
+        for (const worker of this.workers) results.push(new Promise((r, e) => worker.process({request, resolve: r ,reject: e})));
+        Promise.all(results).then(resolve as (r: string[]) => void).catch(reject);
+        return;
+      }
       const work: Work = {
         request,
         resolve,

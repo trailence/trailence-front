@@ -263,8 +263,8 @@ export class TrailSelection {
       .map(p => new PointReference(p.track.track as Track, p.segmentIndex!, p.pointIndex!));
     const newSelection: PointReference[] = [];
     for (const p of points) {
-      const e = newSelection.find(s => s.track === p.track);
-      if (!e) newSelection.push(p);
+      if (!newSelection.some(s => s.track === p.track))
+        newSelection.push(p);
     }
     this.selectPoint(newSelection);
   }

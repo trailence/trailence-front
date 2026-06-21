@@ -46,11 +46,11 @@ export class LocalFilesService {
   private readonly _waiting = new Map<string, waitingOperation[]>();
 
   private sanitizeDir(dir: string): string {
-    return dir.replaceAll(/[\*\?]/g, '##');
+    return dir.replaceAll(/[\*\?]/g, '##'); // NOSONAR
   }
 
   private sanitizeFilename(filename: string): string {
-    return filename.replaceAll(/[\/\\\*\?]/g, '##');
+    return filename.replaceAll(/[\/\\\*\?]/g, '##'); // NOSONAR
   }
 
   private operation<T>(dir: string, filename: string, name: string, operation: () => Promise<T>): Promise<T> {

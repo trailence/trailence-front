@@ -99,7 +99,8 @@ interface RemainingData {
   segmentIndex: number | undefined,
   pointIndex: number | undefined,
   subTrack: Track | undefined,
-  mapTrack: MapTrack | undefined,
+  polyline: L.Polyline | undefined,
+  map: L.Map | undefined,
 }
 
 const ALL_TABS = ['details', 'map', 'photos', 'waypoints', 'reviews'];
@@ -615,11 +616,10 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         this.selection.zoom$,
         this.toolsHideBaseTrack$,
         this.publicTrailsAroundMapTracks$,
-        this.remaining$,
       ]).pipe(
         debounceTime(1)
       ),
-      ([trail1, trail2, recordingWithTrack, toolsBaseTrack, toolsModifiedTrack, selectionTracks, zoomOnSelection, hideBaseTrack, publicTrailsAround, remaining]) => { // NOSONAR
+      ([trail1, trail2, recordingWithTrack, toolsBaseTrack, toolsModifiedTrack, selectionTracks, zoomOnSelection, hideBaseTrack, publicTrailsAround]) => { // NOSONAR
         if (this.trail1 !== trail1[0]) {
           if (this._lock) {
             this._lock();
@@ -691,15 +691,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
 
         let recordingMapTrack: MapTrack | undefined = undefined;
         if (recordingWithTrack && !trail2[0]) {
-          const baseTrack = mapTracks.at(0);
-          if (remaining?.mapTrack) {
-            // first the remaining, so the current track stay on top
-            if (baseTrack?.color === 'red') baseTrack.color = '#FF000080';
-            mapTracks.push(remaining?.mapTrack);
-          } else {
-            if (baseTrack?.color === '#FF000080') baseTrack.color = 'red';
-          }
-          // recording
           tracks.push(recordingWithTrack.track);
           if (trail1[1])
             this.graphTrack2 = recordingWithTrack.track;
@@ -748,8 +739,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           }
         }
 
-        mapTracks.push(...publicTrailsAround);
-        mapTracks.push(...this.highlightedMapTrackSections);
+        mapTracks.push(...publicTrailsAround, ...this.highlightedMapTrackSections);
 
         this.trailsWaypoints.update([
           {trail: trail1[0], track: toolsModifiedTrack || toolsBaseTrack || trail1[1], recording: false, mapTrack: toolsModifiedMapTrack || toolsBaseMapTrack || trail1[2]},
@@ -1285,7 +1275,13 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     const trackChanges$ = this.recording$.pipe(switchMap(r => r ? concat(of(r), r.track.changes$.pipe(map(() => r))) : of(undefined)));
     let previousDistance = 0;
     this.byStateAndVisible.subscribe(
-      combineLatest([trackChanges$, this.graph$, this._bottomSheetTab$, this.tracks$.pipe(map(tracks => tracks.at(0)))])
+      combineLatest([
+        trackChanges$,
+        this.graph$,
+        this._bottomSheetTab$,
+        this.tracks$.pipe(map(tracks => tracks.at(0))),
+        this.map$.pipe(switchMap(m => m ? m.ready$.pipe(map(r => r ? m.getMap() : undefined)) : of(undefined)))
+      ])
       .pipe(
         debounceTimeExtended(
           1000,
@@ -1297,9 +1293,10 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             (!p[1]?.visible && !!n[1]?.visible) ||
             p[1]?.graphType !== n[1]?.graphType ||
             p[2] !== n[2] ||
-            p[3] !== n[3]
+            p[3] !== n[3] ||
+            p[4] !== n[4]
         ),
-        switchMap(([r, g, tab, track]) => {
+        switchMap(([r, g, tab, track, _map]) => {
           previousDistance = r ? r.track.metadata.distance : 0;
           let remaining: Track | undefined = undefined;
           const pt = r?.track.arrivalPoint;
@@ -1314,14 +1311,38 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           if (pt && this.graph) {
             this.graph.updateRecording(r.track, track, closestPoint?.segmentIndex, closestPoint?.pointIndex);
           }
-          if (!remaining) return of(undefined);
-          return remaining.computed.timeEstimation$.pipe(first(), map(timeEstimation => ({remaining, closestPoint, timeEstimation})))
+          if (!remaining) return of({remaining: remaining, closestPoint, undefined, track, _map});
+          return remaining.computed.timeEstimation$.pipe(first(), map(timeEstimation => ({remaining, closestPoint, timeEstimation, track, _map})))
         })
       ),
       r => {
-        if (r) {
-          const mapTrack = new MapTrack(undefined, r.remaining, 'red', 1, false, this.i18n);
-          mapTrack.data = 'remaining';
+        let polyline: L.Polyline | undefined = undefined;
+        if (r.closestPoint && r._map) {
+          if (!this.remaining$.value?.polyline || this.remaining$.value?.map !== r._map || this.remaining$.value?.segmentIndex !== r.closestPoint.segmentIndex || this.remaining$.value?.pointIndex !== r.closestPoint.pointIndex) {
+            // update remaining on map
+            if (this.remaining$.value?.polyline) {
+              polyline = this.remaining$.value?.polyline;
+              polyline.setLatLngs(r.remaining!.getAllPositions());
+            } else {
+              polyline = L.polyline(r.remaining!.getAllPositions(), {
+                color: 'red',
+                smoothFactor: 1,
+                interactive: false,
+                weight: 3,
+              });
+              polyline.addTo(r._map);
+            }
+            polyline.bringToBack();
+          } else {
+            polyline = this.remaining$.value.polyline;
+          }
+        }
+        if (!polyline && this.remaining$.value?.polyline) {
+          this.remaining$.value.polyline.remove();
+        }
+        const baseMapTrack = this.mapTracks$.value.find(mt => mt.track === r.track);
+        if (baseMapTrack) baseMapTrack.color = r.remaining ? '#FF000080' : 'red';
+        if (r.remaining) {
           this.remaining$.next({
             originalTime: r.remaining.metadata.duration,
             estimatedTime: r.timeEstimation.total,
@@ -1331,7 +1352,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             segmentIndex: r.closestPoint?.segmentIndex,
             pointIndex: r.closestPoint?.pointIndex,
             subTrack: r.remaining,
-            mapTrack,
+            polyline,
+            map: r._map,
           });
         } else if (this.remaining$.value) {
           this.remaining$.next(undefined);

@@ -14,6 +14,11 @@ export class CacheService {
   }
 
   public createTimeoutCacheDb<T>(name: string, timeout: number): TimeoutCacheDb<T> {
+    return new TimeoutCacheDb<T>(() => this.getDb(), name, timeout);
+  }
+
+  // getDb will open it on first usage
+  private getDb(): Dexie {
     if (!this.db) {
       Console.info('Opening cache DB');
       this.db = new Dexie('trailence_cache');
@@ -21,7 +26,7 @@ export class CacheService {
       storesV1[TIMEOUT_CACHE_TABLE] = '&full_key, name, key';
       this.db.version(1).stores(storesV1);
     }
-    return new TimeoutCacheDb<T>(this.db, name, timeout);
+    return this.db;
   }
 
 }
@@ -110,15 +115,15 @@ export class TimeoutCacheDb<T> implements Cache<T> {
   private hasTimeout = false;
 
   constructor(
-    private readonly db: Dexie,
+    private readonly getDb: () => Dexie,
     private readonly name: string,
     private readonly timeout: number,
   ) {
   }
 
   public feedItem(key: string, item: T): void {
-    this.db.transaction('rw', [TIMEOUT_CACHE_TABLE], async () => {
-      await this.db.table<TimeoutCacheDbItem>(TIMEOUT_CACHE_TABLE).put({
+    this.getDb().transaction('rw', [TIMEOUT_CACHE_TABLE], async () => {
+      await this.getDb().table<TimeoutCacheDbItem>(TIMEOUT_CACHE_TABLE).put({
         name: this.name,
         key: key,
         full_key: this.name + '__' + key,
@@ -130,8 +135,8 @@ export class TimeoutCacheDb<T> implements Cache<T> {
   }
 
   public feedList(items: {key: string, item: T}[]): void {
-    this.db.transaction('rw', [TIMEOUT_CACHE_TABLE], async () => {
-      await this.db.table<TimeoutCacheDbItem>(TIMEOUT_CACHE_TABLE).bulkPut(items.map(item => ({
+    this.getDb().transaction('rw', [TIMEOUT_CACHE_TABLE], async () => {
+      await this.getDb().table<TimeoutCacheDbItem>(TIMEOUT_CACHE_TABLE).bulkPut(items.map(item => ({
         name: this.name,
         key: item.key,
         full_key: this.name + '__' + item.key,
@@ -143,26 +148,26 @@ export class TimeoutCacheDb<T> implements Cache<T> {
   }
 
   public async getItem(key: string): Promise<T | undefined> {
-    const c = await this.db.table<TimeoutCacheDbItem>(TIMEOUT_CACHE_TABLE).get(this.name + '__' + key);
+    const c = await this.getDb().table<TimeoutCacheDbItem>(TIMEOUT_CACHE_TABLE).get(this.name + '__' + key);
     return c?.item;
   }
 
   public async removeItem(key: string) {
-    await this.db.table<TimeoutCacheDbItem>(TIMEOUT_CACHE_TABLE).delete(this.name + '__' + key);
+    await this.getDb().table<TimeoutCacheDbItem>(TIMEOUT_CACHE_TABLE).delete(this.name + '__' + key);
     return true;
   }
 
   private clean(): void {
     const max = Date.now() - this.timeout;
-    this.db.transaction('rw', [TIMEOUT_CACHE_TABLE], async () => {
-      await this.db.table<TimeoutCacheDbItem>(TIMEOUT_CACHE_TABLE).where('name').equals(this.name).and(i => i.date < max).delete();
+    this.getDb().transaction('rw', [TIMEOUT_CACHE_TABLE], async () => {
+      await this.getDb().table<TimeoutCacheDbItem>(TIMEOUT_CACHE_TABLE).where('name').equals(this.name).and(i => i.date < max).delete();
       await this.createTimeout();
     });
   }
 
   private async createTimeout() {
     if (this.hasTimeout) return;
-    const item = await this.db.table<TimeoutCacheDbItem>(TIMEOUT_CACHE_TABLE).where('name').equals(this.name).first();
+    const item = await this.getDb().table<TimeoutCacheDbItem>(TIMEOUT_CACHE_TABLE).where('name').equals(this.name).first();
     if (!item) return;
     if (this.hasTimeout) return;
     this.hasTimeout = true;

@@ -6,6 +6,8 @@ import { PointDescriptor } from 'src/app/model/point-descriptor';
 import { Point } from 'src/app/model/point';
 import { TrackPointReference } from '../track-computed-data/types';
 
+export const MAX_DEPARTURE_ARRIVAL_DISTANCE = 25;
+
 export class WayPointFromTrack extends TrackWayPointElement {
   constructor(
     public readonly wayPoint: WayPoint,
@@ -22,6 +24,14 @@ export class WayPointFromTrack extends TrackWayPointElement {
 
   public static from(wp: TrackWayPoint): WayPointFromTrack | undefined {
     return wp.elements.find(e => e instanceof WayPointFromTrack);
+  }
+
+  public static search(list: TrackWayPoint[], predicate: (wp: WayPointFromTrack) => boolean): WayPointFromTrack | undefined {
+    for (const twp of list) {
+      const wft = this.from(twp);
+      if (wft && predicate(wft)) return wft;
+    }
+    return undefined;
   }
 
   public override getWayPoint(): WayPoint | undefined {
@@ -119,7 +129,7 @@ export function computeWayPointsFromTrack(track: Track): WayPointFromTrack[] {
   if (lastKnownIndex >= 0) {
     const lastKnown = computed[lastKnownIndex];
     if ((lastKnown.nearestTrackPoint?.segmentIndex === track.segments.length - 1 && lastKnown.nearestTrackPoint.pointIndex === track.segments.at(-1)!.points.length - 1) ||
-        (track.arrivalPoint && track.arrivalPoint.pos.distanceTo(lastKnown.wayPoint.point.pos) < 25)) {
+        (track.arrivalPoint && track.arrivalPoint.pos.distanceTo(lastKnown.wayPoint.point.pos) <= MAX_DEPARTURE_ARRIVAL_DISTANCE)) {
       // match the arrival
       lastKnown.isArrival = true;
       if (lastKnownIndex < computed.length - 1) {
@@ -130,7 +140,7 @@ export function computeWayPointsFromTrack(track: Track): WayPointFromTrack[] {
     }
   }
   if (!departure) {
-    if (arrival && track.departurePoint.pos.distanceTo(arrival.wayPoint.point.pos) <= 25) {
+    if (arrival && track.departurePoint.pos.distanceTo(arrival.wayPoint.point.pos) <= MAX_DEPARTURE_ARRIVAL_DISTANCE) {
       arrival.isDeparture = true;
       const index = computed.indexOf(arrival);
       if (index > 0) {
@@ -141,7 +151,7 @@ export function computeWayPointsFromTrack(track: Track): WayPointFromTrack[] {
     } else {
       departure = new WayPointFromTrack(
         new WayPoint(track.departurePoint, '', ''),
-        true, !arrival && track.departurePoint.distanceTo(track.arrivalPoint!.pos) <= 25,
+        true, !arrival && track.departurePoint.distanceTo(track.arrivalPoint!.pos) <= MAX_DEPARTURE_ARRIVAL_DISTANCE,
         -1, {segmentIndex: 0, pointIndex: 0}, track, true
       );
       computed.splice(0, 0, departure);
@@ -149,7 +159,7 @@ export function computeWayPointsFromTrack(track: Track): WayPointFromTrack[] {
     }
   }
   if (!arrival) {
-    if (track.departurePoint.distanceTo(track.arrivalPoint!.pos) <= 25) {
+    if (track.departurePoint.distanceTo(track.arrivalPoint!.pos) <= MAX_DEPARTURE_ARRIVAL_DISTANCE) {
       departure.isArrival = true;
     } else {
       arrival = new WayPointFromTrack(

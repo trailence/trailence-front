@@ -480,11 +480,17 @@ export class TrailsPage extends AbstractPage {
     ];
     let first = true;
     this.byStateAndVisible.subscribe(
-      refresh$.pipe(switchMap(() => this.injector.get(ModerationService).getTrailsToReview())),
+      refresh$.pipe(switchMap(() => {
+        first = true;
+        this.loading = true;
+        this.ngZone.run(() => this.trails$.next(List()));
+        return this.injector.get(ModerationService).getTrailsToReview();
+      })),
       trails => {
         const newList = List(trails);
         if (first || !newList.equals(this.trails$.value)) {
           first = false;
+          this.loading = false;
           this.ngZone.run(() => this.trails$.next(newList));
         }
       }
@@ -512,6 +518,7 @@ export class TrailsPage extends AbstractPage {
         const newList = List(trails);
         if (first || !newList.equals(this.trails$.value)) {
           first = false;
+          this.loading = false;
           this.ngZone.run(() => this.trails$.next(newList));
         }
       }

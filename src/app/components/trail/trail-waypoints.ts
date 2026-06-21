@@ -44,8 +44,11 @@ export class TrailsWaypoints {
     for (const trail of trails) {
       const index = toRemove.findIndex(t => t.trail === trail.trail && t.track === trail.track);
       if (index >= 0) {
-        newTrails.push(toRemove[index]);
+        const t = toRemove[index];
+        newTrails.push(t);
         toRemove.splice(index, 1);
+        t.mapTrack = trail.mapTrack;
+        t.recording = trail.recording;
       } else {
         newTrails.push(new TrailWaypoints(this, trail.trail, trail.track, trail.recording, trail.mapTrack, this.photosWithPosition, () => this.wayPointsUpdated()));
       }
@@ -57,6 +60,12 @@ export class TrailsWaypoints {
   }
 
   public updateElementsShown(): void {
+    this.updateBreakpointsShown();
+    this.updateGuidepostsShown();
+    this.changes$.next(true);
+  }
+
+  private updateBreakpointsShown(): void {
     if (this.canShowBreaksOnMap()) {
       const multiple = this.trails.filter(t => t.showBreaks).length > 1;
       for (const t of this.trails) {
@@ -65,12 +74,14 @@ export class TrailsWaypoints {
     } else {
       for (const t of this.trails) t.mapTrack.showBreaksAnchors(undefined);
     }
+  }
+
+  private updateGuidepostsShown(): void {
     if (this.canShowGuidepostsOnMap()) {
       for (const t of this.trails) t.mapTrack.showGuideposts(t.showGuideposts);
     } else {
       for (const t of this.trails) t.mapTrack.showGuideposts(false);
     }
-    this.changes$.next(true);
   }
 
   public isShowingAllBreaks(): boolean {
@@ -240,8 +251,8 @@ export class TrailWaypoints {
     readonly trails: TrailsWaypoints,
     public readonly trail: Trail,
     public readonly track: Track,
-    public readonly recording: boolean,
-    public readonly mapTrack: MapTrack,
+    public recording: boolean,
+    public mapTrack: MapTrack,
     readonly initialPhotos: {photos: Photo[], point: L.LatLngExpression}[],
     readonly onUpdated: () => void,
   ) {

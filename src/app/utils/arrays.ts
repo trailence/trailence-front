@@ -52,6 +52,12 @@ export class Arrays {
     return array;
   }
 
+  public static mapToSet<T, R>(array: T[], mapper: (element: T) => R): Set<R> {
+    const set = new Set<R>();
+    for (const element of array) set.add(mapper(element));
+    return set;
+  }
+
 }
 
 export class CollectionMapper<S, T> {

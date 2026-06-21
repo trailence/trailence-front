@@ -233,16 +233,19 @@ export class AuthService {
   }
 
   public login(email: string, password: string, captchaToken?: string): Observable<AuthResponse> {
-    return this.getDeviceInfo().pipe(switchMap(deviceInfo => this.loginAndStoreKey(
-      publicKeyBase64 => this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/login', {
-        email,
-        password,
-        publicKey: publicKeyBase64,
-        deviceInfo,
-        captchaToken,
-        expiresAfter: this.platform.is('capacitor') ? KEY_EXPIRATION_NATIVE : KEY_EXPIRATION_WEB,
-      } as LoginRequest)
-    )));
+    return this.getDeviceInfo().pipe(
+      switchMap(deviceInfo => this.loginAndStoreKey(
+        publicKeyBase64 =>
+          this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/login', {
+            email,
+            password,
+            publicKey: publicKeyBase64,
+            deviceInfo,
+            captchaToken,
+            expiresAfter: this.platform.is('capacitor') ? KEY_EXPIRATION_NATIVE : KEY_EXPIRATION_WEB,
+          } as LoginRequest)
+      )),
+    );
   }
 
   public loginWithShareLink(token: string): Observable<AuthResponse> {

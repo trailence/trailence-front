@@ -12,6 +12,8 @@
     border-radius: 8px;
     margin-right: 5px;
     margin-bottom: 5px;
+    display: flex;
+    flex-direction: column;
 
     &.selected {
       border-color: var(--ion-color-primary);
@@ -66,8 +68,12 @@
       }
     }
 
-    .photo-footer {
+    .photo-space {
       flex: 1 1 100%;
+    }
+
+    .photo-footer {
+      flex: none;
       align-self: stretch;
       display: flex;
       flex-direction: column;

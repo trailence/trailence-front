@@ -6,7 +6,7 @@ import * as L from 'leaflet';
 import { Color } from 'src/app/utils/color';
 import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
 import { TrackWayPoint } from 'src/app/utils/track-waypoints/track-waypoint';
-import { WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
+import { MAX_DEPARTURE_ARRIVAL_DISTANCE, WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
 import { BreakPoint } from 'src/app/utils/track-waypoints/breakpoints';
 import { GuidepostWayPoint } from 'src/app/utils/track-waypoints/guideposts';
 
@@ -152,8 +152,8 @@ export class MapTrackWayPoints {
       if (twp.isDeparture) {
         let isArrival = twp.isArrival;
         if (!isArrival) {
-          const arrival = (list.find(e => WayPointFromTrack.from(e)?.isArrival) as WayPointFromTrack | undefined)?.wayPoint?.point;
-          if (arrival && L.latLng(arrival.pos).distanceTo(twp.wayPoint.point.pos) < 5) isArrival = true;
+          const arrival = WayPointFromTrack.search(list, w => w.isArrival)?.wayPoint?.point;
+          if (arrival && L.latLng(arrival.pos).distanceTo(twp.wayPoint.point.pos) <= MAX_DEPARTURE_ARRIVAL_DISTANCE) isArrival = true;
         }
         if (isArrival && !this._isRecording) {
           this._departureAndArrival = this.createDepartureAndArrival(twp.wayPoint.point.pos);
@@ -162,8 +162,8 @@ export class MapTrackWayPoints {
         }
       } else if (twp.isArrival && (!this._isRecording || twp.isComputedOnly)) {
         if (!this._isRecording) {
-          const departure = (list.find(e => WayPointFromTrack.from(e)?.isDeparture) as WayPointFromTrack | undefined)?.wayPoint?.point;
-          if (!departure || L.latLng(departure.pos).distanceTo(twp.wayPoint.point.pos) >= 5)
+          const departure = WayPointFromTrack.search(list, e => e.isDeparture)?.wayPoint?.point;
+          if (!departure || L.latLng(departure.pos).distanceTo(twp.wayPoint.point.pos) > MAX_DEPARTURE_ARRIVAL_DISTANCE)
             this._arrival = this.createArrival(twp.wayPoint.point.pos);
         }
       } else {
@@ -190,7 +190,7 @@ export class MapTrackWayPoints {
     this._breaksColored = [];
     const departurePoint = track.points[0];
     const arrivalPoint = track.points.at(-1);
-    if (departurePoint && arrivalPoint && L.latLng(departurePoint.lat, departurePoint.lng).distanceTo(arrivalPoint) <= 25) {
+    if (departurePoint && arrivalPoint && L.latLng(departurePoint.lat, departurePoint.lng).distanceTo(arrivalPoint) <= MAX_DEPARTURE_ARRIVAL_DISTANCE) {
       this._departureAndArrival = this.createDepartureAndArrival(departurePoint);
     } else {
       if (departurePoint) {
@@ -309,7 +309,7 @@ export class MapTrackWayPoints {
       }
   }
 
-  public highlight(wp: TrackWayPoint): void {
+  public highlight(wp: TrackWayPoint): void { // NOSONAR
     const anchor = this.getAnchor(wp);
     if (anchor) {
       anchor.marker.getElement()?.classList.add('highlighted');

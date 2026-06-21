@@ -28,7 +28,7 @@ describe('Collection map', () => {
 
     await map.setBubblesMode();
     // map should contain only bubbles
-    paths = await map.getPathsWithClass('track-path').map(e => e.getAttribute('stroke'));
+    paths = await TestUtils.retry(() => map.getPathsWithClass('track-path').map(e => e.getAttribute('stroke')).then(p => { if (p.length > 0) throw new Error('' + p.length + ' paths found'); return p; }), 5, 1000);
     expect(paths.length).toBe(0);
     bubbles = await map.getOverlaysSvgsWithClass('bubble').map(m => m.getAttribute('class'));
     expect(bubbles.length).toBeGreaterThan(0);
@@ -36,7 +36,7 @@ describe('Collection map', () => {
 
     await map.setPathMode();
     // map should contain only trails
-    paths = await map.getPathsWithClass('track-path').map(e => e.getAttribute('stroke'));
+    paths = await TestUtils.retry(() => map.getPathsWithClass('track-path').map(e => e.getAttribute('stroke')).then(p => { if (p.length === 0) throw new Error('No path found'); return p; }), 5, 1000);
     expect(paths.length).toBeGreaterThan(0);
     expect(paths.every(p => p === 'red'));
     bubbles = await map.getOverlaysSvgsWithClass('bubble').map(m => m.getAttribute('class'));

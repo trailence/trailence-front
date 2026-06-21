@@ -10,7 +10,7 @@ import { IdGenerator } from 'src/app/utils/component-utils';
 import { PublicPage } from '../public.page';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { Router } from '@angular/router';
-import { filter, first, firstValueFrom, map } from 'rxjs';
+import { filter, first, firstValueFrom } from 'rxjs';
 import { HttpService } from 'src/app/services/http/http.service';
 import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { Trail } from 'src/app/model/trail';
@@ -370,7 +370,7 @@ export class HomePage extends PublicPage {
   examples?: TrailWithInfo[];
   private async showExamples() {
     const fetchSource = await import('../../services/fetch-source/fetch-source.service').then(m => this.injector.get(m.FetchSourceService));
-    const trailence = await firstValueFrom(fetchSource.getAllowedPlugins$().pipe(map(list => list.find(plugin => plugin.name === 'Trailence')),first(p => !!p)));
+    const trailence = await firstValueFrom(fetchSource.getTrailence$().pipe(first(p => !!p)));
     const http = this.injector.get(HttpService);
     const uuids = await firstValueFrom(http.get<string[]>(environment.apiBaseUrl + '/public/trails/v1/examples?nb=5'));
     const trails = await trailence.getTrails(uuids);

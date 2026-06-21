@@ -80,3 +80,15 @@ export interface MapAdditionsOptions {
   forbiddenBicycleWays?: boolean;
   permissiveBicycleWays?: boolean;
 }
+
+export function countMapAdditionsOptions(options: MapAdditionsOptions): number {
+  let count = 0;
+  if (options.guidepost) count++;
+  if (options.waterPoint) count++;
+  if (options.toilets) count++;
+  if (options.forbiddenWays) count++;
+  if (options.permissiveWays) count++;
+  if (options.forbiddenBicycleWays) count++;
+  if (options.permissiveBicycleWays) count++;
+  return count;
+}

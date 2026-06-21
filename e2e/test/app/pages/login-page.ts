@@ -1,5 +1,6 @@
 import { IonicButton } from '../../components/ionic/ion-button';
 import { IonicInput } from '../../components/ionic/ion-input';
+import { TestUtils } from '../../utils/test-utils';
 import { App } from '../app';
 import { Page } from './page';
 import { TrailsPage } from './trails-page';
@@ -25,7 +26,7 @@ export class LoginPage extends Page {
     await browser.waitUntil(() => this.loginInput.isDisplayed());
     await this.loginInput.setValue(username ?? App.config.username);
     await this.passwordInput.setValue(password ?? App.config.password);
-    await this.loginButton.click();
+    await this.loginButton.click({timeout: 10000});
     await browser.waitUntil(() => this.notDisplayed());
   }
 

@@ -163,7 +163,7 @@ export class PhotoService {
     return from(this.injector.get(WorkerService).importPhoto(owner, trailUuid, description, index, content, this.preferences.preferences, dateTaken, latitude, longitude, isCover)).pipe(
       switchMap(imported => {
         return this.injector.get(StoredFilesService).store(owner, 'photo', imported.photo.uuid, imported.blob).pipe(
-          switchMap(result => {
+          switchMap(() => {
             if (fromModeration) return this.injector.get(ModerationService).createPhoto(imported.photo, imported.blob);
             if (fromRecording) return from(this.injector.get(TraceRecorderService).storePhoto(imported.photo, imported.blob));
             return this.store.create(imported.photo);
@@ -418,14 +418,12 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> implements StoreWithCleanin
           const maxDate = Date.now() - 24 * 60 * 60 * 1000;
           let count = 0;
           const ondone = new CompositeOnDone(() => {
-            Console.info('Photos database cleaned: ' + count + ' removed');
             subscriber.next(knownPhotos);
             subscriber.complete();
           });
           for (const photo of photos) {
             if (photo.createdAt > maxDate || photo.updatedAt > maxDate) continue;
-            const trail = trails.find(t => t.uuid === photo.trailUuid && t.owner === photo.owner);
-            if (trail) continue;
+            if (trails.some(t => t.uuid === photo.trailUuid && t.owner === photo.owner)) continue;
             const d = ondone.add();
             this.getLocalUpdate(photo).then(date => {
               if (status.counter !== this._storeLoaded$.value?.counter) {

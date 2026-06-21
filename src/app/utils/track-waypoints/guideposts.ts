@@ -6,6 +6,7 @@ import { distance } from '../latlng';
 import { WayPoint } from 'src/app/model/way-point';
 import { Point } from 'src/app/model/point';
 import { TrackPointReference } from '../track-computed-data/types';
+import { BreakPoint } from './breakpoints';
 
 export const GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT = 25;
 
@@ -97,14 +98,14 @@ export function computeGuidepostsWayPoints(track: Track, pois: POI[], wayPoints:
           wayPoints.some(wp => isWayPointAndDistanceLessThan(wp, GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT + 15, poi.pos))
       ) continue;
       previousPoi = poi;
-      let distance = point.pos.distanceTo(poi.pos);
+      let bestDistance = point.pos.distanceTo(poi.pos);
       let index = i;
       for (let j = i + 1; j < points.length; ++j) {
         const d = points[j].pos.distanceTo(poi.pos);
-        if (d < distance) {
-          distance = d;
+        if (d < bestDistance) {
+          bestDistance = d;
           index = j;
-        } else if (d > distance) {
+        } else if (d > bestDistance) {
           break;
         }
       }
@@ -146,5 +147,8 @@ function nearest(pois: POI[], pos: L.LatLng): POI | undefined {
 }
 
 function isWayPointAndDistanceLessThan(wp: TrackWayPoint, maxDistance: number, pos: {lat: number, lng: number}): boolean {
-  return wp.elements.some(e => e instanceof WayPointFromTrack && distance(pos, e.wayPoint.point.pos) < maxDistance);
+  return wp.elements.some(e =>
+    (e instanceof WayPointFromTrack && distance(pos, e.wayPoint.point.pos) < maxDistance) ||
+    (e instanceof BreakPoint && distance(pos, e.getPoint()!.pos) < maxDistance)
+  );
 }

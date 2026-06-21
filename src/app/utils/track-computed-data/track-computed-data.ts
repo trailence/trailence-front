@@ -16,6 +16,8 @@ import { NetworkService } from 'src/app/services/network/network.service';
 import { TrackComputedDataCacheService } from 'src/app/services/database/track-computed-data-cache.service';
 import { AllWaysResponse } from 'src/app/services/map/ways';
 import { PoisResponse } from 'src/app/services/map/pois';
+import { GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT } from '../track-waypoints/guideposts';
+import { extendsAround } from '../leaflet-utils';
 
 export class TrackComputedData {
 
@@ -77,7 +79,7 @@ export class TrackComputedData {
           const server = this.networkService.server;
           if (fromCache && server && fromCache.osmDataVersion === server.osmDataVersions[this.mapService.geoDataVersion])
             return of({pois: fromCache.pois, partial: false, done: true, osmDataVersion: fromCache.osmDataVersion});
-          return this.mapService.pois.getPois(bounds, ['guidepost']).pipe(filter(p => p.done));
+          return this.mapService.pois.getPois(extendsAround(bounds, GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT + 1), ['guidepost']).pipe(filter(p => p.done));
         })
       );
     },

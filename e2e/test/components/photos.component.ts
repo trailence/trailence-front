@@ -1,4 +1,4 @@
-import { ChainablePromiseElement, Key } from 'webdriverio';
+import { ChainablePromiseElement } from 'webdriverio';
 import { Component } from './component';
 import { IonicButton } from './ionic/ion-button';
 import { OpenFile } from '../utils/open-file';
@@ -7,7 +7,7 @@ import { App } from '../app/app';
 import { PhotosSliderPopup } from './photos-slider-popup';
 import { FilesUtils } from '../utils/files-utils';
 
-export class PhotosPopup extends Component {
+export class PhotosComponent extends Component {
 
   constructor(
     element: ChainablePromiseElement,
@@ -23,7 +23,7 @@ export class PhotosPopup extends Component {
   public async collectPhotosInfos() {
     const result = new Map<string, { container: WebdriverIO.Element; metadata: Map<string, string> }>();
     for (const container of await this.getPhotosContainers().getElements()) {
-      await container.scrollIntoView({block: 'center', inline: 'center'});
+      await Component.scrollIntoView(container);
       const text = (await container.$('div.photo-and-description div.description').getText()).trim();
       const metadataItems = container.$$('div.metadata-item');
       const metadata = new Map<string, string>();
@@ -44,7 +44,7 @@ export class PhotosPopup extends Component {
   public async getIndexByDescription(description: string) {
     let index = 1;
     for (const container of await this.getPhotosContainers().getElements()) {
-      await container.scrollIntoView({block: 'center', inline: 'center'});
+      await Component.scrollIntoView(container);
       const text = (await container.$('div.photo-and-description div.description').getText()).trim();
       if (text === description) return index;
       index++;
@@ -80,7 +80,7 @@ export class PhotosPopup extends Component {
     await container.$('div.photo-and-description div.description').click();
     const textArea = container.$('ion-textarea').$('>>>textarea');
     await textArea.click();
-    await textArea.execute((element, text, ionic) => {
+    await textArea.execute((_, text, ionic) => {
       //(element as any).value = text;
       (ionic as any).ionChange.emit({ value: text });
     }, newText, await container.$('ion-textarea').getElement());
@@ -108,13 +108,6 @@ export class PhotosPopup extends Component {
   public async removeSelected() {
     const button = new IonicButton(this.getElement().$('div.selection').$('ion-button=Delete'));
     await button.click();
-  }
-
-  public async close() {
-    if (!this.inPopup) return;
-    const element = this.getElement().$('ion-footer ion-buttons').$('ion-button=Close');
-    await new IonicButton(element).click();
-    await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
   }
 
   public async addPhoto(file: string) {

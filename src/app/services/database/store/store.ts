@@ -531,7 +531,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     this.performOperation(
       'update item',
       () => {
-        const createdLocally = this._createdLocally.find(item$ => item$.value && this.areSame(item$.value, item));
+        const createdLocally = this._createdLocally.some(item$ => item$.value && this.areSame(item$.value, item));
         if (!createdLocally && !this._updatedLocally.includes(key))
           this._updatedLocally.push(key);
         const entity$ = this._store.value.find(item$ => item$.value && this.areSame(item$.value, item));

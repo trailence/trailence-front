@@ -1,6 +1,6 @@
 import { Injectable, SecurityContext } from '@angular/core';
 import { PreferencesService } from '../preferences/preferences.service';
-import { BehaviorSubject, combineLatest, filter, map, Observable, of, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, filter, map, Observable, of, switchMap, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { DateFormat, DistanceUnit, HourFormat } from '../preferences/preferences';
 import { StringUtils } from 'src/app/utils/string-utils';
@@ -421,8 +421,16 @@ export class I18nService {
   private _languagesLoaded?: {code: string, name: string, targets: string[]}[];
   public getTranslationLanguages(): Observable<{code: string, name: string, targets: string[]}[]> {
     if (this._languagesLoaded) return of(this._languagesLoaded);
+    Console.info('Loading languages list');
     return this.assets.loadJson(environment.assetsUrl + '/i18n/languages.1.json').pipe(
-      tap(l => this._languagesLoaded = l),
+      tap(l => {
+        this._languagesLoaded = l;
+        Console.info('Languages list loaded', l);
+      }),
+      catchError(e => {
+        Console.error('Error loading languages list', e);
+        return of([]);
+      })
     );
   }
 

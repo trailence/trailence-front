@@ -5,11 +5,13 @@ import { Component } from './component';
 import { EditTools } from './edit-tools.component';
 import { ElevationGraph } from './elevation-graph.component';
 import { IonicButton } from './ionic/ion-button';
+import { IonicCheckbox } from './ionic/ion-checkbox';
 import { IonicInput } from './ionic/ion-input';
 import { IonicSegment } from './ionic/ion-segment';
 import { IonicTextArea } from './ionic/ion-textarea';
 import { MapComponent } from './map.component';
-import { PhotosPopup } from './photos-popup.component';
+import { MenuContent } from './menu-content.component';
+import { PhotosComponent } from './photos.component';
 import { PublicationChecklistModal } from './publication-checklist.modal';
 import { RateAndComments } from './rate-and-comments.component';
 import { TagsPopup } from './tags-popup';
@@ -17,33 +19,37 @@ import { ToolbarComponent } from './toolbar.component';
 
 export class TrailComponent extends Component {
 
-  private _hasTabs: boolean | undefined = undefined;
   private _tabsSegment: IonicSegment | undefined = undefined;
   private _currentTab: string | undefined = undefined;
+  private _hasDetailsTab: boolean | undefined = undefined;
 
-  public async hasTabs() {
-    if (this._hasTabs === undefined)
-      this._hasTabs = await this.getElement().$('div.top-container div.tabs-container ion-segment').isExisting();
-    return this._hasTabs;
+  public async getTabs(): Promise<IonicSegment> {
+    if (this._tabsSegment === undefined) {
+      this._tabsSegment = new IonicSegment(this.getElement().$('div.top-container div.tabs-container ion-segment'));
+      await browser.waitUntil(() => this._tabsSegment!.isDisplayed());
+    }
+    return this._tabsSegment;
   }
 
   public async hasTab(name: string) {
-    if (this._tabsSegment === undefined)
-      this._tabsSegment = new IonicSegment(this.getElement().$('div.top-container div.tabs-container ion-segment'));
-    return await this._tabsSegment.hasOption(name);
+    const tabs = await this.getTabs();
+    return await tabs.hasOption(name);
+  }
+
+  private async hasDetailsTab() {
+    this._hasDetailsTab ??= await this.hasTab('details');
+    return this._hasDetailsTab;
   }
 
   public async openTab(tab: string) {
     if (this._currentTab === tab) return false;
-    if (this._tabsSegment === undefined)
-      this._tabsSegment = new IonicSegment(this.getElement().$('div.top-container div.tabs-container ion-segment'));
-    await this._tabsSegment.setSelected(tab);
+    await (await this.getTabs()).setSelected(tab);
     this._currentTab = tab;
     return true;
   }
 
   public async openDetails() {
-    if (await this.hasTabs()) {
+    if (await this.hasDetailsTab()) {
       if (await this.openTab('details'))
         await browser.waitUntil(() => this.getElement().$('div.top-container>div.trail-details').isDisplayed());
     }
@@ -56,7 +62,7 @@ export class TrailComponent extends Component {
   }
 
   public async getMetadataTitle(item: WebdriverIO.Element) {
-    await item.scrollIntoView({block: 'center', inline: 'center'});
+    await Component.scrollIntoView(item);
     return await item.$('.metadata-title').getText();
   }
 
@@ -107,7 +113,7 @@ export class TrailComponent extends Component {
     const details = await this.openDetails();
     const checkboxes = details.$$('ion-checkbox');
     for (const cb of await checkboxes.getElements()) {
-      await cb.scrollIntoView({block: 'center', inline: 'center'});
+      await Component.scrollIntoView(cb);
       const text = await cb.getText();
       if (text === 'Show original trace') {
         await cb.click();
@@ -119,41 +125,24 @@ export class TrailComponent extends Component {
 
   public async toggleShowPhotosOnMap() {
     const map = await this.openMap();
-    await map.rightToolbar.clickByIcon('photos');
+    await map.rightToolbar.clickByIcon('privacy');
+    const menu = new MenuContent(await App.waitPopover());
+    await menu.clickItemWithIcon('photos');
+    await App.closePopover();
   }
 
   public async openPhotos() {
-    // mobile mode
-    if (await this.hasTabs()) {
-      const wait = await this.openTab('photos')
-      const element = this.getElement().$('div.top-container>div.trail-photos-tab>app-photos-popup');
-      if (wait)
-        await element.waitForDisplayed();
-      return new PhotosPopup(element, false);
-    }
-
-    // desktop mode
-    const section = this.getElement().$('div.top-container>div.trail-details>div.trail-photos');
-    const noPhoto = section.$('.no-photo');
-    const editPhotos = section.$('ion-button.edit');
-    await browser.waitUntil(async () => {
-      if (await editPhotos.isExisting()) {
-        await new IonicButton(editPhotos).click();
-        return true;
-      }
-      if (await noPhoto.isExisting()) {
-        await noPhoto.click();
-        return true;
-      }
-      return false;
-    });
-    return new PhotosPopup(await App.waitModal(), true);
+    const wait = await this.openTab('photos')
+    const element = this.getElement().$('div.top-container>div.trail-photos-tab>app-photos');
+    if (wait)
+      await element.waitForDisplayed();
+    return new PhotosComponent(element, false);
   }
 
   public async getDescription() {
     const details = await this.openDetails();
     const element = details.$('div.description-text');
-    await element.scrollIntoView({block: 'center', inline: 'center'});
+    await Component.scrollIntoView(element);
     const span = element.$('span');
     const text = await span.getText();
     if (text === 'Describe the trail here') return '';
@@ -163,13 +152,13 @@ export class TrailComponent extends Component {
   public async setDescription(text: string) {
     const details = await this.openDetails();
     const element = details.$('div.description-text');
-    await element.scrollIntoView({block: 'center', inline: 'center'});
+    await Component.scrollIntoView(element);
     await element.click();
     const textArea = new IonicTextArea(element.$('ion-textarea'));
     await textArea.waitDisplayed();
     await textArea.setValue(text);
     const somewhere = details.$('div.trail-dates');
-    await somewhere.scrollIntoView({block: 'center', inline: 'center'});
+    await Component.scrollIntoView(somewhere);
     await somewhere.click();
     await browser.waitUntil(() => textArea.isDisplayed().then(d => !d));
   }
@@ -185,11 +174,16 @@ export class TrailComponent extends Component {
     const button = new IonicButton(modal.$('ion-content').$('>>>ion-button.search-place-button'));
     await button.click();
     const ul = modal.$('ion-content').$('>>>ul');
-    await ul.waitForDisplayed();
-    const link = ul.$('li:first-child').$('a');
-    await link.waitForDisplayed();
-    await link.click();
-    await browser.waitUntil(() => new IonicInput(modal.$('ion-content').$('>>>ion-input')).getValue().then(value => value === 'Bonifacio'));
+    try {
+      await ul.waitForDisplayed({timeout: 15000});
+      const link = ul.$('li:first-child').$('a');
+      await link.waitForDisplayed();
+      await link.click();
+      await browser.waitUntil(() => new IonicInput(modal.$('ion-content').$('>>>ion-input')).getValue().then(value => value === 'Bonifacio'));
+    } catch (_) {
+      // overpass ko ?
+      await new IonicInput(modal.$('ion-content').$('>>>ion-input')).setValue('Bonifacio');
+    }
     const save = new IonicButton(modal.$('ion-footer').$('>>>ion-buttons').$('ion-button=Save'));
     await save.click();
     await browser.waitUntil(() => modal.isDisplayed().then(d => !d));
@@ -204,10 +198,7 @@ export class TrailComponent extends Component {
   }
 
   public async openMap() {
-    if (await this.hasTabs()) {
-      // mobile mode
-      await this.openTab('map');
-    }
+    await this.openTab('map');
     const element = this.getElement().$('div.top-container>div.map-container>app-map');
     await element.waitForDisplayed();
     return new MapComponent(element);
@@ -324,13 +315,9 @@ export class TrailComponent extends Component {
   }
 
   public async showElevationGraph() {
-    if (await this.hasTabs()) {
-      await this.openMap();
-      await this.openBottomSheet();
-      await this.openBottomSheetTab('elevation');
-    } else {
-      await this.openBottomSheet();
-    }
+    await this.openMap();
+    await this.openBottomSheet();
+    await this.openBottomSheetTab('elevation');
     const graph = new ElevationGraph(this.getElement().$('div.graph-container app-trail-graph'));
     await graph.waitDisplayed(true);
     return graph;
@@ -340,30 +327,94 @@ export class TrailComponent extends Component {
     if (App.config.mode === 'mobile') {
       await this.openTab('waypoints');
     }
-    return this.getElement().$('div.waypoints-container');
+    return this.getElement(true).$('div.waypoints-container');
   }
 
-  public async getWayPoints() {
+  public async getWayPoints(max: number) {
     const waypoints = await this.openWayPoints();
-    const elements = await waypoints.$$('div.waypoint div.waypoint-content').getElements();
+    await Component.scrollIntoView(this.getElement(true).$('div.waypoints-container'));
+    const nbElements = await waypoints.$$('app-waypoint').length;
+    console.log('nb waypoints', nbElements);
     const result = [];
-    for (const element of elements) {
-      if (await element.$('div.waypoint-name span').isExisting())
-        result.push({
-          name: await element.$('div.waypoint-name span').getText(),
-          description: await element.$('div.waypoint-description span').getText(),
-        });
-      else
-        result.push({name: '', description: ''});
+    for (let i = 0; i < nbElements && i < max; ++i) {
+      try {
+        const element = this.getElement(true).$('div.waypoints-container').$$('app-waypoint')[i];
+        const {isBreakpoint, isGuidepost, innerGuidpost, hasPhotos, name, description} = await browser.execute((e) => {
+          const elem = (e as any as HTMLElement);
+          const titles = elem.querySelectorAll('div.waypoint-info-title');
+          const isBreakpoint = Array.from(titles.entries()).some(title => (title[1] as any).innerText === 'Duration');
+          const isGuidepost = !!elem.querySelector('div.waypoint-anchor ion-icon[name=poi-guidepost]');
+          const innerGuidpostSpan = elem.querySelector('div.waypoint-attached-guidepost span') as HTMLSpanElement | null;
+          const innerGuidpost = innerGuidpostSpan ? innerGuidpostSpan.innerText : undefined;
+          const hasPhotos = !!elem.querySelector('div.waypoint-photos');
+          const nameSpan = elem.querySelector('div.waypoint-name span') as HTMLSpanElement | null;
+          const name = nameSpan ? nameSpan.innerText : '';
+          const descriptionSpan = elem.querySelector('div.waypoint-description span') as HTMLSpanElement | null;
+          const description = descriptionSpan ? descriptionSpan.innerText : '';
+          return {isBreakpoint, isGuidepost, innerGuidpost: innerGuidpost?.trim(), hasPhotos, name: name.trim(), description: description.trim()};
+        }, await element.getElement());
+        console.log('waypoint', i, {name, description, hasPhotos, isBreakpoint, isGuidepost, innerGuidpost})
+        result.push({name, description, hasPhotos, isBreakpoint, isGuidepost, innerGuidpost});
+      } catch (e) {
+        console.log('Error getting waypoint', i, e);
+        result.push({name: '', description: '', hasPhotos: false, isBreakpoint: false, isGuidepost: false, innerGuidpost: undefined});
+      }
+      if (result.length >= max) break;
     }
     return result;
   }
 
+  public async setShowKnownTrails(show: boolean) {
+    const details = this.openDetails();
+    const cb = new IonicCheckbox((await details).$('div.show-osm ion-checkbox'));
+    await cb.scrollIntoView();
+    await TestUtils.retry(async () => {
+      await cb.setSelected(show);
+      if ((await cb.getStatus()) !== show) throw new Error('Expected ' + show);
+    }, 3, 1);
+  }
+
+  public async setShowBreaks(show: boolean) {
+    const waypoints = await this.openWayPoints();
+    const cb = new IonicCheckbox(waypoints.$('ion-checkbox[name=show-breaks]'));
+    await cb.scrollIntoView();
+    await TestUtils.retry(async () => {
+      await cb.setSelected(show);
+      if ((await cb.getStatus()) !== show) throw new Error('Expected ' + show);
+    }, 3, 1);
+  }
+
+  public async setShowGuideposts(show: boolean) {
+    const waypoints = await this.openWayPoints();
+    const cb = new IonicCheckbox(waypoints.$('ion-checkbox[name=show-guideposts]'));
+    await cb.scrollIntoView();
+    await TestUtils.retry(async () => {
+      await cb.setSelected(show);
+      if ((await cb.getStatus()) !== show) throw new Error('Expected ' + show);
+    }, 3, 1);
+  }
+
   public async openComments() {
-    if (App.config.mode === 'mobile') {
-      await this.openTab('reviews');
-    }
+    await this.openTab('reviews');
     return new RateAndComments(this.getElement().$('app-rate-and-comments'));
+  }
+
+  public async getCharacteristics() {
+    await this.openDetails();
+    await browser.waitUntil(() => this.getElement(true).$('div.stats-content').isExisting());
+    Component.scrollIntoView(this.getElement().$('div.stats-content'));
+    const result = new Map<string, {name: string, percent: string}[]>();
+    for (const statType of await this.getElement().$$('div.stat-type').getElements()) {
+      const title = await statType.$('div.stat-title').getText();
+      const values: {name: string, percent: string}[] = [];
+      for (const statValue of await statType.$$('div.stat-value').getElements()) {
+        const name = await statValue.$('div.stat-name').getText();
+        const percent = await statValue.$('div.stat-percent').getText();
+        values.push({name: name.trim(), percent: percent.trim()});
+      }
+      result.set(title.trim(), values);
+    }
+    return result;
   }
 
 }

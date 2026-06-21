@@ -288,7 +288,6 @@ export class TrackUtils {
     for (const segment of track.segments) {
       for (const point of segment.points) {
         if (samePositionRound(point.pos, wp.point.pos)) {
-          console.log('move', currentIndex, newIndex);
           track.moveWayPointAt(currentIndex, newIndex);
           return;
         }

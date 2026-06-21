@@ -562,7 +562,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
           // date
           const dateStr = topic.querySelector('time')?.getAttribute('datetime');
           const dateParsed = dateStr ? Date.parse(dateStr) : undefined;
-          const date = dateParsed && !isNaN(dateParsed) ? dateParsed : undefined;
+          const date = dateParsed && !Number.isNaN(dateParsed) ? dateParsed : undefined;
           // text
           const paragraphs = topic.querySelectorAll('div.topic-text p');
           let text = '';
@@ -575,8 +575,8 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
               if (span > 0) {
                 const spanEnd = inside.indexOf('</span>', span);
                 if (spanEnd > 0) {
-                  const r = parseFloat(inside.substring(span + 6, spanEnd).trim());
-                  if (!isNaN(r) && r >= 0 && r <= 5) {
+                  const r = Number.parseFloat(inside.substring(span + 6, spanEnd).trim());
+                  if (!Number.isNaN(r) && r >= 0 && r <= 5) {
                     rate = r;
                   }
                 }

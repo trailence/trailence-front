@@ -11,7 +11,7 @@ export class IonicRadioGroup extends Component {
       if (itemValue === value) {
         const classes = await item.getAttribute('class');
         if (classes.indexOf('radio-checked') >= 0) return;
-        await item.scrollIntoView({block: 'center', inline: 'center'});
+        await Component.scrollIntoView(item);
         await item.click();
         return;
       }

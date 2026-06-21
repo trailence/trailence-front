@@ -1,4 +1,4 @@
-import { combineLatest, concat, filter, first, map, Observable, of, tap } from 'rxjs';
+import { combineLatest, concat, map, Observable, of } from 'rxjs';
 import { Track } from 'src/app/model/track';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { TrackWayPoint, TrackWayPointElement } from './track-waypoint';
@@ -8,7 +8,6 @@ import { extendsAround } from '../leaflet-utils';
 import { debounceTimeExtended } from '../rxjs/debounce-time-extended';
 import { computeGuidepostsWayPoints, GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT } from './guideposts';
 import { BreakPointSection } from 'src/app/services/track-edition/time/break-detection';
-import { computeOsmWayChanges } from './way-intersection';
 
 export function computeTrackWayPoints(track: Track, breaksSections: BreakPointSection[], mapService: OfflineMapService): Observable<TrackWayPoint[]> {
   return new Observable<TrackWayPoint[]>(subscriber => {

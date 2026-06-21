@@ -1,3 +1,4 @@
+import { WaitForOptions } from 'puppeteer-core';
 import { AppElement } from '../../app/app-element';
 import { Component } from '../component';
 
@@ -10,9 +11,9 @@ export class IonicButton extends Component {
     super(parent, selector);
   }
 
-  public async click() {
+  public async click(waitOptions?: WaitForOptions) {
     await this.waitExist(true);
-    await this.getElement().$('>>>button').waitForEnabled();
+    await this.getElement().$('>>>button').waitForEnabled(waitOptions);
     return await this.getElement().click();
   }
 

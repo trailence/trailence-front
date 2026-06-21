@@ -2,7 +2,6 @@ import { of } from 'rxjs';
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
 import { Track } from 'src/app/model/track';
 import { TrackUtils } from 'src/app/utils/track-utils';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { PointReference, RangeReference } from 'src/app/model/point-reference';
 
 export class RemoveSelectionTool implements TrackEditTool {

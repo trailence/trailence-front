@@ -22,7 +22,7 @@ describe('Test Trail and Track DTOs', () => {
   });
 
   it('track to dto to track', async () => {
-    const track = new Track({owner: 'test@test.com'}, preferencesService);
+    const track = new Track({owner: 'test@test.com'}, false, preferencesService, undefined as any, undefined as any, undefined as any, undefined as any);
     const segment = track.newSegment();
     segment.append({pos: { lat: 1, lng: 2 }, ele: 3, time: 4, posAccuracy: 5, eleAccuracy: 6, heading: 7, speed: 8});
     segment.append({pos: { lat: 10, lng: 20 }, ele: 30, time: 40, posAccuracy: 50, eleAccuracy: 60, heading: 70, speed: 80});
@@ -30,10 +30,10 @@ describe('Test Trail and Track DTOs', () => {
     segment.append({pos: { lat: 1, lng: 2 }, ele: 3, time: 4, posAccuracy: 5, eleAccuracy: 6, heading: 7, speed: 8});
     segment.append({pos: { lat: 1, lng: 2 }, ele: 3, time: 4, posAccuracy: 5, eleAccuracy: 6, heading: 7, speed: 8});
     const dto = track.toDto();
-    const track2 = new Track(dto, preferencesService);
-    expect(track2.segments.length).toBe(1);
+    const track2 = new Track(dto, false, preferencesService, undefined as any, undefined as any, undefined as any, undefined as any);
+    expect(track2.segments).toHaveSize(1);
     const segment2 = track2.segments[0];
-    expect(segment2.points.length).toBe(5);
+    expect(segment2.points).toHaveSize(5);
     const checkPoint = (point: Point, l: number, n: number, e: number | undefined, t: number | undefined, pa: number | undefined, ea: number | undefined, h: number | undefined, s: number | undefined) => {
       expect(point.pos.lat).toBe(l);
       expect(point.pos.lng).toBe(n);
@@ -53,13 +53,13 @@ describe('Test Trail and Track DTOs', () => {
 
   it('gpx-001', async () => {
     const file = await firstValueFrom(http.get('/assets/test/gpx-001.gpx', { responseType: 'arraybuffer'}));
-    const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService, undefined, undefined, undefined);
+    const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService, undefined as any, undefined as any, undefined as any, undefined as any, undefined, undefined, undefined);
     expect(imported).not.toBeNull();
-    expect(imported.tracks.length).toBe(1);
+    expect(imported.tracks).toHaveSize(1);
     const trailDto = imported.trail.toDto();
     const trackDto = imported.tracks[0].toDto();
     const trail = new Trail(trailDto);
-    const track = new Track(trackDto, preferencesService);
+    const track = new Track(trackDto, false, preferencesService, undefined as any, undefined as any, undefined as any, undefined as any);
     expect(trail.name).toBe(imported.trail.name);
     expect(trail.description).toBe(imported.trail.description);
     expect(Math.floor(track.metadata.distance)).withContext('distance').toBe(Math.floor(imported.tracks[0].metadata.distance));

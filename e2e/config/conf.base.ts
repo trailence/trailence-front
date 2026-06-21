@@ -22,7 +22,8 @@ export const baseConfig: Options.Testrunner = {
     //expectationResultHandler: function(passed, assertion) {
         // do something
     //},
-    stopOnSpecFailure: true
+    stopOnSpecFailure: true,
+    stopSpecOnExpectationFailure: true,
   },
   reporters: [
     'spec'

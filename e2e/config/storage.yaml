@@ -1,0 +1,12 @@
+trailence:
+  storage:
+    providers:
+      - id: local_fs
+        type: fs
+    locations:
+      files:
+        provider: local_fs
+        root: ./storage-fs
+      osmData:
+        provider: local_fs
+        root: /osm_data

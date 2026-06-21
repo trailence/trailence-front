@@ -125,7 +125,7 @@ function runTests(withFiles: boolean) {
       expected.set('key11', dtos[3]);
       await firstValueFrom(table.setMany$(dtos));
       dtos = await firstValueFrom(table.getAll$());
-      expect(dtos.length).toBe(expected.size);
+      expect(dtos).toHaveSize(expected.size);
       for (let i = 1; i <= 11; ++i) {
         const dto = dtos.find(d => d.key === 'key'+i);
         await expectDto(expected.get('key'+i), dto, 'setMany/getMany: key' + i);
@@ -171,7 +171,7 @@ function runTests(withFiles: boolean) {
       expect(await firstValueFrom(table.blobExists$('key4'))).toBeFalse();
       expect(await firstValueFrom(table.blobExists$('key6'))).toBeFalse();
       expect(await firstValueFrom(table.blobExists$('key8'))).toBeFalse();
-      expect(dtos.length).toBe(expected.size);
+      expect(dtos).toHaveSize(expected.size);
 
       // TODO test listContentWithSize
     });
@@ -200,7 +200,7 @@ function runTests(withFiles: boolean) {
       await firstValueFrom(db.dbReady$.pipe(filter(ready => !!ready)));
 
       const found = await firstValueFrom(table.getAll$());
-      expect(found.length).toBe(3);
+      expect(found).toHaveSize(3);
       for (const dto of dtos) {
         const dtoFound = found.find(d => d.key === dto.key);
         expectDto(dto, dtoFound, 'dto ' + dto.key);
@@ -243,7 +243,7 @@ function runTests(withFiles: boolean) {
 
         // should be restored
         const restored = await firstValueFrom(table.getAll$());
-        expect(restored.length).toBe(10);
+        expect(restored).toHaveSize(10);
         for (let i = 1; i <= 10; ++i) {
           const dto = dtos.find(d => d.key === 'key'+i);
           const dtoRead = restored.find(d => d.key === 'key'+i);

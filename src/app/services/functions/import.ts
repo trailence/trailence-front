@@ -236,8 +236,7 @@ function importTags(injector: Injector, imported: ({trailUuid: string, tags: str
   for (const trail of imported) {
     if (trail && trail.tags.length > 0) {
       for (const tag of trail.tags) {
-        const exists = allTags.find(t => Arrays.sameContent(t, tag));
-        if (!exists) allTags.push(tag);
+        if (!allTags.some(t => Arrays.sameContent(t, tag))) allTags.push(tag);
       }
     }
   }

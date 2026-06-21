@@ -1,6 +1,6 @@
 import { Injector } from '@angular/core';
 import * as L from 'leaflet';
-import { MapAdditionsOptions, MapAdditionsService } from 'src/app/services/map/map-additions.service';
+import { countMapAdditionsOptions, MapAdditionsOptions, MapAdditionsService } from 'src/app/services/map/map-additions.service';
 import { MapTool } from './tool.interface';
 import { of } from 'rxjs';
 import { MapComponent } from '../map.component';
@@ -26,15 +26,7 @@ export class AdditionsTool extends MapTool {
       let count = 0;
       const state = mapComponent.getState();
       const options = state.additions;
-      if (state.zoom > 10) {
-        if (options.guidepost) count++;
-        if (options.waterPoint) count++;
-        if (options.toilets) count++;
-        if (options.forbiddenWays) count++;
-        if (options.permissiveWays) count++;
-        if (options.forbiddenBicycleWays) count++;
-        if (options.permissiveBicycleWays) count++;
-      }
+      if (state.zoom > 10) count += countMapAdditionsOptions(options);
       count += state.overlays.length;
       if (count === 0) return undefined;
       return {

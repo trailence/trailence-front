@@ -1,7 +1,6 @@
 import * as L from 'leaflet';
 import { Trail } from 'src/app/model/trail';
 import { Track } from 'src/app/model/track';
-import { ComputedPreferences } from '../preferences/preferences';
 import { Injector } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { BehaviorSubject, Observable, of } from 'rxjs';

@@ -1,4 +1,5 @@
 import { App } from '../app/app';
+import { Component } from './component';
 import { FilterNumeric } from './filter-numeric.component';
 import { IonicButton } from './ionic/ion-button';
 import { IonicCheckbox } from './ionic/ion-checkbox';
@@ -13,7 +14,7 @@ export class FilterTrailsPopup extends ModalComponent {
     const headers = this.getElement().$$('>>>div.filter-header>div');
     let textElement;
     for (const header of await headers.getElements()) {
-      await header.scrollIntoView({block: 'center', inline: 'center'});
+      await Component.scrollIntoView(header);
       const text = await header.getText();
       if (text === filterName) {
         textElement = header;
@@ -31,7 +32,7 @@ export class FilterTrailsPopup extends ModalComponent {
     const headers = this.getElement().$$('>>>div.filter-header>div');
     let textElement;
     for (const header of await headers.getElements()) {
-      await header.scrollIntoView({block: 'center', inline: 'center'});
+      await Component.scrollIntoView(header);
       const text = await header.getText();
       if (text === filterName) {
         textElement = header;
@@ -55,7 +56,7 @@ export class FilterTrailsPopup extends ModalComponent {
     const tagsFounds = [];
     const foundTexts = [];
     for (const cb of await checkboxes.getElements()) {
-      await cb.scrollIntoView({block: 'center', inline: 'center'});
+      await Component.scrollIntoView(cb);
       const text = await cb.getText();
       foundTexts.push(text);
       if (tags.indexOf(text) >= 0) {

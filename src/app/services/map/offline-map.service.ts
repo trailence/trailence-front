@@ -1,4 +1,4 @@
-import { Injectable, Injector, NgZone } from '@angular/core';
+import { Injectable, Injector, NgZone, OnDestroy } from '@angular/core';
 import * as L from 'leaflet';
 import { MapLayer, MapLayersService } from './map-layers.service';
 import { Progress, ProgressService } from '../progress/progress.service';
@@ -28,10 +28,11 @@ interface TileMetadata {
 @Injectable({
   providedIn: 'root'
 })
-export class OfflineMapService {
+export class OfflineMapService implements OnDestroy {
 
   private readonly db: Db;
   private readonly tilesTables = new Map<string, DbTablesMetaBlob<TileMetadata>>();
+  private _destroyed = false;
 
   readonly pois: Pois;
   readonly ways: Ways;
@@ -55,12 +56,20 @@ export class OfflineMapService {
     this.ways = new Ways(injector);
     tables.push(this.ways.table);
     this.db = new Db(injector, 'trailence_offline_map', false, tables);
-    this.db.onClosed$.subscribe(closed => this.unregisterCleaning())
+    this.db.onClosed$.subscribe(() => this.unregisterCleaning())
     this.db.dbReady$.subscribe(ready => {
       if (ready) this.registerCleaning();
     });
     this.db.addHookBeforeCreatingDb(() => import('../database/storage/migrate-db-from-user-to-global').then(module => module.migrateLatestUserDbToGlobalDb('trailence_offline_map', injector)));
-    this.db.start();
+    // delayed start as non required at the beginning
+    injector.get(NgZone).runOutsideAngular(() => setTimeout(() => { if (!this._destroyed) this.db.start(); }, 2500));
+  }
+
+  ngOnDestroy(): void {
+    this._destroyed = true;
+    this.pois.stop();
+    this.ways.stop();
+    this.db.stop();
   }
 
   public getPoiIcon$(type: POIType) {
@@ -148,6 +157,7 @@ export class OfflineMapService {
   }
 
   private unregisterCleaning(): void {
+    if (this._destroyed) return;
     const service = this.injector.get(CleanupService);
     for (const layer of this.layers.layers) {
       service.remove('offline-map-' + layer.name);
@@ -155,6 +165,7 @@ export class OfflineMapService {
   }
 
   private registerCleaning(): void {
+    if (this._destroyed) return;
     const service = this.injector.get(CleanupService);
     for (const layer of this.layers.layers) {
       service.add({

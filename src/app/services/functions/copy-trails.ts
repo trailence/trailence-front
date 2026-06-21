@@ -141,8 +141,7 @@ function handleImportTags(
   const allTags: string[][] = [];
   for (const trail of tags) {
     for (const tag of trail.tags) {
-      const exists = allTags.find(t => Arrays.sameContent(t, tag));
-      if (!exists) allTags.push(tag);
+      if (!allTags.some(t => Arrays.sameContent(t, tag))) allTags.push(tag);
     }
   }
   return import('../../components/import-tags-popup/import-tags-popup.component')

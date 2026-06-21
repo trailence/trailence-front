@@ -105,7 +105,6 @@ export class DownloadMapPopupComponent implements OnInit, OnChanges {
     const maxZoom = this.options.zoom;
     const padding = (this.options.extendPercent - 100) / 100;
     const params = this.getBoundsAndPaths(maxZoom, padding);
-    const crs = L.CRS.EPSG3857;
     const result = new Map<string, Map<number, L.Point[]>>();
     let cachePadding = this.cache.get(this.options.extendPercent);
     if (!cachePadding) {
@@ -119,32 +118,39 @@ export class DownloadMapPopupComponent implements OnInit, OnChanges {
         layerCache = new Map<number, {points: L.Point[], toDownload: L.Point[]}>();
         cachePadding.set(layer.layer.name, layerCache);
       }
-      const layerResult = new Map<number, L.Point[]>();
-      for (let zoom = 1; zoom <= maxZoom; ++zoom) {
-        let zoomCache = layerCache.get(zoom);
-        if (zoomCache) {
-          total += zoomCache.points.length;
-          this.nbDone += zoomCache.points.length - zoomCache.toDownload.length;
-        } else {
-          const calculation$ = zoom <= 17 || params.paths.length === 0 ?
-            calculateTilesFromBounds(zoom, params.allBounds, crs, layer.layer.tileSize) :
-            calculateTilesFromPaths(zoom, params.paths, params.pathAroundMeters, crs, layer.layer.tileSize);
-          const points = await calculation$;
-          const toDownload = await this.offlineMap.getTilesToDownload(points, zoom, layer.layer.name);
-          total += points.length;
-          this.nbDone += points.length - toDownload.length;
-          zoomCache = {points, toDownload};
-          layerCache.set(zoom, zoomCache);
-        }
-        if (zoomCache.toDownload.length > 0)
-          layerResult.set(zoom, zoomCache.toDownload);
-      }
-      if (layerResult.size > 0)
-        result.set(layer.layer.name, layerResult);
+      total += await this.computeLayerDownload(layer, maxZoom, params, layerCache, result);
     }
     this.nbDownload = total - this.nbDone;
     this.percentDone = Math.floor(this.nbDone * 100 / total);
     return {toDownload: result, params};
+  }
+
+  private async computeLayerDownload(layer: {layer: MapLayer, tiles: L.TileLayer}, maxZoom: number, params: {allBounds: L.LatLngBounds[], paths: L.LatLngExpression[], pathAroundMeters: number}, layerCache: Map<number, {points: L.Point[], toDownload: L.Point[]}>, result: Map<string, Map<number, L.Point[]>>): Promise<number> {
+    const layerResult = new Map<number, L.Point[]>();
+    let layerTotal = 0;
+    const crs = L.CRS.EPSG3857;
+    for (let zoom = 1; zoom <= maxZoom; ++zoom) {
+      let zoomCache = layerCache.get(zoom);
+      if (zoomCache) {
+        layerTotal += zoomCache.points.length;
+        this.nbDone += zoomCache.points.length - zoomCache.toDownload.length;
+      } else {
+        const calculation$ = zoom <= 17 || params.paths.length === 0 ?
+          calculateTilesFromBounds(zoom, params.allBounds, crs, layer.layer.tileSize) :
+          calculateTilesFromPaths(zoom, params.paths, params.pathAroundMeters, crs, layer.layer.tileSize);
+        const points = await calculation$;
+        const toDownload = await this.offlineMap.getTilesToDownload(points, zoom, layer.layer.name);
+        layerTotal += points.length;
+        this.nbDone += points.length - toDownload.length;
+        zoomCache = {points, toDownload};
+        layerCache.set(zoom, zoomCache);
+      }
+      if (zoomCache.toDownload.length > 0)
+        layerResult.set(zoom, zoomCache.toDownload);
+    }
+    if (layerResult.size > 0)
+      result.set(layer.layer.name, layerResult);
+    return layerTotal;
   }
 
   private getBoundsAndPaths(maxZoom: number, padding: number): {allBounds: L.LatLngBounds[], paths: L.LatLngExpression[], pathAroundMeters: number} {

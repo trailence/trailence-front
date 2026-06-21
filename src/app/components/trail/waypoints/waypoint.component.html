@@ -1,5 +1,5 @@
 <div class="waypoint-header">
-  @if (wp.trackWayPoint || wp.breakPoint) {
+  @if (wp.trackWayPoint || (wp.breakPoint && trail.showBreaks)) {
     <div class="waypoint-anchor">
       <img [src]="img" width="40" height="40">
     </div>
@@ -31,7 +31,7 @@
         <div class="waypoint-info-value">{{i18n.durationToString(time)}}</div>
       </div>
     }
-    @if (wp.breakPoint) {
+    @if (wp.breakPoint && trail.showBreaks) {
       <div class="waypoint-info">
         <div class="waypoint-info-title">{{i18n.texts.way_points.duration}}</div>
         <div class="waypoint-info-value">{{i18n.durationToString(wp.breakPoint.duration)}}</div>
@@ -61,17 +61,24 @@
     @if (wp.guidepost && trail.showGuideposts) {
       <div class="waypoint-attached-guidepost">
         <ion-icon name="poi-guidepost"></ion-icon>
-        {{wp.guidepost.poi.text}}
+        <span>{{wp.guidepost.poi.text}}</span>
       </div>
     }
     <div class="waypoint-description">
       <app-text [text]="wp.trackWayPoint.wayPoint.description" [lang]="lang" [translations]="wp.trackWayPoint.wayPoint.descriptionTranslations" [showSource]="showSource"></app-text>
     </div>
   } @else if (!wp.trackWayPoint) {
-    @if (wp.guidepost) {
-      <div class="waypoint-name">
-        {{wp.guidepost.poi.text}}
-      </div>
+    @if (trail.showGuideposts && wp.guidepost) {
+      @if (!wp.breakPoint || !trail.showBreaks) {
+        <div class="waypoint-name">
+          <span>{{wp.guidepost.poi.text}}</span>
+        </div>
+      } @else {
+        <div class="waypoint-attached-guidepost">
+          <ion-icon name="poi-guidepost"></ion-icon>
+          <span>{{wp.guidepost.poi.text}}</span>
+        </div>
+      }
     }
     @if (wp.intersection) {
       INTERSECTION:

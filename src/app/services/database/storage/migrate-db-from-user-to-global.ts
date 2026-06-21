@@ -1,7 +1,7 @@
 import Dexie from 'dexie';
 import { AuthResponse } from '../../auth/auth-response';
 import { LOCALSTORAGE_KEY_AUTH } from '../../auth/auth.service';
-import { indexedDbCursor, indexedDbCursorBatch, indexedDbRequestToPromise, openIndexedDb } from '../indexed-db/indexed-db';
+import { indexedDbCursorBatch, openIndexedDb } from '../indexed-db/indexed-db';
 import { Injector } from '@angular/core';
 import { LocalFilesService } from '../../local-files/local-files.service';
 import { Console } from 'src/app/utils/console';
