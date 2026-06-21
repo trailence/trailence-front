@@ -604,6 +604,25 @@ public class LocalFilesPlugin extends Plugin {
     return dir.delete();
   }
 
+  @PluginMethod
+  public void renameDirectory(PluginCall call) {
+    try {
+      String previousPath = call.getString("previousPath");
+      if (previousPath == null || previousPath.isBlank()) throw new LocalFilesException(LocalFilesException.Code.INVALID_INPUT, "Missing previousPath");
+      String newPath = call.getString("newPath");
+      if (newPath == null || newPath.isBlank()) throw new LocalFilesException(LocalFilesException.Code.INVALID_INPUT, "Missing newPath");
+      File previousFile = new File(root, previousPath);
+      File newFile = new File(root, newPath);
+      if (newFile.exists()) throw new LocalFilesException((LocalFilesException.Code.INVALID_INPUT, "newPath already exists"));
+      if (previousFile.exists()) previousFile.renameTo(newFile);
+      call.resolve();
+    } catch (LocalFilesException e) {
+      e.reject(call);
+    } catch (Exception e) {
+      Utils.reject(call, e);
+    }
+  }
+
   /**
    * Input:
    *  - dir

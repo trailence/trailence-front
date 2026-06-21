@@ -214,6 +214,13 @@ export class LocalFilesService {
     return retry(0);
   }
 
+  public renameDirectory(dir: string, newDir: string): Promise<any> {
+    dir = this.sanitizeDir(dir);
+    newDir = this.sanitizeDir(newDir);
+    if (dir === newDir) return Promise.resolve();
+    return this.plugin.renameDirectory({previousPath: dir, newPath: newDir});
+  }
+
   public saveBinaryFile(dir: string, filename: string, data: BinaryContent): Promise<boolean> {
     dir = this.sanitizeDir(dir);
     filename = this.sanitizeFilename(filename);

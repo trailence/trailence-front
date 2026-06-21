@@ -38,8 +38,13 @@ export class Db {
   private readonly tableChangedSubscriptions = new Map<string, Subscription>();
   private closing: Promise<any> | undefined = undefined;
   private opening: Promise<any> | undefined = undefined;
-  private _closed$ = new Subject<DbClosed>();
+  private readonly _closed$ = new Subject<DbClosed>();
   private _openCounter = 0;
+  private readonly hooksBeforeCreatingDb: ((email: string | undefined) => Promise<boolean>)[] = [];
+
+  addHookBeforeCreatingDb(hook: (email: string | undefined) => Promise<boolean>): void {
+    this.hooksBeforeCreatingDb.push(hook);
+  }
 
   start(): void {
     this.injector.get(DbRegistryService).register(this.dbName, {
@@ -109,8 +114,18 @@ export class Db {
     Console.info('Opening DB ' + dbName);
     const stillValid = () => this._openCounter === counter && (!email || email === this.injector.get(AuthService).email);
 
-    const dbExists = await Dexie.exists(dbName);
+    let dbExists = await Dexie.exists(dbName);
     if (!stillValid()) return;
+
+    if (!dbExists) {
+      for (const hook of this.hooksBeforeCreatingDb) {
+        dbExists = await hook(email).catch(e => {
+          Console.error('Error in DB hook before creation', e);
+          return false;
+        });
+        if (dbExists) break;
+      }
+    }
 
     const db = new Dexie(dbName);
     const openStatus: DbReady = {
@@ -129,7 +144,7 @@ export class Db {
     // restore backups
     if (!dbExists) {
       try {
-        await this.restoreBackups(db, openStatus.localDir, stillValid);
+        dbExists = await this.restoreBackups(db, openStatus.localDir, stillValid);
       } catch (e) {
         Console.error('Error restoring backups for DB ' + dbName, e);
       }
@@ -203,26 +218,27 @@ export class Db {
     this._closed$.next({email: ready.email});
   }
 
-  private async restoreBackups(db: Dexie, localDir: string, stillValid: () => boolean) {
+  private async restoreBackups(db: Dexie, localDir: string, stillValid: () => boolean): Promise<boolean> {
     const localFiles = this.injector.get(LocalFilesService);
-    if (!localFiles.supported()) return;
-    if (!(await localFiles.fileExists(localDir, INTERNAL_TABLE_NAME + '.jsonl'))) return;
-    if (!stillValid()) return;
+    if (!localFiles.supported()) return false;
+    if (!(await localFiles.fileExists(localDir, INTERNAL_TABLE_NAME + '.jsonl'))) return false;
+    if (!stillValid()) return false;
     const backupableTables = this.tables.filter(t => t.backupEnabled).map(t => t.name);
     const backupExist = await localFiles.filesExist(localDir, backupableTables.map(name => name + '.jsonl'));
-    if (!stillValid()) return;
+    if (!stillValid()) return false;
     await this.restoreTable(db, INTERNAL_TABLE_NAME, localFiles, localDir);
     for (let i = 0; i < backupableTables.length; ++i) {
       if (backupExist[i]) {
         const tableName = backupableTables[i];
         try {
-          if (!stillValid()) return;
+          if (!stillValid()) return false;
           await this.restoreTable(db, tableName, localFiles, localDir);
         } catch (e) {
           Console.error('Error restoring backup from ' + this.dbName + '/' + tableName, e);
         }
       }
     }
+    return true;
   }
 
   private async restoreTable(db: Dexie, tableName: string, localFiles: LocalFilesService, localDir: string) {

@@ -14,6 +14,8 @@ const LocalFiles = {
   deleteAllFiles: notSupported as (call: {dir: string}) => Promise<any>,
   deleteDirectoryAndContent: notSupported as (call: {dir: string}) => Promise<any>,
 
+  renameDirectory: notSupported as (call: {previousPath: string, newPath: string}) => Promise<any>,
+
   readBinaryFile: notSupported as (call: {dir: string, filename: string}) => Promise<{data: string | undefined, chunks: number, id: number | undefined}>,
   readBinaryFileChunk: notSupported as (call: {id: number}) => Promise<{data: string}>,
 

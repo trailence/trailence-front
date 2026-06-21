@@ -57,6 +57,7 @@ export class OfflineMapService {
     this.db.dbReady$.subscribe(ready => {
       if (ready) this.registerCleaning();
     });
+    this.db.addHookBeforeCreatingDb(() => import('../database/storage/migrate-db-from-user-to-global').then(module => module.migrateLatestUserDbToGlobalDb('trailence_offline_map', injector)));
     this.db.start();
   }
 

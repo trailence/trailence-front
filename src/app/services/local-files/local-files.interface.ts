@@ -11,6 +11,8 @@ export interface LocalFilesPlugin {
   deleteAllFiles(call: {dir: string}): Promise<any>;
   deleteDirectoryAndContent(call: {dir: string}): Promise<any>;
 
+  renameDirectory(call: {previousPath: string, newPath: string}): Promise<any>;
+
   readBinaryFile(call: {dir: string, filename: string}): Promise<{data: string | undefined, chunks: number, id: number | undefined}>;
   readBinaryFileChunk(call: {id: number}): Promise<{data: string}>;
 

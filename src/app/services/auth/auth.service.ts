@@ -26,7 +26,7 @@ import { isRobot } from '../http/robot';
 
 export const ANONYMOUS_USER = 'anonymous@trailence.org';
 
-const LOCALSTORAGE_KEY_AUTH = 'trailence.auth';
+export const LOCALSTORAGE_KEY_AUTH = 'trailence.auth';
 const LOCALSTORAGE_KEY_ANONYMOUS_PREFS = 'trailence.anonymous_preferences';
 const ANONYMOUS_TOAST_LAST_TIME_LOCAL_STORAGE_KEY = 'trailence.anonymous_toast_last_time';
 const DB_SECURITY_PREFIX = 'trailence_security_';
