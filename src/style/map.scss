@@ -175,6 +175,8 @@ app-map {
 body.dark-map {
   --map-background-color: #000000;
   --map-contrast-color: #FFFFFF;
+  --way-forbidden-color: #B03030FF;
+  --way-permissive-color: #D09000FF;
 
   .leaflet-layer,
   .leaflet-control {
@@ -220,6 +222,8 @@ body.dark-map {
 body:not(.dark-map) {
   --map-background-color: #FFFFFF;
   --map-contrast-color: #000000;
+  --way-forbidden-color: #B03030FF;
+  --way-permissive-color: #D0A000FF;
 
   ion-spinner.map-loading {
     color: black;
@@ -238,11 +242,6 @@ body:not(.dark-map) {
       border-left-color: #000;
     }
   }
-}
-
-body {
-  --way-forbidden-color: #B03030FF;
-  --way-permissive-color: #D09000FF;
 }
 
 app-trail-small-map {

@@ -1546,6 +1546,8 @@
     "guidepost": "Balises",
     "water": "Points d'eau",
     "toilets": "Toilettes",
+    "way_foot": "À pied",
+    "way_bicycle": "En vélo",
     "way_forbidden": "Passages interdits",
     "way_permissive": "Passages tolérés",
     "overlays": {

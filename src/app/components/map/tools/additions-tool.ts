@@ -16,8 +16,6 @@ export class AdditionsTool extends MapTool {
   private modal?: HTMLIonModalElement;
   private _loading = false;
 
-  // TODO way permission for bicycle
-
   constructor(
     private readonly mapId: string,
   ) {
@@ -34,6 +32,8 @@ export class AdditionsTool extends MapTool {
         if (options.toilets) count++;
         if (options.forbiddenWays) count++;
         if (options.permissiveWays) count++;
+        if (options.forbiddenBicycleWays) count++;
+        if (options.permissiveBicycleWays) count++;
       }
       count += state.overlays.length;
       if (count === 0) return undefined;
@@ -99,12 +99,11 @@ export class AdditionsTool extends MapTool {
   private _timeout: any = undefined;
 
   public refresh(map: L.Map | undefined, mapComponent: MapComponent, injector: Injector): void {
-    // TODO timeout should not be needed anymore once migrated to self hosted data
     if (this._timeout) {
       clearTimeout(this._timeout);
       this._timeout = undefined;
     }
-    this._timeout = setTimeout(() => this.doRefresh(map, mapComponent, injector), 1000);
+    this._timeout = setTimeout(() => this.doRefresh(map, mapComponent, injector), 250);
   }
 
   private _refreshCount = 0;
@@ -128,7 +127,8 @@ export class AdditionsTool extends MapTool {
     const count = ++this._refreshCount;
     for (const layer of this._layers) layer.remove();
     this._layers = [];
-    injector.get(MapAdditionsService).getAdditions(bounds, mapComponent.getState().additions).subscribe(additions => {
+    const options = mapComponent.getState().additions;
+    injector.get(MapAdditionsService).getAdditions(bounds, options).subscribe(additions => {
       if (this._refreshCount !== count) return;
       for (const poi of additions.pois) {
         const tooltip = this.poiToTooltip(poi, injector);
@@ -136,7 +136,7 @@ export class AdditionsTool extends MapTool {
         tooltip.addTo(map!);
       }
       for (const way of additions.ways) {
-        const path = this.wayToPath(way);
+        const path = this.wayToPath(way, options);
         this._layers.push(path);
         path.addTo(map!);
       }
@@ -161,12 +161,17 @@ export class AdditionsTool extends MapTool {
     return tooltip;
   }
 
-  private wayToPath(way: Way): L.Polyline {
+  private wayToPath(way: Way, options: MapAdditionsOptions): L.Polyline {
     const path = L.polyline(way.points, {
-      color: way.footPermission === WayPermission.FORBIDDEN ? 'var(--way-forbidden-color)' : 'var(--way-permissive-color)',
+      color:
+        (options.forbiddenWays && way.footPermission === WayPermission.FORBIDDEN) || (options.forbiddenBicycleWays && way.bicyclePermission === WayPermission.FORBIDDEN)
+        ? 'var(--way-forbidden-color)'
+        : 'var(--way-permissive-color)',
+      weight: 3,
       dashArray: '4',
       smoothFactor: 1,
-      interactive: false
+      interactive: false,
+      pane: 'overTracksPane',
     });
     return path;
   }

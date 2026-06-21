@@ -55,10 +55,12 @@ export class MapAdditionsService {
     if (options.guidepost) poiTypes.push('guidepost');
     if (poiTypes.length > 0)
       requests.push(this.mapOffline.pois.getPois(bounds, poiTypes).pipe(map(r => ({pois: r.pois, ways: [] as Way[], done: false}))));
-    if (options.forbiddenWays || options.permissiveWays) {
+    if (options.forbiddenWays || options.permissiveWays || options.forbiddenBicycleWays || options.permissiveBicycleWays) {
       const wayFilter: (way: Way) => boolean = way => {
         if (options.forbiddenWays && way.footPermission === WayPermission.FORBIDDEN) return true;
         if (options.permissiveWays && way.footPermission === WayPermission.PERMISSIVE) return true;
+        if (options.forbiddenBicycleWays && way.bicyclePermission === WayPermission.FORBIDDEN) return true;
+        if (options.permissiveBicycleWays && (way.bicyclePermission === WayPermission.PERMISSIVE || way.bicyclePermission === WayPermission.DISMOUNT)) return true;
         return false;
       };
       requests.push(this.mapOffline.ways.getWays(bounds, false).pipe(map(r => ({pois: [] as POI[], ways: r.ways.filter(wayFilter), done: false}))));
@@ -75,4 +77,6 @@ export interface MapAdditionsOptions {
   toilets?: boolean;
   forbiddenWays?: boolean;
   permissiveWays?: boolean;
+  forbiddenBicycleWays?: boolean;
+  permissiveBicycleWays?: boolean;
 }

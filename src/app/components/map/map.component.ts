@@ -528,6 +528,10 @@ export class MapComponent extends AbstractComponent {
       //zoomDelta: 0.5,
     });
     map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank">Leaflet</a>');
+    map.createPane('overTracksPane').style.zIndex = '401';
+    map.createPane('overAllPane').style.zIndex = '499';
+    console.log(map.getPanes());
+    console.log(map)
 
     map.on('resize', () => this.mapChanged(map));
     map.on('move', e => {
