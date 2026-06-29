@@ -19,6 +19,7 @@ class Meta {
   estimatedDurationValue?: number = undefined;
   breaksDurationValue?: number = undefined;
   speedValue?: number = undefined;
+  maxSpeedValue?: number = undefined;
   positiveElevationValue?: number = undefined;
   negativeElevationValue?: number = undefined;
   highestAltitudeValue?: number = undefined;
@@ -34,7 +35,7 @@ class Meta {
     public highestAltitudeDiv: HTMLDivElement | undefined,
     public lowestAltitudeDiv: HTMLDivElement | undefined,
     public speedDiv: HTMLDivElement | undefined,
-    public emptyDiv: HTMLDivElement | undefined,
+    public maxSpeedDiv: HTMLDivElement | undefined,
   ) {}
 }
 
@@ -49,6 +50,7 @@ class Titles {
     public highestAltitudeTitle: HTMLElement | undefined,
     public lowestAltitudeTitle: HTMLElement | undefined,
     public speedTitle: HTMLElement | undefined,
+    public maxSpeedTitle: HTMLElement | undefined,
   ) {}
 }
 
@@ -125,16 +127,7 @@ export class TrackMetadataComponent extends AbstractComponent {
         const highestAltitudeDivs = config.showHighestAndLowestAltitude ? TrackMetadataComponent.createItemElement(container, insertBefore, 'highest-point', assets, config.mayHave2Values, true) : [undefined, undefined, undefined];
         const lowestAltitudeDivs = config.showHighestAndLowestAltitude ? TrackMetadataComponent.createItemElement(container, insertBefore, 'lowest-point', assets, config.mayHave2Values, true) : [undefined, undefined, undefined];
         const speed = config.showSpeed ? TrackMetadataComponent.createItemElement(container, insertBefore, 'speed', assets, config.mayHave2Values, false) : [undefined, undefined, undefined];
-        let empty: HTMLDivElement | undefined = undefined;
-        if (config.showSpeed) {
-          // empty slot
-          empty = document.createElement('DIV') as HTMLDivElement;
-          empty.className = 'metadata-item-container';
-          if (insertBefore)
-            insertBefore.before(empty);
-          else
-            container.appendChild(empty);
-        }
+        const maxSpeed = config.showSpeed ? TrackMetadataComponent.createItemElement(container, insertBefore, 'speed', assets, config.mayHave2Values, false) : [undefined, undefined, undefined];
         const titles = new Titles(
           duration[2],
           breaksDuration[2],
@@ -145,9 +138,10 @@ export class TrackMetadataComponent extends AbstractComponent {
           highestAltitudeDivs[2],
           lowestAltitudeDivs[2],
           speed[2],
+          maxSpeed[2],
         );
-        const meta = new Meta(distance[0], duration[0], estimatedDuration[0], breaksDuration[0], positiveElevation[0], negativeElevation[0], highestAltitudeDivs[0], lowestAltitudeDivs[0], speed[0], empty);
-        const meta2 = new Meta(distance[1], duration[1], estimatedDuration[1], breaksDuration[1], positiveElevation[1], negativeElevation[1], highestAltitudeDivs[1], lowestAltitudeDivs[1], speed[1], empty);
+        const meta = new Meta(distance[0], duration[0], estimatedDuration[0], breaksDuration[0], positiveElevation[0], negativeElevation[0], highestAltitudeDivs[0], lowestAltitudeDivs[0], speed[0], maxSpeed[0]);
+        const meta2 = new Meta(distance[1], duration[1], estimatedDuration[1], breaksDuration[1], positiveElevation[1], negativeElevation[1], highestAltitudeDivs[1], lowestAltitudeDivs[1], speed[1], maxSpeed[1]);
         TrackMetadataComponent.toMeta(track$, meta, config, whenVisible, i18n, titles, domController, meta2, false);
         if (config.mayHave2Values) {
           TrackMetadataComponent.toMeta(track2$, meta2, config, whenVisible, i18n, titles, domController, meta, true); // NOSONAR
@@ -221,7 +215,7 @@ export class TrackMetadataComponent extends AbstractComponent {
     let previousState = 0;
     whenVisible.subscribe(track$.pipe(
       switchMap(track => {
-        if (!track) return of([undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, 0]);
+        if (!track) return of([undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, 0]);
         if (track instanceof Track) return combineLatest([
           track.metadata.distance$,
           track.metadata.duration$,
@@ -231,6 +225,7 @@ export class TrackMetadataComponent extends AbstractComponent {
           config.showHighestAndLowestAltitude ? track.metadata.lowestAltitude$ : of(undefined),
           track.computed.breaks$.pipe(map(b => b.total)),
           track.computed.timeEstimation$.pipe(map(t => t.total)),
+          track.metadata.maxSpeed$,
           i18n.stateChanged$
         ]);
         return i18n.stateChanged$.pipe(map(state => ([
@@ -242,11 +237,12 @@ export class TrackMetadataComponent extends AbstractComponent {
           track.lowestAltitude,
           track.breaksDuration,
           track.estimatedDuration,
+          undefined,
           state
         ])));
       }),
       debounceTimeExtended(0, 10, 100),
-    ), ([distance, duration, positiveElevation, negativeElevation, highestAltitude, lowestAltitude, breaksDuration, estimatedDuration, state]) => { // NOSONAR
+    ), ([distance, duration, positiveElevation, negativeElevation, highestAltitude, lowestAltitude, breaksDuration, estimatedDuration, maxSpeed, state]) => { // NOSONAR
       const force = state !== previousState;
       TrackMetadataComponent.updateMeta(meta, 'distance', distance, v => i18n.distanceToString(v), force, domController, hideIfUndefined);
       TrackMetadataComponent.updateMeta(meta, 'positiveElevation', positiveElevation, v => '+ ' + i18n.elevationToString(v), force, domController, hideIfUndefined);
@@ -292,11 +288,10 @@ export class TrackMetadataComponent extends AbstractComponent {
       if (config.showSpeed) {
         const speedMetersByHour = distance && duration ? distance / duration * 60 * 60 * 1000 : undefined;
         TrackMetadataComponent.updateMeta(meta, 'speed', speedMetersByHour, v => i18n.getSpeedStringInUserUnit(i18n.getSpeedInUserUnit(v)), force, domController, hideIfUndefined);
-        const hasSpeed = !!speedMetersByHour || !!meta2.speedValue;
+        TrackMetadataComponent.updateMeta(meta, 'maxSpeed', maxSpeed, v => v ? i18n.getSpeedStringInUserUnit(i18n.getSpeedInUserUnit(v)) : '', force, domController, hideIfUndefined);
+        const hasSpeed = !!speedMetersByHour || !!meta2.speedValue || !!maxSpeed || !!meta2.maxSpeedValue;
         TrackMetadataComponent.shown(meta.speedDiv, hasSpeed);
-        //const hasDuration = !!duration || !!meta2.durationValue;
-        //meta.emptyDiv!.style.display = hasSpeed && hasDuration ? '' : 'none';
-        meta.emptyDiv!.style.display = hasSpeed ? '' : 'none';
+        TrackMetadataComponent.shown(meta.maxSpeedDiv, hasSpeed);
       }
       if (force) {
         titles.durationTitle.innerText = i18n.texts.metadata.duration;
@@ -315,6 +310,7 @@ export class TrackMetadataComponent extends AbstractComponent {
         }
         if (config.showSpeed) {
           titles.speedTitle!.innerText = i18n.texts.metadata.averageSpeed;
+          titles.maxSpeedTitle!.innerText = i18n.texts.metadata.maxSpeed;
         }
       }
       previousState = state as number;

@@ -541,52 +541,26 @@ export class TrailGraphComponent extends AbstractComponent {
 
     const isBreak = trackPointIndex > 0 && point.durationFromPreviousPoint && point.durationFromPreviousPoint > 60 * 1000 && (!point.distanceFromPreviousPoint || point.distanceFromPreviousPoint / point.durationFromPreviousPoint < 0.0001);
 
-    let distanceSinceLastSpeed = (previous?.distanceSinceLastSpeed ?? 0) + (trackPointIndex > 0 ? point.distanceFromPreviousPoint : 0);
-    let timeSinceLastSpeed = (previous?.timeSinceLastSpeed ?? 0) + (trackPointIndex > 0 && point.durationFromPreviousPoint ? point.durationFromPreviousPoint : 0);
-    let speedInMeters = previous?.speedInMeters ?? 0;
-    if (timeSinceLastSpeed >= 60 * 1000 || (timeSinceLastSpeed > 2000 && (distanceSinceLastSpeed * (60 * 60 * 1000) / timeSinceLastSpeed) < 100)) {
-      speedInMeters = distanceSinceLastSpeed * (60 * 60 * 1000) / timeSinceLastSpeed;
-      for (let start = dataIndex - 1; start >= 0; --start) {
-        if (dataPoints[start].timeSinceLastSpeed === 0) {
-          const startSpeed = dataPoints[start].speedInMeters;
-          for (let i = start + 1; i < dataIndex; ++i) {
-            if (dataPoints[i].distanceSinceLastSpeed > 0) {
-              const x = dataPoints[i].distanceSinceLastSpeed / distanceSinceLastSpeed;
-              const easeInOut = -(Math.cos(Math.PI * x) - 1) / 2
-              dataPoints[i].speedInMeters = startSpeed + (speedInMeters - startSpeed) * easeInOut;
-              if (this.graphType === 'speed')
-                dataPoints[i].y = this.i18n.distanceInLongUserUnit(dataPoints[i].speedInMeters);
-            }
-          }
-          break;
-        }
-      }
-      distanceSinceLastSpeed = 0;
-      timeSinceLastSpeed = 0;
-    }
-
     const dataPoint: DataPoint = {
       x: this.graphType === 'elevation' ?
            this.i18n.elevationGraphDistanceValue(this.i18n.distanceInUserUnit(distance)) :
            (timeSinceStart ?? 0) / 60000,
       y: this.graphType === 'elevation' ?
           (point.ele === undefined ? null : this.i18n.elevationInUserUnit(point.ele)) :
-          this.i18n.distanceInLongUserUnit(speedInMeters),
+          this.i18n.distanceInLongUserUnit(point.computedSpeed ?? 0),
       segmentIndex: trackSegmentIndex,
       pointIndex: trackPointIndex,
       time: point.time,
       timeSinceStart,
-      timeSinceLastSpeed,
       lat: point.pos.lat,
       lng: point.pos.lng,
       ele: point.ele,
       distanceMeters: distance,
       distanceFromPrevious: point.distanceFromPreviousPoint,
-      distanceSinceLastSpeed,
       grade: TrackUtils.elevationGrade(points, trackPointIndex),
       eleAccuracy: point.eleAccuracy,
       posAccuracy: point.posAccuracy,
-      speedInMeters,
+      speedInMeters: point.computedSpeed ?? 0,
     };
     if (isBreak && this.graphType === 'speed') {
       // insert points with speed 0
@@ -599,13 +573,11 @@ export class TrailGraphComponent extends AbstractComponent {
           pointIndex: trackPointIndex,
           time: previous.x + 1,
           timeSinceStart: previous.timeSinceStart ? previous.timeSinceStart + 1 : undefined,
-          timeSinceLastSpeed: previous.timeSinceLastSpeed + 1,
           lat: previous.lat,
           lng: previous.lng,
           ele: previous.ele,
           distanceMeters: previous.distanceMeters,
           distanceFromPrevious: 0,
-          distanceSinceLastSpeed: previous.distanceSinceLastSpeed,
           grade: { gradeBefore: undefined, gradeAfter: undefined },
           eleAccuracy: previous.eleAccuracy,
           posAccuracy: previous.posAccuracy,
@@ -618,13 +590,11 @@ export class TrailGraphComponent extends AbstractComponent {
           pointIndex: trackPointIndex,
           time: dataPoint.x - 1,
           timeSinceStart: dataPoint.timeSinceStart,
-          timeSinceLastSpeed: dataPoint.timeSinceLastSpeed,
           lat: dataPoint.lat,
           lng: dataPoint.lng,
           ele: dataPoint.ele,
           distanceMeters: dataPoint.distanceMeters,
           distanceFromPrevious: dataPoint.distanceFromPrevious,
-          distanceSinceLastSpeed: dataPoint.distanceSinceLastSpeed,
           grade: { gradeBefore: undefined, gradeAfter: undefined },
           eleAccuracy: dataPoint.eleAccuracy,
           posAccuracy: dataPoint.posAccuracy,

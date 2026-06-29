@@ -1318,6 +1318,7 @@
     "breaksDuration": "Pauses",
     "estimatedDuration": "Durée estimée",
     "averageSpeed": "Vitesse moyenne",
+    "maxSpeed": "Vitesse max",
     "highestAltitude": "Point haut",
     "lowestAltitude": "Point bas",
     "current_position": "Position actuelle",

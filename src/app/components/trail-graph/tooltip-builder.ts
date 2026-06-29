@@ -84,7 +84,7 @@ export function buildTooltip(context: any, container: HTMLElement, isSelecting: 
   }
   html += '</tr>';
   if (!environment.production) {
-    html += '<tr><th>Track point</th><td>';
+    html += '<tr><th>Track point</th>';
     for (const point of points) {
       html += '<td>seg ' + point.raw.segmentIndex + ' pt ' + point.raw.pointIndex + '</td>';
     }

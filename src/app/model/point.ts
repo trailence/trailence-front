@@ -18,6 +18,8 @@ export interface Point extends PointDescriptor {
   readonly previousPoint: Point | undefined;
   readonly nextPoint: Point | undefined;
 
+  readonly computedSpeed: number | undefined;
+
   distanceTo(other: L.LatLngExpression): number;
   durationFromStart(track: Track): number;
   distanceFromStart(track: Track): number;

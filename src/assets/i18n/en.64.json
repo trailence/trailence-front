@@ -1318,6 +1318,7 @@
     "breaksDuration": "Breaks",
     "estimatedDuration": "Estimated duration",
     "averageSpeed": "Average speed",
+    "maxSpeed": "Max speed",
     "highestAltitude": "Highest altitude",
     "lowestAltitude": "Lowest altitude",
     "current_position": "Current position",

@@ -274,6 +274,7 @@ export class PointImpl implements Point {
     if (_next) _next.setPrevious(this);
     meta?.pointAdded(this);
     this.update(true);
+    this.updateSpeed();
   }
 
   public get pos(): L.LatLng { return this._pos; }
@@ -283,6 +284,7 @@ export class PointImpl implements Point {
     this.updateDistance();
     this._next?.updateDistance();
     this.meta?.positionChanged(this);
+    this.updateSpeed();
     this._changes$.next('pos changed');
   }
 
@@ -301,6 +303,7 @@ export class PointImpl implements Point {
     this._time = value;
     this.updateDuration();
     this._next?.updateDuration();
+    this.updateSpeed();
     this._changes$.next('time changed');
   }
 
@@ -399,6 +402,61 @@ export class PointImpl implements Point {
     }
   }
 
+  private readonly _computedSpeed = {
+    distanceSinceLastSpeed: 0,
+    durationSinceLastSpeed: 0,
+    speed: undefined as number | undefined,
+  }
+
+  public get computedSpeed(): number | undefined { return this._computedSpeed.speed; }
+
+  private updateSpeed(updateForward: boolean = false): void {
+    const before = {...this._computedSpeed};
+    this._computedSpeed.distanceSinceLastSpeed = 0;
+    this._computedSpeed.durationSinceLastSpeed = 0;
+    this._computedSpeed.speed = undefined;
+    if (this._previous) {
+      this._computedSpeed.distanceSinceLastSpeed = this._distanceFromPrevious + this._previous._computedSpeed.distanceSinceLastSpeed;
+      this._computedSpeed.durationSinceLastSpeed = (this._durationFromPrevious ?? 0) + (this._previous._computedSpeed.durationSinceLastSpeed ?? 0);
+      if (this._computedSpeed.distanceSinceLastSpeed > 0 && this._computedSpeed.durationSinceLastSpeed > 0) {
+        const eligible = this._durationFromPrevious !== undefined &&
+          (this._computedSpeed.durationSinceLastSpeed >= 60 * 1000 ||
+           (this._computedSpeed.durationSinceLastSpeed > 2000 && (this._computedSpeed.distanceSinceLastSpeed * (60 * 60 * 1000) / this._computedSpeed.durationSinceLastSpeed) < 100)
+          );
+        const compute = eligible || !this._next;
+        if (compute) {
+          this._computedSpeed.speed = this._computedSpeed.distanceSinceLastSpeed * (60 * 60 * 1000) / this._computedSpeed.durationSinceLastSpeed;
+          this.meta?.updatedSpeed(this, before.speed, this._computedSpeed.speed);
+          let p: PointImpl | undefined = this._previous;
+          while (p && p._computedSpeed.durationSinceLastSpeed > 0 && p._computedSpeed.distanceSinceLastSpeed > 0) p = p._previous;
+          if (p) {
+            const startSpeed = p._computedSpeed.speed ?? 0;
+            p = p._next;
+            while (p && p !== this) {
+              const b = p._computedSpeed.speed;
+              if (p._computedSpeed.distanceSinceLastSpeed > 0) {
+                const x = p._computedSpeed.distanceSinceLastSpeed / this._computedSpeed.distanceSinceLastSpeed;
+                const easeInOut = -(Math.cos(Math.PI * x) - 1) / 2
+                p._computedSpeed.speed = startSpeed + (this._computedSpeed.speed - startSpeed) * easeInOut;
+              } else {
+                p._computedSpeed.speed = startSpeed;
+              }
+              this.meta?.updatedSpeed(p, b, p._computedSpeed.speed);
+              p = p._next;
+            }
+          }
+          if (eligible) {
+            this._computedSpeed.distanceSinceLastSpeed = 0;
+            this._computedSpeed.durationSinceLastSpeed = 0;
+          }
+        }
+      }
+    }
+    if (updateForward && before.distanceSinceLastSpeed === 0 && before.durationSinceLastSpeed === 0 && this._computedSpeed.distanceSinceLastSpeed === 0 && this._computedSpeed.durationSinceLastSpeed === 0)
+      return;
+    this._next?.updateSpeed(true);
+  }
+
   setMeta(meta: SegmentMetadata): void {
     this.meta = meta;
   }
@@ -412,9 +470,11 @@ export class PointImpl implements Point {
       this.meta?.addDistance(-this._distanceFromPrevious);
     if (this._durationFromPrevious)
       this.meta?.addDuration(-this._durationFromPrevious);
+    this.meta?.updatedSpeed(this, this.computedSpeed, undefined);
     if (this._next) {
       this._next._previous = this._previous;
       this._next.update();
+      this._next.updateSpeed();
     }
   }
 
@@ -461,6 +521,9 @@ export class SegmentMetadata {
   private _leftLng: PointImpl | undefined = undefined;
   private _rightLng: PointImpl | undefined = undefined;
 
+  private readonly _maxSpeed$ = new BehaviorSubject<number>(0);
+  private _maxSpeedPoints: PointImpl[] = [];
+
   constructor(
     private readonly segmentPoints: PointImpl[],
   ) {}
@@ -488,6 +551,9 @@ export class SegmentMetadata {
 
   public get bounds(): L.LatLngBounds | undefined { return this._bounds.value; }
   public get bounds$(): Observable<L.LatLngBounds | undefined> { return this._bounds; }
+
+  public get maxSpeed(): number { return this._maxSpeed$.value; }
+  public get maxSpeed$(): Observable<number> { return this._maxSpeed$; }
 
   addDistance(d: number): void {
     if (d === 0) return;
@@ -759,6 +825,38 @@ export class SegmentMetadata {
     if (boundsChanged) {
       if (s === undefined) this._bounds.next(undefined);
       else this._bounds.next(L.latLngBounds(L.latLng(s, w!), L.latLng(n!, e!)));
+    }
+    for (const p of points) this.updatedSpeed(p, undefined, p.computedSpeed);
+  }
+
+  updatedSpeed(point: PointImpl, speedBefore: number | undefined, speedNow: number | undefined): void {
+    if (speedBefore === speedNow) return;
+    let max = this._maxSpeed$.value;
+    if (speedNow && speedNow > max) {
+      this._maxSpeed$.next(speedNow);
+      this._maxSpeedPoints = [point];
+    } else if (speedBefore === max) {
+      const index = this._maxSpeedPoints.indexOf(point);
+      if (index >= 0) {
+        this._maxSpeedPoints.splice(index, 1);
+        if (this._maxSpeedPoints.length === 0) {
+          max = 0;
+          for (const p of this.segmentPoints) {
+            const s = p.computedSpeed;
+            if (s !== undefined && s > 0) {
+              if (s === max) {
+                this._maxSpeedPoints.push(p);
+              } else if (s > max) {
+                max = s;
+                this._maxSpeedPoints = [p];
+              }
+            }
+          }
+          if (max !== this._maxSpeed$.value) {
+            this._maxSpeed$.next(max);
+          }
+        }
+      }
     }
   }
 

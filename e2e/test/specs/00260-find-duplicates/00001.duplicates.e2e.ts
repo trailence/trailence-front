@@ -102,6 +102,8 @@ describe('Find Duplicates', () => {
     await list.waitTrail('Phare de la Madonetta, Îlot de Fazzio, plage de Paragan depuis Bonifacio');
     await (await collectionPage.header.openActionsMenu()).clickItemWithText('Delete');
     await (await App.waitAlert()).clickButtonWithRole('danger');
+    await App.waitNoProgress();
+    await browser.waitUntil(() => Page.getActivePageElement().then(p => new HeaderComponent(p).getTitle()).catch(_ => '').then(t => t === 'My Trails'));
     collectionPage = await (await App.openMenu()).openCollection('Copy');
     list = await collectionPage.trailsAndMap.openTrailsList();
     await list.waitTrail('Randonnée du 05/06/2023 à 08:58');

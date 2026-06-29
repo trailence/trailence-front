@@ -362,6 +362,7 @@ export class TrackMetadata {
   private readonly _duration = new BehaviorSubject<number | undefined>(undefined);
   private readonly _startDate = new BehaviorSubject<number | undefined>(undefined);
   private readonly _bounds = new BehaviorSubject<L.LatLngBounds | undefined>(undefined);
+  private readonly _maxSpeed = new BehaviorSubject<number | undefined>(undefined);
 
   constructor(
     segments$: Observable<Segment[]>
@@ -378,6 +379,7 @@ export class TrackMetadata {
       if (b === undefined) return a;
       return L.latLngBounds(L.latLng(a.getSouth(), a.getWest()), L.latLng(a.getNorth(), a.getEast())).extend(b);
     }, undefined, this._bounds);
+    this.highest(segments$, meta => meta.maxSpeed$, this._maxSpeed);
   }
 
   public get distance(): number { return this._distance.value; }
@@ -403,6 +405,9 @@ export class TrackMetadata {
 
   public get bounds(): L.LatLngBounds | undefined { return this._bounds.value; }
   public get bounds$(): Observable<L.LatLngBounds | undefined> { return this._bounds; }
+
+  public get maxSpeed(): number | undefined { return this._maxSpeed.value; }
+  public get maxSpeed$(): Observable<number | undefined> { return this._maxSpeed; }
 
   private addition(segments$: Observable<Segment[]>, getter: (meta: SegmentMetadata) => Observable<number>, target: BehaviorSubject<number>): void {
     this.reduce(segments$, getter, (a,b) => a + b, 0, target);
