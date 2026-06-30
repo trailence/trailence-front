@@ -1,4 +1,4 @@
-import { LocalFilesPlugin } from 'src/app/services/local-files/local-files.interface';
+import { JsonLEvent, LocalFilesPlugin } from 'src/app/services/local-files/local-files.interface';
 import { LocalFilesPluginProvider, LocalFilesService } from 'src/app/services/local-files/local-files.service';
 import { BinaryContent } from 'src/app/utils/binary-content';
 
@@ -101,11 +101,11 @@ class MockPlugin implements LocalFilesPlugin {
     return this._root.continueWriteBinary(call.id, call.data);
   }
 
-  public saveJsonlFile(call: {dir: string, filename: string, lines: string[], more: boolean}) {
-    return this._root.startWriteJsonl(call.dir, call.filename, call.lines, call.more);
+  public saveJsonlFile(call: {dir: string, filename: string, events: JsonLEvent[], more: boolean}) {
+    return this._root.startWriteJsonl(call.dir, call.filename, call.events, call.more);
   }
-  public saveJsonlFileChunk(call: {id: number, lines: string[], more: boolean}) {
-    return this._root.continueWriteJsonl(call.id, call.lines, call.more);
+  public saveJsonlFileChunk(call: {id: number, events: JsonLEvent[], more: boolean}) {
+    return this._root.continueWriteJsonl(call.id, call.events, call.more);
   }
 
 }
@@ -239,21 +239,21 @@ class MockDir {
   private readonly _writeJsonl = new Map<number, MockFile>();
   private _writeJsonlCounter = 0;
 
-  public async startWriteJsonl(dir: string, filename: string, lines: string[], more: boolean): Promise<{id: number | undefined}> {
+  public async startWriteJsonl(dir: string, filename: string, events: JsonLEvent[], more: boolean): Promise<{id: number | undefined}> {
     const d = await this.getDirectory(dir.split('/'), true);
     const f = d!.getFile(filename, true)!;
-    f.startWriteJsonl(lines, more);
+    f.startWriteJsonl(events, more);
     if (!more) return createPromise().then(() => ({id: undefined}));
     const id = ++this._writeJsonlCounter;
     this._writeJsonl.set(id, f);
     return createPromise().then(() => ({id}));
   }
 
-  public async continueWriteJsonl(id: number, lines: string[], more: boolean): Promise<{result: string}> {
+  public async continueWriteJsonl(id: number, events: JsonLEvent[], more: boolean): Promise<{result: string}> {
     const f = this._writeJsonl.get(id);
     if (!f) throw new Error('Invalid jsonl id: ' + id);
     return createPromise().then(() => {
-      f.continueWriteJsonl(lines, more);
+      f.continueWriteJsonl(events, more);
       if (!more) this._writeJsonl.delete(id);
       return {result: more ? 'continue' : 'done'};
     });
@@ -262,7 +262,7 @@ class MockDir {
   private readonly _readJsonl = new Map<number, {file: MockFile, offset: number}>();
   private _readJsonlCounter = 0;
 
-  public async startReadJsonl(dir: string, filename: string): Promise<{lines: string[], id: number | undefined}> {
+  public async startReadJsonl(dir: string, filename: string): Promise<{events: JsonLEvent[], id: number | undefined}> {
     const d = await this.getDirectory(dir.split('/'), false);
     if (!d) throw new Error('File not found: ' + dir + '/' + filename);
     const f = d.getFile(filename, false);
@@ -270,22 +270,22 @@ class MockDir {
     const result = f.startReadJsonl();
     if (result.more) {
       const id = ++this._readJsonlCounter;
-      this._readJsonl.set(id, {file: f, offset: result.lines.length});
-      return {lines: result.lines, id};
+      this._readJsonl.set(id, {file: f, offset: result.events.length});
+      return {events: result.events, id};
     }
-    return {lines: result.lines, id: undefined};
+    return {events: result.events, id: undefined};
   }
 
-  public async continueReadJsonl(id: number): Promise<{lines: string[], end: boolean}> {
+  public async continueReadJsonl(id: number): Promise<{events: JsonLEvent[], end: boolean}> {
     const f = this._readJsonl.get(id);
     if (!f) throw new Error('Invalid id: ' + id);
     const result = f.file.continueReadJsonl(f.offset);
     if (result.more) {
-      f.offset += result.lines.length;
-      return createPromise().then(() => ({lines: result.lines, end: false}));
+      f.offset += result.events.length;
+      return createPromise().then(() => ({events: result.events, end: false}));
     }
     this._readJsonl.delete(id);
-    return createPromise().then(() => ({lines: result.lines, end: true}));
+    return createPromise().then(() => ({events: result.events, end: true}));
   }
 
 }
@@ -349,42 +349,42 @@ class MockFile {
     return {data, done: chunk === this._binary.length - 1};
   }
 
-  private _jsonl?: string[];
+  private _jsonl?: JsonLEvent[];
   private _jsonlDone?: boolean;
 
-  public startWriteJsonl(lines: string[], more: boolean) {
-    this._jsonl = [...lines];
+  public startWriteJsonl(events: JsonLEvent[], more: boolean) {
+    this._jsonl = [...events];
     this._jsonlDone = !more;
     this._binary = undefined;
     this._binarySize = undefined;
   }
 
-  public continueWriteJsonl(lines: string[], more: boolean) {
+  public continueWriteJsonl(events: JsonLEvent[], more: boolean) {
     if (!this._jsonl) throw new Error('Not a jsonl');
     if (this._jsonlDone) throw new Error('Jsonl already done');
-    this._jsonl.push(...lines);
+    this._jsonl.push(...events);
     this._jsonlDone = !more;
   }
 
-  public startReadJsonl(): {lines: string[], more: boolean} {
+  public startReadJsonl(): {events: JsonLEvent[], more: boolean} {
     if (!this._jsonl) throw new Error('Not a jsonl');
     if (!this._jsonlDone) throw new Error('Jsonl write not completed');
-    if (this._jsonl.length <= 5) return {lines: [...this._jsonl], more: false};
-    return {lines: this._jsonl.slice(0, 5), more: true};
+    if (this._jsonl.length <= 5) return {events: [...this._jsonl], more: false};
+    return {events: this._jsonl.slice(0, 5), more: true};
   }
 
-  public continueReadJsonl(offset: number): {lines: string[], more: boolean} {
+  public continueReadJsonl(offset: number): {events: JsonLEvent[], more: boolean} {
     if (!this._jsonl) throw new Error('Not a jsonl');
     if (!this._jsonlDone) throw new Error('Jsonl write not completed');
     if (offset >= this._jsonl.length) throw new Error('Invalid jsonl offset: ' + offset + ' > ' + (this._jsonl.length - 1));
-    if (offset + 5 >= this._jsonl.length) return {lines: this._jsonl.slice(offset), more: false};
-    return {lines: this._jsonl.slice(offset, offset + 5), more: true};
+    if (offset + 5 >= this._jsonl.length) return {events: this._jsonl.slice(offset), more: false};
+    return {events: this._jsonl.slice(offset, offset + 5), more: true};
   }
 
   private jsonlSize(): number | undefined {
     if (!this._jsonl) return undefined;
     let total = 0;
-    for (const line of this._jsonl) total += line.length + 1;
+    for (const event of this._jsonl) total += JSON.stringify(event).length;
     return total;
   }
 }

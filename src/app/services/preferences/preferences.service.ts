@@ -334,7 +334,7 @@ export class PreferencesService implements OnDestroy {
   }
 
   public getElevationCalibrationDevices(): string[] {
-    let devices = [...Object.keys(this.preferences.elevationCalibrationByDevice ?? {})];
+    let devices = Object.keys(this.preferences.elevationCalibrationByDevice ?? {});
     if (!devices.includes(this.device)) devices.push(this.device);
     return devices;
   }

@@ -22,7 +22,7 @@ const DD2_REGEXP = /^\s*([NnSs])\s*(\d{1,2}(?:[.,]\d+)?)(?:\s+|\s*[,\/;]\s*|\s*�
 
 function parseCoordinatesDDVariant2(s: string): L.LatLngLiteral | undefined {
   const match = DD2_REGEXP.exec(s);
-  if (!match || match.length !== 5) return undefined;
+  if (match?.length !== 5) return undefined;
   const NS = match[1].toUpperCase();
   let lat = Number.parseFloat(match[2].replace(',', '.'));
   if (Number.isNaN(lat) || lat < 0 || lat > 90) return undefined;
@@ -42,7 +42,7 @@ const DMS_REGEXP_PREFIX = /^\s*([NnSs])\s*(\d{1,2})[°\s](\d{1,2})['’\s](\d{1,
 
 function parseCoordinatesDMSPrefix(s: string): L.LatLngLiteral | undefined {
   const match = DMS_REGEXP_PREFIX.exec(s);
-  if (!match || match.length !== 9) return undefined;
+  if (match?.length !== 9) return undefined;
   const NS = match[1].toUpperCase();
   let lat = parseDMS(match[2], match[3], match[4]);
   if (lat === undefined) return undefined;
@@ -60,7 +60,7 @@ const DMS_REGEXP_SUFFIX = /^\s*(\d{1,2})[°\s](\d{1,2})['’\s](\d{1,2}(?:[.]\d+
 
 function parseCoordinatesDMSSuffix(s: string): L.LatLngLiteral | undefined {
   const match = DMS_REGEXP_SUFFIX.exec(s);
-  if (!match || match.length !== 9) return undefined;
+  if (match?.length !== 9) return undefined;
   let lat = parseDMS(match[1], match[2], match[3]);
   if (lat === undefined) return undefined;
   const NS = match[4].toUpperCase();
@@ -100,7 +100,7 @@ const DDM_REGEXP_PREFIX = /^\s*([NnSs])\s*(\d{1,2})[°\s](\d{1,2}(?:[.]\d+)?)(?:
 
 function parseCoordinatesDDMPrefix(s: string): L.LatLngLiteral | undefined {
   const match = DDM_REGEXP_PREFIX.exec(s);
-  if (!match || match.length !== 7) return undefined;
+  if (match?.length !== 7) return undefined;
   const NS = match[1].toUpperCase();
   let lat = parseDDM(match[2], match[3]);
   if (lat === undefined) return undefined;
@@ -118,7 +118,7 @@ const DDM_REGEXP_SUFFIX = /^\s*(\d{1,2})[°\s](\d{1,2}(?:[.]\d+)?)\s*([NnSs])(?:
 
 function parseCoordinatesDDMSuffix(s: string): L.LatLngLiteral | undefined {
   const match = DDM_REGEXP_SUFFIX.exec(s);
-  if (!match || match.length !== 7) return undefined;
+  if (match?.length !== 7) return undefined;
   let lat = parseDDM(match[1], match[2]);
   if (lat === undefined) return undefined;
   const NS = match[3].toUpperCase();

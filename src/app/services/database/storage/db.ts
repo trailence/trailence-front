@@ -266,9 +266,11 @@ export class Db {
         })
         .filter(l => !!l)
         ;
-      if (json.length === 0) return;
+      if (json.length === 0) {
+        Console.info('Table ' + tableName + ' in DB ' + this.dbName + ' successfully restored.');
+        return;
+      }
       await table.bulkAdd(json);
-      Console.info('Table ' + tableName + ' in DB ' + this.dbName + ' successfully restored.');
     });
   }
 
@@ -306,6 +308,7 @@ export class Db {
   private async backupTable(ready: DbReady, localFiles: LocalFilesService, tableName: string, chunkSize: number, onClose: boolean) {
     if (!onClose && this.ready$.value !== ready) return;
     Console.info('Backuping DB table ' + ready.db.name + '/' + tableName);
+    const start = Date.now();
     const t = ready.db.table(tableName);
     const filename = tableName + '.jsonl';
     try {
@@ -323,7 +326,7 @@ export class Db {
         },
         chunkSize,
       );
-      Console.info('Backup done for DB table to ' + ready.localDir + '/' + filename);
+      Console.info('Backup done for DB table to', ready.localDir + '/' + filename, 'in', (Date.now() - start), 'ms.');
     } catch (e) {
       Console.error('Error storing backup to ' + ready.localDir + '/' + filename, e);
       this.injector.get(LocalFilesService).deleteFile(ready.localDir, filename);

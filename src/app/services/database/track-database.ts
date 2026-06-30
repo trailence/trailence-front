@@ -77,8 +77,10 @@ export class TrackDatabase implements StoreWithCleaning {
     this.tableMeta = new DbTable<MetadataItem>(injector, 'metadata', 'key', 'key');
     this.tableSimplifiedTrack = new DbTable<SimplifiedTrackItem>(injector, 'simplified_tracks', 'key', 'key');
     this.tableFullTrack = new DbTable<TrackItem>(injector, 'full_tracks', 'key, version, updatedLocally, owner', 'key');
-    this.tableFullTrack.backupLinesBunch = 2;
-    this.tableFullTrack.triggerBackupOperator = debounceTime(15000);
+    this.tableFullTrack.backupLinesBunch = 25;
+    this.tableFullTrack.triggerBackupOperator = debounceTime(30000);
+    this.tableSimplifiedTrack.backupLinesBunch = 100;
+    this.tableSimplifiedTrack.triggerBackupOperator = debounceTime(30000);
     // TODO may be full track table backup should support diff and one file by line ?
     this.database = new Db(injector, 'trailence_tracks', true, [this.tableMeta, this.tableSimplifiedTrack, this.tableFullTrack]);
     this.database.dbReady$.subscribe(ready => {

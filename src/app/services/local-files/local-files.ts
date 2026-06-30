@@ -1,4 +1,4 @@
-import { LocalFilesPlugin } from './local-files.interface';
+import { JsonLEvent, LocalFilesPlugin } from './local-files.interface';
 
 const notSupported = () => Promise.reject(new Error('not supported'));
 const LocalFiles = {
@@ -19,14 +19,14 @@ const LocalFiles = {
   readBinaryFile: notSupported as (call: {dir: string, filename: string}) => Promise<{data: string | undefined, chunks: number, id: number | undefined}>,
   readBinaryFileChunk: notSupported as (call: {id: number}) => Promise<{data: string}>,
 
-  readJsonlFile: notSupported as (call: {dir: string, filename: string}) => Promise<{lines: string[], id: number | undefined}>,
-  readJsonlFileChunk: notSupported as (call: {id: number}) => Promise<{lines: string[], end: boolean}>,
+  readJsonlFile: notSupported as (call: {dir: string, filename: string}) => Promise<{events: JsonLEvent[], id: number | undefined}>,
+  readJsonlFileChunk: notSupported as (call: {id: number}) => Promise<{events: JsonLEvent[], end: boolean}>,
 
   saveBinaryFile: notSupported as (call: {dir: string, filename: string, size: number}) => Promise<{id: number, maxChunkSize: number} | {}>,
   saveBinaryFileChunk: notSupported as (call: {id: number, data: string}) => Promise<{result: string}>,
 
-  saveJsonlFile: notSupported as (call: {dir: string, filename: string, lines: string[], more: boolean}) => Promise<{id: number | undefined}>,
-  saveJsonlFileChunk: notSupported as (call: {id: number, lines: string[], more: boolean}) => Promise<{result: string}>,
+  saveJsonlFile: notSupported as (call: {dir: string, filename: string, events: JsonLEvent[], more: boolean}) => Promise<{id: number | undefined}>,
+  saveJsonlFileChunk: notSupported as (call: {id: number, events: JsonLEvent[], more: boolean}) => Promise<{result: string}>,
 } as LocalFilesPlugin;
 
 export default LocalFiles;

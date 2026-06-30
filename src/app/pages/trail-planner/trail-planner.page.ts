@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Injector, ViewChild } from '@angular/core';
+import { Component, Injector, ViewChild } from '@angular/core';
 import { combineLatest, debounceTime, first, map, Observable, of } from 'rxjs';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { MapState } from 'src/app/components/map/map-state';

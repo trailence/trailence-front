@@ -7,6 +7,8 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.trailence.Utils;
 
 import java.io.BufferedReader;
@@ -29,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 )
 public class LocalFilesPlugin extends Plugin {
 
-  private static final int MAX_DECODED_CHUNK_SIZE = 768 * 1024;
+  private static final int MAX_DECODED_CHUNK_SIZE = 4 * 1024 * 1024;
   private File root;
   private final AtomicInteger readId = new AtomicInteger(0);
   private final AtomicInteger writeId = new AtomicInteger(0);
@@ -42,14 +44,6 @@ public class LocalFilesPlugin extends Plugin {
       this.in = in;
       this.size = size;
       this.pos = pos;
-    }
-  }
-  private static class JsonlRead {
-    private final FileInputStream in;
-    private final BufferedReader br;
-    private JsonlRead(FileInputStream in, BufferedReader br) {
-      this.in = in;
-      this.br = br;
     }
   }
   private static class BinaryWrite {
@@ -177,7 +171,7 @@ public class LocalFilesPlugin extends Plugin {
    *  - dir
    *  - filename
    * Output:
-   *  - lines
+   *  - events
    *  - id: if more lines need to be read
    */
   @PluginMethod
@@ -190,15 +184,15 @@ public class LocalFilesPlugin extends Plugin {
       in = new FileInputStream(file);
       InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8);
       BufferedReader br = new BufferedReader(reader);
+      JsonlRead read = new JsonlRead(in, br);
       JSObject response = new JSObject();
-      boolean done = readLines(br, response);
+      boolean done = read.read(response);
       if (done) {
         in.close();
         call.resolve(response);
         return;
       }
       int id = readId.incrementAndGet();
-      JsonlRead read = new JsonlRead(in, br);
       jsonlReads.put(id, read);
       response.put("id", id);
       call.resolve(response);
@@ -218,7 +212,7 @@ public class LocalFilesPlugin extends Plugin {
    *  - end: boolean
    */
   @PluginMethod
-  public void readBJsonlFileChunk(PluginCall call) {
+  public void readJsonlFileChunk(PluginCall call) {
     JsonlRead read = null;
     Integer id = null;
     try {
@@ -229,7 +223,7 @@ public class LocalFilesPlugin extends Plugin {
       if (read == null)
         throw new LocalFilesException(LocalFilesException.Code.INVALID_ID, "Unknown id");
       JSObject response = new JSObject();
-      boolean done = readLines(read.br, response);
+      boolean done = read.read(response);
       response.put("end", done);
       if (done) {
         Utils.silentClose(read.in);
@@ -245,16 +239,48 @@ public class LocalFilesPlugin extends Plugin {
     }
   }
 
-  private boolean readLines(BufferedReader in, JSObject response) throws IOException {
-    String line;
-    int done = 0;
-    JSONArray lines = new JSONArray();
-    while ((line = in.readLine()) != null && done < 512 * 1024) {
-      lines.put(line);
-      done += line.length();
+  private static class JsonlRead {
+    private final FileInputStream in;
+    private final BufferedReader br;
+    private JsonlRead(FileInputStream in, BufferedReader br) {
+      this.in = in;
+      this.br = br;
     }
-    response.put("lines", lines);
-    return line == null;
+
+    private String currentLine = null;
+    private int currentLinePos = 0;
+    private static final int MAX_CHUNK_SIZE = 4 * 1024 * 1024;
+
+    private boolean read(JSObject response) throws IOException, JSONException {
+      JSONArray events = new JSONArray();
+      response.put("events", events);
+      int size = 0;
+      do {
+        ensureLine();
+        if (currentLine == null) return true;
+        int remaining = currentLine.length() - currentLinePos;
+        if (size + remaining <= MAX_CHUNK_SIZE) {
+          events.put(new JSONObject().put("d", currentLine.substring(currentLinePos)));
+          events.put(new JSONObject().put("nl", true));
+          size += remaining + 20;
+          currentLine = null;
+          continue;
+        }
+        remaining = MAX_CHUNK_SIZE - size;
+        events.put(new JSONObject().put("d", currentLine.substring(currentLinePos, currentLinePos + remaining)));
+        currentLinePos += remaining;
+        return false;
+      } while (size < MAX_CHUNK_SIZE);
+      return false;
+    }
+
+    private void ensureLine() throws IOException {
+      if (currentLine != null) return;
+      do {
+        currentLine = br.readLine();
+      } while (currentLine != null && currentLine.isEmpty());
+      currentLinePos = 0;
+    }
   }
 
   /**
@@ -346,7 +372,7 @@ public class LocalFilesPlugin extends Plugin {
    * Input:
    *  - dir
    *  - filename
-   *  - lines
+   *  - events
    *  - more: boolean
    * Output:
    *  - id if more is true
@@ -358,7 +384,7 @@ public class LocalFilesPlugin extends Plugin {
       File targetFile = toFile(call);
       Boolean more = call.getBoolean("more");
       if (more == null) more = Boolean.FALSE;
-      JSONArray lines = call.getArray("lines");
+      JSONArray events = call.getArray("events");
       File tempFile = new File(targetFile.getParentFile(), targetFile.getName() + ".tmp");
       Files.deleteIfExists(tempFile.toPath());
       tempFile.deleteOnExit();
@@ -366,11 +392,11 @@ public class LocalFilesPlugin extends Plugin {
       out = new FileOutputStream(tempFile);
       OutputStreamWriter sw = new OutputStreamWriter(out, StandardCharsets.UTF_8);
       BufferedWriter bw = new BufferedWriter(sw);
-      if (lines != null) {
-        for (int index = 0; index < lines.length(); ++index) {
-          String line = lines.getString(index);
-          bw.append(line);
-          bw.newLine();
+      if (events != null) {
+        for (int index = 0; index < events.length(); ++index) {
+          JSONObject event = events.getJSONObject(index);
+          if (event.has("nl")) bw.newLine();
+          else bw.append(event.getString("d"));
         }
       }
       if (more.equals(Boolean.FALSE)) {
@@ -399,7 +425,7 @@ public class LocalFilesPlugin extends Plugin {
   /**
    * Input:
    *  - id
-   *  - lines
+   *  - events
    *  - more: boolean
    * Output:
    *  - result: "continue" or "done"
@@ -417,12 +443,12 @@ public class LocalFilesPlugin extends Plugin {
         throw new LocalFilesException(LocalFilesException.Code.INVALID_ID, "Unknown id");
       Boolean more = call.getBoolean("more");
       if (more == null) more = Boolean.FALSE;
-      JSONArray lines = call.getArray("lines");
-      if (lines != null) {
-        for (int index = 0; index < lines.length(); ++index) {
-          String line = lines.getString(index);
-          write.bw.append(line);
-          write.bw.newLine();
+      JSONArray events = call.getArray("events");
+      if (events != null) {
+        for (int index = 0; index < events.length(); ++index) {
+          JSONObject event = events.getJSONObject(index);
+          if (event.has("nl")) write.bw.newLine();
+          else write.bw.append(event.getString("d"));
         }
       }
       if (more.equals(Boolean.FALSE)) {

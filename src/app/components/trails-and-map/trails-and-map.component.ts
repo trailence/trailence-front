@@ -363,7 +363,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     for (const mapTrack of this.mapTracks$.value) {
       const highlighted = !!trail && trail.uuid === mapTrack.trail?.uuid && trail.owner === mapTrack.trail?.owner;
       const unhighlighted = !highlighted && !!this.highlightedTrail && this.highlightedTrail.uuid === mapTrack.trail?.uuid && this.highlightedTrail.owner === mapTrack.trail?.owner;
-      mapTrack.color = highlighted ? '#4040FF' : (!!trail ? '#FF000080' : 'red');
+      mapTrack.color = highlighted ? '#4040FF' : (trail ? '#FF000080' : 'red');
       if (!highlighted && !unhighlighted) continue;
       mapTrack.showDepartureAndArrivalAnchors(highlighted);
       mapTrack.highlighted = highlighted;

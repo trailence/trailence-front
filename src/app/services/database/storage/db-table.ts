@@ -44,7 +44,7 @@ export class DbTable<DTO> {
     return this;
   }
 
-  public triggerBackupOperator: MonoTypeOperatorFunction<boolean> = debounceTime(5000);
+  public triggerBackupOperator: MonoTypeOperatorFunction<boolean> = debounceTime(15000);
   public backupLinesBunch = 1000;
 
   async migrate(dexie: Dexie, table: Table, localDir: string, previousAppVersion: number, dbAlreadyPresent: boolean, previousTableVersion: number, targetVersion: number): Promise<number> {

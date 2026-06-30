@@ -7,5 +7,6 @@
     display: none;
     position: absolute;
     pointer-events: none;
+    border: 1px solid rgba(var(--ion-color-medium-rgb), 0.33);
   }
 }

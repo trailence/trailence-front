@@ -113,7 +113,7 @@ export class ImportPopupComponent {
     let trails: Trail[];
     try {
       trails = this.clipboard ? await this.fetchSourceService.fetchTrailsByContent(this.clipboard) : await this.fetchSourceService.fetchTrailsByUrl(this.url);
-    } catch (e) {
+    } catch (_) { // NOSONAR
       trails = [];
     }
     if (trails.length === 0) {

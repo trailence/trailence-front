@@ -232,7 +232,7 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges {
     this.save(() => this.trailService.doUpdate(this.trail, updater, () => this.saveDone()));
   }
 
-  private _saveQueue: (() => void)[] = [];
+  private readonly _saveQueue: (() => void)[] = [];
   private _saveTimeout: any;
   private save(operation: () => void): void {
     this._saveQueue.push(operation);
@@ -355,11 +355,11 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges {
     for (let i = 0; i < this.track.wayPoints.length; ++i) {
       const wp = this.waypointsTranslation.at(i);
       if (!wp) continue;
-      if (wp.name !== undefined && wp.name.length === 0 && result['waypoint name ' + i]) {
+      if (wp.name?.length === 0 && result['waypoint name ' + i]) {
         wp.name = result['waypoint name ' + i];
         waypointsChange = true;
       }
-      if (wp.description !== undefined && wp.description.length === 0 && result['waypoint description ' + i]) {
+      if (wp.description?.length === 0 && result['waypoint description ' + i]) {
         wp.description = result['waypoint description ' + i];
         waypointsChange = true;
       }

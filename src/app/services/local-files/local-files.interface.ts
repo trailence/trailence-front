@@ -16,13 +16,16 @@ export interface LocalFilesPlugin {
   readBinaryFile(call: {dir: string, filename: string}): Promise<{data: string | undefined, chunks: number, id: number | undefined}>;
   readBinaryFileChunk(call: {id: number}): Promise<{data: string}>;
 
-  readJsonlFile(call: {dir: string, filename: string}): Promise<{lines: string[], id: number | undefined}>;
-  readJsonlFileChunk(call: {id: number}): Promise<{lines: string[], end: boolean}>;
+  readJsonlFile(call: {dir: string, filename: string}): Promise<{events: JsonLEvent[], id: number | undefined}>;
+  readJsonlFileChunk(call: {id: number}): Promise<{events: JsonLEvent[], end: boolean}>;
 
   saveBinaryFile(call: {dir: string, filename: string, size: number}): Promise<{id: number, maxChunkSize: number} | {}>;
   saveBinaryFileChunk(call: {id: number, data: string}): Promise<{result: string}>;
 
-  saveJsonlFile(call: {dir: string, filename: string, lines: string[], more: boolean}): Promise<{id: number | undefined}>;
-  saveJsonlFileChunk(call: {id: number, lines: string[], more: boolean}): Promise<{result: string}>;
+  saveJsonlFile(call: {dir: string, filename: string, events: JsonLEvent[], more: boolean}): Promise<{id: number | undefined}>;
+  saveJsonlFileChunk(call: {id: number, events: JsonLEvent[], more: boolean}): Promise<{result: string}>;
 
 }
+
+export type JsonLEvent = {nl: boolean} | {d: string};
+export const JSONL_CHUNK_MAX_SIZE = 4 * 1024 * 1024;

@@ -1,6 +1,9 @@
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { environment } from 'src/environments/environment';
 
+const MIN_DISTANCE = 15;
+const MAX_DISTANCE = 100;
+
 export function buildTooltip(context: any, container: HTMLElement, isSelecting: boolean, i18n: I18nService) {
   if (context.tooltip.opacity === 0 || isSelecting) {
     container.style.display = 'none';
@@ -93,13 +96,18 @@ export function buildTooltip(context: any, container: HTMLElement, isSelecting: 
   html += '</table>';
   container.innerHTML = html;
   const chartRect = context.chart.canvas.getBoundingClientRect();
+  const pos: number = context.tooltip._eventPosition.x;
+  const tooltipSize = container.getBoundingClientRect();
+  let x: number;
   if (context.tooltip._eventPosition.x < chartRect.width / 2) {
-    container.style.left = (context.tooltip._eventPosition.x + 15) + 'px';
-    container.style.right = '';
+    x = pos + MAX_DISTANCE;
+    if (x + tooltipSize.width > chartRect.width - 3) x = chartRect.width - tooltipSize.width - 3;
+    if (x - pos < MIN_DISTANCE) x = pos + MIN_DISTANCE;
   } else {
-    container.style.right = (chartRect.width - context.tooltip._eventPosition.x + 15) + 'px';
-    container.style.left = '';
+    x = pos - MAX_DISTANCE - tooltipSize.width;
+    if (x < 3) x = 3;
+    if (pos - (x + tooltipSize.width) < MIN_DISTANCE) x = pos - MIN_DISTANCE - tooltipSize.width;
   }
-  container.style.top = '5px';
-  container.style.bottom = '';
+  container.style.left = x + 'px';
+  container.style.top = '3px';
 }

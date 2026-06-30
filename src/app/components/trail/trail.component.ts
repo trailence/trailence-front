@@ -2203,6 +2203,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       changed = true;
     }
     if (changed) this.mapTracks$.next(this.mapTracks$.value);
+    if (event && changed) this.setTab('map');
   }
 
   private buildMapTrack(track: Track, section: TrackSection): MapTrack {

@@ -1,6 +1,6 @@
 import { GraphConfig, GraphProvider } from 'src/app/components/graph/graph-config';
 import { AdminStatsAggregation, AdminStatsConfig } from './admin-stats-config';
-import { concat, forkJoin, map, Observable, of } from 'rxjs';
+import { forkJoin, map, Observable } from 'rxjs';
 import { Injector } from '@angular/core';
 import { HttpService } from 'src/app/services/http/http.service';
 import { environment } from 'src/environments/environment';
@@ -148,7 +148,6 @@ export class AdminStatsBuilder implements GraphProvider<AdminStatsConfig> {
         };
       case AdminStatsAggregation.YEAR:
         return (value) => '' + value;
-        break;
     }
   }
 
@@ -157,7 +156,7 @@ export class AdminStatsBuilder implements GraphProvider<AdminStatsConfig> {
     const options: Partial<C.TickOptions> = {
       callback: (value) => xLabel(value as number),
     };
-    switch (cfg.aggregation) {
+    switch (cfg.aggregation) { // NOSONAR
       case AdminStatsAggregation.YEAR:
         (options as any).stepSize = 1;
         break;

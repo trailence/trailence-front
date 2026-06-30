@@ -3,7 +3,7 @@ import { Platform } from '@ionic/angular/standalone';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import LocalFiles from './local-files';
 import { Console } from 'src/app/utils/console';
-import { LocalFilesPlugin } from './local-files.interface';
+import { JSONL_CHUNK_MAX_SIZE, JsonLEvent, LocalFilesPlugin } from './local-files.interface';
 
 type waitingOperation = {name: string, operation: () => Promise<any>, resolve: (result: any) => void, reject: (reason: any) => void};
 
@@ -270,45 +270,118 @@ export class LocalFilesService {
     filename = this.sanitizeFilename(filename);
     return this.operation(dir, filename, 'saveJsonl', () =>
       linesGenerator(0, chunkSize)
-      .then(generated =>
-        this.plugin.saveJsonlFile({dir, filename, lines: generated.lines, more: generated.hasMore})
+      .then(generated => {
+        if (generated.lines.length === 0) {
+          return this.plugin.saveJsonlFile({dir, filename, events: [], more: false});
+        }
+        const chunks = this.splitJsonLinesToEvents(generated.lines);
+        return this.plugin.saveJsonlFile({dir, filename, events: chunks[0], more: generated.hasMore || chunks.length > 1})
         .then(r => {
-          if (r.id) return this.saveJsonlChunk(r.id, linesGenerator, chunkSize, chunkSize);
+          if (r.id) return this.continueJsonl(r.id, chunks, 1, generated.hasMore, linesGenerator, chunkSize, chunkSize);
           return undefined;
-        })
-      )
+        });
+      })
     );
   }
 
-  private saveJsonlChunk(id: number, linesGenerator: (from: number, limit: number) => Promise<{lines: string[], hasMore: boolean}>, from: number, chunkSize: number = 250): Promise<any> {
+  private splitJsonLinesToEvents(lines: string[]): JsonLEvent[][] {
+    const chunks: JsonLEvent[][] = [];
+    let chunk: JsonLEvent[] = [];
+    let chunkSize = 0;
+    for (const line of lines) {
+      const len = line.length;
+      if (chunkSize + len <= JSONL_CHUNK_MAX_SIZE) {
+        chunk.push({d: line}, {nl: true});
+        chunkSize += len + 20;
+        continue;
+      }
+      let i = 0;
+      do {
+        let max = JSONL_CHUNK_MAX_SIZE - chunkSize;
+        if (max < 1024) {
+          chunks.push(chunk);
+          chunk = [];
+          chunkSize = 0;
+          max = JSONL_CHUNK_MAX_SIZE;
+        }
+        if (len - i <= max) {
+          chunk.push({d: line.substring(i, len)}, {nl: true});
+          chunkSize += len - i + 20;
+          break;
+        }
+        chunk.push({d: line.substring(i, i + max)});
+        chunkSize += max;
+        i += max;
+      } while (true);
+    }
+    if (chunkSize > 0) chunks.push(chunk);
+    return chunks;
+  }
+
+  private continueJsonl(id: number, eventsChunks: JsonLEvent[][], eventsChunkIndex: number, hasMoreLines: boolean, linesGenerator: (from: number, limit: number) => Promise<{lines: string[], hasMore: boolean}>, from: number, chunkSize: number = 250): Promise<any> {
+    if (eventsChunkIndex < eventsChunks.length)
+      return this.plugin.saveJsonlFileChunk({id, events: eventsChunks[eventsChunkIndex], more: hasMoreLines || eventsChunkIndex < eventsChunks.length - 1})
+      .then(() => this.continueJsonl(id, eventsChunks, eventsChunkIndex + 1, hasMoreLines, linesGenerator, from, chunkSize));
+    if (!hasMoreLines) return Promise.resolve(undefined);
     return linesGenerator(from, chunkSize)
-    .then(generated =>
-      this.plugin.saveJsonlFileChunk({id, lines: generated.lines, more: generated.hasMore})
-      .then(() => {
-        if (generated.hasMore) return this.saveJsonlChunk(id, linesGenerator, from + chunkSize, chunkSize);
-        return undefined;
-      })
-    );
+    .then(generated => {
+      if (generated.lines.length === 0) {
+          return this.plugin.saveJsonlFileChunk({id, events: [], more: false});
+        }
+        const chunks = this.splitJsonLinesToEvents(generated.lines);
+        return this.continueJsonl(id, chunks, 0, generated.hasMore, linesGenerator, from + chunkSize, chunkSize);
+    });
   }
 
   public readJsonl(dir: string, filename: string, linesConsumer: (lines: string[]) => Promise<any>): Promise<any> {
     dir = this.sanitizeDir(dir);
     filename = this.sanitizeFilename(filename);
+    const reader = new JsonlReader(linesConsumer);
     return this.operation(dir, filename, 'readJsonl', () =>
       this.plugin.readJsonlFile({dir, filename})
-      .then(r => linesConsumer(r.lines).then(() => {
-        if (!r.id) return r.lines.length > 0 ? linesConsumer([]) : undefined;
-        return this.readJsonlChunk(r.id, linesConsumer);
+      .then(r => reader.consumeEvents(r.events).then(() => {
+        if (!r.id) return reader.end();
+        return this.continueReadJsonl(r.id, reader);
       }))
     );
   }
 
-  private readJsonlChunk(id: number, linesConsumer: (lines: string[]) => Promise<any>): Promise<any> {
+  private continueReadJsonl(id: number, reader: JsonlReader): Promise<any> {
     return this.plugin.readJsonlFileChunk({id})
-    .then(r => linesConsumer(r.lines).then(() => {
-      if (r.end) return linesConsumer([]);
-      return this.readJsonlChunk(id, linesConsumer);
-    }));
+    .then(r => {
+      reader.consumeEvents(r.events);
+      if (r.end) return reader.end();
+      else return this.continueReadJsonl(id, reader);
+    });
   }
 
+}
+
+class JsonlReader {
+  constructor(
+    private readonly linesConsumer: (lines: string[]) => Promise<any>
+  ) {}
+
+  private currentLine = '';
+
+  consumeEvents(events: JsonLEvent[]): Promise<any> {
+    const lines: string[] = [];
+    for (const event of events) {
+      if ((event as any)['nl']) {
+        if (this.currentLine.length > 0) {
+          lines.push(this.currentLine);
+          this.currentLine = '';
+        }
+      } else {
+        this.currentLine += (event as any).d;
+      }
+    }
+    if (lines.length === 0) return Promise.resolve(undefined);
+    return this.linesConsumer(lines);
+  }
+
+  end(): Promise<any> {
+    return (this.currentLine.length > 0 ? this.linesConsumer([this.currentLine]) : Promise.resolve())
+      .then(() => this.linesConsumer([]));
+  }
 }
