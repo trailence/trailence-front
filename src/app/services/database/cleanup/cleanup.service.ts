@@ -109,9 +109,9 @@ export class CleanupService implements OnDestroy {
     let done = false;
     todo.execute()
     .then(result => {
-      Console.info('[CLEANUP]', todo.name, result, 'in', (Date.now() - start), 'ms.');
       todo.lastRun = Date.now();
       todo.nextRun = todo.lastRun + todo.every;
+      Console.info('[CLEANUP]', todo.name, result, 'in', (Date.now() - start), 'ms. Next run', new Date(todo.nextRun));
       localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + todo.id, '' + todo.lastRun);
       this.lastRun = todo.lastRun;
       this.sort();

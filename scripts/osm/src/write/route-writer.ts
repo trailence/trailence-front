@@ -1,17 +1,22 @@
 import fs from 'node:fs';
 import { Route, RouteType } from '../model/route';
 import { OsmRelationMemberRole } from '../osm/osm-object';
-import { FileHandle } from 'node:fs/promises';
 import { Buf } from '../util/util';
+import { PromiseLimiter } from '../util/promise-limiter';
 
-export async function writeRouteWithPoints(routesDir: string, route: Route, points: number[][], roles: (OsmRelationMemberRole | undefined)[]) {
-  const fd = await fs.promises.open(routesDir + '/' + route.id + '.route', 'w');
-  const bufSize = getRouteBufferSize(route);
-  const buf = Buf.of(bufSize);
-  writeRouteBuffer(route, buf);
-  await fd.write(buf.buffer, 0)
-  await writePointsToFile(fd, points, roles, bufSize);
-  await fd.close();
+export async function writeRouteWithPoints(routesDir: string, route: Route, points: Buffer[], roles: (OsmRelationMemberRole | undefined)[], limiter: PromiseLimiter) {
+  const metaSize = getRouteBufferSize(route);
+  const pointsSize = getBufferSizeForPoints(points);
+  const buffer = Buffer.allocUnsafe(metaSize + pointsSize);
+  writeRouteBuffer(route, new Buf(buffer, 0));
+  writePoints(buffer, metaSize, points, roles);
+  const subDir = Number(route.id % 1000n);
+  await limiter.push(async () => {
+    await (fs.promises.mkdir(routesDir + '/' + subDir).catch(_ => true));
+    const fd = await fs.promises.open(routesDir + '/' + subDir + '/' + route.id + '.route', 'w');
+    await fd.write(buffer)
+    await fd.close();
+  });
 }
 
 export function getRouteBufferSize(route: Route): number {
@@ -79,21 +84,22 @@ function writeStringBuffer(type: RouteProperty, value: string | undefined, buf: 
   return true;
 }
 
-async function writePointsToFile(fd: FileHandle, points: number[][], roles: (OsmRelationMemberRole | undefined)[], offset: number) {
+function getBufferSizeForPoints(points: Buffer[]) {
+  let size = 5;
+  for (const segment of points) size += 5 + segment.length;
+  return size;
+}
+
+function writePoints(buffer: Buffer, offset: number, points: Buffer[], roles: (OsmRelationMemberRole | undefined)[]) {
   let size = 0;
-  for (const segment of points) size += 5 + segment.length * 4;
-  const buffer = Buffer.allocUnsafe(5 + size);
-  buffer.writeUint8(RouteProperty.POINTS, 0);
-  buffer.writeUint32LE(size, 1);
-  let pos = 5;
+  for (const segment of points) size += 5 + segment.length;
+  buffer.writeUint8(RouteProperty.POINTS, offset);
+  buffer.writeUint32LE(size, offset + 1);
+  offset += 5;
   for (let i = 0; i < points.length; ++i) {
-    buffer.writeUint8(roles[i] || 0, pos);
-    buffer.writeUint32LE(points[i].length, pos + 1);
-    pos += 5;
-    for (const point of points[i]) {
-      buffer.writeInt32LE(point, pos);
-      pos += 4;
-    }
+    buffer.writeUint8(roles[i] || 0, offset);
+    buffer.writeUint32LE(Math.floor(points[i].length / 8), offset + 1);
+    points[i].copy(buffer, offset + 5);
+    offset += 5 + points[i].length;
   }
-  return offset + (await fd.write(buffer, offset)).bytesWritten;
 }

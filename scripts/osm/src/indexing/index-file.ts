@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import { FileHandle } from 'node:fs/promises';
 import { MemoryLimiter } from '../util/memory-limiter';
 import { Buf, durationToString } from '../util/util';
-import { PromiseLimiter, PromiseParallel } from '../util/promise-limiter';
+import { ParallelOperations, PromiseLimiter, PromiseParallel } from '../util/promise-limiter';
 import { readFully } from '../util/fs-util';
 
 export abstract class IndexFileWriter {
@@ -56,41 +56,34 @@ export abstract class IndexFileReader<T> {
   }
 
   public async resolveElements(elementsByKey: {index: number; subIds: number[]}[], allowUnresolved: boolean, shutingDown: {get: () => boolean}): Promise<Map<number, Map<number, T>>> {
-    const promises: Promise<any>[] = [];
     const output = new Map<number, Map<number, T>>();
     let count = 0;
     const start = Date.now();
     const fileOperations = new PromiseParallel(4);
-    const indexProcess = new PromiseParallel(128);
     const nb = elementsByKey.length;
     let resolved = 0;
-    let lastLog = start;
+    const indexProcess = new ParallelOperations('index', 128, () => 'resolved: ' + resolved);
     const resolve: ((entry: {index: number; subIds: number[]}) => Promise<any>) = entry =>
       this.resolveElementsFromFile(entry.index, entry.subIds, allowUnresolved, fileOperations, shutingDown)
       .then(map => {
         output.set(entry.index, map);
         resolved += map.size;
         entry.subIds = []; // GC
-        const now = Date.now();
         count++;
-        if ((now - lastLog) >= 60000) {
-          console.log(' +', count, 'indexes processed', resolved, 'resolved after', durationToString(now - start));
-          lastLog = now;
-        }
       });
     let lastIndex = elementsByKey.length - 1;
     let firstIndex = 0;
     while (lastIndex >= firstIndex) {
       for (let i = 0; i < 3 && lastIndex >= firstIndex; ++i) {
         const e1 = elementsByKey[lastIndex--];
-        promises.push(indexProcess.push(() => resolve(e1)));
+        indexProcess.add(() => resolve(e1));
       }
       if (lastIndex >= firstIndex) {
         const e2 = elementsByKey[firstIndex++];
-        promises.push(indexProcess.push(() => resolve(e2)));
+        indexProcess.add(() => resolve(e2));
       }
     }
-    await Promise.all(promises);
+    await indexProcess.waitDone();
     console.log(' => ', resolved, 'elements resolved from', nb, 'indexes in', durationToString(Date.now() - start));
     return output;
   }

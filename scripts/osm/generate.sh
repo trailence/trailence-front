@@ -52,17 +52,17 @@ if [ ! -d "$OUTDIR/ways" ]; then
   osmium cat "$HIGHWAYS_WITHOUT_NODES" -f opl,add_metadata=false -o - | node --max-old-space-size=4096 --import=tsx ./src/indexing/generate-ways.ts --nodesIndexDir=$TMPDIR/nodes --waysIndexDir=$TMPDIR/ways --waysTilesDir=$OUTDIR/ways
 fi
 
-#if [ ! -f "$ROUTES" ]; then
-#  echo "Extracting routes..."
-#  osmium tags-filter "$PLANET_FILE" r/route -R -o "$ROUTES"
-#fi
+if [ ! -f "$ROUTES" ]; then
+  echo "Extracting routes..."
+  osmium tags-filter "$PLANET_FILE" r/route -R -o "$ROUTES"
+fi
 
-#if [ ! -d "$OUTDIR/routes" ]; then
-#  echo "Generating routes..."
-#  osmium cat "$ROUTES" -f opl,add_metadata=false -o - | node --max-old-space-size=4096 --import=tsx ./src/indexing/generate-routes.ts --waysIndexDir=$TMPDIR/ways --waysTilesDir=$OUTDIR/ways --routesDir=$OUTDIR/routes
-#fi
+if [ ! -d "$OUTDIR/routes" ]; then
+  echo "Generating routes..."
+  osmium cat "$ROUTES" -f opl,add_metadata=false -o - | node --max-old-space-size=4096 --import=tsx ./src/indexing/generate-routes.ts --waysIndexDir=$TMPDIR/ways --waysTilesDir=$OUTDIR/ways --routesDir=$OUTDIR/routes
+fi
 
-#if [ ! -d "$OUTDIR/ways-split" ]; then
-#  echo "Splitting ways tiles..."
-#  node --import=tsx ./src/split.ts --src=$OUTDIR/ways --dst=$OUTDIR/ways-split --max=1000
-#fi
+if [ ! -d "$OUTDIR/ways-split" ]; then
+  echo "Splitting ways tiles..."
+  node --import=tsx ./src/split.ts --src=$OUTDIR/ways --dst=$OUTDIR/ways-split --max=1000
+fi
