@@ -1554,6 +1554,9 @@
     "way_permissive": "Passages tolérés",
     "overlays": {
       "wmth": "Sentiers balisés"
+    },
+    "errors": {
+      "no_net": "Certains éléments ne peuvent être affichés car vous êtes hors ligne"
     }
   },
   "relativeDates": {

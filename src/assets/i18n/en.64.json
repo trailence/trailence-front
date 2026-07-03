@@ -1554,6 +1554,9 @@
     "way_permissive": "Permissive ways",
     "overlays": {
       "wmth": "Waymarked trails"
+    },
+    "errors": {
+      "no_net": "Some elements cannot be displayed because you are offline"
     }
   },
   "relativeDates": {

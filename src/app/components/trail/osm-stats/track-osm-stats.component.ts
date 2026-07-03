@@ -11,6 +11,7 @@ import { IonSpinner } from '@ionic/angular/standalone';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 import { TrackPointReference } from 'src/app/utils/track-computed-data/types';
 import { computePercentagesWithoutDecimal } from 'src/app/utils/math-utils';
+import { Console } from 'src/app/utils/console';
 
 type Stat<T> = {value: T | 'unknown' | 'others', percent: number, distance: number, sections: TrackSection[]}
 
@@ -56,7 +57,7 @@ export class TrackOsmStatsComponent extends AbstractComponent {
       stats => {
         this.stats = this.processStats(stats);
         this.changesDetection.detectChanges();
-      }
+      },
     )
   }
 

@@ -23,7 +23,7 @@ export function computeTrackWayPoints(track: Track, breaksSections: BreakPointSe
     }
     bounds = extendsAround(bounds, GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT + 1);
     const pois$ = track.isRecording ? of([]) : track.computed.guidpostsOnTrackBounds$.pipe(map(response => response?.pois));
-    const ways$ = of([]);// track.computed.osmWays$.pipe(first());
+    const ways$ = of([]);// track.computed.osmWaysMatch$.pipe(first());
     let poisDone = track.isRecording;
     let waysDone = track.isRecording;
     combineLatest([concat(of(undefined), pois$), concat(of(undefined), ways$)]).pipe(debounceTimeExtended(250, 250, undefined, (p,n) => n[0] !== undefined && n[1] !== undefined)).subscribe({
@@ -35,7 +35,7 @@ export function computeTrackWayPoints(track: Track, breaksSections: BreakPointSe
           poisDone = true;
         }
         if (result[1] && !waysDone) {
-          //changed = computeOsmWayChanges(track, result[1].osmTrackPoints, result[1].allWays, newList) || changed;
+          //changed = computeOsmWayChanges(track, result[1].osmTrackPoints, result[1].waysOnTrack, newList) || changed;
           waysDone = true;
         }
         if (changed) subscriber.next(newList);

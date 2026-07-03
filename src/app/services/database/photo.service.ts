@@ -111,7 +111,7 @@ export class PhotoService {
     if (photo.fromRecording)
       return this.injector.get(TraceRecorderService).getPhotoFile$(photo.uuid);
     return this.injector.get(StoredFilesService).getFile$(photo.owner, 'photo', photo.uuid).pipe(
-      catchError(e => {
+      catchError(_ => {
         const doing = this._retrievingFiles.get(photo.owner + '#' + photo.uuid);
         if (doing) return doing;
         const request = this.injector.get(HttpService).getBlob(environment.apiBaseUrl + '/photo/v1/' + encodeURIComponent(photo.owner) + '/' + photo.uuid).pipe(

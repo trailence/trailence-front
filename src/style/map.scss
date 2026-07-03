@@ -261,3 +261,10 @@ app-trail-small-map {
     }
   }
 }
+
+.larger-touch-targets app-map {
+  div.map-top-controls-container {
+    left: 50px;
+    right: 50px;
+  }
+}

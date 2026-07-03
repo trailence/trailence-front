@@ -1,4 +1,5 @@
 import { concat, first, Observable, of, Subject, Subscriber, Subscription, switchMap, timeout } from 'rxjs';
+import { Console } from '../console';
 
 export class BehaviorSubjectOnDemand<T, E> {
 
@@ -21,7 +22,7 @@ export class BehaviorSubjectOnDemand<T, E> {
       if (this.observers.length === 1) {
         this.subscribe();
       }
-      if (this.lastValue) {
+      if (this.lastValue !== undefined) {
         observer.next(this.lastValue);
       }
       return () => {
@@ -42,10 +43,11 @@ export class BehaviorSubjectOnDemand<T, E> {
       this.timeoutSubscription = undefined;
     }
     if (this.subscription) return;
-    const event$ = this.lastValue ? this.invalidateValueEvent$ : concat(of(undefined), this.invalidateValueEvent$);
+    const event$ = this.lastValue !== undefined ? this.invalidateValueEvent$ : concat(of(undefined), this.invalidateValueEvent$);
     this.subscription = event$.pipe(
       switchMap(event => this.valueProvider(event))
     ).subscribe(value => {
+      if (value === undefined) Console.warn('Value provider emitted an undefined value', this.valueProvider);
       if (value === this.lastValue) return;
       this.lastValue = value;
       const list = [...this.observers];

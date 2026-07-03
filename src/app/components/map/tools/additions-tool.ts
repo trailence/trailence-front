@@ -4,12 +4,14 @@ import { countMapAdditionsOptions, MapAdditionsOptions, MapAdditionsService } fr
 import { MapTool } from './tool.interface';
 import { of } from 'rxjs';
 import { MapComponent } from '../map.component';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController, ToastController } from '@ionic/angular/standalone';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
 import { BadgesConfig } from '../../menus/menu-item';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { Way, WayPermission } from 'src/app/services/map/way';
 import { POI } from 'src/app/services/map/poi';
+import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { NetworkService } from 'src/app/services/network/network.service';
 
 export class AdditionsTool extends MapTool {
 
@@ -134,6 +136,14 @@ export class AdditionsTool extends MapTool {
       }
       if (additions.done) {
         this._loading = false;
+        console.log(additions)
+        if (additions.partial && !injector.get(NetworkService).server) {
+          injector.get(ToastController).create({
+            message: injector.get(I18nService).texts.mapAdditions.errors.no_net,
+            color: 'warning',
+            duration: 5000,
+          }).then(t => t.present());
+        }
         mapComponent.refreshTools();
       }
     });

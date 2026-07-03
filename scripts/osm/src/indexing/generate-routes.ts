@@ -281,6 +281,7 @@ async function processTile(tile: number, waysIdsMap: Map<number, number[]>, rout
           if (route.waysIndexes[i] !== wayIndex) continue;
           if (route.waysSubIds[i] !== waySubId) continue;
           route.points[i] = points;
+          if (linkedRoutes.some(r => r.id === route.route.id)) continue;
           const routeSize = 8 + getRouteBufferSize(route.route);
           if (linkedRoutesSize + routeSize + extraSizeBefore + 3 <= 65535) {
             linkedRoutes.push(route.route);

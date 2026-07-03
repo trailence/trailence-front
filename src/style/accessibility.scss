@@ -13,6 +13,20 @@
   ion-popover.always-tight-menu {
     --width: calc(min(325px, 85vw));
   }
+  app-header ion-toolbar .header-title {
+    .back-button, .title-actions {
+      ion-button {
+        margin-inline-start: 6px;
+        margin-inline-end: 4px;
+      }
+    }
+  }
+  div.waypoints-container {
+    ion-checkbox {
+      margin-top: 2px;
+      margin-bottom: 6px;
+    }
+  }
 }
 
 :root.larger-texts {

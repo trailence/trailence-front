@@ -200,6 +200,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   trailsForPhotoPopup: Observable<Trail | null>[] = [];
   currentLang: string;
   liveGroups$ = new BehaviorSubject<LiveGroupDto[]>([]);
+  hasOsmTrack = false;
 
   get trail1WithInfo(): TrailWithInfo | null { return this.trail1WithInfo$.value; }
   get trail2WithInfo(): TrailWithInfo | null { return this.trail2WithInfo$.value; }
@@ -536,6 +537,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     if (this.recording$) this.trailsForPhotoPopup.push(this.recording$.pipe(map(r => r?.trail ?? null)));
     if (this.trail1$) this.trailsForPhotoPopup.push(this.trail1$);
     if (this.trail2$) this.trailsForPhotoPopup.push(this.trail2$);
+    this.hasOsmTrack = false;
     this.listenForTracks();
     this.listenForPhotos();
     this.listenForPhotosOnMap();
@@ -780,17 +782,19 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
                 if (reverse) track = track.reverse();
                 const mapTrack = new MapTrack(trail, track, 'red', 1, false, this.i18n);
                 mapTrack.showArrowPath();
-                if (!includeOsmMatch || !showOsm) return of([trail, track, mapTrack, undefined, undefined] as [Trail | null, Track | undefined, MapTrack | undefined, Track | undefined, MapTrack | undefined]);
+                if (!includeOsmMatch) return of([trail, track, mapTrack, undefined, undefined] as [Trail | null, Track | undefined, MapTrack | undefined, Track | undefined, MapTrack | undefined]);
                 return concat(
                   of(undefined),
                   track.computed.osmWaysMatch$
                 ).pipe(
-                  map(osm => {
-                    if (!osm) return ([trail, track, mapTrack, undefined, undefined]) as [Trail | null, Track | undefined, MapTrack | undefined, Track | undefined, MapTrack | undefined];
+                  switchMap(osm => {
+                    this.hasOsmTrack = !!osm;
+                    if (!showOsm && !!osm) return EMPTY; // ignore the one with osm
+                    if (!osm) return of([trail, track, mapTrack, undefined, undefined] as [Trail | null, Track | undefined, MapTrack | undefined, Track | undefined, MapTrack | undefined]);
                     const osmTrack = buildOsmTrack(track, osm.osmTrackPoints);
                     const osmMap = new MapTrack(trail, osmTrack, 'red', 1, false, this.i18n);
                     osmMap.showArrowPath();
-                    return [trail, track, mapTrack, osmTrack, osmMap] as [Trail | null, Track | undefined, MapTrack | undefined, Track | undefined, MapTrack | undefined];
+                    return of([trail, track, mapTrack, osmTrack, osmMap] as [Trail | null, Track | undefined, MapTrack | undefined, Track | undefined, MapTrack | undefined]);
                   })
                 )
               })
@@ -1185,7 +1189,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           const msg = noNet.length > 0 ? 'photos_error_no_network' : 'photos_error';
           this.injector.get(ToastController).create({
             message: this.i18n.texts.errors[msg],
-            color: 'danger',
+            color: 'warning',
             duration: 5000,
           }).then(t => t.present());
           canDisplayError = false;

@@ -78,11 +78,15 @@ describe('Find Trail', () => {
     await alert.clickButtonWithText('Ok');
     await map.topToolbar.clickByIcon('search-map');
     list = await page.trailsAndMap.openTrailsList();
+    await browser.waitUntil(() => list.items.length.then(nb => nb > 0), { timeout: 25000 }).catch(_ => true);
+  });
+
+  it('Wait for Open Street Map result', async () => {
     await browser.waitUntil(() => list.items.length.then(nb => nb > 0), { timeout: 45000 });
-    trail = await list.waitTrail('Île Saint-Honorat');
   });
 
   it('Check trail from Open Street Map', async () => {
+    trail = await list.waitTrail('Île Saint-Honorat');
     trailPage = await list.openTrail(trail);
     const details = await trailPage.trailComponent.openDetails();
     await browser.waitUntil(() => details.$('div.external-link').isExisting());

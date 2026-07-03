@@ -161,7 +161,7 @@ describe('Import data from Visorando', () => {
 
 
     await browser.newWindow('https://www.visorando.com/page-ggpolice/', { type: 'tab' });
-    await browser.waitUntil(() => browser.$('h2=Mes circuits de randonnée').isExisting());
+    await browser.waitUntil(() => browser.$('h2=Ses circuits de randonnée').isExisting());
     await browser.action('key').down(Key.Ctrl).down('a').up('a').down('c').up('c').up(Key.Ctrl).perform();
     await browser.closeWindow();
     handles = await browser.getWindowHandles();

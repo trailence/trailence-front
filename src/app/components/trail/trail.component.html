@@ -447,7 +447,7 @@
             </ion-checkbox>
           </div>
         }
-        @if (tracks[0] && !toolsEnabled && !trail2) {
+        @if (tracks[0] && !toolsEnabled && !trail2 && hasOsmTrack) {
           <div class="show-osm">
             <ion-checkbox labelPlacement="end" [checked]="showOsmTrack$.value" (ionChange)="showOsmTrack$.next($event.detail.checked)">
               <span>{{i18n.texts.pages.trail.show_osm}}</span>
