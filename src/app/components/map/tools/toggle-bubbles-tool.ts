@@ -1,20 +1,17 @@
-import * as L from 'leaflet';
 import { BehaviorSubject, of } from 'rxjs';
-import { Injector } from '@angular/core';
-import { MapTool } from './tool.interface';
-import { MapComponent } from '../map.component';
+import { MapTool, MapToolContext } from './tool.interface';
 
 export class MapToggleBubblesTool extends MapTool {
 
   constructor(
-    activated$: BehaviorSubject<boolean>,
-    available$: BehaviorSubject<boolean>,
+    activated: BehaviorSubject<boolean>,
+    available: () => boolean,
   ) {
     super();
-    this.icon = (map: L.Map, mapComponent: MapComponent, injector: Injector) => activated$.value ? 'path' : 'bubbles';
-    this.visible = (map: L.Map, mapComponent: MapComponent, injector: Injector) => available$.value && mapComponent.canFitMapBounds();
-    this.execute = (map: L.Map, mapComponent: MapComponent, injector: Injector) => {
-      activated$.next(!activated$.value);
+    this.icon = () => activated.value ? 'path' : 'bubbles';
+    this.visible = (ctx: MapToolContext) => available() && ctx.mapComponent.canFitMapBounds();
+    this.execute = () => {
+      activated.next(!activated.value);
       return of(true);
     };
   }

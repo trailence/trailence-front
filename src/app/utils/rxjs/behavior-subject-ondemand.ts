@@ -18,12 +18,32 @@ export class BehaviorSubjectOnDemand<T, E> {
 
   public asObservable(): Observable<T> {
     return new Observable(observer => {
+      const first = this.observers.length === 0;
+      this.observers.push(observer);
+      if (this.lastValue !== undefined) {
+        observer.next(this.lastValue);
+      }
+      if (first) {
+        this.subscribe();
+      }
+      return () => {
+        const index = this.observers.indexOf(observer);
+        if (index >= 0) {
+          this.observers.splice(index, 1);
+          if (this.observers.length === 0) {
+            this.subscribeTimeout();
+          }
+        }
+      }
+    });
+  }
+
+  public asObservablePrependWithUndefined(): Observable<T | undefined> {
+    return new Observable(observer => {
+      observer.next(this.lastValue);
       this.observers.push(observer);
       if (this.observers.length === 1) {
         this.subscribe();
-      }
-      if (this.lastValue !== undefined) {
-        observer.next(this.lastValue);
       }
       return () => {
         const index = this.observers.indexOf(observer);

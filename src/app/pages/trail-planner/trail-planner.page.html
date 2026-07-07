@@ -7,7 +7,7 @@
     @if (trackBuilder?.searchingWays) {
       <ion-spinner name="dots" class="map-loading"></ion-spinner>
     }
-    <app-map #map mapId="trail-planner" [tracks$]="mapTracks$" [ngClass]="{'mouse-pointer': trackBuilder?.putAnchors}"
+    <app-map #map mapId="trail-planner" [elements$]="mapTracks$" [ngClass]="{'mouse-pointer': trackBuilder?.putAnchors}"
       (mouseClickPoint)="mapClickPoint($event)"
       (mouseOverPoint)="mouseOverPointOnMap($event)"
     >

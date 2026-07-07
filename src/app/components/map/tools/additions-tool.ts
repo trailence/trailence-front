@@ -1,9 +1,8 @@
 import { Injector } from '@angular/core';
 import * as L from 'leaflet';
 import { countMapAdditionsOptions, MapAdditionsOptions, MapAdditionsService } from 'src/app/services/map/map-additions.service';
-import { MapTool } from './tool.interface';
+import { MapTool, MapToolContext } from './tool.interface';
 import { of } from 'rxjs';
-import { MapComponent } from '../map.component';
 import { ModalController, ToastController } from '@ionic/angular/standalone';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
 import { BadgesConfig } from '../../menus/menu-item';
@@ -23,10 +22,10 @@ export class AdditionsTool extends MapTool {
   ) {
     super();
     this.icon = 'info';
-    this.visible = (map: L.Map, mapComponent: MapComponent, injector: Injector) => true;
-    this.badges = (map: L.Map, mapComponent: MapComponent, injector: Injector) => {
+    this.visible = (ctx: MapToolContext) => true;
+    this.badges = (ctx: MapToolContext) => {
       let count = 0;
-      const state = mapComponent.getState();
+      const state = ctx.mapComponent.getState();
       const options = state.additions;
       if (state.zoom > 10) count += countMapAdditionsOptions(options);
       count += state.overlays.length;
@@ -37,14 +36,14 @@ export class AdditionsTool extends MapTool {
         }
       } as BadgesConfig;
     };
-    this.spinner = (map: L.Map, mapComponent: MapComponent, injector: Injector) => {
+    this.spinner = (ctx: MapToolContext) => {
       return this._loading ? 'crescent' : undefined;
     };
-    this.execute = (map: L.Map, mapComponent: MapComponent, injector: Injector) => {
+    this.execute = (ctx: MapToolContext) => {
       if (this.modal) {
         this.closeModal();
       } else {
-        this.displayModal(map, mapComponent, injector);
+        this.displayModal(ctx);
       }
       return of(true);
     };
@@ -55,33 +54,33 @@ export class AdditionsTool extends MapTool {
     this.modal = undefined;
   }
 
-  private async displayModal(map: L.Map, mapComponent: MapComponent, injector: Injector) {
-    const modalController = injector.get(ModalController);
+  private async displayModal(ctx: MapToolContext) {
+    const modalController = ctx.injector.get(ModalController);
     const popupModule = await import('./additions-popup/additions-popup.component');
     this.modal = await modalController.create({
       component: popupModule.AdditionsPopupComponent,
       componentProps: {
-        options: {...mapComponent.getState().additions},
+        options: {...ctx.mapComponent.getState().additions},
         onOptionsChange: (options: MapAdditionsOptions) => {
-          mapComponent.getState().additions = {...options};
-          this.refresh(map, mapComponent, injector);
+          ctx.mapComponent.getState().additions = {...options};
+          this.refresh(ctx);
         },
-        selectedOverlays: [...mapComponent.getState().overlays],
+        selectedOverlays: [...ctx.mapComponent.getState().overlays],
         onOverlaysChange: (selection: string[]) => {
-          const service = injector.get(MapLayersService);
+          const service = ctx.injector.get(MapLayersService);
           const missing = [...selection];
-          map.eachLayer(layer => {
+          ctx.map.eachLayer(layer => {
             const id = (layer.options as any)['id']; // NOSONAR
             if (id && service.overlays.some(l => l.name === id)) {
               const index = missing.indexOf(id);
-              if (index >= 0) missing.splice(index, 1); else map.removeLayer(layer);
+              if (index >= 0) missing.splice(index, 1); else ctx.map.removeLayer(layer);
             }
           });
           for (let missingId of missing) {
             const layer = service.overlays.find(o => o.name === missingId);
-            if (layer) map.addLayer(layer.create());
+            if (layer) ctx.map.addLayer(layer.create());
           }
-          mapComponent.getState().overlays = [...selection];
+          ctx.mapComponent.getState().overlays = [...selection];
         },
       },
       cssClass: 'small-modal'
@@ -92,59 +91,59 @@ export class AdditionsTool extends MapTool {
 
   private _timeout: any = undefined;
 
-  public refresh(map: L.Map | undefined, mapComponent: MapComponent, injector: Injector): void {
+  public refresh(ctx: MapToolContext | undefined): void {
     if (this._timeout) {
       clearTimeout(this._timeout);
       this._timeout = undefined;
     }
-    this._timeout = setTimeout(() => this.doRefresh(map, mapComponent, injector), 250);
+    this._timeout = setTimeout(() => { if (ctx) this.doRefresh(ctx); }, 250);
   }
 
   private _refreshCount = 0;
   private _layers: L.Layer[] = [];
 
-  private doRefresh(map: L.Map | undefined, mapComponent: MapComponent, injector: Injector): void {
+  private doRefresh(ctx: MapToolContext): void {
     let bounds;
     try {
-      bounds = map?.getBounds();
+      bounds = ctx.map.getBounds();
     } catch (e) { // NOSONAR
       bounds = undefined;
     }
     if (!bounds) return;
-    if (map!.getZoom() < 10) {
+    if (ctx.map.getZoom() < 10) {
       for (const layer of this._layers) layer.remove();
       this._layers = [];
       return;
     }
     this._loading = true;
-    mapComponent.refreshTools();
+    ctx.mapComponent.refreshTools();
     const count = ++this._refreshCount;
     for (const layer of this._layers) layer.remove();
     this._layers = [];
-    const options = mapComponent.getState().additions;
-    injector.get(MapAdditionsService).getAdditions(bounds, options).subscribe(additions => {
+    const options = ctx.mapComponent.getState().additions;
+    ctx.injector.get(MapAdditionsService).getAdditions(bounds, options).subscribe(additions => {
       if (this._refreshCount !== count) return;
       for (const poi of additions.pois) {
-        const tooltip = this.poiToTooltip(poi, injector);
+        const tooltip = this.poiToTooltip(poi, ctx.injector);
         this._layers.push(tooltip);
-        tooltip.addTo(map!);
+        tooltip.addTo(ctx.map);
       }
       for (const way of additions.ways) {
         const path = this.wayToPath(way, options);
         this._layers.push(path);
-        path.addTo(map!);
+        path.addTo(ctx.map);
       }
       if (additions.done) {
         this._loading = false;
         console.log(additions)
-        if (additions.partial && !injector.get(NetworkService).server) {
-          injector.get(ToastController).create({
-            message: injector.get(I18nService).texts.mapAdditions.errors.no_net,
+        if (additions.partial && !ctx.injector.get(NetworkService).server) {
+          ctx.injector.get(ToastController).create({
+            message: ctx.injector.get(I18nService).texts.mapAdditions.errors.no_net,
             color: 'warning',
             duration: 5000,
           }).then(t => t.present());
         }
-        mapComponent.refreshTools();
+        ctx.mapComponent.refreshTools();
       }
     });
   }

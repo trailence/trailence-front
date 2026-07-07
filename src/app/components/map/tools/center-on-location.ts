@@ -1,8 +1,5 @@
-import * as L from 'leaflet';
 import { BehaviorSubject, of } from 'rxjs';
-import { Injector } from '@angular/core';
-import { MapTool } from './tool.interface';
-import { MapComponent } from '../map.component';
+import { MapTool, MapToolContext } from './tool.interface';
 
 export class MapCenterOnPositionTool extends MapTool {
 
@@ -11,12 +8,12 @@ export class MapCenterOnPositionTool extends MapTool {
     following$: BehaviorSubject<boolean>,
   ) {
     super();
-    this.visible = (map: L.Map, mapComponent: MapComponent, injector: Injector) => getVisible();
+    this.visible = (ctx: MapToolContext) => getVisible();
     this.icon = 'center-on-location';
     this.color = () => following$.value ? 'light' : 'dark';
     this.backgroundColor = () => following$.value ? 'dark' : '';
-    this.execute = (map: L.Map, mapComponent: MapComponent, injector: Injector) => {
-      mapComponent.toggleCenterOnLocation();
+    this.execute = (ctx: MapToolContext) => {
+      ctx.mapComponent.toggleCenterOnLocation();
       return of(true);
     };
   }

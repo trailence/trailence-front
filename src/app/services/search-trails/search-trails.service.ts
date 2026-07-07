@@ -29,8 +29,6 @@ export class SearchTrailsService {
   private _searchActive = false; // when a search has been triggered at least one time, and no clear results
   private readonly _trails$ = new BehaviorSubject<List<Observable<Trail | null>> | undefined>(undefined);
   private readonly _bubbles$ = new BehaviorSubject<MapBubble[]>([]);
-  private readonly _showBubbles$ = new BehaviorSubject<boolean>(false);
-  private readonly _bubblesToolAvailable$ = new BehaviorSubject<boolean>(true);
   private _filters$: Observable<Filters | undefined> | undefined;
 
   constructor(
@@ -53,8 +51,6 @@ export class SearchTrailsService {
   public get searchMeassage$(): Observable<string | undefined> { return this._searchMessage$; }
   public get trails$(): Observable<List<Observable<Trail | null>> | undefined> { return this._trails$; }
   public get bubbles$(): Observable<MapBubble[]> { return this._bubbles$; }
-  public get showBubbles$(): Observable<boolean> { return this._showBubbles$; }
-  public get bubblesToolAvailable$(): Observable<boolean> { return this._bubblesToolAvailable$; }
 
   public setFilters(filters$: Observable<Filters | undefined> | undefined): void {
     this._searchFiltersSubscription?.unsubscribe();
@@ -182,8 +178,6 @@ export class SearchTrailsService {
   }
 
   private doSearchTrails(): void {
-    this._showBubbles$.next(false);
-    this._bubblesToolAvailable$.next(false);
     let firstResult = true;
     this._searchFiltersSubscription?.unsubscribe();
     this._searchFiltersSubscription = undefined;
@@ -216,8 +210,6 @@ export class SearchTrailsService {
   }
 
   private doSearchBubbles(): void {
-    this._showBubbles$.next(true);
-    this._bubblesToolAvailable$.next(false);
     this._searchFiltersSubscription?.unsubscribe();
     this.subscribeToFilters();
   }
@@ -265,8 +257,6 @@ export class SearchTrailsService {
           this._searching$.next(false);
           this._hasSearchResult = result.trailsByTile.length > 0;
           this.setSearchBounds(bounds, zoom, true);
-          //this._showBubbles$.next(false);
-          this._bubblesToolAvailable$.next(true);
         });
       } else {
         this._trails$.next(List());

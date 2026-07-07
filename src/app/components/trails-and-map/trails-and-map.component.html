@@ -5,10 +5,8 @@
     }
     <app-map #map
       [mapId]="viewId"
-      [tracks$]="mapTracks$"
-      [bubbles$]="mapBubbles$"
-      [showBubbles$]="showBubbles$"
-      [bubblesToolAvailable$]="bubblesToolAvailable$"
+      [elements$]="mapElements$"
+      [rightTools]="mapToolbarRightItems"
       (mouseClickPoint)="onTrailClickOnMap($event)"
     >
       @if (mapToolbarTopItems.length > 0) {

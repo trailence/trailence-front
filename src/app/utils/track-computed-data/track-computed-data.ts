@@ -246,6 +246,10 @@ export class TrackComputedData {
     return this._osmWaysMatch.asObservable();
   }
 
+  public osmWaysMatchPrependWithUndefined$(): Observable<OsmWayMatchResponse | null | undefined> {
+    return this._osmWaysMatch.asObservablePrependWithUndefined();
+  }
+
   public get osmStats$(): Observable<TrackOsmStats | null> {
     return this._osmStats.asObservable();
   }

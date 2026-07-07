@@ -1,22 +1,20 @@
 import * as L from 'leaflet';
-import { Injector } from '@angular/core';
 import { ModalController } from '@ionic/angular/standalone';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
-import { MapTool } from './tool.interface';
+import { MapTool, MapToolContext } from './tool.interface';
 import { Observable } from 'rxjs';
-import { MapComponent } from '../map.component';
 
 export class MapLayerSelectionTool extends MapTool {
 
   constructor() {
     super();
     this.icon = 'layers';
-    this.execute = (map: L.Map, mapComponent: MapComponent, injector: Injector) => this._execute(map, mapComponent, injector);
+    this.execute = (ctx: MapToolContext) => this._execute(ctx);
   }
 
 
-  private _execute(map: L.Map, mapComponent: MapComponent, injector: Injector): Observable<any> {
-    const modalController = injector.get(ModalController);
+  private _execute(ctx: MapToolContext): Observable<any> {
+    const modalController = ctx.injector.get(ModalController);
     return new Observable(subscriber => {
       import('../../map-layer-selection/map-layer-selection.component')
       .then(module => modalController.create({
@@ -25,26 +23,26 @@ export class MapLayerSelectionTool extends MapTool {
           buttons: true,
           popup: true,
           enableOverlays: true,
-          initialSelection: [mapComponent.getState().tilesName],
+          initialSelection: [ctx.mapComponent.getState().tilesName],
           onSelectionChanged: (selection: string[]) => {
             if (selection.length > 0) {
-              const service = injector.get(MapLayersService);
+              const service = ctx.injector.get(MapLayersService);
               const layer = service.layers.find(layer => layer.name === selection[0]);
               if (layer) {
                 let found: L.Layer | undefined = undefined;
-                map.eachLayer(current => {
+                ctx.map.eachLayer(current => {
                   const id = (current.options as any)['id']; //NOSONAR
                   if (id) {
                     if (id === layer.name) found = current;
-                    else if (service.layers.some(l => l.name === id)) map.removeLayer(current);
+                    else if (service.layers.some(l => l.name === id)) ctx.map.removeLayer(current);
                   }
                 });
                 if (found) {
-                  if (!map.hasLayer(found)) map.addLayer(found);
+                  if (!ctx.map.hasLayer(found)) ctx.map.addLayer(found);
                 } else {
-                  map.addLayer(layer.create());
+                  ctx.map.addLayer(layer.create());
                 }
-                mapComponent.getState().tilesName = layer.name;
+                ctx.mapComponent.getState().tilesName = layer.name;
               }
             }
             modalController.dismiss();

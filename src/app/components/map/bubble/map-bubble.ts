@@ -1,9 +1,10 @@
 import * as L from 'leaflet';
+import { MapElement } from '../map-element';
 
 const BUBBLE_MAX_PIXELS = 50;
 const BUBBLE_MIN_PIXELS = 20;
 
-export class MapBubble {
+export class MapBubble implements MapElement {
 
   private _map?: L.Map;
   private readonly _overlay: L.SVGOverlay;
@@ -28,7 +29,7 @@ export class MapBubble {
   }
 
   public get bubbleBounds(): L.LatLngBounds { return this._bubbleBounds; }
-  public get associatedBounds(): L.LatLngBounds { return this._associatedBounds; }
+  public get bounds(): L.LatLngBounds { return this._associatedBounds; }
 
   public onClick(onclick: (map: L.Map) => void): this {
     this._onclick = onclick;
@@ -46,6 +47,12 @@ export class MapBubble {
     this._overlay.removeFrom(this._map);
     this._map = undefined;
   }
+
+  bringToFront(): void {
+    this._overlay.bringToFront();
+  }
+
+  get highlighted(): boolean { return false; }
 
   private static createSvgElement(size: number, bgColor: string, borderColor: string, text: string, textSize: number, textColor: string): SVGElement {
     const e = document.createElementNS("http://www.w3.org/2000/svg", "svg");

@@ -61,7 +61,7 @@
         <app-map
           #map
           [mapId]="'live-group.' + group.slug"
-          [tracks$]="mapTracks"
+          [elements$]="mapTracks"
         ></app-map>
       </div>
     } @else {

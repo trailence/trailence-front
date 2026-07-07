@@ -9,6 +9,11 @@ export class OsmcSymbolService {
 
   constructor(private readonly sanitizer: DomSanitizer) {}
 
+  public generateSymbolDataUrl(symbol: string): string {
+    const svg = this.generateSymbol(symbol);
+    return 'data:image/svg+xml;base64,' + btoa(svg);
+  }
+
   public generateSymbol(symbol: string): string { // NOSONAR
     const elements = symbol.split(':');
     if (elements.length < 2) return '';

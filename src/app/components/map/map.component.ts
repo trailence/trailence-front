@@ -19,13 +19,11 @@ import { MapGeolocationService } from 'src/app/services/map/map-geolocation.serv
 import { MapShowPositionTool } from './tools/show-position-tool';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { Trail } from 'src/app/model/trail';
-import { MapBubble } from './bubble/map-bubble';
-import { MapToggleBubblesTool } from './tools/toggle-bubbles-tool';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { PhoneLockTool } from './tools/phone-lock-tool';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { MenuItem } from '../menus/menu-item';
-import { MapTool } from './tools/tool.interface';
+import { MapToolContext } from './tools/tool.interface';
 import { ZoomInTool, ZoomLevelTool, ZoomOutTool } from './tools/zoom-tools';
 import { MapAdditionsService } from 'src/app/services/map/map-additions.service';
 import { GoBackTool } from './tools/go-back-tool';
@@ -35,6 +33,7 @@ import { Console } from 'src/app/utils/console';
 import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
 import { AdditionsTool } from './tools/additions-tool';
 import { BoundsBuilder } from 'src/app/utils/leaflet-utils';
+import { MapElement } from './map-element';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -53,12 +52,10 @@ const FOLLOW_LOCATION_MIN_ZOOM = 13;
 export class MapComponent extends AbstractComponent {
 
   @Input() mapId!: string;
-  @Input() tracks$!: Observable<MapTrack[]>;
+  @Input() elements$!: Observable<MapElement[]>;
+  @Input() elementsFilter$?: Observable<(element: MapElement) => boolean>;
   @Input() autoFollowLocation = false;
   @Input() downloadMapTrail?: Trail;
-  @Input() bubbles$: Observable<MapBubble[]> = of([]);
-  @Input() showBubbles$?: BehaviorSubject<boolean>;
-  @Input() bubblesToolAvailable$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   @Input() leftTools: MenuItem[] = [];
   @Input() rightTools: MenuItem[] = [];
 
@@ -116,8 +113,7 @@ export class MapComponent extends AbstractComponent {
     }
     if (!this.isEmbedded)
       this._mapState.load(LOCALSTORAGE_KEY_MAPSTATE + this.mapId);
-    this.updateTracks();
-    this.updateBubbles();
+    this.updateElements();
     if (!this.isEmbedded) {
       this.whenVisible.subscribe(
         combineLatest([this._mapState.center$, this._mapState.zoomInt$, this._mapState.tilesName$, this._mapState.overlays$, this._mapState.additions$])
@@ -157,17 +153,16 @@ export class MapComponent extends AbstractComponent {
 
   override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
     if (changes['mapId']) this._mapState.load(LOCALSTORAGE_KEY_MAPSTATE + this.mapId);
-    if (changes['tracks$']) this.updateTracks();
-    if (changes['bubbles$']) this.updateBubbles();
+    if (changes['elements$'] || changes['elementsFilter$']) this.updateElements();
     if (changes['rightTools'] || changes['leftTools']) this.updateTools();
   }
 
   protected override destroyComponent(): void {
     if (this._map$.value) {
-      for (const track of this._currentTracks) {
-        track.remove();
+      for (const element of this._currentElements) {
+        element.remove();
       }
-      this._currentTracks = [];
+      this._currentElements = [];
       this._map$.value.remove();
       this._map$.next(undefined);
     }
@@ -218,29 +213,37 @@ export class MapComponent extends AbstractComponent {
     this._mapState.zoom = map.getZoom();
   }
 
-  private _currentTracks: MapTrack[] = [];
-  private _tracksSubscription?: Subscription;
-  private updateTracks(): void {
-    this._tracksSubscription?.unsubscribe();
-    this._tracksSubscription = this.ngZone.runOutsideAngular(() =>
-      combineLatest([this.tracks$, this._mapState.live$, this._map$]).subscribe(
-      ([tracks, live, map]) => {
+  private _currentElements: MapElement[] = [];
+  private _elementsSubscription?: Subscription;
+  private updateElements(): void {
+    this._elementsSubscription?.unsubscribe();
+    this._elementsSubscription = this.ngZone.runOutsideAngular(() =>
+      combineLatest([this.elements$, this.elementsFilter$ ?? of(() => true), this._mapState.live$, this._map$]).pipe(
+        switchMap(r => this._zoomAnim$.pipe(
+          filter(anim => !anim),
+          map(() => r),
+        )),
+      )
+      .subscribe(([elements, elementsFilter, live, map]) => {
         if (!map || !live) return;
-        const toRemove = [...this._currentTracks];
-        const highlighted: MapTrack[] = [];
-        for (const track of tracks) {
-          const index = toRemove.indexOf(track);
+        const toRemove = [...this._currentElements];
+        const displayed: MapElement[] = [];
+        const highlighted: MapElement[] = [];
+        for (const element of elements) {
+          if (!elementsFilter(element)) continue;
+          displayed.push(element);
+          const index = toRemove.indexOf(element);
           if (index >= 0) {
             toRemove.splice(index, 1);
-            track.bringToFront();
+            element.bringToFront();
           } else {
-            track.addTo(map);
+            element.addTo(map);
           }
-          if (track.highlighted) highlighted.push(track);
+          if (element.highlighted) highlighted.push(element);
         }
-        for (const track of toRemove) track.remove();
-        for (const track of highlighted) track.bringToFront();
-        this._currentTracks = [...tracks];
+        for (const element of toRemove) element.remove();
+        for (const element of highlighted) element.bringToFront();
+        this._currentElements = displayed;
         this.initMapZoom(map);
         this.refreshTools();
       }
@@ -252,19 +255,16 @@ export class MapComponent extends AbstractComponent {
     // if the state of the map is the initial one, zoom on the tracks
     if ((this._mapState.center.lat === 0 && this._mapState.center.lng === 0 && this._mapState.zoom <= 2) || // initial state
         (this._initZoomTimestamp && Date.now() - this._initZoomTimestamp < 2500)) {
-      if (this._currentTracks.length > 0) {
-        this.fitTracksBounds(map, this._currentTracks);
-        this._initZoomTimestamp = Date.now();
-      } else if (this._currentBubbles.length > 0) {
-        this.fitTracksBubbles(map, this._currentBubbles);
+      if (this._currentElements.length > 0) {
+        this.fitElementsBounds(map, this._currentElements);
         this._initZoomTimestamp = Date.now();
       } else if (!this._initZoomTimestamp) {
         const init = Date.now();
         this._initZoomTimestamp = init;
         this.injector.get(HttpService).get('https://free.freeipapi.com/api/json')
         .subscribe((response: any) => {
-          if (response && response['latitude'] && response['longitude'] && this._initZoomTimestamp === init && this._currentTracks.length === 0 && this._currentBubbles.length === 0) { // NOSONAR
-            Console.info('Move map to user position', response, this._initZoomTimestamp, this._currentTracks.length, this._currentBubbles.length, this._mapState);
+          if (response && response['latitude'] && response['longitude'] && this._initZoomTimestamp === init && this._currentElements.length === 0) { // NOSONAR
+            Console.info('Move map to user position', response, this._initZoomTimestamp, this._currentElements.length, this._mapState);
             this._map$.value?.setView({lat: response['latitude'], lng: response['longitude']}, 10);
           }
         });
@@ -272,58 +272,27 @@ export class MapComponent extends AbstractComponent {
     }
   }
 
-  private _currentBubbles: MapBubble[] = [];
-  private _bubblesSubscription?: Subscription;
-  private updateBubbles(): void {
-    this._bubblesSubscription?.unsubscribe();
-    this._bubblesSubscription = this.ngZone.runOutsideAngular(() =>
-      combineLatest([this.bubbles$, this._mapState.live$, this._map$]).pipe(
-        switchMap(r => this._zoomAnim$.pipe(
-          filter(anim => !anim),
-          map(() => r),
-        )),
-      )
-    .subscribe(
-      ([bubbles, live, map]) => {
-        if (!map || !live) return;
-        const toRemove = [...this._currentBubbles];
-        for (const bubble of bubbles) {
-          const index = toRemove.indexOf(bubble);
-          if (index >= 0) {
-            toRemove.splice(index, 1);
-          } else {
-            bubble.addTo(map);
-          }
-        }
-        for (const bubble of toRemove) bubble.remove();
-        this._currentBubbles = [...bubbles];
-        this.initMapZoom(map);
-        this.refreshTools();
-      }
-    ));
-  }
-
-  public addTrack(track: MapTrack): void {
+  public addElement(element: MapElement): void {
     this.ngZone.runOutsideAngular(() => {
       if (this._map$.value)
-        track.addTo(this._map$.value);
-      this._currentTracks.push(track);
+        element.addTo(this._map$.value);
+      this._currentElements.push(element);
     });
   }
 
-  public removeTrack(track: MapTrack): void {
+  public removeElement(element: MapElement): void {
     this.ngZone.runOutsideAngular(() => {
-      track.remove();
-      const index = this._currentTracks.indexOf(track);
+      element.remove();
+      const index = this._currentElements.indexOf(element);
       if (index >= 0)
-        this._currentTracks.splice(index, 1);
+        this._currentElements.splice(index, 1);
     });
   }
 
-  public fitBounds(tracks: MapTrack[] | undefined): void {
+  public fitBounds(elements: MapElement[] | undefined): void {
     this.ngZone.runOutsideAngular(() => {
       if (!this._map$.value) return;
-      this.fitTracksBounds(this._map$.value, tracks || this._currentTracks);
+      this.fitElementsBounds(this._map$.value, elements || this._currentElements);
       this._initZoomTimestamp = 1;
     });
   }
@@ -336,16 +305,9 @@ export class MapComponent extends AbstractComponent {
     this._initZoomTimestamp = 1;
   }
 
-  private fitTracksBounds(map: L.Map, tracks: MapTrack[], padding: number = 0.05): void {
+  private fitElementsBounds(map: L.Map, elements: MapElement[], padding: number = 0.05): void {
     const boundsBuilder = new BoundsBuilder();
-    for (const t of tracks) boundsBuilder.extend(t.bounds);
-    boundsBuilder.pad(padding);
-    this.fit(map, boundsBuilder);
-  }
-
-  private fitTracksBubbles(map: L.Map, bubbles: MapBubble[], padding: number = 0.05): void {
-    const boundsBuilder = new BoundsBuilder();
-    for (const t of bubbles) boundsBuilder.extend(t.associatedBounds);
+    for (const e of elements) boundsBuilder.extend(e.bounds);
     boundsBuilder.pad(padding);
     this.fit(map, boundsBuilder);
   }
@@ -372,15 +334,17 @@ export class MapComponent extends AbstractComponent {
 
   fitMapBounds(map: L.Map): void {
     const boundsBuilder = new BoundsBuilder();
-    for (const t of this._currentTracks) boundsBuilder.extend(t.bounds);
-    for (const t of this._currentBubbles) boundsBuilder.extend(L.latLngBounds(t.associatedBounds.getSouthWest(), t.associatedBounds.getNorthEast()));
+    for (const e of this._currentElements) {
+      const b = e.bounds;
+      if (b) boundsBuilder.extend(L.latLngBounds(b.getSouthWest(), b.getNorthEast()));
+    }
     for (const provider of this._fitBoundsProviders) boundsBuilder.extend(provider());
     boundsBuilder.pad(0.05);
     this.fit(map, boundsBuilder);
   }
 
   public canFitMapBounds(): boolean {
-    if (this._currentTracks.length > 0 || this._currentBubbles.length > 0) return true;
+    if (this._currentElements.length > 0) return true;
     for (const provider of this._fitBoundsProviders) if (provider() !== undefined) return true;
     return false;
   }
@@ -618,7 +582,7 @@ export class MapComponent extends AbstractComponent {
     if (fromTrack) {
       result.push(new MapTrackPointReference(fromTrack, undefined, undefined, undefined, undefined, undefined))
     }
-    const allTracks = [...this._currentTracks];
+    const allTracks = this._currentElements.filter(e => e instanceof MapTrack);
     const overlay = map.getPanes().overlayPane.firstElementChild?.firstElementChild; // svg > g > path
     if (overlay) {
       for (let i = 0; i < overlay.children.length; ++i) {
@@ -676,28 +640,24 @@ export class MapComponent extends AbstractComponent {
 
   private initTools(): void {
     const additionsTool = new AdditionsTool(this.mapId);
-    this.defaultRightToolsItems.splice(1, 0, this.toMenuItem(additionsTool));
+    this.defaultRightToolsItems.splice(1, 0, additionsTool.toMenuItem(() => this.getToolContext()));
     this.whenVisible.subscribe(combineLatest([this._map$, this._mapState.center$, this._mapState.zoomInt$]), ([map, center, zoom]) => {
-      additionsTool.refresh(map, this, this.injector);
+      additionsTool.refresh(this.getToolContext());
     });
 
-    if (this.showBubbles$) {
-      this.defaultRightToolsItems.push(this.toMenuItem(new MapToggleBubblesTool(this.showBubbles$, this.bubblesToolAvailable$)));
-      this.whenVisible.subscribe(combineLatest([this.showBubbles$, this.bubblesToolAvailable$]), () => this.refreshTools(), true);
-    }
     this.defaultRightToolsItems.push(
       new MenuItem(),
-      this.toMenuItem(new DownloadMapTool(this.downloadMapTrail))
+      new DownloadMapTool(this.downloadMapTrail).toMenuItem(() => this.getToolContext())
     );
     const screenLockService = this.injector.get(ScreenLockService);
     const phoneLockTool = new PhoneLockTool(screenLockService);
-    this.defaultRightToolsItems.push(this.toMenuItem(phoneLockTool));
+    this.defaultRightToolsItems.push(phoneLockTool.toMenuItem(() => this.getToolContext()));
 
     const toolShowPosition = new MapShowPositionTool();
     this.defaultLeftToolsItems.push(
       new MenuItem(),
-      this.toMenuItem(toolShowPosition),
-      this.toMenuItem(new MapCenterOnPositionTool(() => !!this._locationMarker, this._followingLocation$))
+      toolShowPosition.toMenuItem(() => this.getToolContext()),
+      new MapCenterOnPositionTool(() => !!this._locationMarker, this._followingLocation$).toMenuItem(() => this.getToolContext())
     );
 
     // handle recording and position
@@ -757,57 +717,26 @@ export class MapComponent extends AbstractComponent {
     if (this.toolbars) for (const tb of this.toolbars) tb.refresh();
   }
 
+  public getToolContext(): MapToolContext | undefined {
+    const map = this._map$.value;
+    if (!map) return undefined;
+    return {injector: this.injector, mapComponent: this, map};
+  }
+
   leftToolsItems: MenuItem[] = [];
   defaultLeftToolsItems: MenuItem[] = [
-    this.toMenuItem(new ZoomInTool()),
-    this.toMenuItem(new ZoomLevelTool()).setTextSize('11px').setCssClass('no-space'),
-    this.toMenuItem(new ZoomOutTool()).setCssClass('no-space'),
+    new ZoomInTool().toMenuItem(() => this.getToolContext()),
+    new ZoomLevelTool().toMenuItem(() => this.getToolContext()).setTextSize('11px').setCssClass('no-space'),
+    new ZoomOutTool().toMenuItem(() => this.getToolContext()).setCssClass('no-space'),
     new MenuItem(),
-    this.toMenuItem(new MapFitBoundsTool()),
+    new MapFitBoundsTool().toMenuItem(() => this.getToolContext()),
     new MenuItem(),
-    this.toMenuItem(new GoBackTool()),
+    new GoBackTool().toMenuItem(() => this.getToolContext()),
   ];
   rightToolsItems: MenuItem[] = [];
   defaultRightToolsItems: MenuItem[] = [
-    this.toMenuItem(new MapLayerSelectionTool()),
-    this.toMenuItem(new DarkMapToggleTool()),
+    new MapLayerSelectionTool().toMenuItem(() => this.getToolContext()),
+    new DarkMapToggleTool().toMenuItem(() => this.getToolContext()),
   ];
-
-  private toMenuItem(tool: MapTool): MenuItem {
-    const item = new MenuItem()
-      .setIcon(this.toMenuFunction(() => tool.icon, undefined))
-      .setDisabled(this.toMenuFunction(() => tool.disabled, false))
-      .setVisible(this.toMenuFunction(() => tool.visible, false))
-      .setTextColor(this.toMenuFunction(() => tool.color, ''))
-      .setBackgroundColor(this.toMenuFunction(() => tool.backgroundColor, ''))
-      .setBadges(this.toMenuFunction(() => tool.badges, undefined))
-      .setSpinner(this.toMenuFunction(() => tool.spinner, undefined))
-      .setAction(tool.execute ? () => {
-        const map = this._map$.value;
-        if (!map) return;
-        (tool.execute as (map: L.Map, mapComponent: MapComponent, injector: Injector) => Observable<any>)(map, this, this.injector).subscribe({
-          complete: () => this.refreshTools(),
-        });
-      } : undefined)
-      ;
-    if (tool.i18n) item.setI18nLabel(this.toMenuFunction(() => tool.i18n!, ''));
-    else if (tool.label) item.setFixedLabel(this.toMenuFunction(() => tool.label!, ''));
-    return item;
-  }
-
-  private toMenuFunction<T>(
-    getter: () => T | ((map: L.Map, mapComponent: MapComponent, injector: Injector) => T),
-    defaultValue: T,
-  ): () => T {
-    return () => {
-      const value = getter();
-      if (typeof value === 'function') {
-        const map = this._map$.value;
-        if (!map) return defaultValue;
-        return (value as (map: L.Map, mapComponent: MapComponent, injector: Injector) => T)(map, this, this.injector);
-      }
-      return value;
-    };
-  }
 
 }

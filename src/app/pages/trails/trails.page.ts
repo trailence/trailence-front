@@ -41,8 +41,6 @@ import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 
-const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
-
 @Component({
   selector: 'app-trails-page',
   templateUrl: './trails.page.html',
@@ -78,8 +76,6 @@ export class TrailsPage extends AbstractPage {
 
   listToolbar?: MenuItem[];
   readonly mapTopToolbar$ = new BehaviorSubject<MenuItem[]>([]);
-  readonly showBubbles$ = new BehaviorSubject<boolean>(false);
-  readonly bubblesToolAvailable$ = new BehaviorSubject<boolean>(true);
 
   private readonly _trailsAndMap$ = new BehaviorSubject<TrailsAndMapComponent | undefined>(undefined);
   @ViewChild('trailsAndMap', { read: TrailsAndMapComponent }) set trailsAndMap(v: TrailsAndMapComponent | undefined) { this._trailsAndMap$.next(v); }
@@ -95,11 +91,6 @@ export class TrailsPage extends AbstractPage {
   ) {
     super(injector);
     this.connected$ = combineLatest([networkService.internet$, networkService.server$]).pipe(map(([i,s]) => i && !!s));
-    combineLatest([this.bubblesToolAvailable$, this.showBubbles$]).subscribe(
-      ([available, show]) => {
-        if (this.viewId && available && this.trailsType !== 'search') localStorage.setItem(LOCALSTORAGE_KEY_BUBBLES + '.' + this.viewId, JSON.stringify(show));
-      }
-    );
     this.filters$ = this._trailsAndMap$.pipe(
       switchMap(tm => tm ? tm.trailsList$ : of(undefined)),
       switchMap(tl => tl ? tl.filters$ : of(undefined)),
@@ -142,22 +133,6 @@ export class TrailsPage extends AbstractPage {
 
   private initView(id: string): void {
     this.viewId = id;
-    if (this.trailsType !== 'search')
-      this.loadShowBubbleState();
-  }
-
-  private loadShowBubbleState(): void {
-    const showBubblesState = localStorage.getItem(LOCALSTORAGE_KEY_BUBBLES + '.' + this.viewId);
-    if (showBubblesState) {
-      try {
-        this.showBubbles$.next(!!JSON.parse(showBubblesState));
-      } catch (e) { // NOSONAR
-        // ignore
-        this.showBubbles$.next(false);
-      }
-    } else {
-      this.showBubbles$.next(false);
-    }
   }
 
   private initCollection(collectionUuid: string): void {
@@ -392,8 +367,6 @@ export class TrailsPage extends AbstractPage {
       }
     );
     this.initView('search-trails');
-    if (this.bubblesToolAvailable$.value)
-      this.bubblesToolAvailable$.next(false);
 
     // search service
     const service = this.injector.get(SearchTrailsService);
@@ -444,18 +417,6 @@ export class TrailsPage extends AbstractPage {
     this.byStateAndVisible.subscribe(service.bubbles$, bubbles => {
       this.bubbles$.next(bubbles);
       this.changesDetection.detectChanges();
-    });
-    this.byStateAndVisible.subscribe(service.showBubbles$, show => {
-      if (show !== this.showBubbles$.value) {
-        this.showBubbles$.next(show);
-        this.changesDetection.detectChanges();
-      }
-    });
-    this.byStateAndVisible.subscribe(service.bubblesToolAvailable$, available => {
-      if (available !== this.bubblesToolAvailable$.value) {
-        this.bubblesToolAvailable$.next(available);
-        this.changesDetection.detectChanges();
-      }
     });
     this.byState.add(this.visible$.subscribe(visible => {
       if (!visible) service.setFilters(undefined);
@@ -553,8 +514,6 @@ export class TrailsPage extends AbstractPage {
     this.title2 = undefined;
     this.trails$.next(undefined);
     this.bubbles$.next([]);
-    this.bubblesToolAvailable$.next(true);
-    this.showBubbles$.next(false);
     this.actions = [];
     this.message = undefined;
     this.loading = true;

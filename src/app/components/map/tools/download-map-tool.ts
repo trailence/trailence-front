@@ -1,8 +1,5 @@
-import { Injector } from '@angular/core';
-import * as L from 'leaflet';
 import { Trail } from 'src/app/model/trail';
-import { MapTool } from './tool.interface';
-import { MapComponent } from '../map.component';
+import { MapTool, MapToolContext } from './tool.interface';
 import { of } from 'rxjs';
 
 export class DownloadMapTool extends MapTool {
@@ -12,10 +9,10 @@ export class DownloadMapTool extends MapTool {
   ) {
     super();
     this.icon = 'download';
-    this.disabled = (map: L.Map, mapComponent: MapComponent, injector: Injector) => map.getZoom() < 12;
-    this.execute = (map: L.Map, mapComponent: MapComponent, injector: Injector) => {
+    this.disabled = (ctx: MapToolContext) => ctx.map.getZoom() < 12;
+    this.execute = (ctx: MapToolContext) => {
       import('../../../services/functions/map-download')
-      .then(m => m.openMapDownloadDialog(injector, trail ? [trail] : [], map.getBounds(), mapComponent.getState().tilesName));
+      .then(m => m.openMapDownloadDialog(ctx.injector, trail ? [trail] : [], ctx.map.getBounds(), ctx.mapComponent.getState().tilesName));
       return of(true);
     };
   }

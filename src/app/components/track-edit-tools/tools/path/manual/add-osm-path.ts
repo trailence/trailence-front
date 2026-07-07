@@ -36,8 +36,8 @@ export class AddOsmPath extends AddPointsTool {
   private mode: 'foot' | 'bicycle' = 'foot'; // TODO
 
   private _init(ctx: AddPointsContext): void {
-    for (const w of this.possibleWays) ctx.map.removeTrack(w.mapTrack);
-    for (const w of this.possibleWaysFromCursor) ctx.map.removeTrack(w.mapTrack);
+    for (const w of this.possibleWays) ctx.map.removeElement(w.mapTrack);
+    for (const w of this.possibleWaysFromCursor) ctx.map.removeElement(w.mapTrack);
     this.possibleWaysFromCursor = [];
     if (this.allWays.length === 0) {
       this.possibleWays = [];

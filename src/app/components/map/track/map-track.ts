@@ -7,8 +7,9 @@ import { MapTrackArrowPath } from './map-track-arrows-path';
 import * as L from 'leaflet';
 import { SimplifiedPoint, SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
 import { TrackWayPoint } from 'src/app/utils/track-waypoints/track-waypoint';
+import { MapElement } from '../map-element';
 
-export class MapTrack {
+export class MapTrack implements MapElement {
 
   public data: any;
   public highlighted = false;
