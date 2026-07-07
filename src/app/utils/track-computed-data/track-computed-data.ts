@@ -215,7 +215,7 @@ export class TrackComputedData {
   );
 
   private readonly _wayPoints = new BehaviorSubjectOnDemand<TrackWayPoint[], string>(
-    () => computeTrackWayPoints(this.track, this._breaks.snapshot().sections, this.mapService),
+    () => computeTrackWayPoints(this.track, this._breaks.snapshot().sections),
     this.track.changes$.pipe(this.track.isRecording ? debounceTimeExtended(0, 5000, 25) : debounceTime(250)),
     60000,
   );

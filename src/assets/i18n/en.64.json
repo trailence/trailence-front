@@ -289,7 +289,8 @@
         "photos": "Photos",
         "breaks": "Breaks",
         "guideposts": "Guideposts",
-        "waypoints": "Waypoints"
+        "waypoints": "Waypoints",
+        "marked_trails": "Trail markings"
       },
       "reverse_way": "Reverse direction",
       "open_in_app": "Open in",

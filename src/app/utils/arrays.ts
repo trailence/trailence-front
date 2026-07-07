@@ -11,6 +11,12 @@ export class Arrays {
     return true;
   }
 
+  public static equals<T>(array1: T[], array2: T[], comparator: (element1: T, element2: T) => boolean = (e1, e2) => e1 === e2): boolean {
+    if (array1.length !== array2.length) return false;
+    for (let i = 0; i < array1.length; ++i) if (!comparator(array1[i], array2[i])) return false;
+    return true;
+  }
+
   public static indexOf<T>(array: T[], element: T, comparator: (element1: T, element2: T) => boolean = (e1, e2) => e1 === e2): number {
     for (let index = 0; index < array.length; ++index) {
       if (comparator(element, array[index])) return index;

@@ -289,7 +289,8 @@
         "photos": "Photos",
         "breaks": "Pauses",
         "guideposts": "Balises",
-        "waypoints": "Étapes"
+        "waypoints": "Étapes",
+        "marked_trails": "Marquage des sentiers"
       },
       "reverse_way": "Sens inversé",
       "open_in_app": "Ouvrir dans",

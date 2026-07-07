@@ -21,4 +21,12 @@ export class Maps {
     else map.set(key, counter - decrement);
   }
 
+  public static computeIfAbsent<K, V>(map: Map<K, V>, key: K, onAbsent: () => V): V {
+    let v = map.get(key);
+    if (v !== undefined) return v;
+    v = onAbsent();
+    map.set(key, v);
+    return v;
+  }
+
 }

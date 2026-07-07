@@ -156,6 +156,7 @@ export const ICONS: string[] = [
   'text',
   'tool',
   'trail-activity',
+  'trail-marking',
   'trash',
   'theme',
   'theme-light',

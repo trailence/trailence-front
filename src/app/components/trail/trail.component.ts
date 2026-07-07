@@ -212,6 +212,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   currentLang: string;
   liveGroups$ = new BehaviorSubject<LiveGroupDto[]>([]);
   hasOsmTrack = false;
+  hasMapMarkedTrails = false;
+  showMapMarkedTrails$ = new BehaviorSubject<boolean>(false);
 
   get trail1WithInfo(): TrailWithInfo | null { return this.trail1WithInfo$.value; }
   get trail2WithInfo(): TrailWithInfo | null { return this.trail2WithInfo$.value; }
@@ -490,9 +492,20 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         this.trailsWaypoints.toggleShowAllGuideposts();
         this.changesDetection.detectChanges();
       });
+    const showMarkedTrailsTool = new MenuItem()
+      .setIcon('trail-marking')
+      .setI18nLabel('pages.trail.map_elements.marked_trails')
+      .setDisabled(() => !!this.trail2 || !this.hasMapMarkedTrails)
+      .setSelected(() => !this.trail2 && this.hasMapMarkedTrails && this.showMapMarkedTrails$.value)
+      .setAction((event) => {
+        event.stopPropagation();
+        event.preventDefault();
+        this.showMapMarkedTrails$.next(!this.showMapMarkedTrails$.value);
+        this.changesDetection.detectChanges();
+      });
     const showElementsTool = new MenuItem()
       .setIcon('privacy')
-      .setChildren([showWaypointsTool, showBreaksTool, showGuidepostsTool, showPhotoTool]);
+      .setChildren([showWaypointsTool, showBreaksTool, showGuidepostsTool, showPhotoTool, showMarkedTrailsTool]);
     this.mapToolbarRightItems.push(new MenuItem(), showElementsTool);
     if (globalThis.location.hash === '#bottom-tab=live-group') {
       this.liveGroups$.pipe(first(groups => !!groups?.length)).subscribe(groups => {
@@ -549,6 +562,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     if (this.trail1$) this.trailsForPhotoPopup.push(this.trail1$);
     if (this.trail2$) this.trailsForPhotoPopup.push(this.trail2$);
     this.hasOsmTrack = false;
+    this.hasMapMarkedTrails = false;
+    this.showMapMarkedTrails$.next(false);
     this.listenForTracks();
     this.listenForPhotos();
     this.listenForPhotosOnMap();
@@ -629,10 +644,11 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         this.selection.zoom$,
         this.toolsHideBaseTrack$,
         this.publicTrailsAroundMapTracks$,
+        this.showMapMarkedTrails$,
       ]).pipe(
         debounceTime(1)
       ),
-      ([trail1, trail2, recordingWithTrack, toolsBaseTrack, toolsModifiedTrack, selectionTracks, zoomOnSelection, hideBaseTrack, publicTrailsAround]) => { // NOSONAR
+      ([trail1, trail2, recordingWithTrack, toolsBaseTrack, toolsModifiedTrack, selectionTracks, zoomOnSelection, hideBaseTrack, publicTrailsAround, showMapMarkedTrails]) => { // NOSONAR
         if (this.trail1 !== trail1.trail) {
           if (this._lock) {
             this._lock();
@@ -656,7 +672,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         }
         this.recording = recordingWithTrack ? recordingWithTrack.recording : null;
         const tracks: Track[] = [];
-        const mapTracks: MapTrack[] = [];
+        const mapElements: MapElement[] = [];
         this.graphTrack1 = undefined;
         this.graphTrack2 = undefined;
         if (trail1.track && trail2.track)
@@ -675,7 +691,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
               toolsBaseMapTrack.showDepartureAndArrivalAnchors();
               toolsBaseMapTrack.showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
             }
-            mapTracks.push(toolsBaseMapTrack);
+            mapElements.push(toolsBaseMapTrack);
           }
         }
         if (trail1.track && !toolsBaseTrack) {
@@ -684,7 +700,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           if (!toolsModifiedTrack || !hideBaseTrack)
             this.graphTrack1 = track;
           if (trail1.mapTrack && (!toolsModifiedTrack || !hideBaseTrack)) {
-            mapTracks.push(mapTrack);
+            mapElements.push(mapTrack);
             if (!toolsModifiedTrack) {
               mapTrack.showDepartureAndArrivalAnchors();
               mapTrack.showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
@@ -695,7 +711,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             this.graphTrack2 = trail2.track;
             if (trail2.mapTrack) {
               trail2.mapTrack.color = 'blue';
-              mapTracks.push(trail2.mapTrack);
+              mapElements.push(trail2.mapTrack);
               trail2.mapTrack.showDepartureAndArrivalAnchors();
               trail2.mapTrack.showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
             }
@@ -713,7 +729,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           recordingMapTrack.showDepartureAndArrivalAnchors();
           recordingMapTrack.showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
           recordingMapTrack.showArrowPath();
-          mapTracks.push(recordingMapTrack);
+          mapElements.push(recordingMapTrack);
         }
 
         let toolsModifiedMapTrack: MapTrack | undefined = undefined;
@@ -728,12 +744,12 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             toolsModifiedMapTrack = new MapTrack(undefined, toolsModifiedTrack, 'blue', 1, false, this.i18n, hideBaseTrack ? 3 : 2);
             toolsModifiedMapTrack.showDepartureAndArrivalAnchors();
             toolsModifiedMapTrack.showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
-            mapTracks.push(toolsModifiedMapTrack);
+            mapElements.push(toolsModifiedMapTrack);
           }
         }
 
         for (const selectionTrack of selectionTracks) {
-          mapTracks.push(new MapTrack(undefined, selectionTrack, '#E0E000C0', 1, false, this.i18n));
+          mapElements.push(new MapTrack(undefined, selectionTrack, '#E0E000C0', 1, false, this.i18n));
         }
         if (zoomOnSelection && selectionTracks.length > 0) {
           let bounds = undefined;
@@ -752,7 +768,9 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           }
         }
 
-        mapTracks.push(...publicTrailsAround, ...this.highlightedMapTrackSections);
+        mapElements.push(...publicTrailsAround, ...this.highlightedMapTrackSections);
+
+        if (trail1.osmMarkedTrails && !trail2.trail && showMapMarkedTrails) mapElements.push(...trail1.osmMarkedTrails);
 
         this.trailsWaypoints.update([
           {trail: trail1.trail, track: toolsModifiedTrack || toolsBaseTrack || trail1.track, recording: false, mapTrack: toolsModifiedMapTrack || toolsBaseMapTrack || trail1.mapTrack},
@@ -762,7 +780,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
 
         this.selection.tracksChanged(tracks);
         this.tracks$.next(tracks);
-        this.mapElements$.next(mapTracks);
+        this.mapElements$.next(mapElements);
 
         this.mine = !!this.trail1 && !this.trail2 && this.trail1.owner === this.auth.email;
         if (toolsModifiedTrack)
@@ -808,6 +826,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
                           const trails = buildMapMarkedTrails(this.injector, track, osm);
                           if (trails.length > 0) osmMarkedTrails = trails;
                         }
+                        this.hasMapMarkedTrails = !!osmMarkedTrails;
                         if (!osm || !showOsm) return {trail, track, mapTrack, osmTrack: undefined, osmMapTrack: undefined, osmMarkedTrails};
                         const osmTrack = buildOsmTrack(track, osm.osmTrackPoints);
                         const osmMapTrack = new MapTrack(trail, osmTrack, 'red', 1, false, this.i18n);

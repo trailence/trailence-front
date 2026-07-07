@@ -156,6 +156,7 @@ export const SRC_ICONS: {[name: string]: string} = {
   'text': 'text.1.svg', // reader-outline
   'tool': 'tool.1.svg', // hammer-outline
   'trail-activity': 'trail-activity.svg',
+  'trail-marking': 'trail-marking.svg',
   'trash': 'trash.1.svg', // trash
   'theme': 'theme.1.svg', // color-palette-outline
   'theme-light': 'theme-light.1.svg', // sunny-outline

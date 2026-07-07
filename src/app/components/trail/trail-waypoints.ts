@@ -183,6 +183,14 @@ export class TrailsWaypoints {
       this.selection.selectedWayPoint$.next(twp.wayPoint);
     } else {
       this.selection.selectedWayPoint$.next(undefined);
+      if (wp.elements.length === 1) {
+        const e = wp.elements[0]!;
+        if (e instanceof OsmWayIntersection) {
+          if (e.nearestTrackPoint) {
+            this.selection.selectPoint([new PointReference(trail!.track, e.nearestTrackPoint.segmentIndex, e.nearestTrackPoint.pointIndex)]);
+          }
+        }
+      }
     }
   }
 
@@ -194,6 +202,19 @@ export class TrailsWaypoints {
         this.selection.selectedWayPoint$.next(undefined);
       const trail = this.trails.find(t => t.wayPoints.some(w => w.waypoint === wp));
       if (trail) trail.mapTrack.unhighlightWayPoint(wp);
+      if (trail && wp.elements.length === 1) {
+        const e = wp.elements[0]!;
+        if (e instanceof OsmWayIntersection) {
+          if (e.nearestTrackPoint) {
+            if (this.selection.isSinglePoint()) {
+              const ref = this.selection.getSinglePointOf(trail.track);
+              if (ref?.segmentIndex === e.nearestTrackPoint.segmentIndex && ref.pointIndex === e.nearestTrackPoint.pointIndex) {
+                this.selection.cancelSelection();
+              }
+            }
+          }
+        }
+      }
       return true;
     }
     return false;

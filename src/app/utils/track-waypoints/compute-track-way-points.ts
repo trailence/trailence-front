@@ -1,6 +1,5 @@
-import { combineLatest, concat, map, Observable, of } from 'rxjs';
+import { combineLatest, concat, first, map, Observable, of } from 'rxjs';
 import { Track } from 'src/app/model/track';
-import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { TrackWayPoint, TrackWayPointElement } from './track-waypoint';
 import { computeWayPointsFromTrack } from './waypoints-from-track';
 import { computeBreakPoints } from './breakpoints';
@@ -8,8 +7,9 @@ import { extendsAround } from '../leaflet-utils';
 import { debounceTimeExtended } from '../rxjs/debounce-time-extended';
 import { computeGuidepostsWayPoints, GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT } from './guideposts';
 import { BreakPointSection } from 'src/app/services/track-edition/time/break-detection';
+import { computeOsmWayChanges } from './way-intersection';
 
-export function computeTrackWayPoints(track: Track, breaksSections: BreakPointSection[], mapService: OfflineMapService): Observable<TrackWayPoint[]> {
+export function computeTrackWayPoints(track: Track, breaksSections: BreakPointSection[]): Observable<TrackWayPoint[]> {
   return new Observable<TrackWayPoint[]>(subscriber => {
     const fromTrack = computeWayPointsFromTrack(track);
     const breaks = computeBreakPoints(track, breaksSections);
@@ -23,7 +23,7 @@ export function computeTrackWayPoints(track: Track, breaksSections: BreakPointSe
     }
     bounds = extendsAround(bounds, GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT + 1);
     const pois$ = track.isRecording ? of([]) : track.computed.guidpostsOnTrackBounds$.pipe(map(response => response?.pois));
-    const ways$ = of([]);// track.computed.osmWaysMatch$.pipe(first());
+    const ways$ = of([[null, null]]);// combineLatest([track.computed.osmWaysOnTrackBounds$, track.computed.osmWaysMatch$]).pipe(first());
     let poisDone = track.isRecording;
     let waysDone = track.isRecording;
     combineLatest([concat(of(undefined), pois$), concat(of(undefined), ways$)]).pipe(debounceTimeExtended(250, 250, undefined, (p,n) => n[0] !== undefined && n[1] !== undefined)).subscribe({
@@ -34,8 +34,8 @@ export function computeTrackWayPoints(track: Track, breaksSections: BreakPointSe
           changed = computeGuidepostsWayPoints(track, result[0], newList) || changed;
           poisDone = true;
         }
-        if (result[1] && !waysDone) {
-          //changed = computeOsmWayChanges(track, result[1].osmTrackPoints, result[1].waysOnTrack, newList) || changed;
+        if (result[1]?.[1] && !waysDone) {
+          //changed = computeOsmWayChanges(track, result[1][1].osmTrackPoints, result[1][0]?.ways || result[1][1].waysOnTrack.values(), newList) || changed;
           waysDone = true;
         }
         if (changed) subscriber.next(newList);

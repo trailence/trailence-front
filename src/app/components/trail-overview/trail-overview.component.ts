@@ -569,9 +569,9 @@ export class TrailOverviewComponent extends AbstractComponent {
   private _generatedSymbol?: SafeHtml;
   generateRouteSymbol(symbol: string): SafeHtml | undefined {
     if (this._symbol === symbol) return this._generatedSymbol!;
-    const svg = this.injector.get(OsmcSymbolService).generateSymbol(symbol);
+    const svg = this.injector.get(OsmcSymbolService).generateSvg(symbol);
     this._symbol = symbol;
-    this._generatedSymbol = this.injector.get(DomSanitizer).bypassSecurityTrustHtml(svg); // NOSONAR
+    this._generatedSymbol = svg ? this.injector.get(DomSanitizer).bypassSecurityTrustHtml(svg) : undefined; // NOSONAR
     return this._generatedSymbol;
   }
 

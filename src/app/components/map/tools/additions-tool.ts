@@ -135,7 +135,6 @@ export class AdditionsTool extends MapTool {
       }
       if (additions.done) {
         this._loading = false;
-        console.log(additions)
         if (additions.partial && !ctx.injector.get(NetworkService).server) {
           ctx.injector.get(ToastController).create({
             message: ctx.injector.get(I18nService).texts.mapAdditions.errors.no_net,
