@@ -72,6 +72,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
   trailSheetMode = 'none';
   trailSheetMetadataClass = 'two-columns';
   isSmall = false;
+  trailSheetMaxSize = 240;
 
   highlightedTrail?: Trail;
   bottomSheetTrails?: Trail[];
@@ -309,6 +310,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     }
     const w = this.browser.width;
     const h = this.browser.height;
+    this.trailSheetMaxSize = w;
     if (w >= 650 + 350) {
       this.mode = 'large list-two-cols';
       this.listSize = 'large';

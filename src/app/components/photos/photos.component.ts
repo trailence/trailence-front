@@ -96,7 +96,7 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
   private updateSize(browser: BrowserService): void {
     this.width = browser.width;
     this.height = browser.height;
-    this.maxWidth = this.width > 500 ? Math.min(Math.floor(this.width * 0.9) - 20, 250) : this.width - 35;
+    this.maxWidth = this.width > 500 ? Math.min(Math.floor(this.width * 0.9) - 20, 250) : this.width - 30 - (16 /* padding */ + 5 /* margin-right */);
     this.maxHeight = Math.min(Math.floor(this.height * 0.4) - 50, 300);
     this.metaColumns = this.maxWidth >= 250 ? 'two-columns' : 'one-column';
   }

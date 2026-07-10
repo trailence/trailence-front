@@ -139,7 +139,6 @@ export class TrailsWaypoints {
   public canShowWaypointsOnMap(): boolean {
     return this.trails.some(
       t => t.wayPoints.some(wp => {
-        if (GuidepostWayPoint.from(wp.waypoint)) return true;
         const twp = WayPointFromTrack.from(wp.waypoint);
         return twp && !twp.isDeparture && !twp.isArrival;
       })

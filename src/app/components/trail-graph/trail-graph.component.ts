@@ -170,7 +170,7 @@ export class TrailGraphComponent extends AbstractComponent {
     this._visibilityObserver.observe(this.injector.get(ElementRef).nativeElement, (e) => {
       const w = e.boundingClientRect.width;
       const h = e.boundingClientRect.height;
-      if (w > 100 && h > 100) {
+      if (w > 100 && h > 75) {
         this.startChart(w, h, e.target as HTMLElement);
       } else {
         this._visibilityTimeout = setTimeout(() => this.waitForVisible(), 250);

@@ -144,10 +144,10 @@
   }
 
 </div>
-<ion-footer>
-  <ion-toolbar color="footer" style="padding-bottom: 0">
-    <ion-buttons slot="end">
-      @if (canAdd) {
+@if (canAdd) {
+  <ion-footer>
+    <ion-toolbar color="footer" style="padding-bottom: 0">
+      <ion-buttons slot="end">
         <ion-button color="success" (click)="addPhotos(false)" [disabled]="!loaded || photos.length >= 25">
           <ion-icon name="photos" slot="start"></ion-icon>
           <span>{{i18n.texts.pages.photos_popup.add_photos_buttons}}</span>
@@ -158,7 +158,7 @@
             <span>{{i18n.texts.pages.trail.take_photo}}</span>
           </ion-button>
         }
-      }
-    </ion-buttons>
-  </ion-toolbar>
-</ion-footer>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-footer>
+}

@@ -43,27 +43,27 @@
     }
     @if (load$.value) {
       @if (publicTrailUuid) {
-        <ion-button class="public-trail-button" size="small" fill="clear" color="success" (click)="openPublicTrail()">
+        <ion-button class="public-trail-button header-button" size="small" fill="clear" color="success" (click)="openPublicTrail()">
           <ion-icon name="web" slot="icon-only"></ion-icon>
         </ion-button>
       }
       @if (draftTrailUuid) {
-        <ion-button class="draft-trail-button" size="small" fill="clear" color="secondary" (click)="openTrail(draftTrailUuid)">
+        <ion-button class="draft-trail-button header-button" size="small" fill="clear" color="secondary" (click)="openTrail(draftTrailUuid)">
           <ion-icon name="web" slot="icon-only"></ion-icon>
         </ion-button>
       }
       @if (submittedTrailUuid) {
-        <ion-button class="draft-trail-button" size="small" fill="clear" color="tertiary" (click)="openTrail(submittedTrailUuid)">
+        <ion-button class="submitted-trail-button header-button" size="small" fill="clear" color="tertiary" (click)="openTrail(submittedTrailUuid)">
           <ion-icon name="web" slot="icon-only"></ion-icon>
         </ion-button>
       }
       @if (rejectedTrailUuid) {
-        <ion-button class="draft-trail-button" size="small" fill="clear" color="danger" (click)="openTrail(rejectedTrailUuid)">
+        <ion-button class="rejected-trail-button header-button" size="small" fill="clear" color="danger" (click)="openTrail(rejectedTrailUuid)">
           <ion-icon name="web" slot="icon-only"></ion-icon>
         </ion-button>
       }
       @if (trailLink) {
-        <ion-button class="trail-link-button" size="small" fill="clear" color="success" (click)="openTrailLink()">
+        <ion-button class="trail-link-button header-button" size="small" fill="clear" color="success" (click)="openTrailLink()">
           <ion-icon name="link" slot="icon-only"></ion-icon>
         </ion-button>
       }

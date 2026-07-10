@@ -91,7 +91,7 @@ function readRoutes(data: DataView<ArrayBuffer>, offset: number, size: number, w
 
 function readRoute(data: DataView<ArrayBuffer>, offset: number, way: Way, textDecoder: TextDecoder): number {
   let size = 0;
-  const id = data.getBigInt64(offset, true);
+  const id = '' + data.getBigInt64(offset, true);
   size += 8;
   const route: Route = {id, types: [], colour: undefined, symbol: undefined, name: undefined, ref: undefined};
   const nbTypes = data.getUint8(offset + size);

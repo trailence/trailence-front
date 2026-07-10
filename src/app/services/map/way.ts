@@ -60,7 +60,7 @@ export enum WayVisibility {
 }
 
 export interface Route {
-  id: bigint;
+  id: string;
   types: RouteType[];
   colour: string | undefined;
   symbol: string | undefined;
