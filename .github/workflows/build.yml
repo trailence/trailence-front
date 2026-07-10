@@ -144,6 +144,19 @@ jobs:
           name: apk-fdroid-release
           path: android/app/build/outputs/apk/release
           retention-days: 30
+      - name: Build Android Beta
+        run: |
+          chmod 550 ./scripts/build/build-android.sh
+          ./scripts/build/build-android.sh beta
+          cd android
+          chmod 550 ./gradlew
+          ./gradlew assembleRelease
+      - name: Store APK Beta
+        uses: actions/upload-artifact@v7
+        with:
+          name: apk-beta
+          path: android/app/build/outputs/apk/release
+          retention-days: 30
   unit-tests-web-app:
     name: Unit Tests - Web App
     runs-on: ubuntu-latest

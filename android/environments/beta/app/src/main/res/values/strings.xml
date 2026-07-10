@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Trailence Beta</string>
+    <string name="title_activity_main">Trailence Beta</string>
+    <string name="package_name">org.trailence</string>
+    <string name="custom_url_scheme">org.trailence</string>
+    <string name="build_type">beta</string>
+    <string name="hostname">trailence.org</string>
+    <string name="scheme">https</string>
+</resources>
