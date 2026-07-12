@@ -37,7 +37,7 @@ describe('Import data from Visorando', () => {
     expect(description).toBe(hautMontetDescription);
     const waypoints = await TestUtils.retry(async (trial) => {
       const wp = await trailPage.trailComponent.getWayPoints(1);
-      if (trial > 1 && (wp.length === 0 || wp[0].description === '')) throw new Error()
+      if (wp.length === 0 || wp[0].description === '') throw new Error()
       return wp;
     }, 2, 500);
     expect(waypoints[0].name).toBe(hautMontetWayPoint1Name);

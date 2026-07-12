@@ -31,6 +31,7 @@ export class PlatformService {
     this.listenToJoinLiveGroup();
     this.handleBackButton();
     this.handleKeyboard();
+    this.disablePwaInstall();
   }
 
   private handleKeyboard(): void {
@@ -73,6 +74,12 @@ export class PlatformService {
           ]
         }).then(a => a.present());
       })
+    });
+  }
+
+  private disablePwaInstall(): void {
+    globalThis.addEventListener('beforeinstallprompt', (e: Event) => {
+      e.preventDefault();
     });
   }
 

@@ -368,30 +368,21 @@ export class TrailComponent extends Component {
     const details = this.openDetails();
     const cb = new IonicCheckbox((await details).$('div.show-osm ion-checkbox'));
     await cb.scrollIntoView();
-    await TestUtils.retry(async () => {
-      await cb.setSelected(show);
-      if ((await cb.getStatus()) !== show) throw new Error('Expected ' + show);
-    }, 3, 1);
+    await cb.setSelectedWaitNewValue(show);
   }
 
   public async setShowBreaks(show: boolean) {
     const waypoints = await this.openWayPoints();
     const cb = new IonicCheckbox(waypoints.$('ion-checkbox[name=show-breaks]'));
     await cb.scrollIntoView();
-    await TestUtils.retry(async () => {
-      await cb.setSelected(show);
-      if ((await cb.getStatus()) !== show) throw new Error('Expected ' + show);
-    }, 3, 1);
+    await cb.setSelectedWaitNewValue(show);
   }
 
   public async setShowGuideposts(show: boolean) {
     const waypoints = await this.openWayPoints();
     const cb = new IonicCheckbox(waypoints.$('ion-checkbox[name=show-guideposts]'));
     await cb.scrollIntoView();
-    await TestUtils.retry(async () => {
-      await cb.setSelected(show);
-      if ((await cb.getStatus()) !== show) throw new Error('Expected ' + show);
-    }, 3, 1);
+    await cb.setSelectedWaitNewValue(show);
   }
 
   public async openComments() {

@@ -1,3 +1,4 @@
+import { TestUtils } from '../../utils/test-utils';
 import { Component } from '../component';
 
 export class IonicCheckbox extends Component {
@@ -21,6 +22,14 @@ export class IonicCheckbox extends Component {
       if (!selected) return;
       await this.toggle();
     }
+  }
+
+  public async setSelectedWaitNewValue(selected: boolean) {
+    await TestUtils.retry(async () => {
+      await this.setSelected(selected);
+      const newValue = await this.getStatus();
+      if (newValue !== selected) throw new Error('Expected ' + selected + ', found ' + newValue + ': ' + await this.getElement().getAttribute('class'));
+    }, 3, 10);
   }
 
   public async getLabel() {
