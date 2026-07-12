@@ -1,0 +1,8 @@
+Ajout des caractéristiques d'un parcours
+Ajout de l'affichage du balisage des chemins
+Ajout de nouvelles activités
+Ajout de la vitesse maximale
+Ajout des balises présentes sur le parcours
+Possibilité d'afficher les chemins interdits aux vélos
+Amélioration de la stabilité et des performances
+Améliorations mineures et correctifs

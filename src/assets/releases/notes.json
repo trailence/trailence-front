@@ -208,5 +208,31 @@
   "010505": {
     "en": {"message": "Some improvements and fixes"},
     "fr": {"message": "Quelques améliorations et correctifs"}
+  },
+  "020000": {
+    "fr": {
+      "items": [
+        "Ajout des caractéristiques d'un parcours",
+        "Ajout de l'affichage du balisage des chemins",
+        "Ajout de nouvelles activités",
+        "Ajout de la vitesse maximale",
+        "Ajout des balises présentes sur le parcours",
+        "Possibilité d'afficher les chemins interdits aux vélos",
+        "Amélioration de la stabilité et des performances",
+        "Améliorations mineures et correctifs"
+      ]
+    },
+    "en": {
+      "items": [
+        "Added trail characteristics",
+        "Added trail marking display",
+        "Added new activities",
+        "Added maximum speed",
+        "Added guideposts along the trail",
+        "Added option to display trails where cycling is prohibited",
+        "Improved stability and performance",
+        "Minor improvements and bug fixes"
+      ]
+    }
   }
 }

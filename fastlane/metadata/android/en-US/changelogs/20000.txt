@@ -1,0 +1,8 @@
+Added trail characteristics
+Added trail marking display
+Added new activities
+Added maximum speed
+Added guideposts along the trail
+Added option to display trails where cycling is prohibited
+Improved stability and performance
+Minor improvements and bug fixes
