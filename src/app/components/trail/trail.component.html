@@ -367,6 +367,9 @@
               @if (trail1WithInfo?.source?.externalAppName === 'Trailence') {
                 <a [routerLink]="url">{{i18n.texts.pages.trail.open_in_trailence}}</a>
               } @else if(trail1WithInfo?.source?.externalAppName; as appName) {
+                @if (trail1WithInfo?.source?.internalUrl) {
+                  <a [routerLink]="trail1WithInfo!.source!.internalUrl!">{{i18n.texts.pages.trail.open_in_trailence}}</a><br/>
+                }
                 <a href="{{url}}" target="_blank">{{i18n.texts.pages.trail.open_in_app}} {{appName}}</a>
               } @else {
                 <span style="white-space: nowrap">{{ i18n.texts.pages.trail.source.source_url }}</span>&nbsp;<a href="{{url}}" target="_blank">{{ url }}</a>
@@ -568,6 +571,13 @@
           </div>
         </ion-segment-button>
       }
+      @if (!trail2 && trail1WithInfo?.source?.externalAppName && trail1WithInfo?.source?.externalAppName !== 'Trailence' && trail1WithInfo?.source?.isExternalOnly && trail1WithInfo?.source?.externalSafeUrl) {
+        <ion-segment-button value="external">
+          <div class="tab-segment-content">
+            <div class="text">{{trail1WithInfo!.source!.externalAppName}}</div>
+          </div>
+        </ion-segment-button>
+      }
     </ion-segment>
   </div>
   <div class="map-container">
@@ -702,6 +712,11 @@
     @case ('reviews') {
       <div class="trail-reviews-tab">
         <app-rate-and-comments [trail]="trail1!"></app-rate-and-comments>
+      </div>
+    }
+    @case ('external') {
+      <div class="external-page-tab">
+        <iframe [src]="trail1WithInfo?.source?.externalSafeUrl" sandbox="allow-downloads allow-same-origin allow-scripts" referrerpolicy="no-referrer"></iframe>
       </div>
     }
   }

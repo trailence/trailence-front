@@ -48,6 +48,7 @@ server {
     location ~* ^/(en|fr)/([a-z\-]+)$ {
       root   /usr/share/nginx/html;
       add_header Cache-Control no-cache;
+      add_header X-Frame-Options SAMEORIGIN always;
       expires 0;
       try_files /index_$1_$2.html @index;
     }
@@ -56,6 +57,7 @@ server {
         root   /usr/share/nginx/html;
         index do-not-use-me.html;
         add_header Cache-Control "public, max-age=31536000";
+        add_header X-Frame-Options SAMEORIGIN always;
         expires 365d;
         try_files $uri @index;
     }
@@ -80,6 +82,7 @@ server {
     location @index {
         root   /usr/share/nginx/html;
         add_header Cache-Control no-cache;
+        add_header X-Frame-Options SAMEORIGIN always;
         expires 0;
         try_files /index.html =404;
     }
@@ -124,6 +127,7 @@ server {
 
     location / {
       root /usr/share/nginx/html/doc;
+      add_header X-Frame-Options SAMEORIGIN always;
       index index.html;
       expires 10m;
       try_files $uri /index.html =404;

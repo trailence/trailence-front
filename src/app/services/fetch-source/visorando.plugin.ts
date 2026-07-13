@@ -38,6 +38,8 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     super(injector, 'visorando', 'visorando', 'keyNumber, keyGpx, url', 'keyNumber');
   }
 
+  public override get externalUrlAllowedInFrame(): boolean { return true; }
+
   public override getTrailenceUrlFromUrl(url: string): string | undefined {
     if (!url.startsWith('https://www.visorando.com/randonnee-')) return undefined;
     let slug = url.substring(36);

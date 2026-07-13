@@ -1,4 +1,4 @@
-import { AfterContentChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
+import { AfterContentChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, SecurityContext, ViewChild } from '@angular/core';
 import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, distinctUntilChanged, filter, first, firstValueFrom, from, map, of, skip, switchMap, take, takeWhile, tap, timer } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
@@ -80,12 +80,15 @@ import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
 import { PhotosComponent } from '../photos/photos.component';
 import { buildMapMarkedTrails, MapMarkedTrail } from '../map/marked-trail/map-marked-trail';
 import { MapElement } from '../map/map-element';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 interface TrailSource {
   isExternal: boolean;
   isExternalOnly: boolean;
   externalUrl?: string;
   externalAppName?: string;
+  internalUrl?: string;
+  externalSafeUrl?: SafeUrl;
   sourceString?: string;
   info?: TrailInfo;
   followedInfo?: TrailInfo;
@@ -105,9 +108,9 @@ interface RemainingData {
   map: L.Map | undefined,
 }
 
-const ALL_TABS = ['details', 'map', 'photos', 'waypoints', 'reviews'];
-const LARGE_TABS = ['map', 'photos', 'reviews'];
-type TAB_TYPE = 'details' | 'map' | 'photos' | 'waypoints' | 'reviews';
+const ALL_TABS = ['details', 'map', 'photos', 'waypoints', 'reviews', 'external'];
+const LARGE_TABS = ['map', 'photos', 'reviews', 'external'];
+type TAB_TYPE = 'details' | 'map' | 'photos' | 'waypoints' | 'reviews' | 'external';
 
 class TrailWithInfo {
   public source?: TrailSource;
@@ -871,9 +874,14 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
               if (trailWithInfo.trail.owner === 'trailence')
                 source.externalUrl = undefined;
             }
-            source.externalAppName = source.externalUrl ? this.injector.get(FetchSourceService).getPluginByUrl(source.externalUrl)?.name : undefined;
+            const plugin = source.externalUrl ? this.injector.get(FetchSourceService).getPluginByUrl(source.externalUrl) : undefined
+            source.externalAppName = plugin?.name;
             if (source.externalAppName === 'Trailence' && source.externalUrl?.startsWith(environment.baseUrl))
               source.externalUrl = source.externalUrl.substring(environment.baseUrl.length);
+            else if (plugin && trailWithInfo.trail.owner.includes('@'))
+              source.internalUrl = plugin.getTrailenceUrlFromUrl(source.externalUrl!);
+            if (plugin && source.externalUrl && plugin.externalUrlAllowedInFrame)
+              source.externalSafeUrl = this.injector.get(DomSanitizer).bypassSecurityTrustResourceUrl(source.externalUrl); // NOSONAR
           }
           const followedTrail$ = this.getFollowedTrailInfo(trailWithInfo.trail);
           const info$ = trailWithInfo.trail.owner.includes('@') ? of(null) : this.injector.get(FetchSourceService).getTrailInfo$(trailWithInfo.trail.owner, trailWithInfo.trail.uuid);

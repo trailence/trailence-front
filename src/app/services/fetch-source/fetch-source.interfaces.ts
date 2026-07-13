@@ -31,6 +31,8 @@ export abstract class FetchSourcePlugin {
   public get allowed$(): Observable<boolean> { return this._allowed$; }
   public get allowed(): boolean { return this._allowed$.value; }
 
+  public get externalUrlAllowedInFrame(): boolean { return false; }
+
   public readonly abstract name: string;
   public readonly abstract owner: string;
 

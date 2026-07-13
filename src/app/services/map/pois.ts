@@ -54,7 +54,6 @@ export class Pois {
       of({pois: [], done: false, partial: false, osmDataVersion: undefined} as PoisResponse),
       this.getTile(t.tile).pipe(
         switchMap(tile => {
-          console.log('tile', tile)
           if (tile === undefined) return of({pois: [], done: true, partial: true, osmDataVersion: undefined} as PoisResponse);
           if (tile.blob === null) return of({pois: [], done: true, partial: false, osmDataVersion: tile.version} as PoisResponse);
           return this.worker.parsePois(tile.blob, t.type, bounds).then(pois => ({pois, done: true, partial: false, osmDataVersion: tile.version}));
