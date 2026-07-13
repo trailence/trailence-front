@@ -499,27 +499,12 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
     .then(toast => toast.present());
   }
 
-  private findToolInItems(items: MenuItem[], predicate: (item: MenuItem) => boolean): MenuItem | undefined {
-    for (const item of items) {
-      if (predicate(item)) return item;
-      if (item.children) {
-        const child = this.findToolInItems(item.children, predicate);
-        if (child) return child;
-      }
-    }
-    return undefined;
-  }
-
   public editWayPoint(wp: WayPoint): void {
-    const tool = this.findToolInItems(this.toolsItems, item => item.data instanceof EditWayPointTool);
-    if (!tool) return;
-    (tool.data as EditWayPointTool).launchEdit(wp, this.context);
+    new EditWayPointTool().launchEdit(wp, this.context);
   }
 
   public removeWayPoint(wp: WayPoint): void {
-    const tool = this.findToolInItems(this.toolsItems, item => item.data instanceof RemoveWayPointTool);
-    if (!tool) return;
-    (tool.data as RemoveWayPointTool).launchRemove(wp, this.context);
+    new RemoveWayPointTool().launchRemove(wp, this.context);
   }
 
   public saving = false;

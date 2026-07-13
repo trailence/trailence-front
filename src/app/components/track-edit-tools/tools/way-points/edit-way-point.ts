@@ -8,7 +8,7 @@ import { Track } from 'src/app/model/track';
 export class EditWayPointTool implements TrackEditTool {
 
   readonly icon = 'edit';
-  labelKey(ctx: TrackEditToolContext) {
+  labelKey() {
     return 'way_points.edit_waypoint';
   }
 
