@@ -22,11 +22,13 @@ export function computeTrackWayPoints(track: Track, breaksSections: BreakPointSe
       return;
     }
     bounds = extendsAround(bounds, GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT + 1);
-    const pois$ = track.isRecording ? of([]) : track.computed.guidpostsOnTrackBounds$.pipe(map(response => response?.pois));
-    const ways$ = of([[null, null]]);// combineLatest([track.computed.osmWaysOnTrackBounds$, track.computed.osmWaysMatch$]).pipe(first());
+    const pois$ = track.isRecording ? of([]) : concat(of(undefined), track.computed.guidpostsOnTrackBounds$.pipe(map(response => response?.pois)));
+    const ways$ = of([[null, null]]);// concat(of(undefined), combineLatest([track.computed.osmWaysOnTrackBounds$, track.computed.osmWaysMatch$]).pipe(first()));
+    const estimatedTrackTime$ = track.isRecording ? of(undefined) : concat(of(undefined), track.computed.timeEstimation$.pipe(first()));
     let poisDone = track.isRecording;
     let waysDone = track.isRecording;
-    combineLatest([concat(of(undefined), pois$), concat(of(undefined), ways$)]).pipe(debounceTimeExtended(250, 250, undefined, (p,n) => n[0] !== undefined && n[1] !== undefined)).subscribe({
+    let estimatedTimeDone = track.isRecording;
+    combineLatest([pois$, ways$, estimatedTrackTime$]).pipe(debounceTimeExtended(250, 250, undefined, (p,n) => n[0] !== undefined && n[1] !== undefined)).subscribe({
       next: result => {
         const newList = [...list];
         let changed = false;
@@ -37,6 +39,23 @@ export function computeTrackWayPoints(track: Track, breaksSections: BreakPointSe
         if (result[1]?.[1] && !waysDone) {
           //changed = computeOsmWayChanges(track, result[1][1].osmTrackPoints, result[1][0]?.ways || result[1][1].waysOnTrack.values(), newList) || changed;
           waysDone = true;
+        }
+        if (result[2] && (!estimatedTimeDone || changed)) {
+          for (const wp of newList) {
+            let estimatedTime: number | undefined;
+            const ref = wp.nearestTrackPointReference;
+            if (ref) {
+              const pointEstimation = result[2].points.at(ref.segmentIndex)?.at(ref.pointIndex);
+              if (pointEstimation) {
+                estimatedTime = pointEstimation.estimatedDurationFromStart;
+              }
+            }
+            if (estimatedTime !== wp.estimatedTimeSinceStart) {
+              wp.estimatedTimeSinceStart = estimatedTime;
+              changed = true;
+            }
+          }
+          estimatedTimeDone = true;
         }
         if (changed) subscriber.next(newList);
       },

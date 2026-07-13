@@ -59,6 +59,10 @@ div.waypoint-header {
         &.small {
           font-size: calc(max(12px, var(--min-font-size)));
         }
+        &.align-right {
+          width: 100%;
+          text-align: right;
+        }
       }
     }
   }

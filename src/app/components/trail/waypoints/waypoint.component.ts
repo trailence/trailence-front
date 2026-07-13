@@ -54,6 +54,7 @@ export class WayPointComponent implements OnInit, OnChanges {
   altitude?: number;
   distance?: number;
   time?: number;
+  estimatedTime?: number;
   img: string | undefined;
   intersectionImg: SVGSVGElement | undefined;
 
@@ -63,6 +64,8 @@ export class WayPointComponent implements OnInit, OnChanges {
     this.altitude = this.wp.waypoint.altitude;
     this.distance = this.arrival && this.wp.trackWayPoint?.isDeparture ? this.trail.track.metadata?.distance : this.wp.waypoint.distanceFromDeparture;
     this.time = this.arrival && this.wp.trackWayPoint?.isDeparture ? this.trail.track.metadata?.duration : this.wp.waypoint.getDurationFromDepartureWithoutBreaks(this.trail.wayPoints.map(wp => wp.waypoint));
+    this.estimatedTime = this.wp.waypoint.estimatedTimeSinceStart;
+    if (this.estimatedTime === undefined && this.arrival) this.estimatedTime = this.trail.track.computed.timeEstimationSnapshot.total;
     this.img = this.trail.wayPointsImages[this.imgIndex];
     this.intersectionImg = this.trail.intersectionsImages[this.imgIndex];
   }

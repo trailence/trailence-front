@@ -12,6 +12,7 @@ export class TrackWayPoint {
 
   public readonly id = IdGenerator.generateId();
   public readonly elements: TrackWayPointElement[] = [];
+  public estimatedTimeSinceStart: number | undefined = undefined;
 
   public addElement(element: TrackWayPointElement) {
     this.elements.push(element);

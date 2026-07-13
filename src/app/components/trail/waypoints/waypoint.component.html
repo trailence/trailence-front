@@ -28,7 +28,10 @@
       </div>
       <div class="waypoint-info">
         <div class="waypoint-info-title">{{i18n.texts.way_points.time}}</div>
-        <div class="waypoint-info-value">{{i18n.durationToString(time)}}</div>
+        <div class="waypoint-info-value {{ estimatedTime ? 'small align-right' : '' }}">{{i18n.durationToString(time)}}</div>
+        @if (estimatedTime) {
+          <div class="waypoint-info-value small align-right">≈ {{i18n.durationToString(estimatedTime)}}</div>
+        }
       </div>
     }
     @if (wp.breakPoint && trail.showBreaks) {
