@@ -10,9 +10,9 @@
     "@wdio/local-runner": "^9.4.5",
     "@wdio/spec-reporter": "^9.4.4",
     "@wdio/appium-service": "^9.4.4",
-    "appium": "^2.15.0",
-    "appium-uiautomator2-driver": "^3.10.0",
-    "appium-xcuitest-driver": "8.1.0",
+    "appium": "^3.0.2",
+    "appium-uiautomator2-driver": "^5.0.3",
+    "appium-xcuitest-driver": "10.1.2",
     "nyc": "^17.1.0"
   },
   "scripts": {
