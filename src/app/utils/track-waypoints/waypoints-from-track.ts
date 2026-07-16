@@ -14,7 +14,7 @@ export class WayPointFromTrack extends TrackWayPointElement {
     public isDeparture: boolean,
     public isArrival: boolean,
     public index: number,
-    nearestTrackPoint: TrackPointReference | undefined,
+    nearestTrackPoint: TrackPointReference,
     track: Track,
     public readonly isComputedOnly: boolean,
     public readonly otherPossibleIndexes: {newIndex: number, segmentIndex: number, pointIndex: number}[] = [],
@@ -104,8 +104,7 @@ export function computeWayPointsFromTrack(track: Track): WayPointFromTrack[] {
   // we have eligible points, create the computed
   const computed: WayPointFromTrack[] = [];
   for (let i = 0; i < eligibles.length; ++i) {
-    const eligible = eligibles[i].length > 0 ? eligibles[i][0] : undefined;
-    computed.push(new WayPointFromTrack(wayPoints[i], false, false, -1, eligible, track, false));
+    computed.push(new WayPointFromTrack(wayPoints[i], false, false, -1, eligibles[i][0], track, false));
   }
   // order them
   computed.sort(TrackWayPointElement.compare);
@@ -180,12 +179,14 @@ export function computeWayPointsFromTrack(track: Track): WayPointFromTrack[] {
   return computed;
 }
 
-function findEligiblePoints(point: PointDescriptor, track: Track): {segmentIndex: number; pointIndex: number}[] { // NOSONAR
-  const result: {segmentIndex: number; pointIndex: number}[] = [];
+function findEligiblePoints(point: PointDescriptor, track: Track): TrackPointReference[] { // NOSONAR
+  const result: TrackPointReference[] = [];
   const p = point.pos;
   const t = point.time;
   let currentBest: Point | undefined = undefined;
-  let currentBestIndexes: {segmentIndex: number; pointIndex: number} | undefined = undefined;
+  let currentBestIndexes: TrackPointReference | undefined = undefined;
+  let globalBestDistance: number | undefined = undefined;
+  let globalBestIndexes: TrackPointReference | undefined = undefined;
   const segments = track.segments;
   for (let segmentIndex = 0; segmentIndex < segments.length; ++segmentIndex) {
     const points = segments[segmentIndex].points;
@@ -193,6 +194,11 @@ function findEligiblePoints(point: PointDescriptor, track: Track): {segmentIndex
       const pt = points[pointIndex];
       const pos = pt.pos;
       const time = pt.time;
+      const distance = pos.distanceTo(p);
+      if (globalBestDistance === undefined || distance < globalBestDistance) {
+        globalBestDistance = distance;
+        globalBestIndexes = {segmentIndex, pointIndex};
+      }
       if (t) {
         if (time && time === t) {
           // perfect match on time, take this point except if currentBest is also a perfect match on time and is closer in distance
@@ -216,7 +222,6 @@ function findEligiblePoints(point: PointDescriptor, track: Track): {segmentIndex
           }
         }
       }
-      const distance = pos.distanceTo(p);
       if (distance > 50) {
         // we are out of 50 meters around
         if (currentBest) {
@@ -263,6 +268,7 @@ function findEligiblePoints(point: PointDescriptor, track: Track): {segmentIndex
     }
     if (perfectMatch) return [perfectMatch];
   }
+  if (result.length === 0) result.push(globalBestIndexes!);
   return result;
 }
 

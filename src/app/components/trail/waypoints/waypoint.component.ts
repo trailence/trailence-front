@@ -8,6 +8,8 @@ import { TextComponent } from '../../text/text.component';
 import { Photo } from 'src/app/model/photo';
 import { PhotoService } from 'src/app/services/database/photo.service';
 import { SvgContainerComponent } from '../../svg-container/svg-container.component';
+import { TrackPointReference } from 'src/app/utils/track-computed-data/types';
+import { TrackUtils } from 'src/app/utils/track-utils';
 
 @Component({
   selector: 'app-waypoint',
@@ -31,6 +33,8 @@ export class WayPointComponent implements OnInit, OnChanges {
 
   @Input() lang?: string;
   @Input() showSource = false;
+
+  @Input() followingPosition: TrackPointReference | undefined;
 
   @Output() editWayPoint = new EventEmitter<WayPointFromTrack>();
   @Output() removeWayPoint = new EventEmitter<WayPointFromTrack>();
@@ -57,6 +61,8 @@ export class WayPointComponent implements OnInit, OnChanges {
   estimatedTime?: number;
   img: string | undefined;
   intersectionImg: SVGSVGElement | undefined;
+  anchorIconHeight = 40;
+  followingHeight: number | undefined;
 
   private update() {
     this.arrival = this.forceArrival || (!!this.wp.trackWayPoint?.isArrival && !this.wp.trackWayPoint?.isDeparture);
@@ -68,6 +74,36 @@ export class WayPointComponent implements OnInit, OnChanges {
     if (this.estimatedTime === undefined && this.arrival) this.estimatedTime = this.trail.track.computed.timeEstimationSnapshot.total;
     this.img = this.trail.wayPointsImages[this.imgIndex];
     this.intersectionImg = this.trail.intersectionsImages[this.imgIndex];
+    if (this.wp.trackWayPoint || (this.wp.breakPoint && this.trail.showBreaks)) {
+      this.anchorIconHeight = 40;
+    } else if (this.wp.guidepost) {
+      this.anchorIconHeight = 24;
+    }
+    this.followingHeight = undefined;
+    if (this.followingPosition) {
+      const wpRef = this.wp.waypoint.nearestTrackPointReference;
+      const compare = TrackUtils.compare(this.followingPosition, wpRef);
+      if (compare <= 0) this.followingHeight = undefined;
+      else {
+        const next = this.trail.getNextVisible(this.wp);
+        if (next) {
+          const nextRef = next.waypoint.nearestTrackPointReference;
+          const compare2 = TrackUtils.compare(this.followingPosition, nextRef);
+          if (compare2 >= 0) {
+            this.followingHeight = 100;
+          } else {
+            const start = this.trail.track.getPoint(wpRef);
+            const end = this.trail.track.getPoint(nextRef);
+            const pos = this.trail.track.getPoint(this.followingPosition);
+            let distance1 = 0;
+            for (let p = pos; p !== start; p = p.previousPoint!) distance1 += p.distanceFromPreviousPoint;
+            let distance2 = 0;
+            for (let p = end; p !== pos; p = p.previousPoint!) distance2 += p.distanceFromPreviousPoint;
+            this.followingHeight = distance1 * 100 / (distance1 + distance2);
+          }
+        }
+      }
+    }
   }
 
   openPhotos(photos: Photo[], slider: PhotosSliderComponent): void {

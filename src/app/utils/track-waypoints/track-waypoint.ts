@@ -18,9 +18,8 @@ export class TrackWayPoint {
     this.elements.push(element);
   }
 
-  public get nearestTrackPointReference(): TrackPointReference | undefined {
-    for (const element of this.elements) if (element.nearestTrackPoint !== undefined) return element.nearestTrackPoint;
-    return undefined;
+  public get nearestTrackPointReference(): TrackPointReference {
+    return this.elements[0]!.nearestTrackPoint;
   }
 
   public get point(): Point | undefined {
@@ -71,7 +70,7 @@ export class TrackWayPoint {
 export abstract class TrackWayPointElement {
   constructor(
     public readonly track: Track,
-    public readonly nearestTrackPoint: TrackPointReference | undefined,
+    public readonly nearestTrackPoint: TrackPointReference,
   ) {}
 
   public abstract getWayPoint(): WayPoint | undefined;
@@ -86,12 +85,10 @@ export abstract class TrackWayPointElement {
 
   public static compare(e1: TrackWayPointElement, e2: TrackWayPointElement): number {
     // first by position in the track
-    if (e1.nearestTrackPoint !== undefined && e2.nearestTrackPoint !== undefined) {
-      if (e1.nearestTrackPoint.segmentIndex < e2.nearestTrackPoint.segmentIndex) return -1;
-      if (e1.nearestTrackPoint.segmentIndex > e2.nearestTrackPoint.segmentIndex) return 1;
-      if (e1.nearestTrackPoint.pointIndex < e2.nearestTrackPoint.pointIndex) return -1;
-      if (e1.nearestTrackPoint.pointIndex > e2.nearestTrackPoint.pointIndex) return 1;
-    }
+    if (e1.nearestTrackPoint.segmentIndex < e2.nearestTrackPoint.segmentIndex) return -1;
+    if (e1.nearestTrackPoint.segmentIndex > e2.nearestTrackPoint.segmentIndex) return 1;
+    if (e1.nearestTrackPoint.pointIndex < e2.nearestTrackPoint.pointIndex) return -1;
+    if (e1.nearestTrackPoint.pointIndex > e2.nearestTrackPoint.pointIndex) return 1;
     // then by position in waypoints
     const wp1 = e1.getWayPoint();
     if (wp1) {

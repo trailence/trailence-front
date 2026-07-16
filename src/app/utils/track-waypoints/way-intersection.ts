@@ -19,7 +19,7 @@ export class OsmWayIntersection extends TrackWayPointElement {
 
   constructor(
     track: Track,
-    nearestTrackPoint: TrackPointReference | undefined,
+    nearestTrackPoint: TrackPointReference,
     public readonly point: EarthPoint,
     public readonly intersection: IntersectionElement[],
     public readonly angle: number,

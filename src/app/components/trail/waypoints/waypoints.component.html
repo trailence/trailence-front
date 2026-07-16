@@ -54,6 +54,7 @@
           [showActions]="!!editTools || selectedTrail.recording"
           [lang]="lang"
           [showSource]="showSource"
+          [followingPosition]="followedTrack && followedTrack.track === selectedTrail.track ? followedTrack.position : undefined"
           (mouseover)="enterWaypoint(wp.waypoint)"
           (mouseenter)="enterWaypoint(wp.waypoint)"
           (mouseleave)="leaveWaypoint(wp.waypoint)"

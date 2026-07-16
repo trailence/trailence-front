@@ -6,19 +6,33 @@
   padding-bottom: 8px;
   border-bottom: 1px solid var(--ion-color-light);
   position: relative;
+}
 
-  &:not(:last-child):before {
-    content: ' ';
+div.waypoint-dots {
+  position: absolute;
+  left: 19px;
+  width: 1px;
+  top: var(--anchor-icon-height);
+  bottom: -3px;
+
+  div.waypoint-todo {
     position: absolute;
-    left: 19px;
-    width: 1px;
-    top: 20px;
+    left: 0;
+    top: 0;
     bottom: 0;
-    height: 100%;
+    width: 1px;
     border-left: 1px dotted var(--ion-color-medium);
     z-index: 0;
   }
-
+  div.waypoint-done {
+    position: absolute;
+    left: -1px;
+    top: 0;
+    width: 1px;
+    height: var(--waypoint-done);
+    border-left: 2px solid blue;
+    z-index: 1;
+  }
 }
 
 div.waypoint-header {
@@ -33,7 +47,7 @@ div.waypoint-header {
     ion-icon {
       width: 24px;
       height: 24px;
-      margin: 8px;
+      margin: 0 8px 0 8px;
     }
   }
 

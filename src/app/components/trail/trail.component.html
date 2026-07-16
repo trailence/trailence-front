@@ -469,11 +469,14 @@
               <ion-icon name="location"></ion-icon>
               <div>{{ i18n.texts.pages.trail.sections.waypoints.title }}</div>
             </div>
+            @let remaining = remaining$ | async;
+            @let followedTrack = remaining ? {track: remaining.track, position: remaining.trackPosition} : undefined;
             <app-trail-waypoints
               [trails]="trailsWaypoints"
               [lang]="trail1WithInfo?.source?.info?.lang"
               [editTools]="editTools"
               [showSource]="showTextHtml"
+              [followedTrack]="followedTrack"
               (highlightWaypoint)="highlightWayPoint($event.wp, $event.click)"
               (unhighlightWaypoint)="unhighlightWayPoint($event.wp, $event.force)"
             ></app-trail-waypoints>
@@ -698,12 +701,15 @@
       }
     }
     @case ('waypoints') {
+      @let remaining = remaining$ | async;
+      @let followedTrack = remaining ? {track: remaining.track, position: remaining.trackPosition} : undefined;
       <div class="trail-waypoints-tab">
         <app-trail-waypoints
           [trails]="trailsWaypoints"
           [lang]="trail1WithInfo?.source?.info?.lang"
           [editTools]="editTools"
           [showSource]="showTextHtml"
+          [followedTrack]="followedTrack"
           (highlightWaypoint)="highlightWayPoint($event.wp, $event.click)"
           (unhighlightWaypoint)="unhighlightWayPoint($event.wp, $event.force)"
         ></app-trail-waypoints>

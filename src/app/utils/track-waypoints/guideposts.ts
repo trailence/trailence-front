@@ -15,7 +15,7 @@ export class GuidepostWayPoint extends TrackWayPointElement {
   constructor(
     track: Track,
     public readonly poi: POI,
-    trackPointReference: TrackPointReference | undefined,
+    trackPointReference: TrackPointReference,
   ) {
     super(track, trackPointReference);
   }

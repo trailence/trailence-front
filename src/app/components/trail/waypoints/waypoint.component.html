@@ -1,3 +1,11 @@
+@if (!arrival) {
+  <div class="waypoint-dots" style="--anchor-icon-height: {{anchorIconHeight}}px">
+    <div class="waypoint-todo"></div>
+    @if (followingHeight) {
+      <div class="waypoint-done" style="--waypoint-done: {{followingHeight}}%"></div>
+    }
+  </div>
+}
 <div class="waypoint-header">
   @if (wp.trackWayPoint || (wp.breakPoint && trail.showBreaks)) {
     <div class="waypoint-anchor">

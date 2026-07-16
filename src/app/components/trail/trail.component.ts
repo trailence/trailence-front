@@ -81,6 +81,7 @@ import { PhotosComponent } from '../photos/photos.component';
 import { buildMapMarkedTrails, MapMarkedTrail } from '../map/marked-trail/map-marked-trail';
 import { MapElement } from '../map/map-element';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { TrackPointReference } from 'src/app/utils/track-computed-data/types';
 
 interface TrailSource {
   isExternal: boolean;
@@ -101,9 +102,9 @@ interface RemainingData {
   distance: number,
   ascent: number | undefined,
   descent: number | undefined,
-  segmentIndex: number | undefined,
-  pointIndex: number | undefined,
-  subTrack: Track | undefined,
+  track: Track,
+  trackPosition: TrackPointReference,
+  subTrack: Track,
   polyline: L.Polyline | undefined,
   map: L.Map | undefined,
 }
@@ -1351,10 +1352,10 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           previousDistance = r ? r.track.metadata.distance : 0;
           let remaining: Track | undefined = undefined;
           const pt = r?.track.arrivalPoint;
-          let closestPoint: { segmentIndex: number, pointIndex: number } | undefined = undefined;
+          let closestPoint: TrackPointReference | undefined = undefined;
           if (track === r?.track) track = undefined;
           if (pt && track) {
-            closestPoint = TrackUtils.findNextClosestPointInTrack(pt.pos, track, 250, this.remaining$.value?.segmentIndex ?? 0, this.remaining$.value?.pointIndex ?? 0);
+            closestPoint = TrackUtils.findNextClosestPointInTrack(pt.pos, track, 250, this.remaining$.value?.trackPosition ?? {segmentIndex: 0, pointIndex: 0});
             if (closestPoint) {
               remaining = track.subTrack(closestPoint.segmentIndex, closestPoint.pointIndex, track.segments.length - 1, track.segments.at(-1)!.points.length - 1);
             }
@@ -1362,14 +1363,14 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           if (pt && this.graph) {
             this.graph.updateRecording(r.track, track, closestPoint?.segmentIndex, closestPoint?.pointIndex);
           }
-          if (!remaining) return of({remaining: remaining, closestPoint, undefined, track, _map});
+          if (!remaining) return of({remaining, closestPoint, undefined, track, _map});
           return remaining.computed.timeEstimation$.pipe(first(), map(timeEstimation => ({remaining, closestPoint, timeEstimation, track, _map})))
         })
       ),
       r => {
         let polyline: L.Polyline | undefined = undefined;
         if (r.closestPoint && r._map) {
-          if (!this.remaining$.value?.polyline || this.remaining$.value?.map !== r._map || this.remaining$.value?.segmentIndex !== r.closestPoint.segmentIndex || this.remaining$.value?.pointIndex !== r.closestPoint.pointIndex) {
+          if (!this.remaining$.value?.polyline || this.remaining$.value?.map !== r._map || this.remaining$.value?.trackPosition?.segmentIndex !== r.closestPoint.segmentIndex || this.remaining$.value?.trackPosition?.pointIndex !== r.closestPoint.pointIndex) {
             // update remaining on map
             if (this.remaining$.value?.polyline) {
               polyline = this.remaining$.value?.polyline;
@@ -1400,8 +1401,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             distance: r.remaining.metadata.distance,
             ascent: r.remaining.metadata.positiveElevation,
             descent: r.remaining.metadata.negativeElevation,
-            segmentIndex: r.closestPoint?.segmentIndex,
-            pointIndex: r.closestPoint?.pointIndex,
+            track: r.track!,
+            trackPosition: r.closestPoint!,
             subTrack: r.remaining,
             polyline,
             map: r._map,

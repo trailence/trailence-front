@@ -329,6 +329,13 @@ export class TrailWaypoints {
     return result;
   }
 
+  public getNextVisible(wp: WayPointWithPhotos): WayPointWithPhotos | undefined {
+    let index = this.wayPoints.indexOf(wp);
+    if (index < 0) return undefined;
+    for (index = index + 1; index < this.wayPoints.length && !this.isShown(this.wayPoints[index]); ++index);
+    return this.wayPoints.at(index);
+  }
+
   destroy(): void {
     this.subscription.unsubscribe();
   }

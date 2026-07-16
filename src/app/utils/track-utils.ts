@@ -5,6 +5,7 @@ import { Track } from '../model/track';
 import { Segment } from '../model/segment';
 import { WayPoint } from '../model/way-point';
 import { computeWayPointsFromTrack } from './track-waypoints/waypoints-from-track';
+import { TrackPointReference } from './track-computed-data/types';
 
 export class TrackUtils {
 
@@ -196,15 +197,15 @@ export class TrackUtils {
   }
 
 
-  public static findNextClosestPointInTrack(pos: L.LatLngLiteral, track: Track, maxDistance: number, fromSegmentIndex: number, fromPointIndex: number): {segmentIndex: number, pointIndex: number} | undefined { // NOSONAR
+  public static findNextClosestPointInTrack(pos: L.LatLngLiteral, track: Track, maxDistance: number, from: TrackPointReference): TrackPointReference | undefined { // NOSONAR
     let closestSegmentIndex = -1;
     let closestPointIndex = -1;
     let closestDistance = -1;
     const p = L.latLng(pos);
     const segments = track.segments;
-    for (let si = fromSegmentIndex; si < segments.length; ++si) {
+    for (let si = from.segmentIndex; si < segments.length; ++si) {
       const points = segments[si].points;
-      for (let pi = (si === fromSegmentIndex ? fromPointIndex : 0); pi < points.length; ++pi) {
+      for (let pi = (si === from.segmentIndex ? from.pointIndex : 0); pi < points.length; ++pi) {
         const p2 = points[pi].pos;
         if (p.lat === p2.lat && p.lng === p2.lng) return {segmentIndex: si, pointIndex: pi};
         const d = p.distanceTo(p2);
@@ -373,6 +374,16 @@ export class TrackUtils {
       }
     }
     return undefined;
+  }
+
+  // Point Reference
+
+  public static compare(position: TrackPointReference, reference: TrackPointReference): number {
+    if (position.segmentIndex < reference.segmentIndex) return -1;
+    if (position.segmentIndex > reference.segmentIndex) return 1;
+    if (position.pointIndex < reference.pointIndex) return -1;
+    if (position.pointIndex > reference.pointIndex) return 1;
+    return 0;
   }
 
 }

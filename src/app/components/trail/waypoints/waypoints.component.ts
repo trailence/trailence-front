@@ -9,6 +9,8 @@ import { NgClass } from '@angular/common';
 import { TrackWayPoint } from 'src/app/utils/track-waypoints/track-waypoint';
 import { WayPointComponent } from './waypoint.component';
 import { WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
+import { TrackPointReference } from 'src/app/utils/track-computed-data/types';
+import { Track } from 'src/app/model/track';
 
 @Component({
   selector: 'app-trail-waypoints',
@@ -26,6 +28,8 @@ export class WaypointsComponent implements OnInit, OnDestroy {
   @Input() editTools?: TrackEditToolsComponent;
   @Input() lang?: string;
   @Input() showSource = false;
+
+  @Input() followedTrack: {track: Track, position: TrackPointReference} | undefined;
 
   @Output() highlightWaypoint = new EventEmitter<{wp: TrackWayPoint, click: boolean}>();
   @Output() unhighlightWaypoint = new EventEmitter<{wp: TrackWayPoint, force: boolean}>();

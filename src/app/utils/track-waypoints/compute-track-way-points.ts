@@ -44,11 +44,9 @@ export function computeTrackWayPoints(track: Track, breaksSections: BreakPointSe
           for (const wp of newList) {
             let estimatedTime: number | undefined;
             const ref = wp.nearestTrackPointReference;
-            if (ref) {
-              const pointEstimation = result[2].points.at(ref.segmentIndex)?.at(ref.pointIndex);
-              if (pointEstimation) {
-                estimatedTime = pointEstimation.estimatedDurationFromStart;
-              }
+            const pointEstimation = result[2].points.at(ref.segmentIndex)?.at(ref.pointIndex);
+            if (pointEstimation) {
+              estimatedTime = pointEstimation.estimatedDurationFromStart;
             }
             if (estimatedTime !== wp.estimatedTimeSinceStart) {
               wp.estimatedTimeSinceStart = estimatedTime;
