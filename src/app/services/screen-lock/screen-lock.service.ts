@@ -11,6 +11,7 @@ export class ScreenLockService {
 
   public get available$(): Observable<boolean> { return this._available$; }
   public get enabled$(): Observable<boolean> { return this._enabled$; }
+  public get enabled(): boolean { return this._enabled$.value; }
 
   private readonly _available$ = new BehaviorSubject<boolean>(false);
   private readonly _enabled$ = new BehaviorSubject<boolean>(false);

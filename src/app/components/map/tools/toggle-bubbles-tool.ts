@@ -1,19 +1,25 @@
-import { BehaviorSubject, of } from 'rxjs';
-import { MapTool, MapToolContext } from './tool.interface';
+import { BehaviorSubject, combineLatest, map, Observable, of } from 'rxjs';
+import { MapTool, MapToolContext, MenuItemConfigProvider } from './tool.interface';
 
 export class MapToggleBubblesTool extends MapTool {
 
   constructor(
-    activated: BehaviorSubject<boolean>,
-    available: () => boolean,
+    private readonly activated$: BehaviorSubject<boolean>,
+    private readonly available$: Observable<boolean>,
   ) {
     super();
-    this.icon = () => activated.value ? 'path' : 'bubbles';
-    this.visible = (ctx: MapToolContext) => available() && ctx.mapComponent.canFitMapBounds();
-    this.execute = () => {
-      activated.next(!activated.value);
-      return of(true);
-    };
   }
+
+  override menuItemConfig: MenuItemConfigProvider = (ctx: MapToolContext) => ({
+    icon: this.activated$.pipe(map(activated => activated ? 'path' : 'bubbles')),
+    visible: combineLatest([this.available$, ctx.mapComponent.canFitMapBounds$()]).pipe(
+      map(([available, canFitMapBounds]) => available && canFitMapBounds),
+    ),
+  });
+
+  override execute = () => {
+    this.activated$.next(!this.activated$.value);
+    return of(true);
+  };
 
 }

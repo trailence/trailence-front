@@ -1,43 +1,42 @@
-import { Injector } from '@angular/core';
-import { MapComponent } from '../map.component';
-import { MapTool, MapToolContext } from './tool.interface';
-import { of } from 'rxjs';
+import { MapTool, MapToolContext, MenuItemConfigProvider } from './tool.interface';
+import { map, of } from 'rxjs';
 
 export class ZoomInTool extends MapTool {
 
-  constructor() {
-    super();
-    this.icon = 'plus';
-    this.disabled = (ctx: MapToolContext) => ctx.map.getZoom() >= ctx.map.getMaxZoom();
-    this.execute = (ctx: MapToolContext) => {
-      ctx.map.zoomIn();
-      ctx.mapComponent.zoomed();
-      return of(true);
-    }
-  }
+  override menuItemConfig: MenuItemConfigProvider = ctx => ({
+    icon: 'plus',
+    disabled: ctx.mapComponent.getState().zoomInt$.pipe(map(zoom => zoom >= ctx.map.getMaxZoom())),
+  });
+
+  override execute = (ctx: MapToolContext) => {
+    ctx.map.zoomIn();
+    ctx.mapComponent.zoomed();
+    return of(true);
+  };
 
 }
 
 export class ZoomOutTool extends MapTool {
 
-  constructor() {
-    super();
-    this.icon = 'minus';
-    this.disabled = (ctx: MapToolContext) => ctx.map.getZoom() <= 0;
-    this.execute = (ctx: MapToolContext) => {
-      ctx.map.zoomOut();
-      ctx.mapComponent.zoomed();
-      return of(true);
-    }
-  }
+  override menuItemConfig: MenuItemConfigProvider = ctx => ({
+    icon: 'minus',
+    disabled: ctx.mapComponent.getState().zoomInt$.pipe(map(zoom => zoom <= 0)),
+  });
+
+  override execute = (ctx: MapToolContext) => {
+    ctx.map.zoomOut();
+    ctx.mapComponent.zoomed();
+    return of(true);
+  };
 
 }
 
 export class ZoomLevelTool extends MapTool {
 
-  constructor() {
-    super();
-    this.label = (ctx: MapToolContext) => ctx.map.getZoom().toLocaleString('en', {maximumFractionDigits: 1});
-    this.disabled = true;
-  }
+  override menuItemConfig: MenuItemConfigProvider = ctx => ({
+    label: ctx.mapComponent.getState().zoom$.pipe(map(zoom => zoom.toLocaleString('en', {maximumFractionDigits: 1}))),
+    disabled: true,
+  });
+
+  override execute = () => of(true);
 }

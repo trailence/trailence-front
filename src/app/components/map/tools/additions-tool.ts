@@ -1,11 +1,10 @@
 import { Injector } from '@angular/core';
 import * as L from 'leaflet';
 import { countMapAdditionsOptions, MapAdditionsOptions, MapAdditionsService } from 'src/app/services/map/map-additions.service';
-import { MapTool, MapToolContext } from './tool.interface';
-import { of } from 'rxjs';
+import { MapTool, MapToolContext, MenuItemConfigProvider } from './tool.interface';
+import { BehaviorSubject, combineLatest, map, of } from 'rxjs';
 import { ModalController, ToastController } from '@ionic/angular/standalone';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
-import { BadgesConfig } from '../../menus/menu-item';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { Way, WayPermission } from 'src/app/services/map/way';
 import { POI } from 'src/app/services/map/poi';
@@ -15,39 +14,35 @@ import { NetworkService } from 'src/app/services/network/network.service';
 export class AdditionsTool extends MapTool {
 
   private modal?: HTMLIonModalElement;
-  private _loading = false;
+  private readonly loading$ = new BehaviorSubject<boolean>(false);
 
-  constructor(
-    private readonly mapId: string,
-  ) {
-    super();
-    this.icon = 'info';
-    this.visible = (ctx: MapToolContext) => true;
-    this.badges = (ctx: MapToolContext) => {
-      let count = 0;
-      const state = ctx.mapComponent.getState();
-      const options = state.additions;
-      if (state.zoom > 10) count += countMapAdditionsOptions(options);
-      count += state.overlays.length;
-      if (count === 0) return undefined;
-      return {
-        topRight: {
-          text: '' + count,
-        }
-      } as BadgesConfig;
-    };
-    this.spinner = (ctx: MapToolContext) => {
-      return this._loading ? 'crescent' : undefined;
-    };
-    this.execute = (ctx: MapToolContext) => {
-      if (this.modal) {
-        this.closeModal();
-      } else {
-        this.displayModal(ctx);
-      }
-      return of(true);
-    };
-  }
+  override menuItemConfig: MenuItemConfigProvider = (ctx: MapToolContext) => ({
+    icon: 'info',
+    visible: true,
+    badges: combineLatest([ctx.mapComponent.getState().additions$, ctx.mapComponent.getState().zoom$, ctx.mapComponent.getState().overlays$]).pipe(
+      map(([options, zoom, overlays]) => {
+        let count = 0;
+        if (zoom > 10) count += countMapAdditionsOptions(options);
+        count += overlays.length;
+        if (count === 0) return undefined;
+        return {
+          topRight: {
+            text: '' + count,
+          }
+        };
+      })
+    ),
+    spinner: this.loading$.pipe(map(loading => loading ? 'crescent' : undefined)),
+  });
+
+  override execute = (ctx: MapToolContext) => {
+    if (this.modal) {
+      this.closeModal();
+    } else {
+      this.displayModal(ctx);
+    }
+    return of(true);
+  };
 
   private closeModal(): void {
     this.modal?.dismiss();
@@ -96,7 +91,8 @@ export class AdditionsTool extends MapTool {
       clearTimeout(this._timeout);
       this._timeout = undefined;
     }
-    this._timeout = setTimeout(() => { if (ctx) this.doRefresh(ctx); }, 250);
+    if (ctx)
+      this._timeout = setTimeout(() => this.doRefresh(ctx), 250);
   }
 
   private _refreshCount = 0;
@@ -115,8 +111,7 @@ export class AdditionsTool extends MapTool {
       this._layers = [];
       return;
     }
-    this._loading = true;
-    ctx.mapComponent.refreshTools();
+    this.loading$.next(true);
     const count = ++this._refreshCount;
     for (const layer of this._layers) layer.remove();
     this._layers = [];
@@ -134,7 +129,7 @@ export class AdditionsTool extends MapTool {
         path.addTo(ctx.map);
       }
       if (additions.done) {
-        this._loading = false;
+        this.loading$.next(false);
         if (additions.partial && !ctx.injector.get(NetworkService).server) {
           ctx.injector.get(ToastController).create({
             message: ctx.injector.get(I18nService).texts.mapAdditions.errors.no_net,
@@ -142,7 +137,6 @@ export class AdditionsTool extends MapTool {
             duration: 5000,
           }).then(t => t.present());
         }
-        ctx.mapComponent.refreshTools();
       }
     });
   }

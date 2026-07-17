@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, Output, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapState } from './map-state';
-import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, filter, first, map, of, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, distinctUntilChanged, filter, first, map, of, switchMap, tap } from 'rxjs';
 import * as L from 'leaflet';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { DistanceUnit } from 'src/app/services/preferences/preferences';
@@ -22,7 +22,7 @@ import { Trail } from 'src/app/model/trail';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { PhoneLockTool } from './tools/phone-lock-tool';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
-import { MenuItem } from '../menus/menu-item';
+import { combineMenuSources, MenuElement, MenuItem, MenuSeparator, MenuSource } from '../menus/menu-item';
 import { MapToolContext } from './tools/tool.interface';
 import { ZoomInTool, ZoomLevelTool, ZoomOutTool } from './tools/zoom-tools';
 import { MapAdditionsService } from 'src/app/services/map/map-additions.service';
@@ -56,8 +56,8 @@ export class MapComponent extends AbstractComponent {
   @Input() elementsFilter$?: Observable<(element: MapElement) => boolean>;
   @Input() autoFollowLocation = false;
   @Input() downloadMapTrail?: Trail;
-  @Input() leftTools: MenuItem[] = [];
-  @Input() rightTools: MenuItem[] = [];
+  @Input() leftTools?: MenuSource;
+  @Input() rightTools?: MenuSource;
 
   @Output() mouseClickPoint = new EventEmitter<MapTrackPointReference[]>();
   @Output() mouseOverPoint = new EventEmitter<MapTrackPointReference[]>();
@@ -118,8 +118,6 @@ export class MapComponent extends AbstractComponent {
       this.whenVisible.subscribe(
         combineLatest([this._mapState.center$, this._mapState.zoomInt$, this._mapState.tilesName$, this._mapState.overlays$, this._mapState.additions$])
         .pipe(
-          debounceTime(100),
-          tap(() => this.refreshTools()),
           debounceTime(1000),
         ),
         ([center, zoom, layer, overlays]) => {
@@ -130,7 +128,28 @@ export class MapComponent extends AbstractComponent {
         true
       );
     }
-    this.initTools();
+    this.whenVisible.subscribe(combineLatest([this.toolsContext$, this._mapState.center$, this._mapState.zoomInt$]), ([context]) => {
+      this.additionsTool.refresh(context);
+    });
+    // handle position
+    this.whenAlive.add(
+      combineLatest([
+        this._mapState.live$,
+        this.mapGeolocation.position$,
+        this.disableShowPosition$,
+      ]).subscribe(
+        ([live, position, nbPosDisabled]) => {
+          if (!live) return;
+          // show position
+          if (position && nbPosDisabled === 0) {
+            this.showLocation(position.lat, position.lng, position.active ? '#2020FF' : '#555');
+          } else {
+            this.hideLocation();
+          }
+        }
+      )
+    );
+    this.updateTools();
   }
 
   private _initMapTimeout: any;
@@ -159,10 +178,10 @@ export class MapComponent extends AbstractComponent {
 
   protected override destroyComponent(): void {
     if (this._map$.value) {
-      for (const element of this._currentElements) {
+      for (const element of this.currentElements$.value) {
         element.remove();
       }
-      this._currentElements = [];
+      this.currentElements$.next([]);
       this._map$.value.remove();
       this._map$.next(undefined);
     }
@@ -213,7 +232,7 @@ export class MapComponent extends AbstractComponent {
     this._mapState.zoom = map.getZoom();
   }
 
-  private _currentElements: MapElement[] = [];
+  private readonly currentElements$ = new BehaviorSubject<MapElement[]>([]);
   private _elementsSubscription?: Subscription;
   private updateElements(): void {
     this._elementsSubscription?.unsubscribe();
@@ -226,7 +245,7 @@ export class MapComponent extends AbstractComponent {
       )
       .subscribe(([elements, elementsFilter, live, map]) => {
         if (!map || !live) return;
-        const toRemove = [...this._currentElements];
+        const toRemove = [...this.currentElements$.value];
         const displayed: MapElement[] = [];
         const highlighted: MapElement[] = [];
         for (const element of elements) {
@@ -243,9 +262,8 @@ export class MapComponent extends AbstractComponent {
         }
         for (const element of toRemove) element.remove();
         for (const element of highlighted) element.bringToFront();
-        this._currentElements = displayed;
+        this.currentElements$.next(displayed);
         this.initMapZoom(map);
-        this.refreshTools();
       }
     ));
   }
@@ -255,16 +273,16 @@ export class MapComponent extends AbstractComponent {
     // if the state of the map is the initial one, zoom on the tracks
     if ((this._mapState.center.lat === 0 && this._mapState.center.lng === 0 && this._mapState.zoom <= 2) || // initial state
         (this._initZoomTimestamp && Date.now() - this._initZoomTimestamp < 2500)) {
-      if (this._currentElements.length > 0) {
-        this.fitElementsBounds(map, this._currentElements);
+      if (this.currentElements$.value.length > 0) {
+        this.fitElementsBounds(map, this.currentElements$.value);
         this._initZoomTimestamp = Date.now();
       } else if (!this._initZoomTimestamp) {
         const init = Date.now();
         this._initZoomTimestamp = init;
         this.injector.get(HttpService).get('https://free.freeipapi.com/api/json')
         .subscribe((response: any) => {
-          if (response && response['latitude'] && response['longitude'] && this._initZoomTimestamp === init && this._currentElements.length === 0) { // NOSONAR
-            Console.info('Move map to user position', response, this._initZoomTimestamp, this._currentElements.length, this._mapState);
+          if (response && response['latitude'] && response['longitude'] && this._initZoomTimestamp === init && this.currentElements$.value.length === 0) { // NOSONAR
+            Console.info('Move map to user position', response, this._initZoomTimestamp, this.currentElements$.value.length, this._mapState);
             this._map$.value?.setView({lat: response['latitude'], lng: response['longitude']}, 10);
           }
         });
@@ -276,23 +294,26 @@ export class MapComponent extends AbstractComponent {
     this.ngZone.runOutsideAngular(() => {
       if (this._map$.value)
         element.addTo(this._map$.value);
-      this._currentElements.push(element);
+      this.currentElements$.value.push(element);
+      this.currentElements$.next(this.currentElements$.value);
     });
   }
 
   public removeElement(element: MapElement): void {
     this.ngZone.runOutsideAngular(() => {
       element.remove();
-      const index = this._currentElements.indexOf(element);
-      if (index >= 0)
-        this._currentElements.splice(index, 1);
+      const index = this.currentElements$.value.indexOf(element);
+      if (index >= 0) {
+        this.currentElements$.value.splice(index, 1);
+        this.currentElements$.next(this.currentElements$.value);
+      }
     });
   }
 
   public fitBounds(elements: MapElement[] | undefined): void {
     this.ngZone.runOutsideAngular(() => {
       if (!this._map$.value) return;
-      this.fitElementsBounds(this._map$.value, elements || this._currentElements);
+      this.fitElementsBounds(this._map$.value, elements || this.currentElements$.value);
       this._initZoomTimestamp = 1;
     });
   }
@@ -320,33 +341,42 @@ export class MapComponent extends AbstractComponent {
     }
   }
 
-  private readonly _fitBoundsProviders: (() => L.LatLngBounds | undefined)[] = [];
+  private readonly fitBoundsProviders$ = new BehaviorSubject<(() => L.LatLngBounds | undefined)[]>([]);
   public addFitBoundsProvider(provider: () => L.LatLngBounds | undefined): void {
-    if (!this._fitBoundsProviders.includes(provider))
-      this._fitBoundsProviders.push(provider);
-    this.refreshTools();
+    if (!this.fitBoundsProviders$.value.includes(provider)) {
+      this.fitBoundsProviders$.value.push(provider);
+      this.fitBoundsProviders$.next(this.fitBoundsProviders$.value);
+    }
   }
   public removeFitBoundsProvider(provider: () => L.LatLngBounds | undefined): void {
-    const index = this._fitBoundsProviders.indexOf(provider);
-    if (index >= 0) this._fitBoundsProviders.splice(index, 1);
-    this.refreshTools();
+    const index = this.fitBoundsProviders$.value.indexOf(provider);
+    if (index >= 0) {
+      this.fitBoundsProviders$.value.splice(index, 1);
+      this.fitBoundsProviders$.next(this.fitBoundsProviders$.value);
+    }
   }
 
   fitMapBounds(map: L.Map): void {
     const boundsBuilder = new BoundsBuilder();
-    for (const e of this._currentElements) {
+    for (const e of this.currentElements$.value) {
       const b = e.bounds;
       if (b) boundsBuilder.extend(L.latLngBounds(b.getSouthWest(), b.getNorthEast()));
     }
-    for (const provider of this._fitBoundsProviders) boundsBuilder.extend(provider());
+    for (const provider of this.fitBoundsProviders$.value) boundsBuilder.extend(provider());
     boundsBuilder.pad(0.05);
     this.fit(map, boundsBuilder);
   }
 
-  public canFitMapBounds(): boolean {
-    if (this._currentElements.length > 0) return true;
-    for (const provider of this._fitBoundsProviders) if (provider() !== undefined) return true;
-    return false;
+  public canFitMapBounds$(): Observable<boolean> {
+    return this.currentElements$.pipe(
+      switchMap(elements => {
+        if (elements.length > 0) return of(true);
+        return this.fitBoundsProviders$.pipe(
+          map(providers => providers.some(p => p() !== undefined)),
+        );
+      }),
+      distinctUntilChanged(),
+    );
   }
 
   public ensureVisible(track: MapTrack): void {
@@ -369,14 +399,14 @@ export class MapComponent extends AbstractComponent {
   }
 
   private readonly _followingLocation$ = new BehaviorSubject<boolean>(false);
-  private _locationMarker?: L.CircleMarker;
+  private readonly locationMarker$ = new BehaviorSubject<L.CircleMarker | undefined>(undefined);
   private showLocation(lat: number, lng: number, color: string): void {
-    if (this.ngZone.runOutsideAngular(() => {
-      if (this._locationMarker) {
-        this.updateLocation(this._locationMarker, lat, lng, color);
-        return false;
+    this.ngZone.runOutsideAngular(() => {
+      if (this.locationMarker$.value) {
+        this.updateLocation(this.locationMarker$.value, lat, lng, color);
+        return;
       }
-      this._locationMarker = new L.CircleMarker({lat, lng}, {
+      const marker = new L.CircleMarker({lat, lng}, {
         radius: 7,
         color: color,
         opacity: 0.75,
@@ -386,23 +416,22 @@ export class MapComponent extends AbstractComponent {
         className: 'leaflet-position-marker',
         pane: 'markerPane',
       });
-      this._locationMarker.on('add', ev => {
-        (this._locationMarker as any)._renderer?._container?.classList?.add('position-circle-marker');
+      marker.on('add', () => {
+        (marker as any)._renderer?._container?.classList?.add('position-circle-marker');
       });
+      this.locationMarker$.next(marker);
       if (this.autoFollowLocation && this.mapGeolocation.recorder.current)
         this._followingLocation$.next(true);
       if (this._map$.value) {
         this._initZoomTimestamp = 1;
-        this._locationMarker.addTo(this._map$.value);
+        marker.addTo(this._map$.value);
         if (this._followingLocation$.value) {
-          this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), FOLLOW_LOCATION_DEFAULT_ZOOM));
+          this._map$.value.setView(marker.getLatLng(), Math.max(this._map$.value.getZoom(), FOLLOW_LOCATION_DEFAULT_ZOOM));
         } else {
-          this._map$.value.panInside(this._locationMarker.getLatLng(), {padding: [25,25]})
+          this._map$.value.panInside(marker.getLatLng(), {padding: [25,25]})
         }
       }
-      return true;
-    }))
-      this.refreshTools();
+    });
   }
 
   private updateLocation(marker: L.CircleMarker, lat: number, lng: number, color: string): void {
@@ -439,8 +468,8 @@ export class MapComponent extends AbstractComponent {
 
   private centerOnLocation(): void {
     this.ngZone.runOutsideAngular(() => {
-      if (this._map$.value && this._locationMarker) {
-        this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), FOLLOW_LOCATION_MIN_ZOOM));
+      if (this._map$.value && this.locationMarker$.value) {
+        this._map$.value.setView(this.locationMarker$.value.getLatLng(), Math.max(this._map$.value.getZoom(), FOLLOW_LOCATION_MIN_ZOOM));
       }
       if (!this._followingLocation$.value)
         this._followingLocation$.next(true);
@@ -453,25 +482,19 @@ export class MapComponent extends AbstractComponent {
     } else {
       this.centerOnLocation();
     }
-    this.refreshTools();
   }
 
   private hideLocation(): void {
-    if (this.ngZone.runOutsideAngular(() => {
-      if (this._locationMarker) {
+    this.ngZone.runOutsideAngular(() => {
+      if (this.locationMarker$.value) {
         if (this._map$.value) {
-          this._locationMarker.removeFrom(this._map$.value);
+          this.locationMarker$.value.removeFrom(this._map$.value);
         }
-        this._locationMarker = undefined;
-        return true;
-      }
-      if (this._followingLocation$.value) {
+        this.locationMarker$.next(undefined);
+      } else if (this._followingLocation$.value) {
         this._followingLocation$.next(false);
-        return true;
       }
-      return false;
-    }))
-      this.refreshTools();
+    });
   }
 
   public get crs(): L.CRS {
@@ -505,23 +528,20 @@ export class MapComponent extends AbstractComponent {
         // action from user
         this._initZoomTimestamp = 1;
         if (this._followingLocation$.value) {
-          if (this._locationMarker && !this.getFollowLocationBounds(map).contains(this._locationMarker.getLatLng())) {
+          if (this.locationMarker$.value && !this.getFollowLocationBounds(map).contains(this.locationMarker$.value.getLatLng())) {
             this._followingLocation$.next(false);
-            this.refreshTools();
           }
         }
       }
     });
     map.on('zoom', () => {
       this.mapChanged(map);
-      this.refreshTools();
     });
     map.on('zoomstart', () => {
       this._zoomAnim$.next(true);
     });
     map.on('zoomend', () => {
       this._zoomAnim$.next(false);
-      this.refreshTools();
     });
     map.on('click', e => {
       if (this.mouseClickPoint.observed) {
@@ -545,9 +565,9 @@ export class MapComponent extends AbstractComponent {
 
     this.cursors.addTo(map);
 
-    if (this._locationMarker) {
-      this._locationMarker.addTo(map);
-      map.setView(this._locationMarker.getLatLng(), Math.max(map.getZoom(), 16));
+    if (this.locationMarker$.value) {
+      this.locationMarker$.value.addTo(map);
+      map.setView(this.locationMarker$.value.getLatLng(), Math.max(map.getZoom(), 16));
     }
 
     this._map$.next(map);
@@ -570,7 +590,6 @@ export class MapComponent extends AbstractComponent {
         }
       )
     );
-    this.refreshTools();
 
     //L.rectangle(this.getFollowLocationBounds(map), {color: 'yellow'}).addTo(map);
   }
@@ -582,7 +601,7 @@ export class MapComponent extends AbstractComponent {
     if (fromTrack) {
       result.push(new MapTrackPointReference(fromTrack, undefined, undefined, undefined, undefined, undefined))
     }
-    const allTracks = this._currentElements.filter(e => e instanceof MapTrack);
+    const allTracks = this.currentElements$.value.filter(e => e instanceof MapTrack);
     const overlay = map.getPanes().overlayPane.firstElementChild?.firstElementChild; // svg > g > path
     if (overlay) {
       for (let i = 0; i < overlay.children.length; ++i) {
@@ -638,105 +657,46 @@ export class MapComponent extends AbstractComponent {
     }
   }
 
-  private initTools(): void {
-    const additionsTool = new AdditionsTool(this.mapId);
-    this.defaultRightToolsItems.splice(1, 0, additionsTool.toMenuItem(() => this.getToolContext()));
-    this.whenVisible.subscribe(combineLatest([this._map$, this._mapState.center$, this._mapState.zoomInt$]), ([map, center, zoom]) => {
-      additionsTool.refresh(this.getToolContext());
-    });
-
-    this.defaultRightToolsItems.push(
-      new MenuItem(),
-      new DownloadMapTool(this.downloadMapTrail).toMenuItem(() => this.getToolContext())
-    );
-    const screenLockService = this.injector.get(ScreenLockService);
-    const phoneLockTool = new PhoneLockTool(screenLockService);
-    this.defaultRightToolsItems.push(phoneLockTool.toMenuItem(() => this.getToolContext()));
-
-    const toolShowPosition = new MapShowPositionTool();
-    this.defaultLeftToolsItems.push(
-      new MenuItem(),
-      toolShowPosition.toMenuItem(() => this.getToolContext()),
-      new MapCenterOnPositionTool(() => !!this._locationMarker, this._followingLocation$).toMenuItem(() => this.getToolContext())
-    );
-
-    // handle recording and position
-    this.whenAlive.add(
-      combineLatest([
-        this._mapState.live$,
-        this.mapGeolocation.position$,
-        this.mapGeolocation.recorder.current$,
-        this.mapGeolocation.showPosition$,
-        screenLockService.available$,
-        screenLockService.enabled$,
-        this.disableShowPosition$,
-      ]).subscribe(
-        ([live, position, recording, showPosition, screenLockAvailable, screenLockEnabled, nbPosDisabled]) => {
-          if (!live) return;
-          // show position tool only if not recording
-          // show phone lock only if recording
-          const positionToolWasVisible = toolShowPosition.visible;
-          const positionToolWasActive = toolShowPosition.icon === 'pin-off';
-          const phoneLockToolWasVisible = phoneLockTool.visible;
-          const phoneLockToolWasActive = phoneLockTool.enabled;
-          phoneLockTool.available = screenLockAvailable;
-          phoneLockTool.enabled = screenLockEnabled;
-          if (recording) {
-            toolShowPosition.visible = false;
-            phoneLockTool.visible = phoneLockTool.available;
-          } else {
-            if (nbPosDisabled > 0) {
-              toolShowPosition.visible = false;
-            } else {
-              toolShowPosition.visible = true;
-              toolShowPosition.icon = showPosition ? 'pin-off' : 'pin';
-            }
-            phoneLockTool.visible = false;
-          }
-          // show position
-          if (position && nbPosDisabled === 0) {
-            this.showLocation(position.lat, position.lng, position.active ? '#2020FF' : '#555');
-          } else {
-            this.hideLocation();
-          }
-          if (toolShowPosition.visible !== positionToolWasVisible || (positionToolWasVisible && showPosition !== positionToolWasActive) || phoneLockTool.visible !== phoneLockToolWasVisible || phoneLockToolWasActive !== phoneLockTool.enabled)
-            this.refreshTools();
-        }
-      )
-    );
-
-    this.updateTools();
-  }
-
   private updateTools(): void {
-    this.leftToolsItems = [...this.defaultLeftToolsItems, ...this.leftTools];
-    this.rightToolsItems = [...this.defaultRightToolsItems, ...this.rightTools];
+    this.leftToolsItems = this.leftTools ? combineMenuSources([this.defaultLeftToolsItems, this.leftTools]) : this.defaultLeftToolsItems;
+    this.rightToolsItems = this.rightTools ? combineMenuSources([this.defaultRightToolsItems, this.rightTools]) : this.defaultLeftToolsItems;
   }
 
-  public refreshTools(): void {
-    if (this.toolbars) for (const tb of this.toolbars) tb.refresh();
-  }
-
-  public getToolContext(): MapToolContext | undefined {
-    const map = this._map$.value;
-    if (!map) return undefined;
-    return {injector: this.injector, mapComponent: this, map};
-  }
-
-  leftToolsItems: MenuItem[] = [];
-  defaultLeftToolsItems: MenuItem[] = [
-    new ZoomInTool().toMenuItem(() => this.getToolContext()),
-    new ZoomLevelTool().toMenuItem(() => this.getToolContext()).setTextSize('11px').setCssClass('no-space'),
-    new ZoomOutTool().toMenuItem(() => this.getToolContext()).setCssClass('no-space'),
-    new MenuItem(),
-    new MapFitBoundsTool().toMenuItem(() => this.getToolContext()),
-    new MenuItem(),
-    new GoBackTool().toMenuItem(() => this.getToolContext()),
-  ];
-  rightToolsItems: MenuItem[] = [];
-  defaultRightToolsItems: MenuItem[] = [
-    new MapLayerSelectionTool().toMenuItem(() => this.getToolContext()),
-    new DarkMapToggleTool().toMenuItem(() => this.getToolContext()),
-  ];
+  public readonly toolsContext$: Observable<MapToolContext | undefined> = this._map$.pipe(
+    map(m => m ? {injector: this.injector, mapComponent: this, map: m} : undefined),
+  );
+  leftToolsItems: MenuSource = [];
+  private readonly defaultLeftToolsItems = this.toolsContext$.pipe(
+    map(context => {
+      if (!context) return [];
+      return [
+        new MenuItem(new ZoomInTool().toMenuItemConfig(context)),
+        new MenuItem({...new ZoomLevelTool().toMenuItemConfig(context), textSize: '11px', cssClass: 'no-space'}),
+        new MenuItem({...new ZoomOutTool().toMenuItemConfig(context), cssClass: 'no-space'}),
+        new MenuSeparator(),
+        new MenuItem(new MapFitBoundsTool().toMenuItemConfig(context)),
+        new MenuSeparator(),
+        new MenuItem(new GoBackTool().toMenuItemConfig(context)),
+        new MenuSeparator(),
+        new MenuItem(new MapShowPositionTool(this.mapGeolocation, this.disableShowPosition$).toMenuItemConfig(context)),
+        new MenuItem(new MapCenterOnPositionTool(this.locationMarker$.pipe(map(marker => !!marker)), this._followingLocation$).toMenuItemConfig(context)),
+      ];
+    })
+  );
+  rightToolsItems: MenuSource = [];
+  private readonly additionsTool = new AdditionsTool();
+  private readonly defaultRightToolsItems = this.toolsContext$.pipe(
+    map(context => {
+      if (!context) return [];
+      return [
+        new MenuItem(new MapLayerSelectionTool().toMenuItemConfig(context)),
+        new MenuItem(this.additionsTool.toMenuItemConfig(context)),
+        new MenuItem(new DarkMapToggleTool().toMenuItemConfig(context)),
+        new MenuSeparator(),
+        new MenuItem(new DownloadMapTool(this.downloadMapTrail).toMenuItemConfig(context)),
+        new MenuItem(new PhoneLockTool(this.injector.get(ScreenLockService), this.mapGeolocation).toMenuItemConfig(context)),
+      ];
+    })
+  );
 
 }

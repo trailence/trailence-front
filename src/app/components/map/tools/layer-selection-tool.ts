@@ -6,14 +6,11 @@ import { Observable } from 'rxjs';
 
 export class MapLayerSelectionTool extends MapTool {
 
-  constructor() {
-    super();
-    this.icon = 'layers';
-    this.execute = (ctx: MapToolContext) => this._execute(ctx);
-  }
+  override menuItemConfig = {
+    icon: 'layers',
+  };
 
-
-  private _execute(ctx: MapToolContext): Observable<any> {
+  override execute = (ctx: MapToolContext) => {
     const modalController = ctx.injector.get(ModalController);
     return new Observable(subscriber => {
       import('../../map-layer-selection/map-layer-selection.component')

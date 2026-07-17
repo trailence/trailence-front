@@ -7,6 +7,7 @@ import { StringUtils } from 'src/app/utils/string-utils';
 import { AssetsService } from '../assets/assets.service';
 import { Console } from 'src/app/utils/console';
 import { DomSanitizer } from '@angular/platform-browser';
+import { ObjectUtils } from 'src/app/utils/object-utils';
 
 const TEXTS_VERSION = '65';
 
@@ -472,6 +473,10 @@ export class I18nService {
         );
       })
     );
+  }
+
+  public translate$(i18nKey: string): Observable<string> {
+    return this.texts$.pipe(map(texts => ObjectUtils.extractField(texts, i18nKey)));
   }
 
   public translateValue(value: any): string {

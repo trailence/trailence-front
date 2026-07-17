@@ -39,7 +39,7 @@ import { TrackEditToolsComponent } from '../track-edit-tools/track-edit-tools.co
 import { TrackEditToolComponent, TrackEditToolsStack } from '../track-edit-tools/tools/track-edit-tools-stack';
 import { TrailSelection } from './trail-selection';
 import { RangeReference } from 'src/app/model/point-reference';
-import { MenuItem } from '../menus/menu-item';
+import { MenuElement, MenuItem, MenuSeparator } from '../menus/menu-item';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { TrailSourceType } from 'src/app/model/dto/trail';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
@@ -191,33 +191,34 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   @Input() recording$?: Observable<Recording | null>;
   @Input() tab: TAB_TYPE = 'map';
 
-  showOriginal$ = new BehaviorSubject<boolean>(false);
-  showOsmTrack$ = new BehaviorSubject<boolean>(false);
-  showPhotos$ = new BehaviorSubject<boolean>(false);
-  reverseWay$ = new BehaviorSubject<boolean>(false);
+  readonly showOriginal$ = new BehaviorSubject<boolean>(false);
+  readonly showOsmTrack$ = new BehaviorSubject<boolean>(false);
+  readonly showPhotos$ = new BehaviorSubject<boolean>(false);
+  readonly reverseWay$ = new BehaviorSubject<boolean>(false);
 
-  id = IdGenerator.generateId();
-  trail1WithInfo$ = new BehaviorSubject<TrailWithInfo | null>(null);
-  trail2WithInfo$ = new BehaviorSubject<TrailWithInfo | null>(null);
-  recording: Recording | null = null;
-  tracks$ = new BehaviorSubject<Track[]>([]);
-  toolsOriginalTrack$ = new BehaviorSubject<Track | undefined>(undefined);
-  toolsBaseTrack$ = new BehaviorSubject<Track | undefined>(undefined);
-  toolsModifiedTrack$ = new BehaviorSubject<Track | undefined>(undefined);
-  toolsHideBaseTrack$ = new BehaviorSubject<boolean>(false);
-  mapElements$ = new BehaviorSubject<MapElement[]>([]);
+  readonly id = IdGenerator.generateId();
+  readonly trail1WithInfo$ = new BehaviorSubject<TrailWithInfo | null>(null);
+  readonly trail2WithInfo$ = new BehaviorSubject<TrailWithInfo | null>(null);
+  readonly _recording$ = new BehaviorSubject<Recording | null>(null);
+  readonly tracks$ = new BehaviorSubject<Track[]>([]);
+  readonly toolsOriginalTrack$ = new BehaviorSubject<Track | undefined>(undefined);
+  readonly toolsBaseTrack$ = new BehaviorSubject<Track | undefined>(undefined);
+  readonly toolsModifiedTrack$ = new BehaviorSubject<Track | undefined>(undefined);
+  readonly toolsHideBaseTrack$ = new BehaviorSubject<boolean>(false);
+  readonly mapElements$ = new BehaviorSubject<MapElement[]>([]);
   photos: Photo[] | undefined;
-  photosHavingPosition: {photos: Photo[], point: L.LatLngExpression}[] | undefined;
+  readonly photosHavingPosition$ = new BehaviorSubject<{photos: Photo[], point: L.LatLngExpression}[] | undefined>(undefined);
   graphTrack1?: Track;
   graphTrack2?: Track;
-  graphZoomButtonPosition = new BehaviorSubject<{x: number, y: number} | undefined>(undefined);
-  myFeedback$ = new BehaviorSubject<MyFeedback | undefined>(undefined);
+  readonly graphZoomButtonPosition = new BehaviorSubject<{x: number, y: number} | undefined>(undefined);
+  readonly myFeedback$ = new BehaviorSubject<MyFeedback | undefined>(undefined);
   trailsForPhotoPopup: Observable<Trail | null>[] = [];
   currentLang: string;
-  liveGroups$ = new BehaviorSubject<LiveGroupDto[]>([]);
+  readonly liveGroups$ = new BehaviorSubject<LiveGroupDto[]>([]);
   hasOsmTrack = false;
-  hasMapMarkedTrails = false;
-  showMapMarkedTrails$ = new BehaviorSubject<boolean>(false);
+  readonly hasMapMarkedTrails$ = new BehaviorSubject<boolean>(false);
+  readonly showMapMarkedTrails$ = new BehaviorSubject<boolean>(false);
+  readonly positionningOnMap$ = new BehaviorSubject<Photo | undefined>(undefined);
 
   get trail1WithInfo(): TrailWithInfo | null { return this.trail1WithInfo$.value; }
   get trail2WithInfo(): TrailWithInfo | null { return this.trail2WithInfo$.value; }
@@ -261,23 +262,22 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   maxBottomSheetHeight?: number;
   isSmall = false;
 
-  editable = false;
+  readonly editable$ = new BehaviorSubject<boolean>(false);
   mine = false;
 
   hover: TrailHoverCursor;
   selection = new TrailSelection(this.map$, this.graph$);
 
-  trailsWaypoints: TrailsWaypoints;
+  trailsWaypoints = new TrailsWaypoints(this.selection, this.i18n, this.injector.get(OfflineMapService));
 
   comparison: number | undefined = undefined;
   isPublication = false;
-  publicationChecklist?: PublicationChecklist;
-  currentPublicTrailUuid?: string;
-  isShowPublicTrailsAround = false;
-  publicTrailsAroundMapTracks$ = new BehaviorSubject<MapTrack[]>([]);
-  canTakePhoto = false;
+  readonly publicationChecklist$ = new BehaviorSubject<PublicationChecklist | undefined>(undefined);
+  readonly currentPublicTrailUuid$ = new BehaviorSubject<string | undefined>(undefined);
+  readonly isShowPublicTrailsAround$ = new BehaviorSubject<boolean>(false);
+  readonly publicTrailsAroundMapTracks$ = new BehaviorSubject<MapTrack[]>([]);
   publishedTrail?: Trail;
-  showTextHtml = false;
+  readonly showTextHtml$ = new BehaviorSubject<boolean>(false);
 
   private _lock?: () => void;
   editingDescription = false;
@@ -286,135 +286,279 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   @ViewChild('sourceUrlEditor') sourceUrlEditor?: IonInput;
 
   toolsStack?: TrackEditToolsStack;
-  toolsEnabled = false;
+  readonly toolsEnabled$ = new BehaviorSubject<boolean>(false);
   @ViewChild('editTools') editTools?: TrackEditToolsComponent;
 
+  private readonly recordingMenu: MenuItem[] = [
+    new MenuItem({
+      icon: this._recording$.pipe(map(r => r?.paused ? 'play-circle' : 'pause-circle')),
+      label: combineLatest([this._recording$, this.i18n.texts$]).pipe(map(([r, texts]) => r?.paused ? texts.trace_recorder.resume : texts.trace_recorder.pause)),
+      visible: this._recording$.pipe(map(r => !!r)),
+      action: () => this.togglePauseRecordingWithoutConfirmation(),
+    }),
+    new MenuItem({
+      icon: 'stop-circle',
+      label: this.i18n.translate$('trace_recorder.stop'),
+      textColor: 'danger',
+      visible: this._recording$.pipe(map(r => !!r)),
+      action: () => this.stopRecordingWithoutConfirmation(),
+    }),
+  ];
+
   @ViewChild('toolbar') toolbar?: ToolbarComponent;
-  toolbarItems: MenuItem[] = [
-    new MenuItem().setIcon('download').setI18nLabel('pages.trail.actions.download_map')
-      .setVisible(() => !isPublicationCollection(this.trail1WithInfo?.collection?.type) && this.trail1?.fromModeration !== true)
-      .setAction(() => this.downloadMap()),
-    new MenuItem().setIcon('car').setI18nLabel('pages.trail.actions.go_to_departure')
-      .setVisible(() => !isPublicationCollection(this.trail1WithInfo?.collection?.type) && this.trail1?.fromModeration !== true && !this.recording)
-      .setAction(() => this.goToDeparture()),
-    new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.start_this_trail')
-      .setVisible(() => !!this.trail1 && !this.recording && !this.toolsEnabled && !isPublicationCollection(this.trail1WithInfo?.collection?.type) && this.trail1?.fromModeration !== true && !!this.auth.email)
-      .setAction(() => this.startTrail()),
-    new MenuItem().setIcon('check-list').setI18nLabel('publications.checklist')
-      .setVisible(() => !this.trail2 && !!this.publicationChecklist)
-      .setBadgeTopRight(() => ({ text: this.publicationChecklist?.nbUnchecked === 0 ? '✔' : '' + this.publicationChecklist?.nbChecked, color: 'success', fill: true }))
-      .setBadgeTopLeft(() => this.publicationChecklist?.nbUnchecked ? ({ text: '' + this.publicationChecklist?.nbUnchecked, color: 'warning', fill: true }) : undefined)
-      .setAction(() => this.openChecklist()),
-    new MenuItem().setIcon('compare').setI18nLabel('publications.compare_current')
-      .setVisible(() => !!this.currentPublicTrailUuid && !this.trail2 && !this.isShowPublicTrailsAround)
-      .setAction(() => this.compareToPublicTrail()),
-    new MenuItem().setIcon('compare').setI18nLabel('publications.exit_compare_current')
-      .setVisible(() => !!this.currentPublicTrailUuid && !!this.trail2)
-      .setAction(() => this.exitCompareToPublicTrail()),
-    new MenuItem().setIcon('privacy').setI18nLabel('publications.check_public_trails_around')
-      .setVisible(() => this.trail1?.fromModeration && !this.trail2 && !this.isShowPublicTrailsAround)
-      .setAction(() => this.showPublicTrailsAround()),
-    new MenuItem().setIcon('privacy').setI18nLabel('publications.exit_check_public_trails_around')
-      .setVisible(() => this.isShowPublicTrailsAround)
-      .setAction(() => this.hidePublicTrailsAround()),
-    new MenuItem().setIcon('text').setI18nLabel('publications.show_html_text')
-      .setVisible(() => this.trail1?.fromModeration && !this.showTextHtml)
-      .setAction(() => { this.showTextHtml = true; this.toolbarItems = [...this.toolbarItems]; this.changesDetection.detectChanges(); }),
-    new MenuItem().setIcon('text').setI18nLabel('publications.exit_show_html_text')
-      .setVisible(() => this.trail1?.fromModeration && this.showTextHtml)
-      .setAction(() => { this.showTextHtml = false; this.toolbarItems = [...this.toolbarItems]; this.changesDetection.detectChanges(); }),
-    new MenuItem().setIcon('web').setI18nLabel('publications.publish')
-      .setVisible(() => (this.trail1?.fromModeration || (!!this.publicationChecklist && !this.trail2)))
-      .setDisabled(() =>
-        (!this.trail1?.fromModeration && this.publicationChecklist?.nbUnchecked !== 0) ||
-        (!!this.trail1?.fromModeration && !this._translationsReady)
-      )
-      .setTextColor('success')
-      .setAction(() => this.publish()),
-    new MenuItem().setIcon('cross').setI18nLabel('publications.moderation.reject')
-      .setVisible(() => this.trail1?.fromModeration)
-      .setTextColor('danger')
-      .setAction(() => this.rejectPublication()),
-    new MenuItem().setIcon('undo').setI18nLabel('publications.reject_to_draft')
-      .setVisible(() => !!this.trail1 && !this.trail2 && this.trail1WithInfo?.collection?.type === TrailCollectionType.PUB_REJECT)
-      .setTextColor('success')
-      .setAction(() => this.rejectToDraft()),
-    new MenuItem().setIcon('web').setI18nLabel('publications.modify').setTextColor('secondary')
-      .setVisible(() => !!this.trail1WithInfo?.source?.info?.itsMine && !this.trail2)
-      .setAction(() => this.editPublication()),
-    new MenuItem().setIcon('web').setI18nLabel('publications.remove').setTextColor('danger')
-      .setVisible(() => !!this.trail1WithInfo?.source?.info?.itsMine && !this.trail2)
-      .setAction(() => this.deletePublication()),
-    new MenuItem().setIcon('trash').setI18nLabel('buttons.delete')
-      .setVisible(() => !!this.trail1 && !this.trail2 &&
-        (this.trail1WithInfo?.collection?.type === TrailCollectionType.PUB_DRAFT || this.trail1WithInfo?.collection?.type === TrailCollectionType.PUB_REJECT
-          //|| !!this.source?.info?.itsMine
-        )
-      )
-      .setTextColor('danger')
-      .setAction(() => this.cancelPublication()),
-    new MenuItem(),
-    new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.resume')
-      .setVisible(() => !!this.recording && this.recording.paused)
-      .setAction(() => this.togglePauseRecordingWithoutConfirmation()),
-    new MenuItem().setIcon('pause-circle').setI18nLabel('trace_recorder.pause')
-      .setVisible(() => !!this.recording && !this.recording.paused)
-      .setAction(() => this.togglePauseRecordingWithoutConfirmation()),
-    new MenuItem().setIcon('stop-circle').setI18nLabel('trace_recorder.stop')
-      .setVisible(() => !!this.recording)
-      .setAction(() => this.stopRecordingWithoutConfirmation()),
+  readonly toolbarItems: MenuElement<any>[] = [
+    new MenuItem({
+      icon: 'download',
+      label: this.i18n.translate$('pages.trail.actions.download_map'),
+      visible: this.trail1WithInfo$.pipe(map(t => !isPublicationCollection(t?.collection?.type) && t?.trail?.fromModeration !== true)),
+      action: () => this.downloadMap(),
+    }),
+    new MenuItem({
+      icon: 'car',
+      label: this.i18n.translate$('pages.trail.actions.go_to_departure'),
+      visible: combineLatest([this.trail1WithInfo$, this._recording$ ?? of(null)]).pipe(map(([t, r]) => !isPublicationCollection(t?.collection?.type) && t?.trail?.fromModeration !== true && !r)),
+      action: () => this.goToDeparture(),
+    }),
+    new MenuItem({
+      icon: 'play-circle',
+      label: this.i18n.translate$('trace_recorder.start_this_trail'),
+      visible: combineLatest([this.trail1WithInfo$, this._recording$ ?? of(null), this.auth.auth$, this.toolsEnabled$]).pipe(map(([t, r, a, tools]) => !!t && !isPublicationCollection(t.collection?.type) && !t.trail.fromModeration && !r && !!a && !tools)),
+      action: () => this.startTrail(),
+    }),
+    new MenuItem({
+      icon: 'check-list',
+      label: this.i18n.translate$('publications.checklist'),
+      visible: combineLatest([this.trail2WithInfo$, this.publicationChecklist$]).pipe(map(([t2, cl]) => !t2 && !!cl)),
+      badges: this.publicationChecklist$.pipe(map(cl => {
+        if (!cl) return undefined;
+        return {
+          topRight: { text: cl.nbUnchecked === 0 ? '✔' : '' + cl.nbChecked, color: 'success', fill: true },
+          topLeft: cl.nbUnchecked ? { text: '' + cl.nbUnchecked, color: 'warning', fill: true } : undefined,
+        };
+      })),
+      action: () => this.openChecklist(),
+    }),
+    new MenuItem({
+      icon: 'compare',
+      label: this.i18n.translate$('publications.compare_current'),
+      visible: combineLatest([this.trail2WithInfo$, this.currentPublicTrailUuid$, this.isShowPublicTrailsAround$]).pipe(
+        map(([t2, publicUuid, showTrailsAround]) => !!publicUuid && !showTrailsAround && !t2),
+      ),
+      action: () => this.compareToPublicTrail(),
+    }),
+    new MenuItem({
+      icon: 'compare',
+      label: this.i18n.translate$('publications.exit_compare_current'),
+      visible: combineLatest([this.trail2$ ?? of(null), this.currentPublicTrailUuid$, this.isShowPublicTrailsAround$]).pipe(
+        map(([t2, publicUuid]) => !!publicUuid && !!t2),
+      ),
+      action: () => this.exitCompareToPublicTrail(),
+    }),
+    new MenuItem({
+      icon: 'privacy',
+      label: this.i18n.translate$('publications.check_public_trails_around'),
+      visible: combineLatest([this.trail1WithInfo$ ?? of(null), this.trail2WithInfo$ ?? of(null), this.isShowPublicTrailsAround$]).pipe(
+        map(([t1, t2, showTrailsAround]) => t1?.trail?.fromModeration && !t2 && !showTrailsAround),
+      ),
+      action: () => this.showPublicTrailsAround(),
+    }),
+    new MenuItem({
+      icon: 'privacy',
+      label: this.i18n.translate$('publications.exit_check_public_trails_around'),
+      visible: this.isShowPublicTrailsAround$,
+      action: () => this.hidePublicTrailsAround(),
+    }),
+    new MenuItem({
+      icon: 'text',
+      label: this.i18n.translate$('publications.show_html_text'),
+      visible: combineLatest([this.trail1WithInfo$, this.showTextHtml$]).pipe(
+        map(([t1, show]) => t1?.trail?.fromModeration && !show),
+      ),
+      action: () => this.showTextHtml$.next(true),
+    }),
+    new MenuItem({
+      icon: 'text',
+      label: this.i18n.translate$('publications.exit_show_html_text'),
+      visible: combineLatest([this.trail1WithInfo$, this.showTextHtml$]).pipe(
+        map(([t1, show]) => t1?.trail?.fromModeration && show),
+      ),
+      action: () => this.showTextHtml$.next(false),
+    }),
+    new MenuItem({
+      icon: 'web',
+      label: this.i18n.translate$('publications.publish'),
+      visible: combineLatest([this.trail1WithInfo$, this.publicationChecklist$, this.trail2WithInfo$]).pipe(
+        map(([t1, cl, t2]) => t1?.trail?.fromModeration || (!!cl && !t2)),
+      ),
+      textColor: 'success',
+      action: () => this.publish(),
+    }),
+    new MenuItem({
+      icon: 'cross',
+      label: this.i18n.translate$('publications.moderation.reject'),
+      visible: this.trail1WithInfo$.pipe(map(t1 => t1?.trail?.fromModeration)),
+      textColor: 'danger',
+      action: () => this.rejectPublication(),
+    }),
+    new MenuItem({
+      icon: 'undo',
+      label: this.i18n.translate$('publications.reject_to_draft'),
+      visible: combineLatest([this.trail1WithInfo$, this.trail2WithInfo$]).pipe(map(([t1, t2]) => !!t1 && !t2 && t1.collection?.type === TrailCollectionType.PUB_REJECT)),
+      textColor: 'success',
+      action: () => this.rejectToDraft(),
+    }),
+    new MenuItem({
+      icon: 'web',
+      label: this.i18n.translate$('publications.modify'),
+      visible: combineLatest([this.trail1WithInfo$, this.trail2WithInfo$]).pipe(map(([t1, t2]) => !!t1?.source?.info?.itsMine && !t2)),
+      textColor: 'secondary',
+      action: () => this.editPublication(),
+    }),
+    new MenuItem({
+      icon: 'web',
+      label: this.i18n.translate$('publications.remove'),
+      visible: combineLatest([this.trail1WithInfo$, this.trail2WithInfo$]).pipe(map(([t1, t2]) => !!t1?.source?.info?.itsMine && !t2)),
+      textColor: 'danger',
+      action: () => this.deletePublication(),
+    }),
+    new MenuItem({
+      icon: 'trash',
+      label: this.i18n.translate$('buttons.delete'),
+      visible: combineLatest([this.trail1WithInfo$, this.trail2WithInfo$]).pipe(map(([t1, t2]) => !!t1 && !t2 && (t1.collection?.type === TrailCollectionType.PUB_DRAFT || t1.collection?.type === TrailCollectionType.PUB_REJECT))),
+      textColor: 'danger',
+      action: () => this.cancelPublication(),
+    }),
+    new MenuSeparator(),
+    ...this.recordingMenu
   ];
 
   mapToolbarTopRightMaxItems: number | undefined = undefined;
   @ViewChild('mapToolbarTopRight') mapToolbarTopRight?: ToolbarComponent;
-  mapToolbarTopRightItems: MenuItem[] = [
-    new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.resume')
-      .setVisible(() => !!this.recording?.paused)
-      .setAction(() => this.togglePauseRecordingWithConfirmation()),
-    new MenuItem().setIcon('pause-circle').setI18nLabel('trace_recorder.pause')
-      .setVisible(() => !!this.recording && !this.recording.paused)
-      .setAction(() => this.togglePauseRecordingWithConfirmation()),
-    new MenuItem().setIcon('stop-circle').setI18nLabel('trace_recorder.stop').setTextColor('danger')
-      .setVisible(() => !!this.recording && !this.recording.paused)
-      .setAction(() => this.stopRecordingWithConfirmation()),
-    new MenuItem(),
-    new MenuItem().setIcon('camera').setI18nLabel('pages.trail.take_photo')
-      .setVisible(() => !!this.recording && this.canTakePhoto)
-      .setAction(() => {
-        this.traceRecorder.takePhoto();
-      }),
-    new MenuItem().setIcon('location').setI18nLabel('track_edit_tools.tools.way_points.create_waypoint')
-      .setVisible(() => !!this.recording && this.recording.track.metadata.distance > 0 && !this.recording.track.wayPoints.some(wp => samePositionRound(this.recording!.track.arrivalPoint!.pos, wp.point.pos)))
-      .setAction(() => this.createWaypointOnRecording())
-      ,
-    new MenuItem(),
-    new MenuItem().setIcon('star-filled').setI18nLabel('trace_recorder.follow_this_trail')
-      .setVisible(() => !!this.recording && !!this.trail1 && !this.trail2 && (this.recording.followingTrailUuid !== this.trail1.uuid || this.recording.followingTrailOwner !== this.trail1.owner))
-      .setAction(() => this.confirmFollowThisTrail()),
-    new MenuItem().setIcon('reverse-way').setI18nLabel('pages.trail.reverse_way')
-      .setVisible(() => !!this.trail1 && !this.trail2 && !this.isPublication && !this.trail1.fromModeration)
-      .setTextColor(() => this.reverseWay$.value ? 'light' : 'dark')
-      .setBackgroundColor(() => this.reverseWay$.value ? 'dark' : '')
-      .setAction(() => this.reverseWay$.next(!this.reverseWay$.value)),
-    new MenuItem(),
-    new MenuItem()
-      .setVisible(() => !!this.recording)
-      .setIcon(() => this.trailService.getActivityIcon(this.recording?.trail?.activity))
-      .setI18nLabel('metadata.activity')
-      .setAction(() =>
-        import('../activity-popup/activity-popup.component')
-        .then(m => this.recording ? m.openActivityDialog(this.injector, [this.recording.trail], true) : undefined)
-        .then(() => this.refreshMapToolbarTop())
+  readonly mapToolbarTopRightItems: MenuElement<any>[] = [
+    ...this.recordingMenu,
+    new MenuSeparator(),
+    new MenuItem({
+      icon: 'camera',
+      label: this.i18n.translate$('pages.trail.take_photo'),
+      visible: this._recording$.pipe(
+        switchMap(r => {
+          if (!r) return of(false);
+          return from(this.injector.get(CameraService).canTakePhoto());
+        })
       ),
-    new MenuItem(),
-    new MenuItem().setIcon('tool').setI18nLabel('track_edit_tools.title')
-      .setVisible(() => this.canEdit())
-      .setAction(() => this.enableEditTools()),
+      action: () => this.traceRecorder.takePhoto(),
+    }),
+    new MenuItem({
+      icon: 'location',
+      label: this.i18n.translate$('track_edit_tools.tools.way_points.create_waypoint'),
+      visible: this._recording$.pipe(map(r => !!r && r.track.metadata.distance > 0 && !r.track.wayPoints.some(wp => samePositionRound(r.track.arrivalPoint!.pos, wp.point.pos)))),
+      action: () => this.createWaypointOnRecording(),
+    }),
+    new MenuSeparator(),
+    new MenuItem({
+      icon: 'star-filled',
+      label: this.i18n.translate$('trace_recorder.follow_this_trail'),
+      visible: combineLatest([this._recording$, this.trail1WithInfo$, this.trail2WithInfo$]).pipe(
+        map(([r, t1, t2]) => !!r && !!t1 && !t2 && (r.followingTrailUuid !== t1.trail.uuid || r.followingTrailOwner !== t1.trail.owner)),
+      ),
+      action: () => this.confirmFollowThisTrail(),
+    }),
+    new MenuItem({
+      icon: 'reverse-way',
+      label: this.i18n.translate$('pages.trail.reverse_way'),
+      textColor: this.reverseWay$.pipe(map(r => r ? 'light' : 'dark')),
+      backgroundColor: this.reverseWay$.pipe(map(r => r ? 'dark' : '')),
+      visible: combineLatest([this.trail1WithInfo$, this.trail2WithInfo$]).pipe(
+        map(([t1, t2]) => !!t1 && !t2 && !isPublicationCollection(t1.collection?.type) && !t1.trail.fromModeration),
+      ),
+      action: () => this.reverseWay$.next(!this.reverseWay$.value),
+    }),
+    new MenuSeparator(),
+    new MenuItem({
+      visible: this._recording$.pipe(map(r => !!r)),
+      icon: this._recording$.pipe(map(r => this.trailService.getActivityIcon(r?.trail?.activity))),
+      label: this.i18n.translate$('metadata.activity'),
+      action: () =>
+        import('../activity-popup/activity-popup.component')
+        .then(m => this._recording$.value ? m.openActivityDialog(this.injector, [this._recording$.value.trail], true) : undefined)
+    }),
+    new MenuSeparator(),
+    new MenuItem({
+      icon: 'tool',
+      label: this.i18n.translate$('track_edit_tools.title'),
+      visible: this.canEdit$(),
+      action: () => this.enableEditTools(),
+    }),
   ];
   private refreshMapToolbarTop() { this.mapToolbarTopRightItems = [...this.mapToolbarTopRightItems]; this.changesDetection.detectChanges(); }
 
-  mapToolbarRightItems: MenuItem[] = [
+  readonly mapToolbarRightItems: MenuElement<any>[] = [
+    new MenuSeparator(),
+    new MenuItem({
+      icon: 'privacy',
+      children: [
+        new MenuItem({
+          icon: 'map-anchor',
+          label: this.i18n.translate$('pages.trail.map_elements.waypoints'),
+          disabled: this.trailsWaypoints.canShowWaypointsOnMap$().pipe(map(can => !can)),
+          selected: this.trailsWaypoints.canShowWaypointsOnMap$().pipe(switchMap(can => can ? this.trailsWaypoints.showWaypointsOnMap$ : of(false))),
+          action: event => {
+            event.stopPropagation();
+            event.preventDefault();
+            this.trailsWaypoints.toggleShowWaypointsOnMap();
+            this.changesDetection.detectChanges();
+          }
+        }),
+        new MenuItem({
+          icon: 'hourglass',
+          label: this.i18n.translate$('pages.trail.map_elements.breaks'),
+          disabled: combineLatest([this.trailsWaypoints.canShowBreaksOnMap$(), this.positionningOnMap$]).pipe(map(([can, p]) => !can || !!p)),
+          selected: combineLatest([this.trailsWaypoints.canShowBreaksOnMap$(), this.positionningOnMap$]).pipe(switchMap(([can, p]) => can && !p ? this.trailsWaypoints.showAllBreaks$ : of(false))),
+          action: event => {
+            event.stopPropagation();
+            event.preventDefault();
+            this.trailsWaypoints.toggleShowAllBreaks();
+            this.changesDetection.detectChanges();
+          }
+        }),
+        new MenuItem({
+          icon: 'poi-guidepost',
+          label: this.i18n.translate$('pages.trail.map_elements.guideposts'),
+          disabled: this.trailsWaypoints.canShowGuidepostsOnMap$().pipe(map(can => !can)),
+          selected: this.trailsWaypoints.canShowGuidepostsOnMap$().pipe(switchMap(can => can ? this.trailsWaypoints.showAllGuideposts$ : of(false))),
+          action: event => {
+            event.stopPropagation();
+            event.preventDefault();
+            this.trailsWaypoints.toggleShowAllGuideposts();
+            this.changesDetection.detectChanges();
+          }
+        }),
+        new MenuItem({
+          icon: 'photos',
+          label: this.i18n.translate$('pages.trail.map_elements.photos'),
+          disabled: combineLatest([this.photosHavingPosition$, this.positionningOnMap$]).pipe(map(([can, p]) => !can?.length || !!p)),
+          selected: combineLatest([this.showPhotos$, this.photosHavingPosition$, this.positionningOnMap$]).pipe(map(([show, can, p]) => can && !p && show)),
+          action: event => {
+            event.stopPropagation();
+            event.preventDefault();
+            this.showPhotos$.next(!this.showPhotos$.value);
+          }
+        }),
+        new MenuItem({
+          icon: 'trail-marking',
+          label: this.i18n.translate$('pages.trail.map_elements.marked_trails'),
+          disabled: combineLatest([this.hasMapMarkedTrails$, this.trail2WithInfo$]).pipe(map(([can, t2]) => !can || !!t2)),
+          selected: combineLatest([this.hasMapMarkedTrails$, this.trail2WithInfo$, this.showMapMarkedTrails$]).pipe(map(([can, t2, show]) => can && !t2 && show)),
+          action: event => {
+            event.stopPropagation();
+            event.preventDefault();
+            this.showMapMarkedTrails$.next(!this.showMapMarkedTrails$.value);
+          }
+        }),
+      ],
+    })
   ];
+
   private refreshMapToolbarRight() { this.mapToolbarRightItems = [...this.mapToolbarRightItems]; this.changesDetection.detectChanges(); }
 
   constructor(
@@ -442,7 +586,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         }
       }
     });
-    this.trailsWaypoints = new TrailsWaypoints(this.selection, i18n, injector.get(OfflineMapService));
     this.currentLang = this.preferencesService.preferences.lang;
   }
 
@@ -452,65 +595,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this.whenVisible.subscribe(this.trailsWaypoints.changes$.pipe(skip(1)), () => this.changesDetection.detectChanges());
     this.visible$.subscribe(() => this.updateDisplay());
     setTimeout(() => this.updateDisplay(), 0);
-    const showPhotoTool = new MenuItem()
-      .setIcon('photos')
-      .setI18nLabel('pages.trail.map_elements.photos')
-      .setDisabled(() => !this.photosHavingPosition?.length || !!this.positionningOnMap$.value)
-      .setSelected(() => this.showPhotos$.value && !!this.photosHavingPosition?.length && !this.positionningOnMap$.value)
-      .setAction((event) => {
-        event.stopPropagation();
-        event.preventDefault();
-        this.showPhotos$.next(!this.showPhotos$.value);
-        this.changesDetection.detectChanges();
-      });
-    const showBreaksTool = new MenuItem()
-      .setIcon('hourglass')
-      .setI18nLabel('pages.trail.map_elements.breaks')
-      .setDisabled(() => !!this.positionningOnMap$.value || !this.trailsWaypoints.canShowBreaksOnMap())
-      .setSelected(() => this.trailsWaypoints.isShowingAllBreaks() && !this.positionningOnMap$.value && this.trailsWaypoints.canShowBreaksOnMap())
-      .setAction((event) => {
-        event.stopPropagation();
-        event.preventDefault();
-        this.trailsWaypoints.toggleShowAllBreaks();
-        this.changesDetection.detectChanges();
-      });
-    const showWaypointsTool = new MenuItem()
-      .setIcon('map-anchor')
-      .setI18nLabel('pages.trail.map_elements.waypoints')
-      .setDisabled(() => !this.trailsWaypoints.canShowWaypointsOnMap())
-      .setSelected(() => this.trailsWaypoints.showWaypointsOnMap && this.trailsWaypoints.canShowWaypointsOnMap())
-      .setAction((event) => {
-        event.stopPropagation();
-        event.preventDefault();
-        this.trailsWaypoints.toggleShowWaypointsOnMap();
-        this.changesDetection.detectChanges();
-      });
-    const showGuidepostsTool = new MenuItem()
-      .setIcon('poi-guidepost')
-      .setI18nLabel('pages.trail.map_elements.guideposts')
-      .setDisabled(() => !this.trailsWaypoints.canShowGuidepostsOnMap())
-      .setSelected(() => this.trailsWaypoints.canShowGuidepostsOnMap() && this.trailsWaypoints.isShowingAllGuideposts())
-      .setAction((event) => {
-        event.stopPropagation();
-        event.preventDefault();
-        this.trailsWaypoints.toggleShowAllGuideposts();
-        this.changesDetection.detectChanges();
-      });
-    const showMarkedTrailsTool = new MenuItem()
-      .setIcon('trail-marking')
-      .setI18nLabel('pages.trail.map_elements.marked_trails')
-      .setDisabled(() => !!this.trail2 || !this.hasMapMarkedTrails)
-      .setSelected(() => !this.trail2 && this.hasMapMarkedTrails && this.showMapMarkedTrails$.value)
-      .setAction((event) => {
-        event.stopPropagation();
-        event.preventDefault();
-        this.showMapMarkedTrails$.next(!this.showMapMarkedTrails$.value);
-        this.changesDetection.detectChanges();
-      });
-    const showElementsTool = new MenuItem()
-      .setIcon('privacy')
-      .setChildren([showWaypointsTool, showBreaksTool, showGuidepostsTool, showPhotoTool, showMarkedTrailsTool]);
-    this.mapToolbarRightItems.push(new MenuItem(), showElementsTool);
     if (globalThis.location.hash === '#bottom-tab=live-group') {
       this.liveGroups$.pipe(first(groups => !!groups?.length)).subscribe(groups => {
         this.bottomSheetTab = 'live-group-' + groups[0].slug;
@@ -550,14 +634,13 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this.editingSourceUrl = false;
     this.trail1WithInfo$.next(null);
     this.trail2WithInfo$.next(null);
-    this.recording = null;
+    this._recording$.next(null);
     this.mine = false;
     this.photos = undefined;
     this.comparison = undefined;
-    this.currentPublicTrailUuid = undefined;
+    this.currentPublicTrailUuid$.next(undefined);
     this.tracks$.next([]);
     this.mapElements$.next([]);
-    this.canTakePhoto = false;
     this.trailsForPhotoPopup = [];
     this.trailsWaypoints.reset();
     this.publishedTrail = undefined;
@@ -566,7 +649,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     if (this.trail1$) this.trailsForPhotoPopup.push(this.trail1$);
     if (this.trail2$) this.trailsForPhotoPopup.push(this.trail2$);
     this.hasOsmTrack = false;
-    this.hasMapMarkedTrails = false;
+    this.hasMapMarkedTrails$.next(false);
     this.showMapMarkedTrails$.next(false);
     this.listenForTracks();
     this.listenForPhotos();
@@ -583,7 +666,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   private _jdMarker?: HTMLElement;
   ngAfterContentChecked(): void {
     let jd: any = undefined;
-    if (this.trail1WithInfo && !this.trail2 && !this.recording && this.trail1WithInfo.trail.owner === 'trailence' && this.tracks$.value.length > 0) {
+    if (this.trail1WithInfo && !this.trail2 && !this._recording$.value && this.trail1WithInfo.trail.owner === 'trailence' && this.tracks$.value.length > 0) {
       if (this._jdTrail !== this.trail1WithInfo.trail || this._jdPhotos !== (this.photos && this.photos.length > 0)) {
         jd = {
           "@context": "https://schema.org",
@@ -674,7 +757,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         if (this.trail2 !== trail2.trail) {
           this.trail2WithInfo$.next(trail2.trail ? new TrailWithInfo(trail2.trail) : null);
         }
-        this.recording = recordingWithTrack ? recordingWithTrack.recording : null;
+        this._recording$.next(recordingWithTrack ? recordingWithTrack.recording : null);
         const tracks: Track[] = [];
         const mapElements: MapElement[] = [];
         this.graphTrack1 = undefined;
@@ -1052,11 +1135,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         switchMap(t => this.injector.get(ModerationService).getPublicUuid(t.publishedFromUuid!, t.owner)), // NOSONAR
         take(1),
       ),
-      uuid => {
-        this.currentPublicTrailUuid = uuid;
-        this.toolbarItems = [...this.toolbarItems];
-        this.changesDetection.detectChanges();
-      }
+      uuid => this.currentPublicTrailUuid$.next(uuid)
     );
   }
 
@@ -1196,7 +1275,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             switchMap(photosWithPoint => combineLatest([of(photosWithPoint), mapZoom$])),
             debounceTimeExtended(0, 100, 3),
             switchMap(([photosWithPoint, zoom]) => {
-              this.photosHavingPosition = photosWithPoint;
+              this.photosHavingPosition$.next(photosWithPoint);
               this.trailsWaypoints.updatePhotos(photosWithPoint);
               if (photosWithPoint.length === 0 || !showPhotos) return of([]);
               const markers$: Observable<{key: string, marker: L.Marker} | undefined | null>[] = [];
@@ -1318,12 +1397,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
 
   private listenForRecordingUpdates(): void {
     if (!this.recording$) return;
-    this.injector.get(CameraService).canTakePhoto().then(canTakePhoto => {
-      if (canTakePhoto) {
-        this.canTakePhoto = true;
-        this.refreshMapToolbarTop();
-      }
-    });
     const trackChanges$ = this.recording$.pipe(switchMap(r => r ? concat(of(r), r.track.changes$.pipe(map(() => r))) : of(undefined)));
     let previousDistance = 0;
     this.byStateAndVisible.subscribe(
@@ -1618,7 +1691,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     }
   }
 
-  positionningOnMap$ = new BehaviorSubject<Photo | undefined>(undefined);
   mapToolbarPositionningPhotoItems: MenuItem[] = [
     new MenuItem().setSectionTitle(true).setI18nLabel('pages.trail.select_photo_position').setTextColor('secondary').setTextSize('12px'),
     new MenuItem().setIcon('checkmark').setTextColor('success').setI18nLabel('buttons.save')
@@ -1874,13 +1946,28 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   }
 
   canEdit(): boolean {
-    if (!this.editable) return false;
-    if (this.toolsEnabled) return false;
+    if (!this.editable$.value) return false;
+    if (this.toolsEnabled$.value) return false;
     if (this.trail2) return false;
     if (this.trail1?.owner !== this.auth.email && !this.trail1?.fromModeration) return false;
-    if (this.recording) return false;
+    if (this._recording$.value) return false;
     if (this.showOsmTrack$.value) return false;
     return true;
+  }
+
+  private canEdit$(): Observable<boolean> {
+    return combineLatest([
+      this.editable$,
+      this.toolsEnabled$,
+      this.trail1WithInfo$,
+      this.trail2WithInfo$,
+      this._recording$,
+      this.showOsmTrack$,
+      this.auth.auth$,
+    ]).pipe(
+      map(([editable, toolsEnabled, t1, t2, recording, showOsmTrack, auth]) => editable && !toolsEnabled && !t2 && !!auth && t1?.trail?.owner === auth.email && !t1?.trail.fromModeration && !recording && !showOsmTrack),
+      distinctUntilChanged()
+    );
   }
 
   highlightWayPoint(wp: TrackWayPoint, click: boolean): void {

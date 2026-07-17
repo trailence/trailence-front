@@ -4,7 +4,7 @@ import { handleMapOffline } from './map-tiles-layer-offline';
 import { NetworkService } from '../network/network.service';
 import { OfflineMapService } from './offline-map.service';
 import { ExtensionsService } from '../database/extensions.service';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
@@ -43,7 +43,7 @@ export class MapLayersService {
   public possibleLayers: string[];
   public overlays: MapLayer[];
 
-  private _darkMap = false;
+  private readonly darkMap$ = new BehaviorSubject<boolean>(false);
 
   constructor(private readonly injector: Injector) {
     this.layers = [
@@ -104,11 +104,12 @@ export class MapLayersService {
     return this.injector.get(HttpService).getBlob(url);
   }
 
-  public get darkMapEnabled(): boolean { return this._darkMap; }
+  public get darkMapEnabled(): boolean { return this.darkMap$.value; }
+  public get darkMapEnabled$(): Observable<boolean> { return this.darkMap$; }
 
   public toggleDarkMap(): void {
-    this._darkMap = !this._darkMap;
-    if (this._darkMap) {
+    this.darkMap$.next(!this.darkMap$.value);
+    if (this.darkMap$.value) {
       localStorage.setItem(LOCALSTORAGE_KEY_DARKMAP, "true");
       globalThis.document.body.classList.add('dark-map');
     } else {
@@ -117,7 +118,7 @@ export class MapLayersService {
     }
     const maps = globalThis.document.getElementsByTagName('app-map');
     for (let i = 0; i < maps.length; ++i) {
-      if (this._darkMap) {
+      if (this.darkMap$.value) {
         maps.item(i)!.classList.remove('light-theme');
         maps.item(i)!.classList.add('dark-theme');
       } else {
@@ -128,7 +129,7 @@ export class MapLayersService {
   }
 
   public applyDarkMap(element: HTMLElement): void {
-    element.classList.add(this._darkMap ? 'dark-theme' : 'light-theme');
+    element.classList.add(this.darkMap$.value ? 'dark-theme' : 'light-theme');
   }
 
 }

@@ -2,38 +2,59 @@
   [ngStyle]="styles"
   data-nosnippet
 >
-  @for (item of showItems; track item.id) {
-    @if (item.separator) {
-      <div class="separator"></div>
-    } @else if (item.item.customContentSelector) {
-      <ng-content [select]="item.item.customContentSelector"></ng-content>
-    } @else {
-      <div class="toolbar-item {{item.cssClass}}"
-        [ngClass]="{'disabled': item.disabled, 'section-title': item.sectionTitle}"
-        [ngStyle]="{'background-color': item.backgroundColor?.length ? 'var(--ion-color-' + item.backgroundColor + ')' : ''}"
-        (click)="itemClick(item, $event)"
-      >
-        @if (item.icon) {
-          <ion-icon
-            [name]="item.icon"
-            [color]="item.textColor ?? defaultIconColor"
-            [ngStyle]="{'width': (item.onlyIcon ? iconOnlySize : iconSize) + 'px', 'height': (item.onlyIcon ? iconOnlySize : iconSize) + 'px', 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
-          ></ion-icon>
-        }
-        @if (item.spinner) {
-          <ion-spinner
-            [name]="item.spinner"
-            [color]="item.textColor ?? defaultIconColor"
-            [ngStyle]="{'width': (item.onlyIcon ? iconOnlySize : iconSize) + 'px', 'height': (item.onlyIcon ? iconOnlySize : iconSize) + 'px', 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
-          ></ion-spinner>
-        }
-        @if (item.text$) {
-          <ion-label
-            [color]="item.textColor"
-            [ngStyle]="{'font-size': 'calc(max(var(--min-font-size), ' + (item.textSize ?? textSize) + '))', 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
-          >{{ item.text$ | async }}</ion-label>
-        }
-        @if (item.badges) {
+  @for (item of content; track $index) {
+    @switch (item.type) {
+      @case ('separator') {
+        <div class="separator"></div>
+      }
+      @case ('title') {
+        <div class="toolbar-item section-title {{item.cssClass}}"
+          [ngStyle]="{'background-color': item.backgroundColor?.length ? 'var(--ion-color-' + item.backgroundColor + ')' : ''}"
+        >
+          @if (item.icon) {
+            <ion-icon
+              [name]="item.icon"
+              [color]="item.textColor ?? defaultIconColor"
+              [ngStyle]="{'width': iconSize + 'px', 'height': iconSize + 'px', 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
+            ></ion-icon>
+          }
+          @if (item.title) {
+            <ion-label
+              [color]="item.textColor"
+              [ngStyle]="{'font-size': 'calc(max(var(--min-font-size), ' + (item.textSize ?? textSize) + '))', 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
+            >{{ item.title }}</ion-label>
+          }
+        </div>
+      }
+      @case ('custom') {
+        <ng-content [select]="item.contentSelector"></ng-content>
+      }
+      @case ('item') {
+        <div class="toolbar-item {{item.cssClass}} {{item.disabled ? 'disabled' : ''}}"
+          [ngStyle]="{'background-color': item.backgroundColor?.length ? 'var(--ion-color-' + item.backgroundColor + ')' : ''}"
+          (click)="itemClick(item, $event)"
+        >
+          @let onlyIcon = item.icon && !item.label;
+          @if (item.icon) {
+            <ion-icon
+              [name]="item.icon"
+              [color]="item.textColor ?? defaultIconColor"
+              [ngStyle]="{'width': (onlyIcon ? iconOnlySize : iconSize) + 'px', 'height': (onlyIcon ? iconOnlySize : iconSize) + 'px', 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
+            ></ion-icon>
+          }
+          @if (item.spinner) {
+            <ion-spinner
+              [name]="item.spinner"
+              [color]="item.textColor ?? defaultIconColor"
+              [ngStyle]="{'width': (onlyIcon ? iconOnlySize : iconSize) + 'px', 'height': (onlyIcon ? iconOnlySize : iconSize) + 'px', 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
+            ></ion-spinner>
+          }
+          @if (item.label) {
+            <ion-label
+              [color]="item.textColor"
+              [ngStyle]="{'font-size': 'calc(max(var(--min-font-size), ' + (item.textSize ?? textSize) + '))', 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
+            >{{ item.label }}</ion-label>
+          }
           @if (item.badges.topLeft) {
             <ion-badge class="badge-top-left badge-{{item.badges.topLeft.color}}">{{ item.badges.topLeft.text }}</ion-badge>
           }
@@ -46,8 +67,8 @@
           @if (item.badges.bottomRight) {
             <ion-badge class="badge-bottom-right badge-{{item.badges.bottomRight.color}}">{{ item.badges.bottomRight.text }}</ion-badge>
           }
-        }
-      </div>
+        </div>
+      }
     }
   }
 </div>

@@ -1,27 +1,157 @@
-import { Observable, first, forkJoin, map, of, switchMap } from "rxjs";
-import { I18nService } from "../../services/i18n/i18n.service";
-import { ObjectUtils } from "../../utils/object-utils";
-import { IdGenerator } from 'src/app/utils/component-utils';
+import { Observable, combineLatest, map, of, switchMap } from "rxjs";
 
-export type Attribute<T> = T | undefined | (() => T | undefined);
+export type MenuConfigAttribute<T> = T | Observable<T>;
 
-export interface BadgeConfig {
-  text: Attribute<string>;
-  color: Attribute<string>;
-  fill: Attribute<boolean>;
+export abstract class MenuElement<ComputedState> {
+  abstract state: Observable<ComputedState>;
+  getState(computed: ComputedMenuElement<ComputedState>): ComputedState {
+    return computed.state;
+  }
 }
 
-export interface BadgesConfig {
-  topLeft: Attribute<BadgeConfig>;
-  topRight: Attribute<BadgeConfig>;
-  bottomLeft: Attribute<BadgeConfig>;
-  bottomRight: Attribute<BadgeConfig>;
+export class MenuSection extends MenuElement<{content: ComputedMenuElement<any>[]}> {
+  constructor(
+    config: MenuSectionConfig,
+  ) {
+    super();
+    this.icon = fromConfig(config.icon);
+    this.label = fromConfig(config.label);
+    this.subLabels = fromConfigArray(config.subLabels);
+    this.backgroundColor = fromConfig(config.backgroundColor);
+    this.textColor = fromConfig(config.textColor);
+    this.textSize = fromConfig(config.textSize);
+    this.cssClass = fromConfig(config.cssClass);
+    this.showAsToolbarMin = config.showAsToolbarMin ?? 0;
+    this.showAsToolbarMax = config.showAsToolbarMax ?? 0;
+
+    this.state = fromConfig(config.content).pipe(
+      switchMap(content => computeMenuElements(content)),
+      map(content => ({content})),
+    );
+  }
+
+  icon: Observable<string | undefined>;
+  label: Observable<string | undefined>;
+  subLabels: Observable<string[]>;
+  backgroundColor: Observable<string | undefined>;
+  textColor: Observable<string | undefined>;
+  textSize: Observable<string | undefined>;
+  cssClass: Observable<string | undefined>;
+
+  state: Observable<{content: ComputedMenuElement<any>[]}>;
+
+  showAsToolbarMin: number;
+  showAsToolbarMax: number;
+
+}
+
+export interface MenuSectionConfig {
+  icon?: MenuConfigAttribute<string | undefined>; // NOSONAR
+  label?: MenuConfigAttribute<string | undefined>; // NOSONAR
+  subLabels?: MenuConfigAttribute<string | string[] | undefined>; // NOSONAR
+  backgroundColor?: MenuConfigAttribute<string | undefined>; // NOSONAR
+  textColor?: MenuConfigAttribute<string | undefined>; // NOSONAR
+  textSize?: MenuConfigAttribute<string | undefined>; // NOSONAR
+  cssClass?: MenuConfigAttribute<string | undefined>; // NOSONAR
+  showAsToolbarMin?: number;
+  showAsToolbarMax?: number;
+  content: MenuConfigAttribute<MenuElement<any>[]>;
+}
+
+export class MenuSeparator extends MenuElement<undefined> {
+  state = of(undefined);
+}
+
+export class MenuItem extends MenuElement<{visible: boolean, children: ComputedMenuElement<any>[] | undefined}> {
+  constructor(
+    config: MenuItemConfig,
+    public data?: any,
+  ) {
+    super();
+    this.state = fromConfig(config.visible).pipe(
+      switchMap(visible => {
+        if (visible === false) return of({visible: false, children: undefined});
+        if (visible === true)
+          return fromConfig(config.children).pipe(
+            switchMap(children => {
+              if (children !== undefined) return computeMenuElements(children).pipe(map(computed => ({visible: true, children: computed})));
+              return of({visible: true, children: undefined});
+            }),
+          );
+        return fromConfig(config.children).pipe(
+          switchMap(children => {
+            if (children === undefined) {
+              return of({visible: true, children: undefined});
+            }
+            return computeMenuElements(children).pipe(
+              switchMap(computed => {
+                if (computed.length > 0) return of({visible: true, children: computed});
+                return fromConfig(config.hiddenWhenNoChildren).pipe(
+                  map(hidden => {
+                    if (hidden === false) return {visible: true, children: []};
+                    return {visible: false, children: []};
+                  })
+                );
+              }),
+            );
+          })
+        );
+      })
+    );
+    this.disabled = fromConfig(config.disabled).pipe(map(disabled => disabled ?? false));
+    this.selected = fromConfig(config.selected);
+    this.icon = fromConfig(config.icon);
+    this.label = fromConfig(config.label);
+    this.subLabels = fromConfigArray(config.subLabels);
+    this.backgroundColor = fromConfig(config.backgroundColor);
+    this.textColor = fromConfig(config.textColor);
+    this.textSize = fromConfig(config.textSize);
+    this.spinner = fromConfig(config.spinner);
+    this.cssClass = fromConfig(config.cssClass);
+    this.badges = fromConfig(config.badges).pipe(map(badges => badges ?? {}));
+    this.action = config.action;
+  }
+
+  state: Observable<{visible: boolean, children: ComputedMenuElement<any>[] | undefined}>;
+  disabled: Observable<boolean>;
+  selected: Observable<boolean | undefined>;
+  icon: Observable<string | undefined>;
+  label: Observable<string | undefined>;
+  subLabels: Observable<string[]>;
+  backgroundColor: Observable<string | undefined>;
+  textColor: Observable<string | undefined>;
+  textSize: Observable<string | undefined>;
+  spinner: Observable<string | undefined>;
+  cssClass: Observable<string | undefined>;
+  badges: Observable<Badges>;
+  action?: (event: Event) => void;
+}
+
+export interface MenuItemConfig {
+  visible?: MenuConfigAttribute<boolean | undefined>; // NOSONAR
+  children?: MenuConfigAttribute<MenuElement<any>[] | undefined>; // NOSONAR
+  hiddenWhenNoChildren?: MenuConfigAttribute<boolean | undefined>; // NOSONAR
+
+  disabled?: MenuConfigAttribute<boolean | undefined>; // NOSONAR
+  selected?: MenuConfigAttribute<boolean | undefined>; // NOSONAR
+
+  icon?: MenuConfigAttribute<string | undefined>; // NOSONAR
+  label?: MenuConfigAttribute<string | undefined>; // NOSONAR
+  subLabels?: MenuConfigAttribute<string | string[] | undefined>; // NOSONAR
+  backgroundColor?: MenuConfigAttribute<string | undefined>; // NOSONAR
+  textColor?: MenuConfigAttribute<string | undefined>; // NOSONAR
+  textSize?: MenuConfigAttribute<string | undefined>; // NOSONAR
+  spinner?: MenuConfigAttribute<string | undefined>; // NOSONAR
+  cssClass?: MenuConfigAttribute<string | undefined>; // NOSONAR
+  badges?: MenuConfigAttribute<Badges | undefined>; // NOSONAR
+
+  action?: (event: Event) => void;
 }
 
 export interface Badge {
   text: string;
-  color: string;
-  fill: boolean;
+  color?: string;
+  fill?: boolean;
 }
 
 export interface Badges {
@@ -31,531 +161,131 @@ export interface Badges {
   bottomRight?: Badge;
 }
 
-export class MenuItem {
-
-  public icon: Attribute<string>;
-  public i18nLabel: Attribute<string>;
-  public label: Attribute<string>;
-  public subLabel: Attribute<string | string[]>;
-  public backgroundColor: Attribute<string>;
-  public textColor: Attribute<string>;
-  public textSize: Attribute<string>;
-  public disabled: Attribute<boolean>;
-  public visible: Attribute<boolean>;
-  public badges: Attribute<BadgesConfig>;
-  public spinner: Attribute<string>;
-  public cssClass: Attribute<string>;
-  public sectionTitle?: boolean;
-  public children?: MenuItem[];
-  public childrenProvider?: () => Observable<MenuItem[]>;
-  public customContentSelector?: string;
-  public selected: Attribute<boolean>;
-  public action?: (event: Event) => void;
-  public data?: any;
-
-  public setIcon(icon: Attribute<string>): this {
-    this.icon = icon;
-    return this;
-  }
-
-  public setFixedLabel(label: Attribute<string>): this {
-    this.label = label;
-    return this;
-  }
-
-  public setI18nLabel(label: Attribute<string>): this {
-    this.i18nLabel = label;
-    return this;
-  }
-
-  public setSubLabel(subLabel: Attribute<string | string[]>): this {
-    this.subLabel = subLabel;
-    return this;
-  }
-
-  public setSpinner(spinner: Attribute<string>): this {
-    this.spinner = spinner;
-    return this;
-  }
-
-  public setAction(action?: (event: Event) => void): this {
-    this.action = action;
-    return this;
-  }
-
-  public setData(data?: any): this {
-    this.data = data;
-    return this;
-  }
-
-  public setBackgroundColor(color: Attribute<string>): this {
-    this.backgroundColor = color;
-    return this;
-  }
-
-  public setTextColor(color: Attribute<string>): this {
-    this.textColor = color;
-    return this;
-  }
-
-  public setCssClass(css: Attribute<string>): this {
-    this.cssClass = css;
-    return this;
-  }
-
-  public setSectionTitle(title?: boolean): this {
-    this.sectionTitle = title;
-    return this;
-  }
-
-  public setChildren(items: MenuItem[]): this {
-    this.children = items;
-    return this;
-  }
-
-  public setChildrenProvider(provider: () => Observable<MenuItem[]>): this {
-    this.childrenProvider = provider;
-    return this;
-  }
-
-  public setDisabled(disabled: Attribute<boolean>): this {
-    this.disabled = disabled;
-    return this;
-  }
-
-  public setSelected(selected: Attribute<boolean>): this {
-    this.selected = selected;
-    return this;
-  }
-
-  public setVisible(visible: Attribute<boolean>): this {
-    this.visible = visible;
-    return this;
-  }
-
-  public addVisibleCondition(visible: Attribute<boolean>): this {
-    const previous = this.visible;
-    if (previous === undefined) return this.setVisible(visible);
-    return this.setVisible(() => {
-      const v = typeof visible === 'function' ? visible() : visible;
-      if (!v) return false;
-      return typeof previous === 'function' ? previous(): previous;
-    });
-  }
-
-  public setBadges(badges: Attribute<BadgesConfig>): this {
-    this.badges = badges;
-    return this;
-  }
-
-  public setBadgeTopRight(badge: Attribute<BadgeConfig>): this {
-    this.badges ??= {topRight: undefined, topLeft: undefined, bottomRight: undefined, bottomLeft: undefined};
-    (this.badges as BadgesConfig).topRight = badge;
-    return this;
-  }
-
-  public setBadgeTopLeft(badge: Attribute<BadgeConfig>): this {
-    this.badges ??= {topRight: undefined, topLeft: undefined, bottomRight: undefined, bottomLeft: undefined};
-    (this.badges as BadgesConfig).topLeft = badge;
-    return this;
-  }
-
-  public setBadgeBottomRight(badge: Attribute<BadgeConfig>): this {
-    this.badges ??= {topRight: undefined, topLeft: undefined, bottomRight: undefined, bottomLeft: undefined};
-    (this.badges as BadgesConfig).bottomRight = badge;
-    return this;
-  }
-
-  public setBadgeBottomLeft(badge: Attribute<BadgeConfig>): this {
-    this.badges ??= {topRight: undefined, topLeft: undefined, bottomRight: undefined, bottomLeft: undefined};
-    (this.badges as BadgesConfig).bottomLeft = badge;
-    return this;
-  }
-
-  public setCustomContentSelector(selector?: string): this {
-    this.customContentSelector = selector;
-    return this;
-  }
-
-  public setTextSize(size: Attribute<string>): this {
-    this.textSize = size;
-    return this;
-  }
-
-  public getChildren$(): Observable<MenuItem[]> {
-    if (this.children) {
-      if (this.childrenProvider) {
-        return this.childrenProvider().pipe(
-          map(list => [...list, ...this.children!])
-        );
-      }
-      return of(this.children);
-    }
-    if (this.childrenProvider) {
-      return this.childrenProvider();
-    }
-    return of([]);
-  }
-
-  public getIcon(): string | undefined {
-    if (typeof this.icon === 'function') return this.icon();
-    return this.icon;
-  }
-
-  public getSpinner(): string | undefined {
-    if (typeof this.spinner === 'function') return this.spinner();
-    return this.spinner;
-  }
-
-  public getTextColor(): string | undefined {
-    if (typeof this.textColor === 'function') return this.textColor();
-    return this.textColor;
-  }
-
-  public getBackgroundColor(): string | undefined {
-    if (typeof this.backgroundColor === 'function') return this.backgroundColor();
-    return this.backgroundColor;
-  }
-
-  public getSubLabel(): string[] {
-    const s = typeof this.subLabel === 'function' ? this.subLabel() : this.subLabel;
-    return s === undefined ? [] : Array.isArray(s) ? s : [s];
-  }
-
-  public isSeparator(): boolean {
-    return !this.action && !this.icon && !this.label && !this.i18nLabel && !this.customContentSelector;
-  }
-
-  public isSectionTitle(): boolean {
-    return this.sectionTitle ?? false;
-  }
-
-  public isDisabled(): boolean {
-    return this.disabled === undefined ? false : (typeof this.disabled === 'function' ? !!this.disabled() : this.disabled);
-  }
-
-  public isSelected(): boolean {
-    return this.selected === undefined ? false : (typeof this.selected === 'function' ? !!this.selected() : this.selected);
-  }
-
-  public isVisible(): boolean {
-    return this.visible === undefined ? true : (typeof this.visible === 'function' ? !!this.visible() : this.visible);
-  }
-
-  public getBadges(): Badges {
-    const badges: Badges = { topLeft: undefined, topRight: undefined, bottomLeft: undefined, bottomRight: undefined };
-    const config = this.badges === undefined ? undefined : typeof this.badges === 'function' ? this.badges() : this.badges;
-    if (config === undefined) return badges;
-    badges.topLeft = this.resolveBadge(config.topLeft);
-    badges.topRight = this.resolveBadge(config.topRight);
-    badges.bottomLeft = this.resolveBadge(config.bottomLeft);
-    badges.bottomRight = this.resolveBadge(config.bottomRight);
-    return badges;
-  }
-
-  private resolveBadge(badge: Attribute<BadgeConfig>): Badge | undefined {
-    const config = badge === undefined ? undefined : typeof badge === 'function' ? badge() : badge;
-    if (config === undefined) return undefined;
-    const result: Badge = {
-      text: (typeof config.text === 'function' ? config.text() : config.text) ?? '',
-      color: (typeof config.color === 'function' ? config.color() : config.color) ?? '',
-      fill: (typeof config.fill === 'function' ? config.fill() : config.fill) ?? false,
-    };
-    if (result.text === '') return undefined;
-    return result;
-  }
-
-  public getTextSize(): string | undefined {
-    if (typeof this.textSize === 'function') return this.textSize();
-    return this.textSize;
-  }
-
-  public getCssClass(): string | undefined {
-    if (typeof this.cssClass === 'function') return this.cssClass();
-    return this.cssClass;
-  }
-
-}
-
-export class ComputedMenuItems {
-
+export class MenuItemCustom extends MenuElement<{visible: boolean}> {
   constructor(
-    private readonly i18n: I18nService,
-  ) {}
-
-  public items: ComputedMenuItem[] = [];
-
-  private _allItems: ComputedMenuItem[] = [];
-  private _visibility = new Map<ComputedMenuItem, boolean>();
-  private _maxItems?: number;
-  private _moreItem?: MenuItem;
-  private _moreComputed?: ComputedMenuItem;
-
-  public setMoreMenu(
-    maxItems: number | undefined = undefined,
-    icon: string | undefined = 'more-menu',
-    label: string | undefined = 'tools.more',
-  ): void {
-    this._maxItems = maxItems;
-    this._moreItem = this._maxItems ? new MenuItem().setIcon(icon).setI18nLabel(label).setChildren([]) : undefined;
-  }
-
-  public refresh(): Observable<boolean> {
-    return this.compute(this._allItems);
-  }
-
-  public compute(items?: (MenuItem | ComputedMenuItem)[]): Observable<boolean> {
-    const newItems = items ?? [];
-    let changed = false;
-
-    // refresh list
-    const newAllItems: ComputedMenuItem[] = [];
-    for (const item of newItems) {
-      if (item === this._moreComputed) continue;
-      const existing = this._allItems.find(c => c === item || c.item === item);
-      if (existing) {
-        newAllItems.push(existing);
-      } else {
-        const newItem = item instanceof ComputedMenuItem ? item : new ComputedMenuItem(item, this.i18n);
-        newAllItems.push(newItem);
-        changed = true;
-      }
-    }
-    this._allItems = newAllItems;
-
-    // refresh visibility
-    return (this._allItems.length === 0 ? of([]) : forkJoin(this._allItems.map(i => i.refreshVisible$()))).pipe(
-      switchMap(itemsChanged => {
-        changed = changed || itemsChanged.reduce((p, n) => p || n, false);
-        this.hideEmptySections();
-        this.hideConsecutiveSeparators();
-        this.hideFirstSeparators();
-        this.hideLastSeparators();
-        if (this.isOnlyTitles()) {
-          for (const item of this._allItems) {
-            if (item.visible) {
-              item.visible = false;
-            }
-          }
-        }
-        this.computeMaxItems();
-
-        // compute result of visibility, removing the hidden ones
-        const visibleItems: ComputedMenuItem[] = [];
-        const newVisibility = new Map<ComputedMenuItem, boolean>();
-        for (const item of this._allItems) {
-          const previousVisible = !!this._visibility.get(item);
-          if (previousVisible !== item.visible) changed = true;
-          newVisibility.set(item, item.visible);
-          if (item.visible) visibleItems.push(item);
-        }
-        this._visibility = newVisibility;
-        this.items.splice(0, this.items.length, ...visibleItems);
-
-        // finally refresh only visible items
-        for (const item of this.items) changed = item.refresh() || changed;
-
-        if (!this._moreComputed?.visible)
-          return of(changed);
-        return this._moreComputed.children.compute(this._moreComputed.item.children).pipe(map(() => changed));
-      }),
-    );
-  }
-
-  private hideFirstSeparators() {
-    do {
-      const item = this.firstVisible();
-      if (!item?.separator) break;
-      item.visible = false;
-    } while (true);
-  }
-
-  private firstVisible(): ComputedMenuItem | undefined {
-    for (const item of this._allItems) if (item.visible) return item;
-    return undefined;
-  }
-
-  private hideLastSeparators() {
-    do {
-      const item = this.lastVisible();
-      if (!item?.separator) break;
-      item.visible = false;
-    } while (true);
-  }
-
-  private lastVisible(): ComputedMenuItem | undefined {
-    for (let i = this._allItems.length - 1; i >= 0; --i) if (this._allItems[i].visible) return this._allItems[i];
-    return undefined;
-  }
-
-  private hideConsecutiveSeparators(): void {
-    let previous = true;
-    for (const item of this._allItems) {
-      if (!item.visible) continue;
-      if (item.separator) {
-        if (previous) {
-          item.visible = false;
-        } else previous = true;
-      } else {
-        previous = false;
-      }
-    }
-  }
-
-  private hideEmptySections(): void {
-    let currentSectionTitle: ComputedMenuItem | undefined = undefined;
-    let currentSectionHasContent = false;
-    for (const item of this._allItems) {
-      if (!item.visible) continue;
-      if (item.sectionTitle) {
-        // new section
-        if (currentSectionTitle !== undefined) {
-          if (!currentSectionHasContent) {
-            currentSectionTitle.visible = false;
-          }
-        }
-        currentSectionTitle = item;
-        currentSectionHasContent = false;
-      } else if (!item.separator) {
-        currentSectionHasContent = true;
-      }
-    }
-    if (currentSectionTitle !== undefined && !currentSectionHasContent) {
-      currentSectionTitle.visible = false;
-    }
-  }
-
-  private isOnlyTitles(): boolean {
-    for (const item of this._allItems) {
-      if (!item.visible) continue;
-      if (!!item.item.action || !!item.item.customContentSelector || !!item.children.firstVisible()) return false;
-    }
-    return true;
-  }
-
-  private computeMaxItems(): void {
-    if (this._maxItems === undefined) return;
-    this._moreItem!.children = [];
-    let itemIndex = 0;
-    for (const item of this._allItems) {
-      if (!item.separator && item.visible) {
-        itemIndex++;
-      }
-      if (itemIndex > this._maxItems) {
-        item.visible = false;
-        if (this._moreItem!.children.length > 0 || !item.separator) {
-          this._moreItem!.children.push(item.item);
-        }
-      }
-    }
-    if (!this._moreComputed || this._moreComputed.item !== this._moreItem)
-      this._moreComputed = new ComputedMenuItem(this._moreItem!, this.i18n);
-    this._moreComputed.visible = this._moreItem!.children.some(item => !item.isSeparator() && item.isVisible());
-    if (this._moreComputed.visible) this._allItems.push(this._moreComputed);
-  }
-
-}
-
-export class ComputedMenuItem {
-
-  public id = IdGenerator.generateId();
-  public readonly separator: boolean;
-  public clickable: boolean = true;
-  public children = new ComputedMenuItems(this.i18n);
-  public disabled: boolean = false;
-  public visible: boolean = true;
-  public icon?: string;
-  public text$?: Observable<string>;
-  public textColor?: string;
-  public textSize: string | undefined | (() => string | undefined);
-  public subText: string[] = [];
-  public backgroundColor?: string;
-  public badges: Badges = { topLeft: undefined, topRight: undefined, bottomLeft: undefined, bottomRight: undefined };
-  public sectionTitle: boolean = false;
-  public selected: boolean = false;
-  public onlyText = false;
-  public onlyIcon = false;
-  public cssClass: string = '';
-  public spinner: string | undefined;
-
-  private i18nKey?: string;
-  private fixedLabel?: string;
-
-  constructor(
-    public item: MenuItem,
-    private readonly i18n: I18nService,
+    config: MenuItemCustomConfig,
   ) {
-    this.separator = item.isSeparator();
-  }
-
-  public refreshVisible$(): Observable<boolean> {
-    this.visible = this.item.isVisible();
-    if (!this.visible) return of(false);
-    // visibility depends on presence of children
-    if (this.item.children === undefined && this.item.childrenProvider === undefined) {
-      return of(false);
-    }
-    return this.item.getChildren$().pipe(
-      first(),
-      switchMap(children => this.children.compute(children)),
-      map(childrenChanged => {
-        let changed = childrenChanged;
-        const hasChildren = this.children.items.some(child => child.visible);
-        if (!hasChildren) {
-          this.visible = false;
-          return false;
-        }
-        changed = this.setValue(this.clickable, hasChildren, v => this.clickable = v) || changed;
-        return changed;
-      }),
+    super();
+    this.contentSelector = config.contentSelector;
+    this.state = fromConfig(config.visible).pipe(
+      map(visible => ({visible: visible ?? true})),
     );
   }
 
-  public refresh(): boolean { // NOSONAR
-    let changed = false;
-    changed = this.setValue(this.i18nKey, this.item.i18nLabel ? typeof this.item.i18nLabel === 'string' ? this.item.i18nLabel : this.item.i18nLabel() : undefined, v => this.i18nKey = v) || changed;
-    changed = this.setValue(this.fixedLabel, this.i18nKey ? undefined : this.item.label ? typeof this.item.label === 'string' ? this.item.label : this.item.label() : undefined, v => this.fixedLabel = v) || changed;
-    if (this.i18nKey) this.text$ = this.i18n.texts$.pipe(map(texts => ObjectUtils.extractField(texts, this.i18nKey ?? 'x')));
-    else if (this.fixedLabel) this.text$ = of(this.fixedLabel);
-    else this.text$ = undefined;
-    changed = this.setValue(this.subText, this.item.getSubLabel(), v => this.subText = v) || changed;
-    changed = this.setValue(this.disabled, this.item.isDisabled(), v => this.disabled = v) || changed;
-    changed = this.setValue(this.selected, this.item.isSelected(), v => this.selected = v) || changed;
-    changed = this.setValue(this.icon, this.item.getIcon(), v => this.icon = v) || changed;
-    changed = this.setValue(this.spinner, this.item.getSpinner(), v => this.spinner = v) || changed;
-    changed = this.setValue(this.textColor, this.disabled ? 'disabled' : this.item.getTextColor(), v => this.textColor = v) || changed;
-    changed = this.setValue(this.backgroundColor, this.disabled ? undefined : this.item.getBackgroundColor(), v => this.backgroundColor = v) || changed;
-    changed = this.setValue(this.sectionTitle, this.item.isSectionTitle(), v => this.sectionTitle = v) || changed;
-    changed = this.setValue(this.onlyText, this.icon === undefined, v => this.onlyText = v) || changed;
-    changed = this.setValue(this.onlyIcon, !!this.icon && !this.item.label && !this.item.i18nLabel, v => this.onlyIcon = v) || changed;
-    changed = this.setValue(this.textSize, this.item.getTextSize(), v => this.textSize = v) || changed;
-    changed = this.setValue(this.cssClass, this.item.getCssClass(), v => this.cssClass = v ?? '') || changed;
-    let newBadges = this.item.getBadges();
-    changed = this.setBadge(this.badges.topLeft, newBadges.topLeft, v => this.badges.topLeft = v) || changed;
-    changed = this.setBadge(this.badges.topRight, newBadges.topRight, v => this.badges.topRight = v) || changed;
-    changed = this.setBadge(this.badges.bottomLeft, newBadges.bottomLeft, v => this.badges.bottomLeft = v) || changed;
-    changed = this.setBadge(this.badges.bottomRight, newBadges.bottomRight, v => this.badges.bottomRight = v) || changed;
-    if (this.item.action || this.separator || (!this.item.children && !this.item.childrenProvider)) {
-      changed = this.setValue(this.clickable, !!this.item.action, v => this.clickable = v) || changed;
+  state: Observable<{visible: boolean}>;
+  contentSelector: string;
+}
+
+export interface MenuItemCustomConfig {
+  visible?: MenuConfigAttribute<boolean | undefined>; // NOSONAR
+  contentSelector: string;
+}
+
+function fromConfig<T>(config: MenuConfigAttribute<T>): Observable<T> {
+  if (config instanceof Observable) return config;
+  return of(config);
+}
+
+function fromConfigArray<T>(config: MenuConfigAttribute<T | T[] | undefined>): Observable<T[]> {
+  if (!config) return of([]);
+  if (!(config instanceof Observable)) config = of(config);
+  return config.pipe(map(value => {
+    if (Array.isArray(value)) return value;
+    if (value === undefined) return [];
+    return [value];
+  }));
+}
+
+export class ComputedMenuElement<T> {
+  constructor(
+    public readonly element: MenuElement<T>,
+    public readonly state: T,
+  ) {}
+}
+
+export function computeMenuElements(elements: MenuElement<any>[]): Observable<ComputedMenuElement<any>[]> {
+  if (elements.length === 0) return of([]);
+  return combineLatest(elements.map(element => element.state.pipe(map(state => new ComputedMenuElement(element, state))))).pipe(
+    map(items => {
+      items = removeNotVisibleItems(items);
+      removeConsecutiveSeparators(items);
+      removeFirstSeparators(items);
+      removeLastSeparators(items);
+      return items;
+    })
+  );
+}
+
+function removeNotVisibleItems(items: ComputedMenuElement<any>[]): ComputedMenuElement<any>[] {
+  const result: ComputedMenuElement<any>[] = [];
+  for (const item of items) {
+    if (item.element instanceof MenuSection) {
+      if (item.element.getState(item).content.length > 0) result.push(item);
+    } else if (item.element instanceof MenuItem) {
+      if (item.element.getState(item).visible) result.push(item);
+    } else if (item.element instanceof MenuSeparator) {
+      result.push(item);
+    } else if (item.element instanceof MenuItemCustom) {
+      if (item.element.getState(item).visible) result.push(item);
     }
-    return changed;
   }
+  return result;
+}
 
-  private setValue<T>(previous: T, newValue: T, setter: (value: T) => void): boolean {
-    if (newValue === previous) return false;
-    setter(newValue);
-    return true;
-  }
-
-  private setBadge(current: Badge | undefined, newValue: Badge | undefined, setter: (v: Badge | undefined) => void): boolean {
-    if (current === newValue) return false;
-    if (current === undefined || newValue === undefined) {
-      setter(newValue);
-      return true;
+function removeConsecutiveSeparators(items: ComputedMenuElement<any>[]): void {
+  let previous = true;
+  for (let i = 0; i < items.length; ++i) {
+    const item = items[i];
+    if (item.element instanceof MenuSeparator) {
+      if (previous) {
+        items.splice(i, 1);
+        i--;
+      } else {
+        previous = true;
+      }
+    } else {
+      previous = false;
     }
-    if (current.text === newValue.text && current.color === newValue.color && current.fill === newValue.fill) return false;
-    setter(newValue);
-    return true;
   }
+}
 
+function removeFirstSeparators(items: ComputedMenuElement<any>[]): void {
+  let i = 0;
+  while (i < items.length && items[i].element instanceof MenuSeparator) ++i;
+  if (i > 0) items.splice(0, i);
+}
+
+function removeLastSeparators(items: ComputedMenuElement<any>[]): void {
+  let i = 0;
+  while (i < items.length && items.at(-(i + 1)) instanceof MenuSeparator) ++i;
+  if (i > 0) items.splice(items.length - i, i);
+}
+
+
+export type MenuSource$ = Observable<MenuSection | MenuElement<any>[] | ComputedMenuElement<any>[]>;
+export type MenuSource = MenuSource$ | MenuSection | MenuElement<any>[] | ComputedMenuElement<any>[];
+
+export function combineMenuSources(sources: MenuSource[]): MenuSource {
+  if (sources.length === 0) return [];
+  if (sources.length === 1) return sources[0];
+  return combineLatest(sources.map(source => source instanceof Observable ? source : of(source))).pipe(
+    switchMap(s => {
+      const result: Observable<ComputedMenuElement<any>[]>[] = [];
+      for (const source of s) {
+        if (Array.isArray(source)) {
+          if (source.length > 0) {
+            if (source[0] instanceof ComputedMenuElement) result.push(of(source as ComputedMenuElement<any>[]));
+            else result.push(computeMenuElements(source as MenuElement<any>[]));
+          }
+        } else {
+          result.push(source.state.pipe(map(state => state.content)));
+        }
+      }
+      if (result.length === 0) return of([]);
+      if (result.length === 1) return result[0];
+      return combineLatest(result).pipe(
+        map(list => list.flat()),
+      );
+    })
+  )
 }

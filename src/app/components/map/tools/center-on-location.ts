@@ -1,21 +1,26 @@
-import { BehaviorSubject, of } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 import { MapTool, MapToolContext } from './tool.interface';
+import { MenuItemConfig } from '../../menus/menu-item';
 
 export class MapCenterOnPositionTool extends MapTool {
 
   constructor(
-    getVisible: () => boolean,
-    following$: BehaviorSubject<boolean>,
+    private readonly visible$: Observable<boolean>,
+    private readonly following$: Observable<boolean>,
   ) {
     super();
-    this.visible = (ctx: MapToolContext) => getVisible();
-    this.icon = 'center-on-location';
-    this.color = () => following$.value ? 'light' : 'dark';
-    this.backgroundColor = () => following$.value ? 'dark' : '';
-    this.execute = (ctx: MapToolContext) => {
-      ctx.mapComponent.toggleCenterOnLocation();
-      return of(true);
-    };
   }
+
+  override menuItemConfig: MenuItemConfig = {
+    icon: 'center-on-location',
+    visible: this.visible$,
+    textColor: this.following$.pipe(map(following => following ? 'light' : 'dark')),
+    backgroundColor: this.following$.pipe(map(following => following ? 'dark' : '')),
+  };
+
+  override execute = (ctx: MapToolContext) => {
+    ctx.mapComponent.toggleCenterOnLocation();
+    return of(true);
+  };
 
 }
