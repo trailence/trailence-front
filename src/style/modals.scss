@@ -44,7 +44,7 @@ ion-modal.full-screen {
 }
 
 ion-modal.semi-opaque {
-  --background: rgba(var(--ion-background-color-rgb), 0.8);
+  --modal-content-background: rgba(var(--ion-background-color-rgb), 0.66);
 }
 
 ion-modal.auto-height {
@@ -216,7 +216,7 @@ ion-modal:not(.modal-sheet) {
   ion-content::part(background) {
     background-color: var(--modal-content-background);
   }
-  div.modal-content {
+  .modal-content {
     background-color: var(--modal-content-background);
   }
 }
