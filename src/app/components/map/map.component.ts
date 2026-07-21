@@ -393,8 +393,8 @@ export class MapComponent extends AbstractComponent {
         fillOpacity: 0.33,
         stroke: true,
         className: 'leaflet-position-marker',
-        pane: 'markerPane',
-      });
+        pane: 'overAllPane'
+      } as any);
       this._locationMarker.on('add', ev => {
         (this._locationMarker as any)._renderer?._container?.classList?.add('position-circle-marker');
       });
@@ -525,8 +525,8 @@ export class MapComponent extends AbstractComponent {
       touchRotateInertia: 15,
     } as any);
     map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank">Leaflet</a>');
-    map.createPane('overTracksPane').style.zIndex = '401';
-    map.createPane('overAllPane').style.zIndex = '499';
+    map.createPane('overTracksPane', (map as any)._rotatePane).style.zIndex = '401';
+    map.createPane('overAllPane', (map as any)._rotatePane).style.zIndex = '499';
 
     map.on('resize', () => this.mapChanged(map));
     map.on('move', e => {

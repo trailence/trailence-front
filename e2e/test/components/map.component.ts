@@ -95,7 +95,7 @@ export class MapComponent extends Component {
   }
 
   public getGeolocationMarker() {
-    return this.getElement().$('div.leaflet-pane.leaflet-marker-pane path.leaflet-position-marker');
+    return this.getElement().$('div.leaflet-pane.leaflet-overAll-pane path.leaflet-position-marker');
   }
 
   public async selectLayer(name: string) {
