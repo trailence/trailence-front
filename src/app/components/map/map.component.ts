@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, Output, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
-import { MapState } from './map-state';
+import { MapState, RotateMode } from './map-state';
 import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, filter, first, map, of, switchMap, tap } from 'rxjs';
 import * as L from 'leaflet';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
@@ -34,6 +34,10 @@ import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
 import { AdditionsTool } from './tools/additions-tool';
 import { BoundsBuilder } from 'src/app/utils/leaflet-utils';
 import { MapElement } from './map-element';
+import { AssetsService } from 'src/app/services/assets/assets.service';
+import { RotateTool } from './tools/rotate-tool';
+import { GeolocationService } from 'src/app/services/geolocation/geolocation.service';
+import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -71,6 +75,7 @@ export class MapComponent extends AbstractComponent {
   id: string;
   private readonly _mapState = new MapState();
   private readonly _map$ = new BehaviorSubject<L.Map | undefined>(undefined);
+  private readonly jsLoaded: Promise<any>;
 
   @ViewChildren(ToolbarComponent) toolbars?: QueryList<ToolbarComponent>;
 
@@ -86,6 +91,8 @@ export class MapComponent extends AbstractComponent {
   ) {
     super(injector);
     this.id = IdGenerator.generateId('map-');
+    globalThis.L = L;
+    this.jsLoaded = injector.get(AssetsService).loadJs('leaflet-rotate.1.js'); // NOSONAR
   }
 
   protected override initComponent(): void {
@@ -116,7 +123,7 @@ export class MapComponent extends AbstractComponent {
     this.updateElements();
     if (!this.isEmbedded) {
       this.whenVisible.subscribe(
-        combineLatest([this._mapState.center$, this._mapState.zoomInt$, this._mapState.tilesName$, this._mapState.overlays$, this._mapState.additions$])
+        combineLatest([this._mapState.center$, this._mapState.zoomInt$, this._mapState.tilesName$, this._mapState.overlays$, this._mapState.additions$, this._mapState.rotateMode$, this._mapState.bearing$])
         .pipe(
           debounceTime(100),
           tap(() => this.refreshTools()),
@@ -141,13 +148,15 @@ export class MapComponent extends AbstractComponent {
         this._initMapTimeout = undefined;
       }
       if (!this.visible) return;
-      if (document.getElementById(this.id)?.clientHeight) {
-        this.createMap();
-        return;
-      }
-      this._initMapTimeout = setTimeout(() => {
-        this.initMap();
-      }, 250);
+      this.jsLoaded.then(() => {
+        if (document.getElementById(this.id)?.clientHeight) {
+          this.createMap();
+          return;
+        }
+        this._initMapTimeout = setTimeout(() => {
+          this.initMap();
+        }, 250);
+      });
     });
   }
 
@@ -478,6 +487,22 @@ export class MapComponent extends AbstractComponent {
     return this._map$.value?.options.crs ?? L.CRS.EPSG3857;
   }
 
+  public setRotationMode(mode: RotateMode): void {
+    this.getState().rotateMode = mode;
+    switch (mode) {
+      case RotateMode.NORTH:
+        this.setBearing(0);
+        break;
+    }
+    this.refreshTools();
+  }
+  public setBearing(bearing: number): void {
+    if (this.getState().rotateMode === RotateMode.NORTH) bearing = 0;
+    this.getState().bearing = bearing;
+    (this._map$.value as any)?.setBearing(bearing);
+    this.refreshTools();
+  }
+
   private readonly _zoomAnim$ = new BehaviorSubject<boolean>(false);
   private createMap(): void {
     const layer = this.mapLayersService.layers.find(lay => lay.name === this._mapState.tilesName)
@@ -493,7 +518,12 @@ export class MapComponent extends AbstractComponent {
       worldCopyJump: true,
       //zoomSnap: 0.5,
       //zoomDelta: 0.5,
-    });
+      rotate: true,
+      bearing: this._mapState.bearing,
+      touchGestures: true,
+      touchRotate: true,
+      touchRotateInertia: 15,
+    } as any);
     map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank">Leaflet</a>');
     map.createPane('overTracksPane').style.zIndex = '401';
     map.createPane('overAllPane').style.zIndex = '499';
@@ -541,6 +571,10 @@ export class MapComponent extends AbstractComponent {
     });
     map.on('zoomanim', e => {
       this._mapState.zoom = e.zoom;
+    });
+    map.on('touch-rotate', e => {
+      this.setRotationMode(RotateMode.CUSTOM);
+      this.setBearing((e as any).touchRotateBearing);
     });
 
     this.cursors.addTo(map);
@@ -670,8 +704,10 @@ export class MapComponent extends AbstractComponent {
         screenLockService.available$,
         screenLockService.enabled$,
         this.disableShowPosition$,
+        this.injector.get(GeolocationService).watched$.pipe(debounceTimeExtended(0, 100, 10, (p,n) => !!p !== !!n)),
+        this._mapState.rotateMode$,
       ]).subscribe(
-        ([live, position, recording, showPosition, screenLockAvailable, screenLockEnabled, nbPosDisabled]) => {
+        ([live, position, recording, showPosition, screenLockAvailable, screenLockEnabled, nbPosDisabled, watched, rotateMode]) => {
           if (!live) return;
           // show position tool only if not recording
           // show phone lock only if recording
@@ -699,7 +735,20 @@ export class MapComponent extends AbstractComponent {
           } else {
             this.hideLocation();
           }
-          if (toolShowPosition.visible !== positionToolWasVisible || (positionToolWasVisible && showPosition !== positionToolWasActive) || phoneLockTool.visible !== phoneLockToolWasVisible || phoneLockToolWasActive !== phoneLockTool.enabled)
+          let rotateChanged = false;
+          if (rotateMode === RotateMode.HEADING) {
+            if (watched) {
+              const bearing = Math.floor(watched.h ?? 0);
+              if (this.getState().bearing !== bearing) {
+                this.setBearing(bearing);
+                rotateChanged = true;
+              }
+            } else {
+              this.setRotationMode(RotateMode.NORTH);
+              rotateChanged = true;
+            }
+          }
+          if (toolShowPosition.visible !== positionToolWasVisible || (positionToolWasVisible && showPosition !== positionToolWasActive) || phoneLockTool.visible !== phoneLockToolWasVisible || phoneLockToolWasActive !== phoneLockTool.enabled || rotateChanged)
             this.refreshTools();
         }
       )
@@ -728,6 +777,8 @@ export class MapComponent extends AbstractComponent {
     new ZoomInTool().toMenuItem(() => this.getToolContext()),
     new ZoomLevelTool().toMenuItem(() => this.getToolContext()).setTextSize('11px').setCssClass('no-space'),
     new ZoomOutTool().toMenuItem(() => this.getToolContext()).setCssClass('no-space'),
+    new MenuItem(),
+    new RotateTool().toMenuItem(() => this.getToolContext()),
     new MenuItem(),
     new MapFitBoundsTool().toMenuItem(() => this.getToolContext()),
     new MenuItem(),

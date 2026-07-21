@@ -33,6 +33,7 @@ export class DbTable<DTO> {
   public backupEnabled = true;
 
   private readonly migrations: DbTableMigration[] = [];
+  public onMigrationsDone: () => void = () => {};
 
   public addMigration(migration: DbTableMigration): this {
     this.migrations.push(migration);
@@ -58,6 +59,7 @@ export class DbTable<DTO> {
         Console.info('Migration done for table ' + dexie.name + '/' + this.name + ': ' + migration.name + ' (to version ' + migration.version + ')');
       }
     }
+    this.onMigrationsDone();
     return version;
   }
 

@@ -11,6 +11,7 @@ export class GeolocationService implements IGeolocationService {
 
   private readonly _waitingForGps$ = new BehaviorSubject<boolean>(false);
   private readonly _lastKnownPosition$ = new BehaviorSubject<{position: PointDto, timestamp: number} | undefined>(undefined);
+  private readonly _watched$ = new BehaviorSubject<PointDto | undefined>(undefined);
 
   private watchId?: number;
   private readonly watchListeners: ({listener: (position: PointDto) => void, onerror?: (error: any) => void})[] = [];
@@ -28,6 +29,7 @@ export class GeolocationService implements IGeolocationService {
   public get waitingForGps() { return this._waitingForGps$.value; }
   public get lastKnownPosition$() { return this._lastKnownPosition$; }
   public get lastKnownPosition() { return this._lastKnownPosition$.value; }
+  public get watched$() { return this._watched$; }
 
   getState(): Promise<GeolocationState> {
     return globalThis.navigator.permissions.query({name: 'geolocation'})
@@ -116,6 +118,7 @@ export class GeolocationService implements IGeolocationService {
         globalThis.navigator.geolocation.clearWatch(this.watchId!);
         this.watchId = undefined;
         this._waitingForGps$.next(false);
+        this._watched$.next(undefined);
       }
     }
   }
@@ -138,6 +141,7 @@ export class GeolocationService implements IGeolocationService {
   private emitPosition(position: GeolocationPosition): void {
     this._waitingForGps$.next(false);
     const dto = this.positionToPointDto(position);
+    this._watched$.next(dto);
     for (const l of this.watchListeners)
       l.listener(dto);
   }

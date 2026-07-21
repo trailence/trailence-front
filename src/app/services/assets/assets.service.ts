@@ -90,4 +90,43 @@ export class AssetsService {
     return this.http.get(url);
   }
 
+  private readonly _jsLoaded: string[] = [];
+  private readonly _jsLoading = new Map<string, ((a:any) => void)[]>();
+
+  public loadJs(name: string, type?: string): Promise<any> {
+    return new Promise((resolve) => {
+      if (this._jsLoaded.includes(name)) {
+        resolve(null);
+        return;
+      }
+      const loading = this._jsLoading.get(name);
+      if (loading) {
+        loading.push(resolve);
+        return;
+      }
+      this._jsLoading.set(name, [resolve]);
+      const script = document.createElement('SCRIPT') as HTMLScriptElement;
+      script.onload = () => {
+        const listeners = this._jsLoading.get(name);
+        this._jsLoading.delete(name);
+        this._jsLoaded.push(name);
+        for (const listener of listeners!) listener(null);
+      }
+      if (type) script.type = type;
+      script.src = environment.assetsUrl + '/' + name;
+      document.body.appendChild(script);
+    });
+  }
+
+  private readonly _loadedCss: string[] = [];
+
+  public loadCss(name: string) {
+    if (this._loadedCss.includes(name)) return;
+    const style = document.createElement('LINK') as HTMLLinkElement;
+    style.rel = "stylesheet";
+    style.href = environment.assetsUrl + name;
+    document.getElementsByTagName('HEAD')[0].appendChild(style);
+    this._loadedCss.push(name);
+  }
+
 }

@@ -1711,5 +1711,10 @@
       "partial_data": "Certaines information n'ont pas été téléchargées, les résultats sont incomplets",
       "no_data": "Pas de données téléchargées"
     }
+  },
+  "mapRotate": {
+    "north": "Nord en haut",
+    "heading": "Suivi GPS",
+    "custom": "Manuel"
   }
 }

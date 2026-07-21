@@ -2,6 +2,12 @@ import { BehaviorSubject, distinctUntilChanged, map, Observable } from 'rxjs';
 import * as L from 'leaflet';
 import { MapAdditionsOptions } from 'src/app/services/map/map-additions.service';
 
+export enum RotateMode {
+  NORTH = 'north',
+  HEADING = 'heading',
+  CUSTOM = 'custom',
+}
+
 export class MapState {
 
   private readonly _live$ = new BehaviorSubject<boolean>(false);
@@ -10,6 +16,8 @@ export class MapState {
   private readonly _tilesName$ = new BehaviorSubject<string>('osm');
   private readonly _overlays$ = new BehaviorSubject<string[]>([]);
   private readonly _additions$ = new BehaviorSubject<MapAdditionsOptions>({});
+  private readonly _rotateMode$ = new BehaviorSubject<RotateMode>(RotateMode.NORTH);
+  private readonly _bearing$ = new BehaviorSubject<number>(0);
 
   public get live(): boolean { return this._live$.value; }
   public get live$(): Observable<boolean> { return this._live$; }
@@ -39,6 +47,21 @@ export class MapState {
   public get additions$(): Observable<MapAdditionsOptions> { return this._additions$; }
   public set additions(value: MapAdditionsOptions) { this._additions$.next(value); }
 
+  public get rotateMode(): RotateMode { return this._rotateMode$.value; }
+  public get rotateMode$(): Observable<RotateMode> { return this._rotateMode$; }
+  public set rotateMode(value: RotateMode) {
+    if (value === this._rotateMode$.value) return;
+    this._rotateMode$.next(value);
+    if (value === RotateMode.NORTH) this.bearing = 0;
+  }
+
+  public get bearing(): number { return this._bearing$.value; }
+  public get bearing$(): Observable<number> { return this._bearing$; }
+  public set bearing(value: number) {
+    if (value === this._bearing$.value) return;
+    this._bearing$.next(value);
+  }
+
   public load(key: string): void { // NOSONAR
     const stored = localStorage.getItem(key);
     if (stored) {
@@ -61,6 +84,8 @@ export class MapState {
         if (typeof aj['permissiveWays'] === 'boolean') additions.permissiveWays = aj['permissiveWays'];
         this.additions = additions;
       }
+      if (json['bearing'] && typeof json['bearing'] === 'number') this.bearing = json['bearing'];
+      if (json['rotateMode'] && Object.values(RotateMode).includes(json['rotateMode'])) this.rotateMode = json['rotateMode'];
     }
   }
 
@@ -72,6 +97,8 @@ export class MapState {
       tilesName: this.tilesName,
       overlays: this.overlays,
       additions: this.additions,
+      rotateMode: this.rotateMode,
+      bearing: this.bearing,
     }));
   }
 

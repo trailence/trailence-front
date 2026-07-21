@@ -26,6 +26,7 @@ import { PhotoService } from 'src/app/services/database/photo.service';
 import { Photo } from 'src/app/model/photo';
 import { PhotosSliderComponent } from '../photos-slider/photos-slider.component';
 import { computeWayPointsFromTrack, WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
+import { AssetsService } from 'src/app/services/assets/assets.service';
 
 export function openPdfPopup(injector: Injector, trail: Trail) {
   injector.get(ModalController).create({
@@ -256,11 +257,12 @@ export class PdfPopup implements OnInit, OnDestroy {
     this.blob = blob;
     this.pdfUrl = URL.createObjectURL(this.blob);
 
-    PdfGenerator.loadCss('/pdf-viewer/pdf_viewer.css');
-    await PdfGenerator.loadJs('pdf.min.mjs', 'module');
+    const assets = this.injector.get(AssetsService);
+    assets.loadCss('/pdf-viewer/pdf_viewer.css');
+    await assets.loadJs('pdf.min.mjs', 'module');
     progress(85);
     (globalThis as any).pdfjsLib.GlobalWorkerOptions.workerSrc = environment.assetsUrl + '/pdf.worker.min.mjs';
-    await PdfGenerator.loadJs('pdf-viewer/pdf_viewer.mjs', 'module');
+    await assets.loadJs('pdf-viewer/pdf_viewer.mjs', 'module');
     progress(90);
     if (counter !== this.generationCounter) return;
     this.pdfTask = (globalThis as any).pdfjsLib.getDocument(this.pdfUrl);

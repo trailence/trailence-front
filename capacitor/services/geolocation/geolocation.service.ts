@@ -67,6 +67,7 @@ export class GeolocationService implements IGeolocationService {
 
   private readonly _waitingForGps$ = new BehaviorSubject<boolean>(false);
   private readonly _lastKnownPosition$ = new BehaviorSubject<{position: PointDto, timestamp: number} | undefined>(undefined);
+  private readonly _watched$ = new BehaviorSubject<PointDto | undefined>(undefined);
 
   private watchBackgroundId?: string;
   private readonly watchListeners: ({listener: (position: PointDto) => void, onerror?: (error: any) => void})[] = [];
@@ -87,6 +88,7 @@ export class GeolocationService implements IGeolocationService {
   public get waitingForGps() { return this._waitingForGps$.value; }
   public get lastKnownPosition$() { return this._lastKnownPosition$; }
   public get lastKnownPosition() { return this._lastKnownPosition$.value; }
+  public get watched$() { return this._watched$; }
 
   public getState(): Promise<GeolocationState> {
     return BackgroundGeolocation.checkPermissions()
@@ -179,6 +181,7 @@ export class GeolocationService implements IGeolocationService {
         BackgroundGeolocation.removeWatcher({id: this.watchBackgroundId!}).then();
         this.watchBackgroundId = undefined;
         this._waitingForGps$.next(false);
+        this._watched$.next(undefined);
       }
     }
   }
@@ -201,6 +204,7 @@ export class GeolocationService implements IGeolocationService {
   private emitPosition(position: Location): void {
     this._waitingForGps$.next(false);
     const dto = this.backgroundLocationToPointDto(position);
+    this._watched$.next(dto);
     for (const l of this.watchListeners)
       l.listener(dto);
   }

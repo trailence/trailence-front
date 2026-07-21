@@ -20,6 +20,8 @@ export interface IGeolocationService {
   lastKnownPosition$: Observable<{position: PointDto, timestamp: number} | undefined>;
   lastKnownPosition: {position: PointDto, timestamp: number} | undefined;
 
+  watched$: Observable<PointDto | undefined>;
+
   getState(): Promise<GeolocationState>;
 
   getCurrentPosition(): Promise<PointDto>;

@@ -45,6 +45,7 @@ export class MenuItem {
   public badges: Attribute<BadgesConfig>;
   public spinner: Attribute<string>;
   public cssClass: Attribute<string>;
+  public cssVariables: Attribute<{[key: string]: string}>;
   public sectionTitle?: boolean;
   public children?: MenuItem[];
   public childrenProvider?: () => Observable<MenuItem[]>;
@@ -100,6 +101,11 @@ export class MenuItem {
 
   public setCssClass(css: Attribute<string>): this {
     this.cssClass = css;
+    return this;
+  }
+
+  public setCssVariables(variables: Attribute<{[key: string]: string}>): this {
+    this.cssVariables = variables;
     return this;
   }
 
@@ -273,6 +279,11 @@ export class MenuItem {
   public getCssClass(): string | undefined {
     if (typeof this.cssClass === 'function') return this.cssClass();
     return this.cssClass;
+  }
+
+  public getCssVariables(): {[key: string]: string} | undefined {
+    if (typeof this.cssVariables === 'function') return this.cssVariables();
+    return this.cssVariables;
   }
 
 }
@@ -476,7 +487,9 @@ export class ComputedMenuItem {
   public onlyText = false;
   public onlyIcon = false;
   public cssClass: string = '';
+  public cssVariables: {[key: string]: string} = {};
   public spinner: string | undefined;
+  public computedStyle: {[key: string]: string} = {};
 
   private i18nKey?: string;
   private fixedLabel?: string;
@@ -530,6 +543,7 @@ export class ComputedMenuItem {
     changed = this.setValue(this.onlyIcon, !!this.icon && !this.item.label && !this.item.i18nLabel, v => this.onlyIcon = v) || changed;
     changed = this.setValue(this.textSize, this.item.getTextSize(), v => this.textSize = v) || changed;
     changed = this.setValue(this.cssClass, this.item.getCssClass(), v => this.cssClass = v ?? '') || changed;
+    changed = this.setValue(this.cssVariables, this.item.getCssVariables() ?? {}, v => this.cssVariables = v) || changed;
     let newBadges = this.item.getBadges();
     changed = this.setBadge(this.badges.topLeft, newBadges.topLeft, v => this.badges.topLeft = v) || changed;
     changed = this.setBadge(this.badges.topRight, newBadges.topRight, v => this.badges.topRight = v) || changed;
@@ -537,6 +551,10 @@ export class ComputedMenuItem {
     changed = this.setBadge(this.badges.bottomRight, newBadges.bottomRight, v => this.badges.bottomRight = v) || changed;
     if (this.item.action || this.separator || (!this.item.children && !this.item.childrenProvider)) {
       changed = this.setValue(this.clickable, !!this.item.action, v => this.clickable = v) || changed;
+    }
+    this.computedStyle = {
+      ...this.cssVariables,
+      'background-color': this.backgroundColor?.length ? 'var(--ion-color-' + this.backgroundColor + ')' : '',
     }
     return changed;
   }

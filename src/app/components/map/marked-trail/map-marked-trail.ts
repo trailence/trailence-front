@@ -151,7 +151,7 @@ function buildMarkedTrails(sections: Section[], track: Track, osm: OsmWayMatchRe
     const icon = createIcon(section.symbols, removed, service);
     if (!icon) continue;
     const firstPoint = track.getPoint(section.firstPoint!);
-    let rotation = Math.round(getRotation(firstPoint) / 5) * 5;
+    let rotation = getRotation(firstPoint);
     result.push(new MapMarkedTrail(icon.svg, icon.height, firstPoint.pos, rotation, section.getRoutesNames(osm.waysOnTrack), service));
   }
   return result;
@@ -179,7 +179,7 @@ function getRotation(point: Point): number {
   const dx = (p2.pos.lng - p1.pos.lng) * Math.cos(meanLat);
   const dy = p2.pos.lat - p1.pos.lat;
 
-  return Math.atan2(dy, dx) * 180 / Math.PI;
+  return Math.atan2(dy, dx)/* * 180 / Math.PI*/;
 }
 
 function getSymbols(osm: OsmWayMatchResponse, point: OsmWaysTrackPoint): string[] {
@@ -224,17 +224,6 @@ function createIcon(added: string[], removed: string[], service: OsmcSymbolServi
   return {svg, height: y - gap};
 }
 
-const RotatedMarker = L.Marker.extend({
-  _setPos(pos: L.Point) {
-    (L.Marker.prototype as any)._setPos.call(this, pos);
-
-    if (this._icon && this.options.rotationAngle) {
-      this._icon.style.transform += ` rotate(${this.options.rotationAngle}deg)`;
-      if (this.options.rotationOrigin) this._icon.style.transformOrigin = this.options.rotationOrigin;
-    }
-  }
-});
-
 export class MapMarkedTrail implements MapElement {
 
   constructor(
@@ -253,17 +242,16 @@ export class MapMarkedTrail implements MapElement {
     if (this._map) return;
     this._map = map;
     if (this._osmc === undefined) {
-      this._osmc = new RotatedMarker() as L.Marker;
-      (this._osmc as any).initialize(this.pos, {
+      this._osmc = L.marker(this.pos, {
         icon: L.divIcon({
           html: '<div class="marked-trail">' + this.svg + '</div>',
           iconSize: [24, this.height],
           iconAnchor: [12, this.height / 2],
-          className: 'no-background',
+          className: 'no-background rotate-' + this.rotation,
         }),
-        rotationAngle: -this.rotation,
-        rotationOrigin: 'center center',
-      });
+        rotation: -this.rotation,
+        rotateWithView: true,
+      } as any);
       if (this.routesNames.size > 0) {
         const popup = document.createElement('DIV');
         for (const [symbol, names] of this.routesNames) {

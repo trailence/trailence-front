@@ -53,10 +53,11 @@ export class PdfGenerator {
     let roboto: ArrayBuffer;
     let robotoBold: ArrayBuffer;
     // progress: 10% for resources
+    const assetsService = injector.get(AssetsService);
     await Promise.all([
-      PdfGenerator.loadJs('blob-stream.js').then(() => percentDone(2)),
-      PdfGenerator.loadJs('pdfkit.standalone.js').then(() => percentDone(2)),
-      PdfGenerator.loadJs('svg-to-pdfkit.js').then(() => percentDone(2)),
+      assetsService.loadJs('blob-stream.js').then(() => percentDone(2)),
+      assetsService.loadJs('pdfkit.standalone.js').then(() => percentDone(2)),
+      assetsService.loadJs('svg-to-pdfkit.js').then(() => percentDone(2)),
       globalThis.fetch(environment.assetsUrl + '/Roboto-Regular.ttf').then(r => r.arrayBuffer()).then(b => {roboto = b; percentDone(2);}),
       globalThis.fetch(environment.assetsUrl + '/Roboto-Bold.ttf').then(r => r.arrayBuffer()).then(b => {robotoBold = b; percentDone(2);}),
     ]);
@@ -133,7 +134,7 @@ export class PdfGenerator {
       avatar: avatarImage,
       avatarSize: options.includeAvatar,
       photo: photoCtx,
-      assets: injector.get(AssetsService),
+      assets: assetsService,
       i18n: injector.get(I18nService),
       preferences,
       injector,
@@ -367,46 +368,6 @@ export class PdfGenerator {
     }
     work.elevationDone();
   }
-
-  private static readonly _jsLoaded: string[] = [];
-  private static readonly _jsLoading = new Map<string, ((a:any) => void)[]>();
-
-  public static loadJs(name: string, type?: string): Promise<any> {
-    return new Promise((resolve) => {
-      if (this._jsLoaded.includes(name)) {
-        resolve(null);
-        return;
-      }
-      const loading = this._jsLoading.get(name);
-      if (loading) {
-        loading.push(resolve);
-        return;
-      }
-      this._jsLoading.set(name, [resolve]);
-      const script = document.createElement('SCRIPT') as HTMLScriptElement;
-      script.onload = function() {
-        const listeners = PdfGenerator._jsLoading.get(name);
-        PdfGenerator._jsLoading.delete(name);
-        PdfGenerator._jsLoaded.push(name);
-        for (const listener of listeners!) listener(null);
-      }
-      if (type) script.type = type;
-      script.src = environment.assetsUrl + '/' + name;
-      document.body.appendChild(script);
-    });
-  }
-
-  private static readonly _loadedCss: string[] = [];
-
-  public static loadCss(name: string) {
-    if (this._loadedCss.includes(name)) return;
-    const style = document.createElement('LINK') as HTMLLinkElement;
-    style.rel = "stylesheet";
-    style.href = environment.assetsUrl + name;
-    document.getElementsByTagName('HEAD')[0].appendChild(style);
-    this._loadedCss.push(name);
-  }
-
 }
 
 function createRoundedAvatar(blob: Blob): Promise<ArrayBuffer> {

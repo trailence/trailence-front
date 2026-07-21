@@ -25,12 +25,16 @@ export class DbTablesMetaBlob<MetaDto> {
     this.localFiles = injector.get(LocalFilesService);
     this.metaTable = new DbTable<MetaDto>(injector, tablesPrefix + '_' + metaTableSuffix, metaTableSchema, metaDtoKeyField);
     this.blobTable = new DbTable<BlobDto>(injector, tablesPrefix + '_' + blobTableSuffix, 'key', 'key');
-    if (this.localFiles.supported())
+    if (this.localFiles.supported()) {
       this.blobTable.addMigration({
         name: 'to local files',
         version: 10600,
         migration: (injector, dexie, table, localDir) => this.migrateToLocalFiles(injector, table, localDir),
       });
+      this.blobTable.onMigrationsDone = () => {
+        this.blobTable = undefined;
+      };
+    }
   }
 
   private readonly localFiles: LocalFilesService;

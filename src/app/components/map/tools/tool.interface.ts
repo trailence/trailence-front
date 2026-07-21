@@ -10,23 +10,22 @@ export interface MapToolContext {
   map: L.Map;
 }
 
-export type MapToolStringUndefinedFunction = string | undefined | ((ctx: MapToolContext) => string | undefined);
-export type MapToolStringFunction = string | undefined | ((ctx: MapToolContext) => string);
-export type MapToolBooleanFunction = boolean | ((ctx: MapToolContext) => boolean);
+export type MapToolFunction<T> = T | ((ctx: MapToolContext) => T);
 
 export abstract class MapTool {
 
-  icon: MapToolStringUndefinedFunction;
-  label: MapToolStringFunction;
-  i18n: MapToolStringFunction;
-  color: MapToolStringUndefinedFunction;
-  backgroundColor: MapToolStringUndefinedFunction = undefined;
-  disabled: MapToolBooleanFunction = false;
-  visible: MapToolBooleanFunction = true;
-  badges: BadgesConfig | undefined | ((ctx: MapToolContext) => BadgesConfig | undefined);
-  spinner: MapToolStringUndefinedFunction;
+  icon: MapToolFunction<string | undefined>;
+  label: MapToolFunction<string | undefined>;
+  i18n: MapToolFunction<string | undefined>;
+  color: MapToolFunction<string | undefined>;
+  backgroundColor: MapToolFunction<string | undefined> = undefined;
+  disabled: MapToolFunction<boolean> = false;
+  visible: MapToolFunction<boolean> = true;
+  badges: MapToolFunction<BadgesConfig | undefined>;
+  spinner: MapToolFunction<string | undefined>;
+  cssVariables: MapToolFunction<{[key: string]: string} | undefined>;
 
-  execute?: (ctx: MapToolContext) => Observable<any>;
+  execute?: (ctx: MapToolContext, event: Event) => Observable<any>;
 
   toMenuItem(contextGetter: () => MapToolContext | undefined): MenuItem {
     const item = new MenuItem()
@@ -37,10 +36,11 @@ export abstract class MapTool {
       .setBackgroundColor(this.toMenuFunction(() => this.backgroundColor, '', contextGetter))
       .setBadges(this.toMenuFunction(() => this.badges, undefined, contextGetter))
       .setSpinner(this.toMenuFunction(() => this.spinner, undefined, contextGetter))
-      .setAction(this.execute ? () => {
+      .setCssVariables(this.toMenuFunction(() => this.cssVariables, undefined, contextGetter))
+      .setAction(this.execute ? (event) => {
         const context = contextGetter();
         if (!context) return;
-        this.execute?.(context)?.subscribe({
+        this.execute?.(context, event)?.subscribe({
           complete: () => context.mapComponent.refreshTools(),
         });
       } : undefined)

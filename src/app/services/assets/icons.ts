@@ -42,6 +42,7 @@ export const ICONS: string[] = [
   'collection-move',
   'compare',
   'reverse-way',
+  'compass',
   'copy',
   'crop',
   'cross',

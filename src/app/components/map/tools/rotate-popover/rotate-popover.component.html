@@ -1,0 +1,105 @@
+<ion-list>
+  @let watching = geolocation.watched$ | async;
+  <ion-item lines="full" [button]="true" (click)="setNorth()">
+    <ion-icon name="compass" slot="start"></ion-icon>
+    <ion-label>{{i18n.texts.mapRotate.north}}</ion-label>
+  </ion-item>
+  @if (watching) {
+    <ion-item lines="full" [button]="true" (click)="setHeading()">
+      <ion-icon name="compass" slot="start" color="tertiary" style="--icon-rotate: 45deg;"></ion-icon>
+      <ion-label>{{i18n.texts.mapRotate.heading}}</ion-label>
+    </ion-item>
+  }
+  <ion-item lines="none">
+    <ion-icon name="compass" slot="start" color="secondary" style="--icon-rotate: -45deg;"></ion-icon>
+    <ion-label>{{i18n.texts.mapRotate.custom}}</ion-label>
+  </ion-item>
+  <div class="compass">
+    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="128px" height="128px" viewBox="0 0 128 128" (click)="setBearing($event)">
+      <g stroke="#808080" stroke-width="2">
+        <line id="tickMajor" x1="64" y1="0" x2="64" y2="8"/>
+        <use href="#tickMajor" transform="rotate(45 64 64)"/>
+        <use href="#tickMajor" transform="rotate(90 64 64)"/>
+        <use href="#tickMajor" transform="rotate(135 64 64)"/>
+        <use href="#tickMajor" transform="rotate(180 64 64)"/>
+        <use href="#tickMajor" transform="rotate(225 64 64)"/>
+        <use href="#tickMajor" transform="rotate(270 64 64)"/>
+        <use href="#tickMajor" transform="rotate(315 64 64)"/>
+      </g>
+      <g stroke="#808080" stroke-width="1">
+        <line id="tickMinor" x1="64" y1="4" x2="64" y2="8"/>
+
+        <use href="#tickMinor" transform="rotate(5 64 64)"/>
+        <use href="#tickMinor" transform="rotate(10 64 64)"/>
+        <use href="#tickMinor" transform="rotate(15 64 64)"/>
+        <use href="#tickMinor" transform="rotate(20 64 64)"/>
+        <use href="#tickMinor" transform="rotate(25 64 64)"/>
+        <use href="#tickMinor" transform="rotate(30 64 64)"/>
+        <use href="#tickMinor" transform="rotate(35 64 64)"/>
+        <use href="#tickMinor" transform="rotate(40 64 64)"/>
+        <use href="#tickMinor" transform="rotate(50 64 64)"/>
+        <use href="#tickMinor" transform="rotate(55 64 64)"/>
+        <use href="#tickMinor" transform="rotate(60 64 64)"/>
+        <use href="#tickMinor" transform="rotate(65 64 64)"/>
+        <use href="#tickMinor" transform="rotate(70 64 64)"/>
+        <use href="#tickMinor" transform="rotate(75 64 64)"/>
+        <use href="#tickMinor" transform="rotate(80 64 64)"/>
+        <use href="#tickMinor" transform="rotate(85 64 64)"/>
+        <use href="#tickMinor" transform="rotate(95 64 64)"/>
+        <use href="#tickMinor" transform="rotate(100 64 64)"/>
+        <use href="#tickMinor" transform="rotate(105 64 64)"/>
+        <use href="#tickMinor" transform="rotate(110 64 64)"/>
+        <use href="#tickMinor" transform="rotate(115 64 64)"/>
+        <use href="#tickMinor" transform="rotate(120 64 64)"/>
+        <use href="#tickMinor" transform="rotate(125 64 64)"/>
+        <use href="#tickMinor" transform="rotate(130 64 64)"/>
+        <use href="#tickMinor" transform="rotate(140 64 64)"/>
+        <use href="#tickMinor" transform="rotate(145 64 64)"/>
+        <use href="#tickMinor" transform="rotate(150 64 64)"/>
+        <use href="#tickMinor" transform="rotate(155 64 64)"/>
+        <use href="#tickMinor" transform="rotate(160 64 64)"/>
+        <use href="#tickMinor" transform="rotate(165 64 64)"/>
+        <use href="#tickMinor" transform="rotate(170 64 64)"/>
+        <use href="#tickMinor" transform="rotate(175 64 64)"/>
+        <use href="#tickMinor" transform="rotate(185 64 64)"/>
+        <use href="#tickMinor" transform="rotate(190 64 64)"/>
+        <use href="#tickMinor" transform="rotate(195 64 64)"/>
+        <use href="#tickMinor" transform="rotate(200 64 64)"/>
+        <use href="#tickMinor" transform="rotate(205 64 64)"/>
+        <use href="#tickMinor" transform="rotate(210 64 64)"/>
+        <use href="#tickMinor" transform="rotate(215 64 64)"/>
+        <use href="#tickMinor" transform="rotate(220 64 64)"/>
+        <use href="#tickMinor" transform="rotate(230 64 64)"/>
+        <use href="#tickMinor" transform="rotate(235 64 64)"/>
+        <use href="#tickMinor" transform="rotate(240 64 64)"/>
+        <use href="#tickMinor" transform="rotate(245 64 64)"/>
+        <use href="#tickMinor" transform="rotate(250 64 64)"/>
+        <use href="#tickMinor" transform="rotate(255 64 64)"/>
+        <use href="#tickMinor" transform="rotate(260 64 64)"/>
+        <use href="#tickMinor" transform="rotate(265 64 64)"/>
+        <use href="#tickMinor" transform="rotate(275 64 64)"/>
+        <use href="#tickMinor" transform="rotate(280 64 64)"/>
+        <use href="#tickMinor" transform="rotate(285 64 64)"/>
+        <use href="#tickMinor" transform="rotate(290 64 64)"/>
+        <use href="#tickMinor" transform="rotate(295 64 64)"/>
+        <use href="#tickMinor" transform="rotate(300 64 64)"/>
+        <use href="#tickMinor" transform="rotate(305 64 64)"/>
+        <use href="#tickMinor" transform="rotate(300 64 64)"/>
+        <use href="#tickMinor" transform="rotate(305 64 64)"/>
+        <use href="#tickMinor" transform="rotate(310 64 64)"/>
+        <use href="#tickMinor" transform="rotate(320 64 64)"/>
+        <use href="#tickMinor" transform="rotate(325 64 64)"/>
+        <use href="#tickMinor" transform="rotate(330 64 64)"/>
+        <use href="#tickMinor" transform="rotate(335 64 64)"/>
+        <use href="#tickMinor" transform="rotate(340 64 64)"/>
+        <use href="#tickMinor" transform="rotate(345 64 64)"/>
+        <use href="#tickMinor" transform="rotate(350 64 64)"/>
+        <use href="#tickMinor" transform="rotate(355 64 64)"/>
+      </g>
+      <g style="transform: rotate({{bearing}}deg); transform-origin: center center">
+        <polygon fill="#FF0000" points="64,12 70,64 58,64"/>
+        <polygon fill="var(--ion-text-color)" points="70,64 58,64 64,116"/>
+      </g>
+    </svg>
+  </div>
+</ion-list>

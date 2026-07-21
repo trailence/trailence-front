@@ -1711,5 +1711,10 @@
       "partial_data": "Some data has not been downloaded, results are incomplete",
       "no_data": "No data downloaded"
     }
+  },
+  "mapRotate": {
+    "north": "North up",
+    "heading": "GPS Heading",
+    "custom": "Manual"
   }
 }

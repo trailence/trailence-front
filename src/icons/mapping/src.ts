@@ -40,6 +40,7 @@ export const SRC_ICONS: {[name: string]: string} = {
   'collection-copy': 'collection-copy.1.svg',
   'collection-move': 'collection-move.1.svg',
   'compare': 'compare.1.svg', // swap-horizontal-outline
+  'compass': 'compass.svg',
   'copy': 'copy.1.svg', // copy-outline
   'crop': 'crop.1.svg', // crop-outline
   'cross': 'cross.1.svg', // close-outline
