@@ -416,35 +416,39 @@ export class MapComponent extends AbstractComponent {
   }
 
   private updateLocation(marker: L.CircleMarker, lat: number, lng: number, color: string): void {
-    marker.setLatLng({lat, lng});
+    const pos = {lat, lng};
+    marker.setLatLng(pos);
     marker.setStyle({color, fillColor: color});
     const map = this._map$.value;
     if (map && this._followingLocation$.value) {
-      const bounds = this.getFollowLocationBounds(map);
-      if (!bounds.contains(marker.getLatLng())) {
+      if (this.shouldCenterOnLocation(pos, map)) {
         this.centerOnLocation();
       }
     }
   }
 
-  private getFollowLocationBounds(map: L.Map): L.LatLngBounds {
-    let bounds = map.getBounds();
-    const sw = map.latLngToContainerPoint(bounds.getSouthWest());
-    const ne = map.latLngToContainerPoint(bounds.getNorthEast());
-    // apply insets for visible part (toolbars...)
-    ne.y += 57;
-    sw.y -= 30;
-    ne.x -= 47;
-    sw.x += 47;
-    // reduce to 40%
-    const percent = 0.6;
-    const width = ne.x - sw.x;
-    sw.x += Math.round(width * percent * 0.5);
-    ne.x -= Math.round(width * percent * 0.5);
-    const height = sw.y - ne.y;
-    ne.y += Math.round(height * percent * 0.5);
-    sw.y -= Math.round(height * percent * 0.5);
-    return L.latLngBounds(map.containerPointToLatLng(sw), map.containerPointToLatLng(ne));
+  private readonly followingLocationInsetsPixel = {
+    top: 57,
+    bottom: 30,
+    left: 47,
+    right: 47
+  };
+  // reduce to 40% of visible area
+  private readonly followingLocationInsetsPercent = 0.6;
+  private shouldCenterOnLocation(location: EarthPoint, map: L.Map): boolean {
+    const size = map.getSize();
+    const insets = {
+      top: this.followingLocationInsetsPixel.top + Math.round(size.y * this.followingLocationInsetsPercent * 0.5),
+      bottom: this.followingLocationInsetsPixel.bottom - Math.round(size.y * this.followingLocationInsetsPercent * 0.5),
+      left: this.followingLocationInsetsPixel.left + Math.round(size.x * this.followingLocationInsetsPercent * 0.5),
+      right: this.followingLocationInsetsPixel.right - Math.round(size.x * this.followingLocationInsetsPercent * 0.5),
+    };
+    const posPoint = map.latLngToContainerPoint(location);
+    if (posPoint.y < insets.top) return true;
+    if (posPoint.x < insets.left) return true;
+    if (posPoint.y > size.y - insets.bottom) return true;
+    if (posPoint.x > size.x - insets.right) return true;
+    return false;
   }
 
   private centerOnLocation(): void {
@@ -534,7 +538,7 @@ export class MapComponent extends AbstractComponent {
         // action from user
         this._initZoomTimestamp = 1;
         if (this._followingLocation$.value) {
-          if (this._locationMarker && !this.getFollowLocationBounds(map).contains(this._locationMarker.getLatLng())) {
+          if (this._locationMarker && this.shouldCenterOnLocation(this._locationMarker.getLatLng(), map)) {
             this._followingLocation$.next(false);
             this.refreshTools();
           }
