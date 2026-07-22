@@ -126,6 +126,16 @@ export class MapLayersService {
         maps.item(i)!.classList.add('light-theme');
       }
     }
+    const fullscreen = globalThis.document.getElementsByClassName('map-full-screen');
+    for (let i = 0; i < fullscreen.length; ++i) {
+      if (this._darkMap) {
+        fullscreen.item(i)!.classList.remove('light-theme');
+        fullscreen.item(i)!.classList.add('dark-theme');
+      } else {
+        fullscreen.item(i)!.classList.remove('dark-theme');
+        fullscreen.item(i)!.classList.add('light-theme');
+      }
+    }
   }
 
   public applyDarkMap(element: HTMLElement): void {

@@ -1,4 +1,4 @@
-app-map {
+app-map, div.map-full-screen {
 
   div.leaflet-container {
     background: var(--ion-background-color);
@@ -242,7 +242,7 @@ body.dark-map {
       fill: #888;
     }
   }
-  app-map {
+  app-map, div.map-full-screen {
     path[stroke=black] {
       stroke: white;
     }
@@ -291,7 +291,7 @@ body:not(.dark-map) {
     color: black;
   }
 
-  app-map {
+  app-map, div.map-full-screen {
     div.leaflet-tooltip-pane div.leaflet-tooltip {
       background-color: #000;
       border-color: #000;
@@ -303,6 +303,28 @@ body:not(.dark-map) {
     div.leaflet-tooltip-pane div.leaflet-tooltip-left:before {
       border-left-color: #000;
     }
+  }
+}
+
+div.map-full-screen {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+
+  div.map-top-controls-container, div.map-right-controls-container, div.map-left-controls-container {
+    margin-top: var(--safe-area-inset-top);
+  }
+  div.map-top-controls-container, div.map-right-controls-container, div.map-bottom-controls-container {
+    margin-right: var(--safe-area-inset-right);
+  }
+  div.map-top-controls-container, div.map-left-controls-container, div.map-bottom-controls-container {
+    margin-left: var(--safe-area-inset-left);
+  }
+  div.map-left-controls-container, div.map-right-controls-container, div.map-bottom-controls-container {
+    margin-bottom: var(--safe-area-inset-bottom);
   }
 }
 

@@ -58,6 +58,8 @@ export const SRC_ICONS: {[name: string]: string} = {
   'export': 'export.1.svg', // download-outline
   'file': 'file.1.svg', // document-outline
   'filters': 'filters.1.svg', // funnel-outline
+  'full-screen-on': 'full-screen.svg',
+  'full-screen-off': 'exit-full-screen.svg',
   'gravel-bike': 'gravel-bike.svg',
   'half-loop': 'half-loop.1.svg',
   'heart-outline': 'heart-outline.1.svg', // heart-outline

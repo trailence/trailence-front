@@ -63,6 +63,8 @@ export const ICONS: string[] = [
   'export',
   'file',
   'filters',
+  'full-screen-on',
+  'full-screen-off',
   'gravel-bike',
   'half-loop',
   'heart-outline',

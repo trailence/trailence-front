@@ -40,6 +40,7 @@ import { GeolocationService } from 'src/app/services/geolocation/geolocation.ser
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { bearing, EarthPoint } from 'src/app/utils/latlng';
 import { MotionService } from 'src/app/services/motion/motion.service';
+import { FullScreenTool } from './tools/fullscreen-tool';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -90,6 +91,7 @@ export class MapComponent extends AbstractComponent {
     private readonly mapLayersService: MapLayersService,
     private readonly mapGeolocation: MapGeolocationService,
     private readonly mapAdditions: MapAdditionsService,
+    private readonly elementRef: ElementRef,
   ) {
     super(injector);
     this.id = IdGenerator.generateId('map-');
@@ -500,6 +502,36 @@ export class MapComponent extends AbstractComponent {
     (this._map$.value as any)?.setBearing(bearing, {animate: animated});
   }
 
+  public enterFullScreen(): void {
+    const ionApp = document.getElementsByTagName('ion-app')[0];
+    if (!ionApp) return;
+    const container = document.createElement('DIV');
+    container.id = 'map-fullscreen-' + this.id;
+    container.className = 'map-full-screen';
+    this.injector.get(MapLayersService).applyDarkMap(container);
+    ionApp.appendChild(container);
+    while (this.elementRef.nativeElement.children.length > 0)
+      container.appendChild(this.elementRef.nativeElement.children.item(0));
+    this.invalidateSize();
+  }
+
+  public exitFullScreen(): void {
+    const container = document.getElementById('map-fullscreen-' + this.id);
+    if (!container) return;
+    while (container.children.length > 0)
+      this.elementRef.nativeElement.appendChild(container.children.item(0));
+    container.remove();
+    this.invalidateSize();
+  }
+
+  public toggleFullScreen(): void {
+    if (this.isFullScreen) this.exitFullScreen(); else this.enterFullScreen();
+  }
+
+  public get isFullScreen(): boolean {
+    return !!document.getElementById('map-fullscreen-' + this.id);
+  }
+
   private readonly _zoomAnim$ = new BehaviorSubject<boolean>(false);
   private createMap(): void {
     const layer = this.mapLayersService.layers.find(lay => lay.name === this._mapState.tilesName)
@@ -520,6 +552,7 @@ export class MapComponent extends AbstractComponent {
       touchGestures: true,
       touchRotate: true,
       touchRotateInertia: 15,
+      rotateControl: false,
     } as any);
     map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank">Leaflet</a>');
     map.createPane('overTracksPane', (map as any)._rotatePane).style.zIndex = '401';
@@ -809,6 +842,7 @@ export class MapComponent extends AbstractComponent {
   defaultRightToolsItems: MenuItem[] = [
     new MapLayerSelectionTool().toMenuItem(() => this.getToolContext()),
     new DarkMapToggleTool().toMenuItem(() => this.getToolContext()),
+    new FullScreenTool().toMenuItem(() => this.getToolContext()),
   ];
 
 }
