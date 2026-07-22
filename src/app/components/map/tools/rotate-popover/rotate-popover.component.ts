@@ -54,17 +54,16 @@ export class RotatePopoverComponent {
 
     if (bearing < 0)
         bearing += 360;
-    this.map.setRotationMode(RotateMode.CUSTOM);
-    this.map.setBearing(bearing);
+    this.map.setRotation(RotateMode.CUSTOM, bearing, true);
   }
 
   setNorth(): void {
-    this.map.setRotationMode(RotateMode.NORTH);
+    this.map.setRotation(RotateMode.NORTH, 0, true);
     this.controller.dismiss();
   }
 
   setHeading(): void {
-    this.map.setRotationMode(RotateMode.HEADING);
+    this.map.setRotation(RotateMode.HEADING);
     this.controller.dismiss();
   }
 

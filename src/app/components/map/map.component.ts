@@ -38,6 +38,7 @@ import { AssetsService } from 'src/app/services/assets/assets.service';
 import { RotateTool } from './tools/rotate-tool';
 import { GeolocationService } from 'src/app/services/geolocation/geolocation.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { bearing, EarthPoint } from 'src/app/utils/latlng';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -487,20 +488,18 @@ export class MapComponent extends AbstractComponent {
     return this._map$.value?.options.crs ?? L.CRS.EPSG3857;
   }
 
-  public setRotationMode(mode: RotateMode): void {
+  public setRotation(mode: RotateMode, bearing: number | undefined = undefined, animated = false): void {
     this.getState().rotateMode = mode;
     switch (mode) {
       case RotateMode.NORTH:
-        this.setBearing(0);
+        bearing = 0;
+        break;
+      case RotateMode.CUSTOM:
+      case RotateMode.HEADING:
+        bearing ??= this.getState().bearing;
         break;
     }
-    this.refreshTools();
-  }
-  public setBearing(bearing: number): void {
-    if (this.getState().rotateMode === RotateMode.NORTH) bearing = 0;
-    this.getState().bearing = bearing;
-    (this._map$.value as any)?.setBearing(bearing);
-    this.refreshTools();
+    (this._map$.value as any)?.setBearing(bearing, {animate: animated});
   }
 
   private readonly _zoomAnim$ = new BehaviorSubject<boolean>(false);
@@ -573,8 +572,11 @@ export class MapComponent extends AbstractComponent {
       this._mapState.zoom = e.zoom;
     });
     map.on('touch-rotate', e => {
-      this.setRotationMode(RotateMode.CUSTOM);
-      this.setBearing((e as any).touchRotateBearing);
+      this.setRotation(RotateMode.CUSTOM, (e as any).touchRotateBearing, false);
+    });
+    map.on('rotate', e => {
+      this.getState().bearing = (e as any).theta;
+      this.refreshTools();
     });
 
     this.cursors.addTo(map);
@@ -695,6 +697,7 @@ export class MapComponent extends AbstractComponent {
     );
 
     // handle recording and position
+    let previousPositions: L.LatLng[] | undefined;
     this.whenAlive.add(
       combineLatest([
         this._mapState.live$,
@@ -738,14 +741,29 @@ export class MapComponent extends AbstractComponent {
           let rotateChanged = false;
           if (rotateMode === RotateMode.HEADING) {
             if (watched) {
-              const bearing = Math.floor(watched.h ?? 0);
-              if (this.getState().bearing !== bearing) {
-                this.setBearing(bearing);
+              let heading = watched.h;
+              if (typeof heading !== 'number' && watched.l !== undefined && watched.n !== undefined) {
+                previousPositions ??= [];
+                const currentPos = L.latLng({lat: watched.l, lng: watched.n});
+                for (let i = previousPositions.length - 1; i >= 0; --i) {
+                  if (currentPos.distanceTo(previousPositions[i]) >= 5) {
+                    heading = bearing(previousPositions[i], currentPos);
+                    if (i > 0) previousPositions.splice(0, i);
+                    break;
+                  }
+                }
+                previousPositions.push(currentPos);
+              } else {
+                previousPositions = undefined;
+              }
+              if (typeof heading === 'number' && this.getState().bearing !== heading) {
+                this.setRotation(RotateMode.HEADING, heading, true);
                 rotateChanged = true;
               }
             } else {
-              this.setRotationMode(RotateMode.NORTH);
+              this.setRotation(RotateMode.NORTH, 0, true);
               rotateChanged = true;
+              previousPositions = undefined;
             }
           }
           if (toolShowPosition.visible !== positionToolWasVisible || (positionToolWasVisible && showPosition !== positionToolWasActive) || phoneLockTool.visible !== phoneLockToolWasVisible || phoneLockToolWasActive !== phoneLockTool.enabled || rotateChanged)

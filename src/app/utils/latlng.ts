@@ -202,3 +202,32 @@ export function closestPointOnSegment(
     t,
   };
 }
+
+export function bearing(from: EarthPoint, to: EarthPoint): number {
+  const meanLat = ((from.lat + to.lat) / 2) * Math.PI / 180;
+
+  const dx = (to.lng - from.lng) * Math.cos(meanLat);
+  const dy = to.lat - from.lat;
+
+  let θ = Math.atan2(dy, dx) * 180 / Math.PI - 90;
+  // Normalize to [0, 360)
+  θ = (θ + 360) % 360;
+  return θ;
+  /*
+  const φ1 = from.lat * Math.PI / 180;
+  const φ2 = to.lat * Math.PI / 180;
+  const λ1 = from.lng * Math.PI / 180;
+  const λ2 = to.lng * Math.PI / 180;
+
+  const y = Math.sin(λ2 - λ1) * Math.cos(φ2);
+  const x =
+    Math.cos(φ1) * Math.sin(φ2) -
+    Math.sin(φ1) * Math.cos(φ2) * Math.cos(λ2 - λ1);
+
+  let θ = Math.atan2(y, x) * 180 / Math.PI;
+
+  // Normalize to [0, 360)
+  θ = (θ + 360) % 360;
+
+  return θ;*/
+}
