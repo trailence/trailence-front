@@ -200,8 +200,6 @@ export class Db {
 
     // backups
     this.registerBackups(openStatus);
-
-    for (const table of this.tables) table.triggerChanged();
   }
 
   private close(): Promise<any> {
@@ -289,12 +287,13 @@ export class Db {
       let pending = false;
       this.tableChangedSubscriptions.set(table.name, table.changed$.pipe(
         table.triggerBackupOperator,
-        switchMap(() => {
+        switchMap(latestChange => {
           if (this.ready$.value !== ready) return EMPTY;
           if (pending) {
-            table.triggerChanged();
+            table.triggerChanged('replay due to pending backup: ' + latestChange);
             return of(undefined);
           } else {
+            Console.info('Start backuping table ' + table.name + ', trigger = ' + latestChange);
             pending = true;
             return from(this.backupTable(ready, localFiles, table.name, table.backupLinesBunch, false)).pipe(tap(() => pending = false));
           }

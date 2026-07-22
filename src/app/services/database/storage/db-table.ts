@@ -25,10 +25,10 @@ export class DbTable<DTO> {
     this.ngZone = injector.get(NgZone);
   }
 
-  protected _changed$ = new EventEmitter<boolean>();
+  protected _changed$ = new EventEmitter<string>();
 
   public get changed$() { return this._changed$; }
-  public triggerChanged(): void { this._changed$.emit(true); }
+  public triggerChanged(reason: string): void { this._changed$.emit(reason); }
 
   public backupEnabled = true;
 
@@ -45,7 +45,7 @@ export class DbTable<DTO> {
     return this;
   }
 
-  public triggerBackupOperator: MonoTypeOperatorFunction<boolean> = debounceTime(15000);
+  public triggerBackupOperator: MonoTypeOperatorFunction<string> = debounceTime(15000);
   public backupLinesBunch = 1000;
 
   async migrate(dexie: Dexie, table: Table, localDir: string, previousAppVersion: number, dbAlreadyPresent: boolean, previousTableVersion: number, targetVersion: number): Promise<number> {
@@ -220,7 +220,7 @@ export class DbTable<DTO> {
       switchMap(async status => {
         const toStore = await this.fromDtos([dto], status).then(dtos => dtos[0]);
         await status.table.add(toStore as DTO, (dto as any)[this.dtoKeyField]);
-        this.triggerChanged();
+        this.triggerChanged('addOne');
         return dto;
       })
     );
@@ -231,7 +231,7 @@ export class DbTable<DTO> {
       switchMap(async status => {
         const toStore = await this.fromDtos(dtos, status);
         await status.table.bulkAdd(toStore as DTO[]);
-        this.triggerChanged();
+        this.triggerChanged('addMany ' + dtos.length);
         return dtos;
       })
     );
@@ -242,7 +242,7 @@ export class DbTable<DTO> {
       switchMap(async status => {
         const toStore = await this.fromDtos([dto], status).then(dtos => dtos[0]);
         await status.table.put(toStore as DTO, (dto as any)[this.dtoKeyField]);
-        this.triggerChanged();
+        this.triggerChanged('setOne');
         return dto;
       })
     );
@@ -253,7 +253,7 @@ export class DbTable<DTO> {
       switchMap(async status => {
         const toStore = await this.fromDtos(dtos, status);
         await status.table.bulkPut(toStore as DTO[]);
-        this.triggerChanged();
+        this.triggerChanged('setMany ' + dtos.length);
         return dtos;
       })
     );
@@ -265,7 +265,7 @@ export class DbTable<DTO> {
         status.table.delete(key),
         this.deleted([key], status),
       ]).then(() => {
-        this.triggerChanged();
+        this.triggerChanged('deleteOne');
         return true;
       }))
     );
@@ -278,7 +278,7 @@ export class DbTable<DTO> {
         status.table.bulkDelete(keys),
         this.deleted(keys, status),
       ]).then(() => {
-        this.triggerChanged();
+        this.triggerChanged('deleteMany ' + keys.length);
         return true;
       }))
     );
@@ -292,7 +292,7 @@ export class DbTable<DTO> {
         if (keyPredicate) keys$ = keys$.then(k => k.filter(keyPredicate));
         return from(keys$.then(keys => {
           if (keys.length === 0 || !this.isStillValid(status)) return count;
-          const next = (i:number): Promise<any> => {
+          const next = (i:number): Promise<number> => {
             if (!this.isStillValid(status)) return Promise.resolve(count);
             const end = Math.min(i + chunk, keys.length);
             const bunch = keys.slice(i, end);
@@ -312,7 +312,8 @@ export class DbTable<DTO> {
           };
           return next(0)
           .then(result => {
-            this.triggerChanged();
+            if (result > 0)
+              this.triggerChanged('deleteWhen ' + result);
             return result;
           });
         }));
@@ -322,7 +323,10 @@ export class DbTable<DTO> {
 
   public deleteAll$(): Observable<boolean> {
     return this.onceReady$().pipe(
-      switchMap(status => status.table.clear().then(() => true)),
+      switchMap(status => status.table.clear().then(() => {
+        this.triggerChanged('deleteAll');
+        return true;
+      })),
     );
   }
 
@@ -330,7 +334,10 @@ export class DbTable<DTO> {
     return this.onceReady$().pipe(
       switchMap(status => {
         let collection = where.toDexie(status.table);
-        return collection.delete();
+        return collection.delete().then(nb => {
+          if (nb > 0) this.triggerChanged('deleteWhere ' + nb);
+          return nb;
+        });
       }),
     );
   }
@@ -345,6 +352,7 @@ export class DbTable<DTO> {
           const items = itemsProvider();
           if (items.length > 0)
             await info.table.bulkAdd(items);
+          this.triggerChanged('replaceAll');
           return true;
         });
       }),
