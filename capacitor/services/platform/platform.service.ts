@@ -161,7 +161,7 @@ export class PlatformService {
               importer.importGpx(this.injector, buffer, owner, collectionUuid, undefined, TrailSourceType.FILE_IMPORT, filename, Date.now()).allDone
               .then(imported => {
                 progress.done();
-                importer.finishImport(this.injector, [imported], collectionUuid).then(
+                importer.finishImport(this.injector, [imported], collectionUuid, owner).then(
                   () => this.injector.get(Router).navigateByUrl('/trail/' + encodeURIComponent(owner) + '/' + imported.trailUuid)
                 );
               })

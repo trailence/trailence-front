@@ -13,8 +13,8 @@ import { TrackService } from '../database/track.service';
 import { TrailService } from '../database/trail.service';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { PhotoService } from '../database/photo.service';
-import { firstValueFrom } from 'rxjs';
-import { ModalController } from '@ionic/angular/standalone';
+import { combineLatest, firstValueFrom, of, switchMap } from 'rxjs';
+import { ModalController, AlertController } from '@ionic/angular/standalone';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { TrailSourceType } from 'src/app/model/dto/trail';
@@ -24,6 +24,10 @@ import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from 'src/app/worker/web-app';
 import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
 import { NetworkService } from '../network/network.service';
+import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
+import { Trail } from 'src/app/model/trail';
+import { Track } from 'src/app/model/track';
+import { GeoService } from '../geolocation/geo.service';
 
 const CP437 = "\0☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ ".split("");
 
@@ -162,7 +166,7 @@ export function openImportTrailsFileDialog(injector: Injector, collectionUuid: s
           injector.get(ErrorService).addErrors(zipErrors);
         }
         const importedTrails = imported.flat();
-        finishImport(injector, importedTrails, collectionUuid);
+        finishImport(injector, importedTrails, collectionUuid, email);
       });
     }
   });
@@ -225,10 +229,11 @@ export function importGpx(injector: Injector, file: ArrayBuffer, owner: string, 
   }
 }
 
-export function finishImport(injector: Injector, imported: {trailUuid: string, tags: string[][], source?: string}[], collectionUuid: string): Promise<any> {
+export function finishImport(injector: Injector, imported: {trailUuid: string, tags: string[][], source?: string}[], collectionUuid: string, email: string): Promise<any> {
   if (imported.length === 0) return Promise.resolve(true);
   return importTags(injector, imported, collectionUuid)
-  .then(() => importFromSources(injector, imported));
+  .then(() => importFromSources(injector, imported))
+  .then(() => proposeElevationDownload(injector, imported, email));
 }
 
 function importTags(injector: Injector, imported: ({trailUuid: string, tags: string[][]} | undefined)[], collectionUuid: string): Promise<any> {
@@ -286,5 +291,40 @@ function importFromSources(injector: Injector, imported: {trailUuid: string, tag
       })
       .then(resolve);
     });
+  });
+}
+
+async function proposeElevationDownload(injector: Injector, imported: {trailUuid: string, tags: string[][], source?: string}[], email: string) {
+  if (imported.length === 0) return true;
+  const tracks = await firstValueFrom(combineLatest(imported.map(t =>
+    injector.get(TrailService).getTrail$(t.trailUuid, email).pipe(
+      firstTimeout(t => !!t, 5000, () => null as Trail | null),
+      switchMap(t => t ? injector.get(TrackService).getFullTrack$(t.currentTrackUuid, email) : of(undefined)),
+      firstTimeout(t => t !== null, 5000, () => undefined as Track | null | undefined),
+    )
+  )));
+  const missingElevation = tracks.filter(track => !!track && !track.getAllPoints().some(p => p.ele !== undefined)) as Track[];
+  if (missingElevation.length === 0) return true;
+  const i18n = injector.get(I18nService);
+  const alert = await injector.get(AlertController).create({
+    header: i18n.texts.alertNoElevation.title,
+    message: i18n.texts.alertNoElevation.message,
+    buttons: [{
+      text: i18n.texts.buttons.yes,
+      role: 'ok'
+    }, {
+      text: i18n.texts.buttons.no,
+      role: 'cancel'
+    }]
+  });
+  alert.present();
+  return alert.onDidDismiss().then(result => {
+    if (result.role !== 'ok') return true;
+    const next = (index: number): Promise<any> => {
+      return firstValueFrom(injector.get(GeoService).fillTrackElevation(missingElevation[index], true))
+      .then(() => injector.get(TrackService).update(missingElevation[index]))
+      .then(() => index < missingElevation.length - 1 ? next(index + 1) : true);
+    };
+    return next(0);
   });
 }

@@ -1717,5 +1717,9 @@
     "heading": "Suivi GPS",
     "device": "Orientation de l'écran",
     "custom": "Manuel"
+  },
+  "alertNoElevation": {
+    "title": "Ajouter les altitudes ?",
+    "message": "Des parcours importés ne comportent aucune altitude. Souhaitez-vous en ajouter automatiquement en les téléchargeant depuis un fournisseur d'altitude ?"
   }
 }

@@ -1717,5 +1717,9 @@
     "heading": "GPS Heading",
     "device": "Screen orientation",
     "custom": "Manual"
+  },
+  "alertNoElevation": {
+    "title": "Add elevation data?",
+    "message": "Some imported routes have no elevation data. Would you like to automatically download and add it using an elevation data provider?"
   }
 }
