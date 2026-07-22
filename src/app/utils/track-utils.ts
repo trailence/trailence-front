@@ -244,11 +244,11 @@ export class TrackUtils {
 
   // Duration utilities
 
-  public static durationBetween(startPoint: Point, endPoint: Point): number {
+  public static durationBetween(startPoint: Point, endPoint: Point): number | undefined {
     const startTime = startPoint.time;
-    if (startTime === undefined) return 0;
+    if (startTime === undefined) return undefined;
     const endTime = endPoint.time;
-    if (endTime === undefined) return 0;
+    if (endTime === undefined) return undefined;
     return endTime - startTime;
   }
 

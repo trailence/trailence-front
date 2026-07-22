@@ -52,7 +52,8 @@ export function computeBreakPoints(track: Track, breaks: BreakPointSection[]): B
   for (const b of breaks) {
     const segment = track.segments[b.segmentIndex];
     const duration = TrackUtils.durationBetween(segment.points[Math.max(0, b.startIndex - 1)], segment.points[Math.min(segment.points.length - 1, b.endIndex + 1)]);
-    result.push(new BreakPoint(track, {segmentIndex: b.segmentIndex, pointIndex: b.pointIndex}, true, false, false, false, duration));
+    if (duration !== undefined)
+      result.push(new BreakPoint(track, {segmentIndex: b.segmentIndex, pointIndex: b.pointIndex}, true, false, false, false, duration));
   }
   let previous: Segment | undefined;
   let previousIndex = -1;
@@ -63,13 +64,15 @@ export function computeBreakPoints(track: Track, breaks: BreakPointSection[]): B
     if (previous !== undefined) {
       const distance = segment.departurePoint!.distanceTo(previous.arrivalPoint!.pos);
       const duration = TrackUtils.durationBetween(previous.arrivalPoint!, segment.departurePoint!);
-      if (distance > 15) {
-        result.push(
-          new BreakPoint(track, {segmentIndex: previousIndex, pointIndex: previous.points.length - 1}, false, true, false, false, duration),
-          new BreakPoint(track, {segmentIndex: si, pointIndex: 0}, false, false, true, false, duration)
-        );
-      } else {
-        result.push(new BreakPoint(track, {segmentIndex: si, pointIndex: 0}, false, false, false, true, duration));
+      if (duration !== undefined) {
+        if (distance > 15) {
+          result.push(
+            new BreakPoint(track, {segmentIndex: previousIndex, pointIndex: previous.points.length - 1}, false, true, false, false, duration),
+            new BreakPoint(track, {segmentIndex: si, pointIndex: 0}, false, false, true, false, duration)
+          );
+        } else {
+          result.push(new BreakPoint(track, {segmentIndex: si, pointIndex: 0}, false, false, false, true, duration));
+        }
       }
     }
     previous = segment;

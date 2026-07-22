@@ -34,7 +34,7 @@ export function estimateTimeForTrack(track: Track, estimatedBaseSpeed: number): 
       const timeFromPreviousPoint = sp.durationFromPreviousPoint;
       if (timeFromPreviousPoint) trackDuration += timeFromPreviousPoint;
       if (distance === 0) {
-        segmentEstimation.push(undefined);
+        segmentEstimation.push(segmentEstimation.at(-1));
         continue;
       }
       totalDistance += distance;

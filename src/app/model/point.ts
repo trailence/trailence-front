@@ -21,7 +21,7 @@ export interface Point extends PointDescriptor {
   readonly computedSpeed: number | undefined;
 
   distanceTo(other: L.LatLngExpression): number;
-  durationFromStart(track: Track): number;
+  durationFromStart(track: Track): number | undefined;
   distanceFromStart(track: Track): number;
 
 }

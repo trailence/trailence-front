@@ -482,7 +482,7 @@ export class PointImpl implements Point {
     return L.CRS.Earth.distance(this._pos, other);
   }
 
-  public durationFromStart(track: Track): number {
+  public durationFromStart(track: Track): number | undefined {
     return TrackUtils.durationBetween(track.departurePoint!, this);
   }
 

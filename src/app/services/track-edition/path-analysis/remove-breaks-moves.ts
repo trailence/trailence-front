@@ -39,7 +39,8 @@ function removeBreaksMoves(segment: Segment, state: ImprovmentRecordingState, fi
   if (outsidePointIndex >= points.length && finish) outsidePointIndex = points.length - 1;
   if (outsidePointIndex <= lastPointIndex) {
     // we totally left the area, we can finish to handle it
-    if (TrackUtils.durationBetween(currentPoint, points[outsidePointIndex]) < MIN_TIME_IN_AREA_FOR_A_BREAK) {
+    const time = TrackUtils.durationBetween(currentPoint, points[outsidePointIndex]);
+    if (time !== undefined && time < MIN_TIME_IN_AREA_FOR_A_BREAK) {
       cleanSamePositionSuccessivePoints(segment, Math.max(0, state.lastBreaksMovesIndex - 5), state.lastBreaksMovesIndex, state);
       state.lastBreaksMovesIndex++;
       return true;
@@ -62,8 +63,8 @@ function removeBreaksMoves(segment: Segment, state: ImprovmentRecordingState, fi
       }
       if (endIndex >= outsidePointIndex - 1) break;
       const time = TrackUtils.durationBetween(startPoint, points[endIndex + 1]);
-      if (time < MIN_TIME_IN_AREA_FOR_A_BREAK) continue;
-      if (bestTime === undefined || time > bestTime) {
+      if (time !== undefined && time < MIN_TIME_IN_AREA_FOR_A_BREAK) continue;
+      if (time !== undefined && (bestTime === undefined || time > bestTime)) {
         bestTime = time;
         bestStart = startIndex;
         bestEnd = endIndex;
@@ -81,7 +82,8 @@ function removeBreaksMoves(segment: Segment, state: ImprovmentRecordingState, fi
     return true;
   }
   // we are not yet sure we left the area
-  if (TrackUtils.durationBetween(currentPoint, points[lastPointIndex]) < MIN_TIME_IN_AREA_FOR_A_BREAK) {
+  const time = TrackUtils.durationBetween(currentPoint, points[lastPointIndex]);
+  if (time === undefined || time < MIN_TIME_IN_AREA_FOR_A_BREAK) {
     // not yet enough time to determine we are in a break: let's wait
     return false;
   }
