@@ -9,6 +9,7 @@ export class RotateTool extends MapTool {
     switch (ctx.mapComponent.getState().rotateMode) {
       case RotateMode.NORTH: return '';
       case RotateMode.HEADING: return 'tertiary';
+      case RotateMode.DEVICE_ORIENTATION: return 'primary';
       case RotateMode.CUSTOM: return 'secondary';
     }
   };
@@ -16,6 +17,7 @@ export class RotateTool extends MapTool {
     switch (ctx.mapComponent.getState().rotateMode) {
       case RotateMode.NORTH: return undefined;
       case RotateMode.HEADING:
+      case RotateMode.DEVICE_ORIENTATION:
       case RotateMode.CUSTOM: return {'--icon-rotate': ctx.mapComponent.getState().bearing + 'deg'};
     }
   };

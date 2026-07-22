@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, Output, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapState, RotateMode } from './map-state';
-import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, filter, first, map, of, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, combineLatest, concat, debounceTime, filter, first, map, of, switchMap, tap } from 'rxjs';
 import * as L from 'leaflet';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { DistanceUnit } from 'src/app/services/preferences/preferences';
@@ -39,6 +39,7 @@ import { RotateTool } from './tools/rotate-tool';
 import { GeolocationService } from 'src/app/services/geolocation/geolocation.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { bearing, EarthPoint } from 'src/app/utils/latlng';
+import { MotionService } from 'src/app/services/motion/motion.service';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -494,15 +495,8 @@ export class MapComponent extends AbstractComponent {
 
   public setRotation(mode: RotateMode, bearing: number | undefined = undefined, animated = false): void {
     this.getState().rotateMode = mode;
-    switch (mode) {
-      case RotateMode.NORTH:
-        bearing = 0;
-        break;
-      case RotateMode.CUSTOM:
-      case RotateMode.HEADING:
-        bearing ??= this.getState().bearing;
-        break;
-    }
+    if (mode === RotateMode.NORTH) bearing = 0;
+    else bearing ??= this.getState().bearing;
     (this._map$.value as any)?.setBearing(bearing, {animate: animated});
   }
 
@@ -712,9 +706,11 @@ export class MapComponent extends AbstractComponent {
         screenLockService.enabled$,
         this.disableShowPosition$,
         this.injector.get(GeolocationService).watched$.pipe(debounceTimeExtended(0, 100, 10, (p,n) => !!p !== !!n)),
-        this._mapState.rotateMode$,
+        this._mapState.rotateMode$.pipe(
+          switchMap(mode => mode === RotateMode.DEVICE_ORIENTATION ? concat(of(undefined), this.injector.get(MotionService).bearing$.pipe(debounceTimeExtended(0, 100, 5))).pipe(map(bearing => ({mode, bearing}))) : of({mode})),
+        ),
       ]).subscribe(
-        ([live, position, recording, showPosition, screenLockAvailable, screenLockEnabled, nbPosDisabled, watched, rotateMode]) => {
+        ([live, position, recording, showPosition, screenLockAvailable, screenLockEnabled, nbPosDisabled, watched, rotation]) => {
           if (!live) return;
           // show position tool only if not recording
           // show phone lock only if recording
@@ -743,7 +739,7 @@ export class MapComponent extends AbstractComponent {
             this.hideLocation();
           }
           let rotateChanged = false;
-          if (rotateMode === RotateMode.HEADING) {
+          if (rotation.mode === RotateMode.HEADING) {
             if (watched) {
               let heading = watched.h;
               if (typeof heading !== 'number' && watched.l !== undefined && watched.n !== undefined) {
@@ -769,6 +765,9 @@ export class MapComponent extends AbstractComponent {
               rotateChanged = true;
               previousPositions = undefined;
             }
+          } else if (rotation.mode === RotateMode.DEVICE_ORIENTATION && rotation.bearing !== undefined && this.getState().bearing !== rotation.bearing) {
+            this.setRotation(RotateMode.DEVICE_ORIENTATION, rotation.bearing, true);
+            rotateChanged = true;
           }
           if (toolShowPosition.visible !== positionToolWasVisible || (positionToolWasVisible && showPosition !== positionToolWasActive) || phoneLockTool.visible !== phoneLockToolWasVisible || phoneLockToolWasActive !== phoneLockTool.enabled || rotateChanged)
             this.refreshTools();

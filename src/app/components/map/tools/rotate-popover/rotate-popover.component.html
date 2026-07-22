@@ -10,6 +10,12 @@
       <ion-label>{{i18n.texts.mapRotate.heading}}</ion-label>
     </ion-item>
   }
+  @if (motionService.bearingMayBeAvailable) {
+    <ion-item lines="full" [button]="true" (click)="seDeviceOrientation()">
+      <ion-icon name="compass" slot="start" color="primary" style="--icon-rotate: 45deg;"></ion-icon>
+      <ion-label>{{i18n.texts.mapRotate.device}}</ion-label>
+    </ion-item>
+  }
   <ion-item lines="none">
     <ion-icon name="compass" slot="start" color="secondary" style="--icon-rotate: -45deg;"></ion-icon>
     <ion-label>{{i18n.texts.mapRotate.custom}}</ion-label>

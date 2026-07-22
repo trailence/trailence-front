@@ -5,6 +5,7 @@ import { MapComponent } from '../../map.component';
 import { RotateMode } from '../../map-state';
 import { GeolocationService } from 'src/app/services/geolocation/geolocation.service';
 import { AsyncPipe } from '@angular/common';
+import { MotionService } from 'src/app/services/motion/motion.service';
 
 export async function openRotatePopover(injector: Injector, event: Event, map: MapComponent) {
   const popover = await injector.get(PopoverController).create({
@@ -34,6 +35,7 @@ export class RotatePopoverComponent {
     public readonly i18n: I18nService,
     private readonly controller: PopoverController,
     public readonly geolocation: GeolocationService,
+    public readonly motionService: MotionService,
   ) {}
 
   get bearing(): number {
@@ -64,6 +66,11 @@ export class RotatePopoverComponent {
 
   setHeading(): void {
     this.map.setRotation(RotateMode.HEADING);
+    this.controller.dismiss();
+  }
+
+  seDeviceOrientation(): void {
+    this.map.setRotation(RotateMode.DEVICE_ORIENTATION);
     this.controller.dismiss();
   }
 

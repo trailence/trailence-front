@@ -5,6 +5,7 @@ import { MapAdditionsOptions } from 'src/app/services/map/map-additions.service'
 export enum RotateMode {
   NORTH = 'north',
   HEADING = 'heading',
+  DEVICE_ORIENTATION = 'device-orientation',
   CUSTOM = 'custom',
 }
 

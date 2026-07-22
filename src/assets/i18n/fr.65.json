@@ -1715,6 +1715,7 @@
   "mapRotate": {
     "north": "Nord en haut",
     "heading": "Suivi GPS",
+    "device": "Orientation de l'écran",
     "custom": "Manuel"
   }
 }
