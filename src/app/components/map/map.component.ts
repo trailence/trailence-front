@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, Output, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapState, RotateMode } from './map-state';
-import { BehaviorSubject, Observable, Subscription, combineLatest, concat, debounceTime, filter, first, map, of, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, combineLatest, concat, debounceTime, filter, first, map, of, switchMap, tap, timeout } from 'rxjs';
 import * as L from 'leaflet';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { DistanceUnit } from 'src/app/services/preferences/preferences';
@@ -41,6 +41,8 @@ import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended'
 import { bearing, EarthPoint } from 'src/app/utils/latlng';
 import { MotionService } from 'src/app/services/motion/motion.service';
 import { FullScreenTool } from './tools/fullscreen-tool';
+import { ToastController } from '@ionic/angular/standalone';
+import { I18nService } from 'src/app/services/i18n/i18n.service';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -740,7 +742,16 @@ export class MapComponent extends AbstractComponent {
         this.disableShowPosition$,
         this.injector.get(GeolocationService).watched$.pipe(debounceTimeExtended(0, 100, 10, (p,n) => !!p !== !!n)),
         this._mapState.rotateMode$.pipe(
-          switchMap(mode => mode === RotateMode.DEVICE_ORIENTATION ? concat(of(undefined), this.injector.get(MotionService).bearing$.pipe(debounceTimeExtended(0, 100, 5))).pipe(map(bearing => ({mode, bearing}))) : of({mode})),
+          switchMap(mode => mode === RotateMode.DEVICE_ORIENTATION ?
+            concat(
+              of(undefined),
+              this.injector.get(MotionService).bearing$.pipe(
+                timeout({first: 10000, with: () => of(null)}),
+                debounceTimeExtended(0, 100, 5),
+              )
+            ).pipe(map(bearing => ({mode, bearing})))
+            : of({mode})
+          ),
         ),
       ]).subscribe(
         ([live, position, recording, showPosition, screenLockAvailable, screenLockEnabled, nbPosDisabled, watched, rotation]) => {
@@ -798,9 +809,18 @@ export class MapComponent extends AbstractComponent {
               rotateChanged = true;
               previousPositions = undefined;
             }
-          } else if (rotation.mode === RotateMode.DEVICE_ORIENTATION && rotation.bearing !== undefined && this.getState().bearing !== rotation.bearing) {
-            this.setRotation(RotateMode.DEVICE_ORIENTATION, rotation.bearing, true);
-            rotateChanged = true;
+          } else if (rotation.mode === RotateMode.DEVICE_ORIENTATION && rotation.bearing !== undefined) {
+            if (rotation.bearing === null) {
+              this.injector.get(ToastController).create({
+                message: this.injector.get(I18nService).texts.mapRotate.noDeviceOrientation,
+                duration: 5000,
+              }).then(t => t.present());
+              this.setRotation(RotateMode.NORTH);
+              rotateChanged = true;
+            } else if (this.getState().bearing !== rotation.bearing) {
+              this.setRotation(RotateMode.DEVICE_ORIENTATION, rotation.bearing, true);
+              rotateChanged = true;
+            }
           }
           if (toolShowPosition.visible !== positionToolWasVisible || (positionToolWasVisible && showPosition !== positionToolWasActive) || phoneLockTool.visible !== phoneLockToolWasVisible || phoneLockToolWasActive !== phoneLockTool.enabled || rotateChanged)
             this.refreshTools();

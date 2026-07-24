@@ -1716,7 +1716,8 @@
     "north": "North up",
     "heading": "GPS Heading",
     "device": "Screen orientation",
-    "custom": "Manual"
+    "custom": "Manual",
+    "noDeviceOrientation": "Your device does not provide orientation"
   },
   "alertNoElevation": {
     "title": "Add elevation data?",

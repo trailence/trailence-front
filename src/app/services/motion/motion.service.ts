@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { first, Observable } from 'rxjs';
 
 export type OptionalPoint3D = {x: number | undefined, y: number | undefined, z: number | undefined} | undefined;
 export type MotionEvent = {acceleration: OptionalPoint3D, rotationRate: OptionalPoint3D};
@@ -7,21 +7,34 @@ export type MotionEvent = {acceleration: OptionalPoint3D, rotationRate: Optional
 @Injectable({providedIn: 'root'})
 export class MotionService {
 
+  constructor() {
+    this._bearingAvailable = 'undefined' !== typeof globalThis.DeviceOrientationEvent;
+    if (this._bearingAvailable && 'undefined' === typeof (DeviceMotionEvent as any).requestPermission) {
+      this.bearing$.pipe(first()).subscribe();
+    }
+  }
+
   private readonly _bearingListener = (event: DeviceOrientationEvent) => {
-    let angle = (event as any).webkitCompassHeading || event.alpha;
-    // Safari iOS
-    if (!event.absolute && (event as any).webkitCompassHeading) {
-        angle = 360 - angle;
+    let angle = (event as any).webkitCompassHeading ?? event.alpha ?? undefined;
+    if (angle !== undefined) {
+      // Safari iOS
+      if (!event.absolute && (event as any).webkitCompassHeading !== undefined) {
+          angle = 360 - angle;
+      }
+
+      let deviceOrientation = 0;
+      // Older browsers
+      if (!event.absolute && 'undefined' !== typeof window.orientation) {
+          deviceOrientation = window.orientation;
+      } else if (globalThis.screen?.orientation) {
+        deviceOrientation = globalThis.screen.orientation.angle ?? 0;
+      }
+      angle = angle - deviceOrientation;
     }
 
-    let deviceOrientation = 0;
-    // Older browsers
-    if (!event.absolute && 'undefined' !== typeof window.orientation) {
-        deviceOrientation = window.orientation;
-    }
-
-    const bearing = angle - deviceOrientation;
+    const bearing = angle ?? null;
     this._latestBearing = bearing;
+    if (bearing === null) this._bearingAvailable = false;
     const listeners = [...this._bearingListeners];
     for (const listener of listeners) listener(bearing);
   };
@@ -44,24 +57,25 @@ export class MotionService {
     for (const listener of listeners) listener(motion);
   };
 
+  private _bearingAvailable: boolean;
   private _bearingStarted = false;
   private _motionStarted = false;
 
-  private readonly _bearingListeners: ((bearing: number) => void)[] = [];
+  private readonly _bearingListeners: ((bearing: number | null) => void)[] = [];
   private readonly _motionListeners: ((motion: MotionEvent) => void)[] = [];
 
-  private _latestBearing: number | undefined;
+  private _latestBearing: number | undefined | null;
   private _latestMotion: MotionEvent | undefined;
 
   public get bearingMayBeAvailable(): boolean {
-    return 'undefined' !== typeof globalThis.DeviceOrientationEvent;
+    return this._bearingAvailable;
   }
 
   public get motionMayBeAvailable(): boolean {
     return 'undefined' !== typeof globalThis.DeviceMotionEvent;
   }
 
-  public readonly bearing$ = new Observable<number>(subscriber => {
+  public readonly bearing$ = new Observable<number | null>(subscriber => {
     return this.listenBearing(bearing => {
       subscriber.next(bearing);
     });
@@ -73,7 +87,7 @@ export class MotionService {
     });
   });
 
-  public listenBearing(listener: (bearing: number) => void): () => void {
+  public listenBearing(listener: (bearing: number | null) => void): () => void {
     if (this._latestBearing !== undefined)
       listener(this._latestBearing);
     this._bearingListeners.push(listener);

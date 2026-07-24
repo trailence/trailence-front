@@ -1716,7 +1716,8 @@
     "north": "Nord en haut",
     "heading": "Suivi GPS",
     "device": "Orientation de l'écran",
-    "custom": "Manuel"
+    "custom": "Manuel",
+    "noDeviceOrientation": "Votre périphérique ne fournit pas d'orientation"
   },
   "alertNoElevation": {
     "title": "Ajouter les altitudes ?",
