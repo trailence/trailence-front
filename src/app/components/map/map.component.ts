@@ -330,7 +330,11 @@ export class MapComponent extends AbstractComponent {
   private fit(map: L.Map, boundsBuilder: BoundsBuilder) {
     const bounds = boundsBuilder.getBounds();
     if (bounds) {
-      map.fitBounds(bounds);
+      const insetsBounds = L.latLngBounds(
+        map.containerPointToLatLng(map.latLngToContainerPoint(bounds.getSouthWest()).add(L.point(-this.mapInsetsPixel.left, this.mapInsetsPixel.bottom))),
+        map.containerPointToLatLng(map.latLngToContainerPoint(bounds.getNorthEast()).add(L.point(this.mapInsetsPixel.right, -this.mapInsetsPixel.top))),
+      )
+      map.fitBounds(insetsBounds);
       this._initZoomTimestamp = 1;
     }
   }
@@ -432,7 +436,7 @@ export class MapComponent extends AbstractComponent {
     }
   }
 
-  private readonly followingLocationInsetsPixel = {
+  private readonly mapInsetsPixel = {
     top: 57,
     bottom: 30,
     left: 47,
@@ -443,10 +447,10 @@ export class MapComponent extends AbstractComponent {
   private shouldCenterOnLocation(location: EarthPoint, map: L.Map): boolean {
     const size = map.getSize();
     const insets = {
-      top: this.followingLocationInsetsPixel.top + Math.round(size.y * this.followingLocationInsetsPercent * 0.5),
-      bottom: this.followingLocationInsetsPixel.bottom - Math.round(size.y * this.followingLocationInsetsPercent * 0.5),
-      left: this.followingLocationInsetsPixel.left + Math.round(size.x * this.followingLocationInsetsPercent * 0.5),
-      right: this.followingLocationInsetsPixel.right - Math.round(size.x * this.followingLocationInsetsPercent * 0.5),
+      top: this.mapInsetsPixel.top + Math.round(size.y * this.followingLocationInsetsPercent * 0.5),
+      bottom: this.mapInsetsPixel.bottom - Math.round(size.y * this.followingLocationInsetsPercent * 0.5),
+      left: this.mapInsetsPixel.left + Math.round(size.x * this.followingLocationInsetsPercent * 0.5),
+      right: this.mapInsetsPixel.right - Math.round(size.x * this.followingLocationInsetsPercent * 0.5),
     };
     const posPoint = map.latLngToContainerPoint(location);
     if (posPoint.y < insets.top) return true;
