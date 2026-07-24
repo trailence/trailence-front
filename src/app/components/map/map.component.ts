@@ -604,8 +604,10 @@ export class MapComponent extends AbstractComponent {
     map.on('zoomanim', e => {
       this._mapState.zoom = e.zoom;
     });
-    map.on('touch-rotate', e => {
-      this.setRotation(RotateMode.CUSTOM, (e as any).touchRotateBearing, false);
+    map.on('touchrotate', e => {
+      this.getState().rotateMode = RotateMode.CUSTOM;
+      this.getState().bearing = (e as any).touchRotateBearing;
+      this.refreshTools();
     });
     map.on('rotate', e => {
       this.getState().bearing = (e as any).theta;
