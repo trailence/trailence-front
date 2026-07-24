@@ -124,6 +124,10 @@ describe('Import data from Visorando', () => {
     await list.selectAllCheckbox.setSelected(true);
     await list.selectionMenu('Delete');
     await (await App.waitAlert()).clickButtonWithRole('danger');
+    try { await App.waitNoProgress(); } catch (e) {}
+  });
+
+  it('Wait for trails to be deleted', async () => {
     await App.waitNoProgress();
   });
 

@@ -1,0 +1,5 @@
+Ajout de la rotation de la carte
+Ajout du mode plein écran pour la carte
+Suivi de la progression sur les étapes d'un parcours
+Ajout du temps estimé pour chaque étape
+Quelques autres améliorations et correctifs

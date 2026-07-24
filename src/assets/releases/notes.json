@@ -234,5 +234,25 @@
         "Minor improvements and bug fixes"
       ]
     }
+  },
+  "020100": {
+    "fr": {
+      "items": [
+        "Ajout de la rotation de la carte",
+        "Ajout du mode plein écran pour la carte",
+        "Suivi de la progression sur les étapes d'un parcours",
+        "Ajout du temps estimé pour chaque étape",
+        "Quelques autres améliorations et correctifs"
+      ]
+    },
+    "en": {
+      "items": [
+        "Added map rotation",
+        "Added full-screen mode for the map",
+        "Track your progress through each waypoint",
+        "Added estimated time for each waypoint",
+        "Additional improvements and bug fixes"
+      ]
+    }
   }
 }

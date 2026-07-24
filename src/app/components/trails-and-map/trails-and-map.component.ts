@@ -317,13 +317,13 @@ export class TrailsAndMapComponent extends AbstractComponent {
       this.trailSheetMode = 'none';
       this.isSmall = false;
       this.updateVisibility(true, true, false);
-    } else if (w >= 600 + 250) {
+    } else if (w >= 550 + 250) {
       this.mode = 'large list-one-col-large';
       this.listSize = 'medium';
       this.trailSheetMode = 'none';
       this.isSmall = false;
       this.updateVisibility(true, true, false);
-    } else if (w >= 600 + 175) {
+    } else if (w >= 550 + 175) {
       this.mode = 'large list-one-col-small';
       this.listSize = 'small';
       this.trailSheetMode = 'none';

@@ -5,7 +5,7 @@
 }
 
 .not-loaded {
-  min-height: 110px;
+  min-height: var(--default-height, 110px);
 }
 
 .trail-name-row {

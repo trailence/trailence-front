@@ -25,6 +25,7 @@ describe('Edit tools', () => {
     trailPage = await trailsList.openTrail(trail);
     details = await trailPage.trailComponent.openDetails();
     map = await trailPage.trailComponent.openMap();
+    if ((await map.getZoom()) < 13) await map.zoomTo(13);
     tools = await trailPage.trailComponent.openEditTools();
   });
 

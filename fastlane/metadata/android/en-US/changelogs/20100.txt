@@ -1,0 +1,5 @@
+Added map rotation
+Added full-screen mode for the map
+Track your progress through each waypoint
+Added estimated time for each waypoint
+Additional improvements and bug fixes
