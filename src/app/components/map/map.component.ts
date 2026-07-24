@@ -448,9 +448,9 @@ export class MapComponent extends AbstractComponent {
     const size = map.getSize();
     const insets = {
       top: this.mapInsetsPixel.top + Math.round(size.y * this.followingLocationInsetsPercent * 0.5),
-      bottom: this.mapInsetsPixel.bottom - Math.round(size.y * this.followingLocationInsetsPercent * 0.5),
+      bottom: this.mapInsetsPixel.bottom + Math.round(size.y * this.followingLocationInsetsPercent * 0.5),
       left: this.mapInsetsPixel.left + Math.round(size.x * this.followingLocationInsetsPercent * 0.5),
-      right: this.mapInsetsPixel.right - Math.round(size.x * this.followingLocationInsetsPercent * 0.5),
+      right: this.mapInsetsPixel.right + Math.round(size.x * this.followingLocationInsetsPercent * 0.5),
     };
     const posPoint = map.latLngToContainerPoint(location);
     if (posPoint.y < insets.top) return true;
