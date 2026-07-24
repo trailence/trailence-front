@@ -13,6 +13,7 @@
           "/*.css",
           "/*.js",
           "/assets/icons.*.svg",
+          "/assets/i18n/*.json",
           "/assets/*.js",
           "/assets/*.mjs",
           "/assets/pdf-viewer/pdf-viewer.mjs",
