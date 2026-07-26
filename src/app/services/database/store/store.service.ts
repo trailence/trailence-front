@@ -112,6 +112,10 @@ export class StoreService {
     }
   }
 
+  public keepPauseSync(id: number): void {
+    if (this._pauses.indexOf(id) >= 0) this.storeInterface.syncPaused = Date.now();
+  }
+
   public get allLoaded$(): Observable<boolean> {
     return this._stores.pipe(
       switchMap(stores => stores.length === 0 ? of([]) : combineLatest(stores.map(s => s.loadStatus$))),

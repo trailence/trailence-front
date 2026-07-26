@@ -99,7 +99,7 @@
     margin: 0 4px 0 0;
     min-width: calc(24px + var(--small-button-add-size));
   }
-  ion-button.public-trail-button {
+  ion-button.public-trail-button, ion-button.draft-trail-button, ion-button.submitted-trail-button, ion-button.rejected-trail-button {
     ion-icon {
       width: 18px;
       height: 18px;

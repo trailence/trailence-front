@@ -122,6 +122,7 @@ export function openImportTrailsFileDialog(injector: Injector, collectionUuid: s
                     injector.get(StoreService).resumeSync(syncPause);
                     resolve(done);
                   } else {
+                    injector.get(StoreService).keepPauseSync(syncPause);
                     readNextZipEntry(entryIndex + 1);
                   }
                 })
