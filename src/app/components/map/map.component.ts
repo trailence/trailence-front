@@ -793,7 +793,7 @@ export class MapComponent extends AbstractComponent {
           let rotateChanged = false;
           if (rotation.mode === RotateMode.HEADING) {
             if (watched) {
-              let heading = watched.h;
+              let heading = undefined;// watched.h;
               if (typeof heading !== 'number' && watched.l !== undefined && watched.n !== undefined) {
                 previousPositions ??= [];
                 const currentPos = L.latLng({lat: watched.l, lng: watched.n});
