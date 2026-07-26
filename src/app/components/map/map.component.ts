@@ -111,6 +111,8 @@ export class MapComponent extends AbstractComponent {
             if (this._map$.value) this.invalidateSize();
             else this.initMap();
           }, 0);
+        } else {
+          this.exitFullScreen();
         }
         this._mapState.live = visible;
       });
