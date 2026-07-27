@@ -332,11 +332,10 @@ export class MapComponent extends AbstractComponent {
   private fit(map: L.Map, boundsBuilder: BoundsBuilder) {
     const bounds = boundsBuilder.getBounds();
     if (bounds) {
-      const insetsBounds = L.latLngBounds(
-        map.containerPointToLatLng(map.latLngToContainerPoint(bounds.getSouthWest()).add(L.point(-this.mapInsetsPixel.left, this.mapInsetsPixel.bottom))),
-        map.containerPointToLatLng(map.latLngToContainerPoint(bounds.getNorthEast()).add(L.point(this.mapInsetsPixel.right, -this.mapInsetsPixel.top))),
-      )
-      map.fitBounds(insetsBounds);
+      map.fitBounds(bounds, {
+        paddingTopLeft: L.point(this.mapInsetsPixel.left, this.mapInsetsPixel.top),
+        paddingBottomRight: L.point(this.mapInsetsPixel.right, this.mapInsetsPixel.bottom),
+      });
       this._initZoomTimestamp = 1;
     }
   }
