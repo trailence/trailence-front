@@ -254,5 +254,13 @@
         "Additional improvements and bug fixes"
       ]
     }
+  },
+  "020101": {
+    "fr": {
+      "items": ["Correctifs"]
+    },
+    "en": {
+      "items": ["Bug fixes"]
+    }
   }
 }
