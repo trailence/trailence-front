@@ -1,0 +1,1727 @@
+{
+  "tools": {
+    "filters": "Filter",
+    "import": "Importieren",
+    "import_gpx_description": "GPX-Dateien importieren",
+    "importing": "Import läuft",
+    "sort": "Sortieren",
+    "more": "Mehr",
+    "display": "Anzeige",
+    "display_detailed": "Detailliert mit Fotos",
+    "display_detailed_small_map": "Detailliert mit Karte",
+    "display_detailed_elevation": "Detailliert mit Höhenprofil",
+    "display_condensed": "Kompakt",
+    "search_text": "Nach Namen"
+  },
+  "pages": {
+    "home": {
+      "title": "Wandern und Verwaltung von GPS-Tracks (GPX)",
+      "subTitle": "Trailence ist kostenlos, quelloffen, werbefrei und ohne Tracker.",
+      "meta_description": "Werkzeug zum Wandern und zur Verwaltung Ihrer GPS-Tracks (GPX). Trailence ist kostenlos, werbefrei und quelloffen",
+      "slides": [
+        {
+          "header": "Organisieren Sie Ihre Touren",
+          "footer": ["Sammlungen erstellen", "Ihre Touren taggen", "Auf der Karte anzeigen", "Sortierung, Filter..."]
+        }, {
+          "header": "Erstellen Sie Ihre Tracks",
+          "footer": ["Einen Track während Ihrer Aktivität aufzeichnen", "Offline-Karten", "Einer bestehenden Tour folgen"]
+        }, {
+          "header": "Tour im Detail",
+          "footer": ["Höhenprofil", "Beschreibung", "Wegpunkte"]
+        }, {
+          "header": "Fügen Sie Fotos hinzu",
+          "footer": ["Fotos zu Ihren Touren hinzufügen", "Die Fotos auf der Karte anzeigen"]
+        }, {
+          "header": "Und außerdem...",
+          "footer": ["Touren teilen", "Tracks importieren", "Ihre Tracks exportieren", "Verbessern Sie Ihre Tracks mit dem Bearbeitungswerkzeug", "Planen Sie eine Tour mit Open Street Map", "Kopieren, zwischen Ihren Sammlungen verschieben", "Vergleichen, ähnliche Touren suchen", "Schätzung der Tourdauer", "Statistiken", "Und vieles mehr!"]
+        }
+      ],
+      "download_apk": "Android-App herunterladen",
+      "try_app1": "Jetzt ausprobieren",
+      "try_app2": "Kein Konto erforderlich!",
+      "available_on": "Verfügbar für Android und als Web-App",
+      "examples_title": "Beispiel-Touren"
+    },
+    "installApk": {
+      "title": "Android-App",
+      "stores": {
+        "intro": "Trailence kann über einen der folgenden Stores installiert werden:",
+        "else1": "Wenn Sie diese Stores nicht verwenden können (oder möchten), können Sie Trailence über die APK-Datei installieren.",
+        "else2": "Nach der Installation informiert Sie Trailence, sobald ein Update verfügbar ist. Wenn Sie es installieren möchten, lädt Trailence die neue Version automatisch herunter und installiert sie – ohne dass Sie alle Schritte der ersten Installation wiederholen müssen.",
+        "else3": "Um Trailence manuell zu installieren, folgen Sie diesen Schritten:"
+      },
+      "download": "Laden Sie die Installationsdatei herunter",
+      "meta_description": "Anleitung zur Installation der Trailence-Android-App",
+      "steps": [
+        {
+          "beforeImg": "Ein Fenster ähnlich dem unten stehenden kann erscheinen",
+          "afterImg": "Bestätigen Sie den Download und öffnen Sie dann die Datei"
+        }, {
+          "beforeImg": "Wenn Sie zum ersten Mal versuchen, eine Anwendung auf diese Weise zu installieren, kann eine Warnung ähnlich der unten stehenden erscheinen",
+          "afterImg": "Gehen Sie in die Einstellungen, um die Installation zu erlauben"
+        }, {
+          "beforeImg": "Daraufhin erscheint ein Fenster",
+          "afterImg": "Klicken Sie auf „Von dieser Quelle zulassen“"
+        }, {
+          "beforeImg": "Anschließend erscheint ein Fenster, um die Installation zu bestätigen",
+          "afterImg": "Klicken Sie auf „Installieren“"
+        }, {
+          "beforeImg": "Daraufhin erscheint ein Fenster ähnlich dem unten stehenden",
+          "afterImg": "Klicken Sie in der Mitte des Bildschirms auf „Mehr Details“"
+        }, {
+          "beforeImg": "Auf dem Bildschirm erscheint dann eine Schaltfläche „Ohne Scan installieren“",
+          "afterImg": "Sie können darauf klicken oder auf Wunsch den Scan anfordern"
+        }, {
+          "beforeImg": "Schließlich ist die Anwendung installiert",
+          "afterImg": ""
+        }
+      ]
+    },
+    "login": {
+      "meta_description": "Anmeldung bei Ihrem Trailence-Konto",
+      "title": "Anmelden",
+      "email": "E-Mail",
+      "password": "Passwort",
+      "signin_button": "Anmelden",
+      "offline": "Bitte stellen Sie eine Internetverbindung her, um sich bei Trailence anzumelden",
+      "incorrect_message": "Ungültige E-Mail-Adresse oder ungültiges Passwort",
+      "error_message": "Authentifizierungsfehler, bitte versuchen Sie es erneut",
+      "captcha_message": "Nach mehreren Versuchen müssen wir überprüfen, dass Sie kein Roboter sind",
+      "locked_message": "Ihr Konto wurde gesperrt. Bitte verwenden Sie die Schaltfläche „Passwort vergessen“",
+      "forgot_password": "Passwort vergessen?",
+      "create_account": "Konto erstellen",
+      "try_without_account": "Ohne Konto ausprobieren",
+      "reset_password": {
+        "title": "Passwort vergessen",
+        "email": "E-Mail",
+        "new_password1": "Neues Passwort",
+        "new_password2": "Neues Passwort bestätigen",
+        "verification_code_explaination": "Wir haben soeben einen 6-stelligen Code an Ihre E-Mail-Adresse gesendet. Bitte geben Sie ihn unten ein",
+        "in_progress": "Passwort wird geändert...",
+        "error": "Ein Fehler ist aufgetreten. Bitte gehen Sie zurück und versuchen Sie es erneut",
+        "errors": {
+          "email": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
+          "password": "Muss mindestens 8 Zeichen enthalten",
+          "passwordsDontMatch": "Die Passwörter stimmen nicht überein",
+          "mail_already_sent": "Für Ihr Konto wurde bereits vor weniger als 10 Minuten eine Anfrage gestellt.",
+          "mail_error": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+        }
+      },
+      "signing_in": "Anmeldung...",
+      "downloading_data": "Ihre Daten werden geladen..."
+    },
+    "register": {
+      "meta_description": "Erstellen Sie ein Konto bei Trailence",
+      "title": "Konto erstellen",
+      "offline": "Bitte stellen Sie eine Internetverbindung her, um ein Konto bei Trailence zu erstellen",
+      "step1": "Geben Sie Ihre Daten ein",
+      "email": "E-Mail",
+      "password1": "Passwort",
+      "password2": "Bestätigen Sie Ihr Passwort",
+      "step2": "Bestätigen Sie Ihre E-Mail",
+      "code_text": "Ihnen wurde eine E-Mail mit einem 6-stelligen Bestätigungscode gesendet. Bitte geben Sie ihn unten ein",
+      "step3": "Konto erstellt",
+      "connection": "Anmeldung...",
+      "continue": "Weiter",
+      "back": "Zurück",
+      "errors": {
+        "network": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut",
+        "passwordsDontMatch": "Die beiden Passwörter stimmen nicht überein",
+        "invalidEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein"
+      }
+    },
+    "trails": {
+      "collection": "Sammlung",
+      "share_from": "Freigabe von",
+      "your_share": "Ihre Freigabe",
+      "edit_filters_popup_title": "Touren filtern",
+      "edit_sort_popup_title": "Touren sortieren",
+      "missing_trails_because_offline": "Einige Touren können nicht angezeigt werden, da Sie offline sind",
+      "sorts": {
+        "trail_date": "Datum der Tour",
+        "creation_date": "Erstellung in Trailence",
+        "update_date": "Letzte Aktualisierung in Trailence",
+        "distance": "Distanz",
+        "duration": "Dauer",
+        "estimatedDuration": "Geschätzte Wanderdauer",
+        "positive_elevation": "Aufstieg",
+        "negative_elevation": "Abstieg",
+        "highest_altitude": "Höchster Punkt",
+        "lowest_altitude": "Tiefster Punkt",
+        "rating": "Bewertung"
+      },
+      "filters": {
+        "duration": "Dauer",
+        "estimatedDuration": "Geschätzte Wanderdauer",
+        "distance": "Distanz",
+        "positive_elevation": "Aufstieg",
+        "negative_elevation": "Abstieg",
+        "loopType": "Tourtyp",
+        "loopTypePlaceholder": "Typen auswählen",
+        "activity": "Aktivität",
+        "select_activities_button": "Zum Auswählen klicken",
+        "tags": "Tags",
+        "rate": "Bewertung",
+        "onlyVisibleOnMap": "In der Liste nur die auf der Karte sichtbaren Touren anzeigen",
+        "onlyWithPhotos": "Nur Touren mit Fotos",
+        "reset_button": "Alle Filter entfernen",
+        "preset": "Meine Filter",
+        "load": "Laden",
+        "save": "Speichern",
+        "remove": "Löschen",
+        "save_new": "Neuer Filter...",
+        "no_saved_filter": "Kein gespeicherter Filter",
+        "save_title": "Filter speichern",
+        "save_name": "Name des Filters",
+        "enum_or": "oder"
+      },
+      "tabs": {
+        "list": "Liste",
+        "map": "Karte"
+      },
+      "open_trail": "Öffnen",
+      "empty_list": {
+        "collection": "Noch keine Tour in dieser Sammlung",
+        "share": "Keine Tour in dieser Freigabe",
+        "filter": "Keine Tour entspricht Ihren Filtern",
+        "filter_search": "Keine Tour entspricht Ihren Filtern in diesem Bereich",
+        "filter_search_enlarge_button": "Suchbereich erweitern",
+        "all_collections": "Sie haben momentan keine Tour",
+        "my_selection": "Sie haben keine Tour in Ihrer Auswahl",
+        "search": "In diesem Bereich wurde keine Tour gefunden.",
+        "launch_search": "Bewegen Sie sich auf der Karte zu dem Bereich, in dem Sie nach Touren suchen möchten, und klicken Sie dann auf „Suche starten“.",
+        "only_bubbles": "Zoomen Sie auf der Karte hinein und klicken Sie auf „Suche starten“, oder klicken Sie direkt auf die Blasen, um die verfügbaren Touren zu sehen."
+      },
+      "search_trail_placeholder": "Tour suchen",
+      "actions": {
+        "share_global": "Freigabe erstellen",
+        "share_trail": "Freigabe erstellen",
+        "share_trails": "Freigabe mit diesen Touren erstellen",
+        "delete_confirm_single": {
+          "title": "Tour löschen",
+          "message": "Möchten Sie {{}} wirklich löschen?",
+          "yes": "Ja, löschen",
+          "no": "Abbrechen, behalten"
+        },
+        "delete_confirm_multiple": {
+          "title": "{{}} Touren löschen",
+          "message": "Möchten Sie diese {{}} Touren wirklich löschen?",
+          "yes": "Ja, löschen",
+          "no": "Abbrechen, behalten"
+        },
+        "deleting_trails": "Löschen",
+        "move_to_collection": "Verschieben nach...",
+        "copy_to_collection": "Kopieren nach...",
+        "new_collection": "Neue Sammlung...",
+        "copying": "Kopieren",
+        "moving": "Verschieben",
+        "edit_collection": "Umbenennen",
+        "export": "Exportieren",
+        "export_collection": "Sammlung exportieren",
+        "open_gpx": "GPX öffnen mit",
+        "prepare": "Vorbereiten",
+        "modify": "Bearbeiten",
+        "share_section": "Teilen",
+        "rename": "Titel",
+        "edit_date": "Datum",
+        "rename_popup": {
+          "title": "Tour umbenennen",
+          "name": "Name"
+        },
+        "edit_location": "Ort",
+        "edit_activity": "Aktivität",
+        "copy_photos_alert": {
+          "title": "Fotos kopieren",
+          "message_singular": "Die kopierte Tour enthält Fotos. Möchten Sie auch eine Kopie der Fotos erstellen?",
+          "message_plural": "Die kopierten Touren enthalten Fotos. Möchten Sie auch eine Kopie der Fotos erstellen?"
+        },
+        "copying_photos": "Fotos werden kopiert",
+        "copy_photo_error": "Fehler beim Kopieren des Fotos {{1}}",
+        "add_to_my_selection": "Zu meiner Auswahl hinzufügen",
+        "remove_from_my_selection": "Aus meiner Auswahl entfernen",
+        "copy_link": "Link kopieren",
+        "share_link": "Link teilen",
+        "create_link": "Öffentlichen Link erstellen",
+        "edit_link": "Öffentlicher Link"
+      },
+      "tags": {
+        "menu_item": "Tags",
+        "collection_menu_item": "Tags bearbeiten",
+        "popup": {
+          "title_trail": "Tags der Tour",
+          "title_trails": "Tags der Touren",
+          "title_collection": "Tags der Sammlung",
+          "add_tag_label": "Neuer Tag",
+          "confirm_delete": {
+            "title": "Tag löschen",
+            "message": "Möchten Sie diesen Tag wirklich löschen? Er wird derzeit für {{1}} Touren verwendet",
+            "yes": "Ja, löschen",
+            "no": "Abbrechen, behalten"
+          }
+        }
+      },
+      "search": {
+        "sources": "Quellen",
+        "searching": "Suche läuft",
+        "error": "Fehler bei der Suche",
+        "needs_zoom": "Karte zu groß, zoomen Sie weiter hinein",
+        "too_much_results": "Zu viele Ergebnisse",
+        "search_in_this_area": "Suche starten",
+        "clear_search_results": "Ergebnisse löschen"
+      }
+    },
+    "trail": {
+      "title_compare": "Vergleich von",
+      "title_compare_and": "und",
+      "tabs": {
+        "details": "Details",
+        "map": "Karte",
+        "photos": "Fotos",
+        "waypoints": "Wegpunkte",
+        "comments": "Rezensionen"
+      },
+      "show_original": "Originaltrack anzeigen",
+      "show_osm": "Tour entlang bekannter Wege anzeigen",
+      "show_breaks": "Pausen anzeigen",
+      "show_guideposts": "Wegweiser anzeigen",
+      "show_intersections": "Kreuzungen anzeigen",
+      "map_elements": {
+        "photos": "Fotos",
+        "breaks": "Pausen",
+        "guideposts": "Wegweiser",
+        "waypoints": "Wegpunkte",
+        "marked_trails": "Wegmarkierungen"
+      },
+      "reverse_way": "Umgekehrte Richtung",
+      "open_in_app": "Öffnen in",
+      "open_in_trailence": "Original-Tour anzeigen",
+      "actions": {
+        "open": "Tour öffnen",
+        "go_to_departure": "Zum Start gehen",
+        "download_map": "Karte herunterladen",
+        "compare": "Vergleichen",
+        "compare_with": "Vergleichen mit...",
+        "compare_with_explanation": "Um diese Tour mit einer anderen zu vergleichen, öffnen Sie das Menü der anderen Tour und klicken Sie auf „Mit dieser Tour vergleichen“.",
+        "compare_with_this_one": "Mit dieser Tour vergleichen",
+        "merge_trails": "Diese Touren zusammenführen",
+        "merged_trail_name": "Zusammengeführte Tour"
+      },
+      "no_tag_message": "Keine Tags für diese Tour",
+      "no_photo_message": "Keine Fotos für diese Tour",
+      "photo_no_description": "Beschreibung",
+      "take_photo": "Foto aufnehmen",
+      "comparison_message": "Diese Touren sind zu {{1}} % ähnlich",
+      "propose_to_publish": {
+        "be_the_first": "Keine Touren in diesem Bereich. Seien Sie der Erste, der eine teilt, und helfen Sie der Community 🙏",
+        "improve_region": "In diesem Bereich fehlen Touren. Helfen Sie der Community, indem Sie Ihre teilen 🙏",
+        "participate_region": "In diesem Bereich gibt es noch wenige Touren. Tragen Sie zur Community bei, indem Sie Ihre teilen 🙏"
+      },
+      "sections": {
+        "description": {
+          "placeholder": "Geben Sie hier eine Beschreibung ein"
+        },
+        "waypoints": {
+          "title": "Wegpunkte"
+        },
+        "comments": {
+          "title": "Rezensionen",
+          "you": "Sie",
+          "rate": {
+            "global": "Durchschnittliche Bewertung:",
+            "global_on_nb": " basierend auf {{1}} Rezensionen",
+            "no_rate": "Noch keine Bewertung",
+            "yours": "Ihre Bewertung:",
+            "write_a_review": "⭐ Diese Tour bewerten und kommentieren",
+            "change_rate_or_review": "Meine Bewertung ändern oder einen Kommentar hinzufügen",
+            "modal": {
+              "title": "Bewerten und kommentieren",
+              "rate_title": "Geben Sie eine Bewertung ab",
+              "comment_title": "Hinterlassen Sie einen Kommentar",
+              "comment_advise": {
+                "header": "Einige Regeln und Tipps, bevor Sie kommentieren:",
+                "items": [
+                  "Teilen Sie kurz Ihren Gesamteindruck von der Tour.",
+                  "Erwähnen Sie, ob Sie auf Schwierigkeiten gestoßen sind.",
+                  "Weisen Sie auf Stellen hin, die besondere Aufmerksamkeit erfordern.",
+                  "Zögern Sie nicht, anzugeben, was Ihnen gefallen oder weniger gefallen hat, um der Community zu helfen.",
+                  "Bleiben Sie höflich und respektvoll: keine beleidigenden, anstößigen oder diskriminierenden Äußerungen."
+                ],
+                "footer": "🙏 Vielen Dank für Ihren Beitrag!"
+              },
+              "send_error": "Fehler beim Senden Ihres Kommentars"
+            }
+          },
+          "delete_comment_confirmation": {
+            "title": "Kommentar löschen",
+            "message": "Möchten Sie diesen Kommentar wirklich löschen?"
+          },
+          "delete_reply_confirmation": {
+            "title": "Antwort löschen",
+            "message": "Möchten Sie diese Antwort wirklich löschen?"
+          },
+          "reply": "Antworten",
+          "reply_placeholder": "Geben Sie hier Ihre Antwort ein",
+          "reply_send_error": "Fehler beim Senden Ihrer Antwort",
+          "load_more_comments": "Weitere Kommentare anzeigen",
+          "has_done_this_trail": "ist dieser Tour gefolgt ✅",
+          "filter_has_done_this_trail": "Personen einbeziehen, die dieser Tour gefolgt sind",
+          "show_reviews_with_rate": "Aktiver Filter: Bewertungen von {{1}}/5",
+          "not_authenticated": "Melden Sie sich an, um die Kommentare zu sehen",
+          "not_connected": "Internetverbindung erforderlich, um die Rezensionen abzurufen"
+        }
+      },
+      "remaining_metadata_title": "Verbleibend",
+      "created_in_trailence_on": "Erstellt in Trailence am",
+      "last_update_on": "Zuletzt aktualisiert am",
+      "published_by": "Veröffentlicht von",
+      "published__by": "Von",
+      "published_on": "Veröffentlicht am",
+      "published__on": "Am",
+      "published_from": "ausgehend von",
+      "select_photo_position": "Wählen Sie aus, wo das Foto auf der Tour aufgenommen wurde",
+      "source": {
+        "trailence_recorder": "In Trailence aufgezeichneter Track",
+        "trailence_planner": "In Trailence geplante Tour",
+        "with_date": " am {{1}}",
+        "with_owner": " von {{1}}",
+        "file_import": "Importiert aus der Datei {{1}}",
+        "file_import_unknown": "Aus einer Datei importiert",
+        "external": "Gefunden auf {{1}}",
+        "following": " durch Folgen von :*:{{1}}:*:{{2}}:*:",
+        "following_a_deleted_track": " durch Folgen einer Tour (inzwischen gelöscht)",
+        "initially_found_on": " ursprünglich gefunden auf :*:{{1}}:*:{{2}}:*:",
+        "following_found_on": " durch Folgen einer Tour, gefunden auf :*:{{1}}:*:{{2}}:*:",
+        "source_url": "Quelle:",
+        "source_advise": "💡 Es wird empfohlen, die Quelle zu konsultieren, bevor Sie der Tour folgen, um über die aktuellsten Informationen zu verfügen.",
+        "add_source_url": "Quelle hinzufügen (Link)"
+      },
+      "my_feedback": {
+        "you_leave_a_rate": "Sie haben diese Tour am {{2}} mit {{1}}/5 bewertet",
+        "you_leave_a_comment": "Sie haben am {{1}} einen Kommentar zu dieser Tour hinterlassen",
+        "you_leave_a_rate_and_a_comment_same_date": "Sie haben diese Tour am {{2}} mit {{1}}/5 bewertet und kommentiert",
+        "you_leave_a_rate_and_a_comment_different_date": "Sie haben diese Tour am {{2}} mit {{1}}/5 bewertet und am {{3}} einen Kommentar hinterlassen",
+        "invite_to_rate_title": "🙏 Beteiligen Sie sich an der Community!",
+        "invite_to_rate_button": "⭐ Bewerten Sie diese Tour"
+      }
+    },
+    "collection_form": {
+      "title": "Sammlung",
+      "collection_name": "Name"
+    },
+    "location_popup": {
+      "title": "Ort der Tour",
+      "location": "Ort",
+      "search_from_departure": "Orte ausgehend vom Start vorschlagen",
+      "radius": "Im Umkreis von",
+      "search": "Suchen"
+    },
+    "import_gpx_popup": {
+      "title": "Import einer neuen Tour",
+      "message": "Bitte wählen Sie die Sammlung, in die die Datei{{1}}importiert werden soll"
+    },
+    "import_tags_popup": {
+      "title_import": "Tags importieren",
+      "title_copy": "Tags kopieren",
+      "message_import": "Die folgenden Tags wurden in den importierten Dateien gefunden",
+      "message_copy": "Die folgenden Tags sind auf den kopierten Touren vorhanden",
+      "tag": "Tag",
+      "status": "Status",
+      "status_exists": "Vorhanden",
+      "status_does_not_exist": "Nicht vorhanden",
+      "message2": "Was möchten Sie mit diesen Tags tun?",
+      "import_existing_only": "Nur die bereits vorhandenen Tags importieren",
+      "import_and_create": "Alle Tags importieren und die fehlenden erstellen",
+      "import_all": "Alles importieren",
+      "ignore_all_import": "Keine Tags importieren",
+      "copy_existing_only": "Nur die bereits vorhandenen Tags kopieren",
+      "copy_and_create": "Alle Tags kopieren und die fehlenden erstellen",
+      "copy_all": "Alles kopieren",
+      "ignore_all_copy": "Keine Tags kopieren"
+    },
+    "import_from_sources": {
+      "title": "Datenimport",
+      "message1": "Wir haben die folgenden Quellen gefunden:",
+      "message2": "Möchten Sie versuchen, zusätzliche Daten aus diesen Quellen zu importieren?",
+      "message_internet": "Sie müssen mit dem Internet verbunden sein, um aus diesen Quellen importieren zu können"
+    },
+    "share_popup": {
+      "title": "Teilen",
+      "type": {
+        "question": "Was möchten Sie teilen?",
+        "collection": "Die gesamte Sammlung",
+        "tags": "Bestimmte Tags",
+        "explanation": {
+          "collection": "Alle Touren der Sammlung werden geteilt. Wenn Sie eine Tour in der Sammlung hinzufügen, entfernen oder ändern, wird die Freigabe automatisch aktualisiert.",
+          "tags": "Es werden nur die Touren der Sammlung geteilt, die die (im nächsten Schritt) ausgewählten Tags tragen. Wenn Sie einer neuen Tour einen ausgewählten Tag hinzufügen, wird sie automatisch in die Freigabe aufgenommen. Ebenso wird die Freigabe aktualisiert, wenn Sie einen Tag von einer Tour entfernen."
+        }
+      },
+      "tags": {
+        "question": "Welche Tags?"
+      },
+      "name": "Geben Sie der Freigabe einen Namen",
+      "name_info": "Dieser Name ist für Sie und die Person sichtbar, mit der Sie teilen",
+      "who_question": "Mit wem? (bis zu 20 Personen)",
+      "includePhotos": "Die Fotos zusammen mit den Touren teilen",
+      "photos_info": "Die mit den geteilten Touren verknüpften Fotos sind für die Person sichtbar, mit der Sie teilen",
+      "email": "E-Mail",
+      "email_info": "Der Person wird eine E-Mail gesendet, um sie über die Freigabe zu informieren",
+      "language": "In welcher Sprache sollen wir die E-Mail senden?",
+      "recipient_error": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
+      "share_description": {
+        "COLLECTION": "Freigabe der gesamten Sammlung {{1}}",
+        "TRAIL": "Freigabe von {{1}} Tour(en)",
+        "TAGS": "Freigabe der folgenden Tags: {{1}}"
+      }
+    },
+    "trail_link": {
+      "title": "Öffentlicher Link",
+      "explanation": "Jeder, der über diesen Link verfügt, kann Ihre Tour, ihre Wegpunkte und ihre Fotos ansehen.<br/>Die Tags und die Sammlung sind hingegen nicht sichtbar.<br/>Jede Änderung an der Tour wird automatisch übernommen.",
+      "offline": "Bitte stellen Sie eine Internetverbindung her, um den Link zu generieren",
+      "anonymous": "Diese Funktion ist ohne Konto nicht verfügbar.",
+      "waiting": "Link wird erstellt...",
+      "copy": "Kopieren",
+      "copied": "Link in die Zwischenablage kopiert",
+      "share": "Teilen",
+      "share_title": "Öffentlicher Trailence-Link",
+      "delete": {
+        "title": "Öffentlichen Link löschen",
+        "message": "Möchten Sie diesen Link wirklich löschen?"
+      }
+    },
+    "find_duplicates": {
+      "title": "Ähnliche Touren suchen",
+      "option_inside_collection": "Innerhalb der Sammlung {{1}}",
+      "option_between_collections": "Zwischen den Touren der Sammlung {{1}} und denen der Sammlung",
+      "option_all": "Zwischen allen Touren aller Sammlungen",
+      "threshold": "Mit einer Ähnlichkeit von mindestens",
+      "end_message": "Ende der Suche"
+    },
+    "preferences": {
+      "title": "Einstellungen",
+      "display_section_title": "Anzeige",
+      "language": "Sprache",
+      "theme": "Design",
+      "themes": {
+        "light": "Hell",
+        "dark": "Dunkel",
+        "system": "Systemeinstellung"
+      },
+      "larger_touch_targets": "Vergrößerte Bedienelemente",
+      "larger_texts": "Größere Texte",
+      "distance_unit": "Entfernungseinheit",
+      "distance_units": {
+        "meters": "Meter / Kilometer",
+        "imperial": "Fuß / Meilen"
+      },
+      "elevation_units_long": {
+        "meters": "Meter",
+        "imperial": "Fuß"
+      },
+      "date_format": "Datumsformat",
+      "time_format": "Uhrzeitformat",
+      "appearance_and_privacy": "Erscheinungsbild und Privatsphäre",
+      "alias": "Wie möchten Sie öffentlich erscheinen?",
+      "alias_explaination": "Wenn Sie eine Tour veröffentlichen oder einen Kommentar zu einer öffentlichen Tour hinterlassen, können Sie anonym bleiben oder einen Namen Ihrer Wahl anzeigen. Wenn Sie einen Namen wählen, achten Sie darauf, dass er keine beleidigenden, anstößigen oder diskriminierenden Ausdrücke enthält.",
+      "anonymous": "Anonym",
+      "alias_name": "Mit dem Namen",
+      "avatar": "Profilbild",
+      "avatar_pending": "Bild wartet auf Freigabe",
+      "create_avatar": "Profilbild hinzufügen",
+      "delete_avatar_error": "Fehler beim Löschen des Profilbilds",
+      "avatar_public": "Öffentlich sichtbares Bild",
+      "avatar_private": "Privates Bild, nur für Sie sichtbar",
+      "trace_recorder": "Track-Aufzeichnung",
+      "traceMinMeters": "Mindestabstand zwischen zwei aufgezeichneten Punkten",
+      "traceMinMeters_explaination": "Ein zu niedriger Wert kann aufgrund der GPS-Ungenauigkeit zu einem Track schlechter Qualität führen.<br/>Ein zu hoher Wert kann ebenfalls zu einem Track schlechter Qualität mit langen Geraden führen.<br/>Zu beachten ist außerdem, dass die Anzahl der aufgezeichneten Punkte umso höher ist, je kleiner der Abstand ist, was sich während der Aufzeichnung auf den Akkuverbrauch auswirken kann.<br/>Für einen guten Kompromiss empfehlen wir einen Wert zwischen 5 und 15 Metern (also etwa 16 bis 50 Fuß).",
+      "traceMinMillis": "Mindestzeit zwischen zwei aufgezeichneten Punkten",
+      "traceMinMillis_explaination": "Wenn Sie die Anzahl der aufgezeichneten Punkte begrenzen möchten, um den Akkuverbrauch zu reduzieren, können Sie eine längere Mindestzeit zwischen den Punkten festlegen.<br/>Der Mindestabstand zwischen den Punkten wird ebenfalls berücksichtigt: Es müssen also sowohl der Mindestabstand ALS AUCH die Mindestzeit erreicht sein, bevor ein neuer Punkt aufgezeichnet wird.<br/>Wir empfehlen einen Wert zwischen 2 und 5 Sekunden.",
+      "elevation_calibration": "Höhe",
+      "elevation_calibration_explaination": "Die vom GPS aufgezeichnete Höhe weicht oft von der Realität ab.<br/>Hier können Sie sie anpassen, indem Sie eine anzuwendende Differenz angeben.<br/>Wenn Ihr GPS zum Beispiel immer etwa {{1}} {{2}} mehr anzeigt als die tatsächliche Höhe, können Sie <b>-{{1}}</b> eingeben.<br/>Da jedes Gerät unterschiedlich ist, erfolgt die Konfiguration pro Gerät.",
+      "elevation_calibration_this_device": "dieses Gerät",
+      "offline_map": "Offline-Karten",
+      "offlineMapMaxKeepDays": "Anzahl der Tage, die eine heruntergeladene Karte gültig ist",
+      "offlineMapMaxKeepDays_explaination": "Wenn Sie eine Karte herunterladen, um sie offline verfügbar zu machen, gibt diese Einstellung an, wie viele Tage sie aufbewahrt wird. Dadurch wird außerdem ein Kartenelement nicht erneut heruntergeladen, wenn es bereits kürzlich heruntergeladen wurde, was beim Herunterladen Zeit spart.",
+      "offline_maps": {
+        "title": "Heruntergeladene Karten",
+        "items": "Elemente",
+        "size": "Größe",
+        "remove_all": "Alles löschen"
+      },
+      "more_maps_layers": "Weitere Kartenhintergründe",
+      "photos": "Fotos",
+      "photos_max_pixels": "Maximale Breite/Höhe der Fotos",
+      "photos_max_pixels_explaination": "Wenn Sie ein Foto hinzufügen, das größer als die maximale Größe ist, wird es automatisch verkleinert.",
+      "photos_max_quality": "Qualität der Fotos (%)",
+      "photos_max_quality_explaination": "Die Fotos werden automatisch ins JPEG-Format konvertiert; diese Einstellung gibt die Qualität für die Komprimierung an. 100 % bedeutet maximale Qualität, aber dafür geringe Komprimierung. Wir empfehlen 90 %, was eine sehr gute Qualität erhält und gleichzeitig eine gute Komprimierung ermöglicht.",
+      "photos_max_size_kb": "Maximale Größe der Fotodateien (KB)",
+      "photos_max_size_kb_explaination": "Wenn Sie ein Foto speichern, werden die maximale Pixelgröße sowie die maximale Qualität angewendet. Ergibt sich dabei eine Datei, die größer ist als dieser Wert, werden Größe und Qualität schrittweise leicht reduziert, bis eine Dateigröße unterhalb dieser Schwelle erreicht ist.",
+      "photos_cache": "Heruntergeladene Fotos",
+      "photos_cache_explaination": "Wenn ein Foto angezeigt wird, wird es heruntergeladen und dann im Cache auf Ihrem Gerät gespeichert. Dadurch muss ein Foto nicht jedes Mal erneut heruntergeladen werden, was eine schnellere Anzeige ermöglicht. Außerdem können die Fotos so offline angezeigt werden. Wenn Sie also planen, einer Tour mit Fotos zu folgen, und die Fotos während Ihrer Tour offline anzeigen möchten, sind sie offline verfügbar, sofern Sie die Fotos vor Ihrer Tour bei bestehender Netzverbindung angezeigt haben.",
+      "photos_cache_total": "Gesamtgröße der Dateien",
+      "photos_cache_expired": "Größe abgelaufener Dateien",
+      "photos_cache_remove_all": "Alles löschen",
+      "photos_cache_remove_expired": "Abgelaufene Dateien löschen",
+      "photos_cache_max_days": "Aufbewahrung heruntergeladener Fotos (Tage)",
+      "thunderforest_explaination": "Sie können die Karten von thunderforest.com hinzufügen, wenn Sie dort ein Konto haben (ein kostenloses Konto ist verfügbar). Geben Sie dazu unten Ihren API-Schlüssel ein",
+      "time_calculation": {
+        "title": "Berechnung der Tourdauer",
+        "base_speed": "Grundgeschwindigkeit auf flachem Gelände",
+        "base_speed_explaination": "Diese Geschwindigkeit wird zur Schätzung der Tourdauer verwendet. Sie wird je nach Höhenunterschied und Dauer gewichtet. Standardmäßig beträgt der Wert 5 km/h (3.1 mi/h), was der Durchschnittsgeschwindigkeit eines Wanderers entspricht.",
+        "long_breaks_title": "Erkennung langer Pausen",
+        "long_break_explaination": "Wenn wir die Dauer einer Tour anzeigen, unterscheiden wir zwischen kurzen Pausen (zum Beispiel zum Verschnaufen, um die Aussicht zu genießen, …) und langen Pausen (zum Beispiel für ein Picknick).<br/><br/>Kurze Pausen sind Teil der angezeigten Tourdauer, da es normal ist, sie einzubeziehen. Wird hingegen eine lange Pause erkannt, wird ihre Dauer von der Tourdauer abgezogen, damit die angezeigte Zeit nicht von der Länge Ihres Nickerchens abhängt 😉. Die so abgezogene Zeit wird im Bereich <i>Pausen</i> angezeigt.<br/><br/>Zur Erkennung langer Pausen können Sie 2 Parameter konfigurieren: einen Umkreis und eine Mindestdauer. Eine Pause gilt dann als lang, wenn Sie sich mindestens für die konfigurierte Mindestdauer innerhalb dieses Umkreises aufgehalten haben.",
+        "long_break_minimum_duration": "Mindestdauer einer langen Pause",
+        "long_break_maximum_distance": "Maximaler Umkreis"
+      },
+      "reset_all": "Alles auf die Standardwerte zurücksetzen"
+    },
+    "edit_avatar": {
+      "title": "Profilbild",
+      "edit": "Bild bearbeiten",
+      "select_file": "Datei laden",
+      "is_public": "Öffentlich sichtbar",
+      "error_saving": "Fehler beim Speichern des Profilbilds"
+    },
+    "myaccount": {
+      "title": "Mein Konto",
+      "quotas": {
+        "title": "Kontingente",
+        "collections": "Sammlungen",
+        "trails": "Touren",
+        "tracks-size": "Speicher für Tracks",
+        "tags": "Tags",
+        "trail-tags": "Getaggte Touren",
+        "photos": "Fotos",
+        "photos-size": "Speicher für Fotos",
+        "shares": "Freigaben"
+      },
+      "devices": "Verbundene Geräte",
+      "devices_table": {
+        "connected_since": "Verbunden seit",
+        "last_usage": "Letzte Nutzung",
+        "this_device": "Dieses Gerät",
+        "deleted_at": "Gelöscht am",
+        "mobile_app": "Mobile App",
+        "web_app": "Web-App",
+        "systems": {
+          "android": "Android",
+          "ios": "iOS",
+          "windows": "Windows"
+        },
+        "browsers": {
+          "chrome": "Google Chrome",
+          "edge": "Microsoft Edge",
+          "firefox": "Mozilla Firefox"
+        }
+      },
+      "not_connected": "Sie sind nicht angemeldet",
+      "change_password": {
+        "button": "Mein Passwort ändern",
+        "button_new": "Mein Konto erstellen",
+        "current_password": "Aktuelles Passwort",
+        "new_password1": "Neues Passwort",
+        "new_password2": "Neues Passwort bestätigen",
+        "new_password1_new": "Passwort",
+        "new_password2_new": "Bestätigen Sie Ihr Passwort",
+        "verification_code_explaination": "Wir haben soeben einen 6-stelligen Code an Ihre E-Mail-Adresse gesendet. Bitte geben Sie ihn unten ein",
+        "in_progress": "Passwort wird geändert...",
+        "error": "Ein Fehler ist aufgetreten. Bitte gehen Sie zurück und versuchen Sie es erneut",
+        "errors": {
+          "current_password": "Bitte geben Sie Ihr aktuelles Passwort ein",
+          "passwordsDontMatch": "Die beiden Passwörter stimmen nicht überein",
+          "mail_already_sent": "Für Ihr Konto wurde bereits vor weniger als 10 Minuten eine Anfrage gestellt.",
+          "mail_error": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+        }
+      },
+      "delete_me": {
+        "button": "Mein Konto löschen",
+        "button_new": "Meine Daten löschen",
+        "confirm_message": "Möchten Sie Ihr Konto und alle Ihre Daten bei Trailence wirklich endgültig löschen?",
+        "code_message": "Wir haben soeben einen 6-stelligen Code an Ihre E-Mail-Adresse gesendet. Bitte geben Sie ihn unten ein",
+        "done": "Ihr Konto und Ihre Daten wurden gelöscht."
+      }
+    },
+    "link": {
+      "stop_change_password": {
+        "in_progress": "Vielen Dank, dass Sie uns das Problem gemeldet haben. Wir stornieren die Anfrage zur Passwortänderung für Ihr Konto...",
+        "done": "Vielen Dank, dass Sie uns das Problem gemeldet haben. Wir haben alle Anfragen zur Passwortänderung für Ihr Konto storniert."
+      },
+      "stop_registration": {
+        "in_progress": "Vielen Dank, dass Sie uns das Problem gemeldet haben. Wir stornieren die Anfrage zur Kontoerstellung...",
+        "done": "Vielen Dank, dass Sie uns das Problem gemeldet haben. Wir haben die Anfrage zur Erstellung Ihres Kontos storniert."
+      },
+      "stop_deletion": {
+        "in_progress": "Vielen Dank, dass Sie uns das Problem gemeldet haben. Wir stornieren die Anfrage zur Kontolöschung...",
+        "done": "Vielen Dank, dass Sie uns das Problem gemeldet haben. Wir haben die Anfrage zur Löschung Ihres Kontos storniert."
+      },
+      "share": {
+        "in_progress": "Wir laden die Daten Ihres Freigabelinks...",
+        "error": "Ihr Link ist ungültig. Möglicherweise wurde die Freigabe dieses Links entfernt."
+      }
+    },
+    "trailplanner": {
+      "title": "Tourenplaner",
+      "please_zoom": "Um mögliche Wege zu sehen und Punkte zu setzen, zoomen Sie bitte mindestens auf Stufe",
+      "start": "Beginnen",
+      "stop": "Pause",
+      "reset": "Alles zurücksetzen",
+      "resume": "Fortsetzen",
+      "undo": "Rückgängig",
+      "show_routes": "Routen anzeigen",
+      "show_trails": "Meine Touren anzeigen",
+      "put_free_point": "Freier Punkt",
+      "back_to_non_free_point": "Wegen folgen",
+      "meta": {
+        "from": "Von",
+        "to": "nach"
+      },
+      "legend": {
+        "permissive": "Geduldeter Durchgang (kann jederzeit gesperrt werden)",
+        "forbidden": "Durchgang verboten"
+      },
+      "save": {
+        "trail_name": "Name der Tour",
+        "collection": "In welche Sammlung"
+      },
+      "reset_confirmation": {
+        "title": "Alles zurücksetzen",
+        "message": "Möchten Sie die gesamte geplante Tour wirklich verwerfen?"
+      }
+    },
+    "export_popup": {
+      "which_tracks": "Welchen Track möchten Sie exportieren?",
+      "track_original": "Der Originaltrack",
+      "track_original_explaination": "Nur der Originaltrack (entweder importiert oder vom GPS aufgezeichnet), ohne Verbesserung oder Änderung",
+      "track_current": "Der aktuelle Track",
+      "track_current_explaination": "Der aktuelle Track in Trailence, einschließlich der Verbesserungen und Änderungen",
+      "track_both": "Beide",
+      "track_both_explaination": "Beide werden in dieselbe Datei exportiert. Dadurch können Sie die 2 Tracks als eine einzige Tour wieder in Trailence importieren, ideal also für ein Backup. Allerdings lässt sie sich möglicherweise nicht richtig öffnen, wenn Sie die Datei in eine andere Anwendung importieren.",
+      "include_photos": "Fotos einbeziehen",
+      "include_photos_explaination": "Die Fotos werden in eine ZIP-Datei aufgenommen, die in Trailence importiert werden kann"
+    },
+    "photos_popup": {
+      "title": "Fotos",
+      "importing": "Import",
+      "add_photos_buttons": "Fotos hinzufügen",
+      "selected_plural": "ausgewählte Fotos",
+      "selected_single": "ausgewähltes Foto",
+      "deleting": "Fotos werden gelöscht",
+      "position": {
+        "available": "Auf der Tour lokalisiert",
+        "not_available": "Nicht auf der Tour lokalisiert",
+        "clear_title": "Position des Fotos entfernen",
+        "clear_message": "Möchten Sie die Position dieses Fotos wirklich entfernen?"
+      },
+      "buttons": {
+        "edit": "Foto bearbeiten"
+      }
+    },
+    "import_popup": {
+      "title": "Importieren",
+      "from_file_title": "Aus einer GPX- oder ZIP-Datei",
+      "from_file_button": "Auswählen...",
+      "from_url_title": "Aus einer URL",
+      "url_placeholder": "URL",
+      "unknown_source": "Keine unterstützte Quelle entspricht dieser URL",
+      "fetch_error": "Die Tour konnte nicht korrekt abgerufen werden",
+      "from_clipboard_title": "Aus der Zwischenablage",
+      "from_clipboard_button": "Zwischenablage lesen",
+      "nothing_found_in_clipboard": "Keine Tour in der Zwischenablage gefunden",
+      "button_import": "Aus {{1}} importieren",
+      "link_source": "einem Trailence-Link"
+    },
+    "pdf_popup": {
+      "title": "PDF erstellen",
+      "options": {
+        "model": "Vorlage",
+        "models": {
+          "BIG_MAP": "Große Karte auf einer Seite",
+          "ONE_PAGE": "Kompakt"
+        },
+        "include": {
+          "title": "Einschließen",
+          "description": "Beschreibung der Tour",
+          "waypoints": "Wegpunkte",
+          "elevation": "Höhenprofil",
+          "qrcode": "QR-Code des Links",
+          "no_qrcode_message": "Diese Tour hat keinen öffentlichen Link",
+          "avatar": "Mein Profilbild",
+          "avatar_size": {
+            "small": "Kleine Größe",
+            "large": "Große Größe"
+          },
+          "photo": "Foto"
+        },
+        "map_layer": "Kartenhintergrund"
+      },
+      "preview": {
+        "title": "PDF-Vorschau"
+      },
+      "progress_message": "PDF wird erstellt...",
+      "qr_code_link": "In Trailence öffnen",
+      "download_button": "PDF speichern",
+      "error_downloading_tile": "Fehler beim Herunterladen der Karte"
+    },
+    "live_group": {
+      "title": "Live-Gruppe",
+      "explaination_title": "Funktionsweise einer Gruppe",
+      "explaination": "Eine Live-Gruppe ermöglicht es, während einer Aktivität die eigene Position zu teilen.<br/>Jeder kann über einen Link oder einen QR-Code einer Gruppe beitreten, ohne zwingend ein Konto bei Trailence zu benötigen.<br/>Die Position jedes Mitglieds wird regelmäßig aufgezeichnet und mit den anderen Mitgliedern der Gruppe geteilt, damit man sich bei Bedarf leicht wiederfindet.<br/>Natürlich funktioniert das Teilen der Position nur, wenn eine Netzwerkverbindung verfügbar ist. Sie können das Netzwerk während Ihrer Aktivität jedoch deaktivieren und es nur bei Bedarf aktivieren.<br/>Eine Gruppe wird automatisch gelöscht, wenn sie älter als eine Woche ist.",
+      "group_name": "Name der Gruppe",
+      "my_name": "Mein Name / Alias",
+      "create_error": "Fehler beim Erstellen der Gruppe",
+      "save_error": "Fehler beim Speichern",
+      "create_offline": "Bitte stellen Sie eine Internetverbindung her, um eine Gruppe zu erstellen",
+      "save_offline": "Bitte stellen Sie eine Internetverbindung her, um die Gruppe zu bearbeiten",
+      "member_not_localized": "Nicht lokalisiert",
+      "member_localized": "Lokalisiert",
+      "link_button": "Link",
+      "join_group": "Der Gruppe beitreten",
+      "joining_offline": "Bitte stellen Sie eine Internetverbindung her, um der Gruppe beizutreten",
+      "joining_error": "Fehler beim Beitreten zur Gruppe",
+      "stop": "Beenden",
+      "leave": "Verlassen",
+      "offline": "Keine Internetverbindung",
+      "rename_me": "Name",
+      "nb_members_singular": "{{1}} Person",
+      "nb_members_plural": "{{1}} Personen",
+      "updated_at": "Aktualisiert",
+      "date_from": "Vom",
+      "date_to": "bis",
+      "remove_trail_attachment": "Verknüpfung mit der Tour entfernen",
+      "confirm": {
+        "stop": {
+          "title": "Gruppe beenden",
+          "message": "Nach dem Beenden wird die Gruppe endgültig gelöscht.<br/>Alle Mitglieder verlassen die Gruppe automatisch, und der Link funktioniert nicht mehr.<br/><br/>Möchten Sie die Gruppe wirklich beenden?"
+        },
+        "leave": {
+          "title": "Gruppe verlassen",
+          "message": "Möchten Sie die Gruppe wirklich verlassen?"
+        }
+      },
+      "no_trail": "Die Gruppe wird mit keiner Tour verknüpft.",
+      "no_trail_explaination": "Das bedeutet, dass die Gruppe über einen eigenen Bildschirm aufgerufen wird, auf dem Sie nur die Gruppenmitglieder und ihre Position sehen. Ist die Gruppe hingegen mit einer Tour verknüpft, können Sie die Gruppe direkt vom Tour-Bildschirm aus aufrufen. Das ist deutlich praktischer, wenn Sie vorhaben, dieser Tour mit der Gruppe zu folgen.<br/><br/>Um eine mit einer Tour verknüpfte Gruppe zu erstellen, öffnen Sie die Tour und wählen Sie dann in ihrem Menü „Live-Gruppe erstellen“.<br/>Sie können auch eine bestehende Gruppe verknüpfen, indem Sie die Tour öffnen und dann in ihrem Menü „Mit einer Live-Gruppe verknüpfen“ auswählen.",
+      "share_trail": "Die Tour mit den Gruppenmitgliedern teilen",
+      "explaination_trail_restricted_access": "Diese Tour stammt aus einer Freigabe an Sie. Nur Mitglieder, die ebenfalls Zugriff auf diese Tour haben, können sie sehen.",
+      "explaination_trail_needs_public_link": "Nur Mitglieder, mit denen Sie diese Tour geteilt haben, können sie sehen. Damit alle Mitglieder sie sehen können, können Sie einen öffentlichen Link für diese Tour erstellen.",
+      "trail_menu": {
+        "attach": "Mit einer Live-Gruppe verknüpfen",
+        "create": "Live-Gruppe erstellen"
+      },
+      "listening_info_message": "Eine Live-Gruppe ist aktiv. Ihre Position wird aufgezeichnet und mit den Gruppenmitgliedern geteilt, sobald eine Netzwerkverbindung verfügbar ist.",
+      "pause": "Aufzeichnung pausieren",
+      "resume": "Aufzeichnung fortsetzen",
+      "paused": "Aufzeichnung pausiert"
+    },
+    "donation": {
+      "meta_description": "Das Trailence-Projekt unterstützen",
+      "title": "Beitragen",
+      "header": "Danke, dass Sie erwägen, dieses Projekt zu unterstützen!",
+      "text": "Trailence ist kostenlos, werbefrei und quelloffen.<br/><br/>Damit das so bleibt, möchten wir Sie um Ihre Hilfe bitten.<br/><br/>Wir legen unsere Kosten transparent offen und zeigen, wofür Ihre Spenden verwendet werden.<br/>&nbsp; - Derzeit zahlen wir 67 Euro pro Jahr für das Hosting (ein einfacher Server + der Domainname).<br/>&nbsp; - Wir haben 100 GB Speicherplatz für 20 Euro.<br/>&nbsp; - Wir haben 25 $ an Google gezahlt, um im Google Play Store vertreten zu sein.<br/>",
+      "button": "Spenden",
+      "goals": {
+        "goal": "Ziel",
+        "raised": "gesammelt",
+        "thanks": "Danke!",
+        "descriptions": {
+          "past_costs": "Unsere Ausgaben seit 2025 decken",
+          "future_costs": "Die Nachhaltigkeit sichern, indem die Ausgaben für 2 weitere Jahre gedeckt werden",
+          "increase_capacity": "Die Kapazität für alle Nutzer erhöhen (mehr Speicherplatz, Server, der mehr Nutzer bedienen kann)"
+        }
+      },
+      "developer": {
+        "title": "Sind Sie Entwickler?",
+        "message": "Sie können auch zum Code beitragen. Trailence ist quelloffen und verfügbar auf ",
+        "message2": "Ganz konkret suchen wir insbesondere Unterstützung bei der Entwicklung der App für iOS. Da wir Ionic verwenden, sind nur wenige native Funktionen erforderlich."
+      },
+      "translations": {
+        "title": "Helfen Sie uns, Trailence zu übersetzen!",
+        "message": "Wir würden Trailence gerne in noch mehr Sprachen verfügbar machen. Wenn Sie mithelfen möchten, indem Sie Trailence in eine neue Sprache übersetzen oder bestehende Übersetzungen verbessern, kontaktieren Sie uns gern!"
+      }
+    },
+    "contact": {
+      "meta_description": "Kontaktformular, Frage, ein Problem melden...",
+      "title": "Kontakt",
+      "email": "Ihre E-Mail-Adresse für unsere Antwort",
+      "type": "Art der Anfrage",
+      "types": {
+        "question": "Frage",
+        "bug": "Ein Problem melden",
+        "feature": "Eine Verbesserung vorschlagen",
+        "other": "Sonstiges"
+      },
+      "message": "Ihre Nachricht",
+      "send_button": "Senden",
+      "sent": "Ihre Nachricht wurde gesendet",
+      "error": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut",
+      "retry_with_captcha": "Wir müssen überprüfen, dass Sie kein Roboter sind. Bitte klicken Sie erneut auf „Senden“",
+      "network_needed": "Bitte stellen Sie eine Internetverbindung her, um eine Nachricht zu senden",
+      "accept_send_data": "Ich bin damit einverstanden, technische Daten der Anwendung zu senden, um bei der Lösung des Problems zu helfen",
+      "show_data": "Diese Daten anzeigen",
+      "email_alternative": "Sie können uns auch per E-Mail kontaktieren:"
+    },
+    "stats": {
+      "title": "Meine Statistiken",
+      "config_title": "Konfiguration",
+      "type_title": "Statistiken über",
+      "time_unit_title": "Pro",
+      "source_title": "Aus",
+      "filter_title": "Nur unter Berücksichtigung der Touren",
+      "activity_filter_title": "mit der Aktivität",
+      "types": {
+        "nb_trails": {
+          "title": "Die Anzahl der Touren"
+        },
+        "distance": {
+          "title": "Die Distanz"
+        },
+        "positive-elevation": {
+          "title": "Der Aufstieg"
+        },
+        "negative-elevation": {
+          "title": "Der Abstieg"
+        },
+        "duration": {
+          "title": "Die Dauer"
+        }
+      },
+      "time_units": {
+        "year": {
+          "title": "Jahr"
+        },
+        "month": {
+          "title": "Monat"
+        },
+        "month_of_year": {
+          "title": "Monat über alle Jahre hinweg"
+        }
+      },
+      "sources": {
+        "the_collection": "Die Sammlung",
+        "collection_single": "Sammlung",
+        "collection_plural": "Sammlungen",
+        "the_share": "Die Freigabe",
+        "share_single": "Freigabe",
+        "share_plural": "Freigaben",
+        "shared_by": "geteilt von"
+      },
+      "activities": {
+        "all": "(Alle)",
+        "or": "oder",
+        "n_activities": "Aktivitäten"
+      }
+    },
+    "privacy_policy": {
+      "title": "Datenschutzerklärung"
+    },
+    "photo_editor": {
+      "title": "Foto bearbeiten",
+      "rotate_clockwise": "Nach rechts drehen",
+      "rotate_counterclockwise": "Nach links drehen",
+      "crop": "Zuschneiden",
+      "blur": "Weichzeichnen"
+    },
+    "avatar_moderation": {
+      "menu_title": "Profilbilder",
+      "validate": "Bestätigen",
+      "reject": "Ablehnen"
+    }
+  },
+  "menu": {
+    "collections": "Sammlungen",
+    "shared_with_me": "Mit mir geteilt",
+    "nothing_shared_with_me": "Keine Tour mit Ihnen geteilt",
+    "shared_by_me": "Von mir geteilt",
+    "nothing_shared_by_me": "Sie teilen keine Tour",
+    "my_publications": "Meine Veröffentlichungen",
+    "start_trace": "Aufzeichnung starten",
+    "current_trace": "Laufende Aufzeichnung",
+    "planner": "Tour planen",
+    "search_trail": "Tour finden",
+    "no_share_for_anonymous": "Funktionen zum Teilen sind ohne Konto nicht verfügbar",
+    "anonymous_account": "Ohne Konto testen",
+    "help": "Hilfe",
+    "create_live_group": "Live-Gruppe erstellen",
+    "one_live_group": "Aktive Live-Gruppe",
+    "several_live_groups": "{{1}} aktive Live-Gruppen"
+  },
+  "collection_menu": {
+    "delete_confirm": {
+      "title": "Sammlung löschen",
+      "message": "Möchten Sie die Sammlung {{}} wirklich löschen?",
+      "yes": "Ja, löschen",
+      "no": "Abbrechen, behalten"
+    },
+    "deleting": "Sammlung wird gelöscht"
+  },
+  "my_trails": "Meine Touren",
+  "all_collections": "Alle Sammlungen",
+  "my_selection": "Meine Auswahl",
+  "publications": {
+    "draft_name": "Entwürfe",
+    "submit_name": "In Prüfung",
+    "reject_name": "Änderungen angefordert",
+    "my_public_trails_name": "Veröffentlicht",
+    "publish": "Veröffentlichen",
+    "publish_confirmation": "Mit der Bestätigung der Veröffentlichung dieser Tour bestätigen Sie, dass Sie die Regeln eingehalten haben, und dass diese Tour öffentlich gemacht werden darf",
+    "publish_message_placeholder": "Wenn Sie dem Moderator, der Ihre Tour prüft, eine Nachricht hinterlassen möchten, können Sie diese hier eingeben.",
+    "reject_to_draft": "Verbessern",
+    "checklist": "Checkliste",
+    "modify": "Bearbeiten",
+    "remove": "Löschen",
+    "compare_current": "Mit der aktuellen Veröffentlichung vergleichen",
+    "exit_compare_current": "Vergleich beenden",
+    "check_public_trails_around": "Öffentliche Touren anzeigen",
+    "exit_check_public_trails_around": "Öffentliche Touren ausblenden",
+    "show_html_text": "Texte als HTML",
+    "exit_show_html_text": "Normale Texte",
+    "remove_publication_title": "Veröffentlichte Tour löschen",
+    "remove_publication_message": "Bitte geben Sie den Grund an, warum diese Tour entfernt werden soll",
+    "remove_publication_sent": "Ihre Löschanfrage wurde gesendet",
+    "remove_publication_error": "Fehler beim Senden Ihrer Löschanfrage",
+    "start_popup": {
+      "header": "Danke, dass Sie zur Trailence-Community beitragen!",
+      "text_before": "Sie möchten Ihre Tour veröffentlichen, wodurch sie für alle Nutzer sichtbar wird. Hier einige wichtige Informationen zur Veröffentlichung:",
+      "bullets": [
+        {
+          "text": "Die veröffentlichte Tour wird zu einer Kopie Ihrer Original-Tour. Das bedeutet, dass Änderungen, die Sie an der zu veröffentlichenden Tour vornehmen, nicht auf Ihre persönliche Tour angewendet werden, die privat bleibt. Ebenso wirkt es sich nicht auf die veröffentlichte Tour aus, wenn Sie Ihre Original-Tour später ändern."
+        }, {
+          "text": "Zunächst befindet sich die Tour im Status „Entwurf“. So können Sie sie vor der Veröffentlichung vorbereiten und Anpassungen gegenüber Ihrer Original-Tour vornehmen."
+        }, {
+          "text": "Während dieser Phase werden Sie von einer Checkliste begleitet, die Ihnen hilft, die wichtigen Punkte vor der Veröffentlichung zu prüfen. Dazu gehören:",
+          "bullets": [
+            {
+              "text": "Beleidigende, anstößige oder diskriminierende Äußerungen sind strengstens untersagt."
+            }, {
+              "text": "Achten Sie darauf, alle persönlichen Informationen zu entfernen, die Sie nicht öffentlich machen möchten."
+            }, {
+              "text": "Fügen Sie keine Fotos hinzu, auf denen Personen erkennbar sind."
+            }
+          ]
+        }, {
+          "text": "Sobald sie fertig ist, können Sie Ihre Tour einreichen. Sie kann dann von einem Moderator geprüft werden, der die Einhaltung der Regeln überprüft."
+        }, {
+          "text": "Nach der Freigabe ist sie für die gesamte Community sichtbar!"
+        }, {
+          "text": "Anschließend können Sie Ihre Veröffentlichung jederzeit bearbeiten oder zurückziehen, wenn Sie möchten."
+        }
+      ],
+      "text_after": "Danke für Ihre Teilnahme und viel Freude beim Veröffentlichen!"
+    },
+    "edit_popup": {
+      "title": "Bearbeiten einer veröffentlichten Tour",
+      "message": "Die Tour wird in Ihre Entwürfe kopiert. Die Bearbeitung funktioniert wie bei einer ersten Veröffentlichung: Sobald Ihre Änderungen vorgenommen wurden, werden sie von einem Moderator geprüft. Möchten Sie diese Veröffentlichung wirklich bearbeiten?"
+    },
+    "checklist_items": {
+      "iam_author": {
+        "title": "Urheberrecht und Genehmigungen",
+        "description_start": "©️ Stellen Sie sicher, dass Sie der Urheber der von Ihnen veröffentlichten Informationen sind oder die ausdrückliche Genehmigung des Urhebers erhalten haben, um sie auf Trailence zu veröffentlichen."
+      },
+      "name": {
+        "title": "Name der Tour",
+        "description_start": "Der Name sollte kurz sein und das Ziel der Tour klar beschreiben. Hier einige Beispiele:",
+        "description_bullets": [
+          "<b>Die Seen Palluel und Faravel</b>: Das Ziel ist klar und knapp.",
+          "<b>Mont Dauphin über den Murmeltierpfad</b>: Der Gipfel ist angegeben, ebenso wie die gewählte Route, falls es mehrere Möglichkeiten gibt.",
+          "<b>Von Argelès nach Collioure über den Küstenweg</b>: Start, Ziel und der gewählte Weg werden angegeben, falls relevant."
+        ]
+      },
+      "description": {
+        "title": "Beschreibung der Tour",
+        "description_start": "Die Beschreibung sollte schnell verständlich machen, was einen auf der Tour erwartet. Denken Sie daran, Folgendes einzubeziehen:",
+        "description_bullets": [
+          "Mögliche Schwierigkeiten (Art und Ort)",
+          "Aussichtspunkte, Sehenswürdigkeiten oder Besonderheiten, die man nicht verpassen sollte",
+          "Die Art des Weges (Pfad, Piste, Straße …) und bei Bedarf eine Vorstellung von den Anteilen",
+          "Ob die Tour im Wald, im offenen Gelände, in der Höhe usw. verläuft",
+          "Eventuelle Hinweise zur besten Jahreszeit dafür",
+          "Wenn die Tour abwechslungsreich ist, eine Beschreibung der wichtigsten Abschnitte (z. B. Start im Wald, Vorbeigehen an einer Kapelle, Panoramakamm …)",
+          "Schließen Sie mit praktischen Informationen ab, falls relevant: Parkmöglichkeiten, verfügbare Wasserstellen usw."
+        ]
+      },
+      "date": {
+        "title": "Datum angegeben",
+        "set_date": "Datum festlegen"
+      },
+      "location": {
+        "title": "Ort angegeben",
+        "set_location": "Ort festlegen"
+      },
+      "activity": {
+        "title": "Art der Aktivität angegeben",
+        "description_start": "Wählen Sie die Hauptaktivität der Tour. Sie hilft anderen Nutzern, die Dauer besser einzuschätzen und geeignete sowie tatsächlich begehbare Routen für diese Aktivität zu erkennen."
+      },
+      "track": {
+        "title": "Qualität des Tracks",
+        "description_start": "Versuchen Sie nach Möglichkeit, die Qualität des Tracks zu verbessern:",
+        "description_bullets": [
+          "Korrigieren Sie die Höhen, wenn einige Werte unstimmig erscheinen.",
+          "Wenn Sie die eigentliche Route verlassen haben (zum Beispiel für eine kleine technische Pause 🤭), versuchen Sie, diese Abschnitte aus dem Track zu entfernen."
+        ],
+        "description_end": "👉 Verwenden Sie dazu die Schaltfläche „Bearbeiten“ auf der Karte."
+      },
+      "waypoints": {
+        "title": "Wegpunkte",
+        "description_start": "Denken Sie daran, Ihrer Tour Wegpunkte hinzuzufügen:",
+        "description_bullets": [
+          "Sie können dazu dienen, einen bestimmten Punkt zu markieren: einen Aussichtspunkt, eine Sehenswürdigkeit, eine Quelle …",
+          "Vor allem aber ermöglichen sie es, Richtungshinweise zu geben, insbesondere an Stellen, an denen der Verlauf vor Ort nicht offensichtlich ist (zum Beispiel an einer Kreuzung oder wenn der Weg schlecht markiert ist)."
+        ],
+        "description_end": "👉 Verwenden Sie dazu die Schaltfläche „Bearbeiten“ auf der Karte, wählen Sie die gewünschte Stelle und verwenden Sie das Menü „Wegpunkt“."
+      },
+      "photos": {
+        "title": "Fotos",
+        "description_start": "Denken Sie daran, Fotos einzufügen, die Lust machen, Ihrer Tour zu folgen: schöne Landschaften, Aussichtspunkte, ungewöhnliche Orte …",
+        "description_bullets": [
+          "📍 Prüfen Sie, ob jedes Foto korrekt auf der Tour positioniert ist, falls dies nicht automatisch geschehen ist.",
+          "⚠️ Verwenden Sie keine Fotos, auf denen Personen erkennbar sind.",
+          "🙏 Vermeiden Sie es außerdem, Fotos von Privatgrundstücken ohne Genehmigung zu teilen."
+        ]
+      }
+    },
+    "moderation": {
+      "menu_title": "Moderation",
+      "menu_trails": "Touren",
+      "menu_comments": "Kommentare",
+      "menu_remove": "Löschungen",
+      "publishing": "Veröffentlichung",
+      "error_publishing": "Fehler bei der Veröffentlichung",
+      "error_updating_trail": "Fehler beim Aktualisieren der Tour",
+      "error_translating": "Fehler bei der Übersetzung",
+      "publish_confirmation": "Bestätigen Sie, dass diese Tour öffentlich gemacht werden kann?",
+      "reject": "Ablehnen",
+      "reject_message_placeholder": "Verfassen Sie hier eine Nachricht, um den Grund für die Ablehnung dieser Tour zu erläutern.",
+      "message_from_author": "Nachricht des Autors",
+      "previous_moderator_message": "Vorherige Nachricht des Moderators",
+      "moderator_message": "Nachricht des Moderators",
+      "refresh": "Aktualisieren",
+      "comments": {
+        "reviewed_button": "Bestätigen"
+      }
+    }
+  },
+  "buttons": {
+    "apply": "Anwenden",
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen",
+    "create": "Erstellen",
+    "close": "Schließen",
+    "delete": "Löschen",
+    "download": "Herunterladen",
+    "edit": "Bearbeiten",
+    "next": "Weiter",
+    "ok": "Ok",
+    "previous": "Zurück",
+    "quit": "Beenden",
+    "save": "Speichern",
+    "send": "Senden",
+    "start": "Starten",
+    "reset": "Zurücksetzen",
+    "retry": "Erneut versuchen",
+    "understood": "Verstanden",
+    "undo": "Rückgängig",
+    "redo": "Wiederherstellen",
+    "yes": "Ja",
+    "no": "Nein"
+  },
+  "order_way": "Reihenfolge",
+  "order_asc": "Aufsteigend",
+  "order_desc": "Absteigend",
+  "selected_single": "ausgewählt",
+  "selected_plural": "ausgewählt",
+  "way_points": {
+    "DA": "S Z",
+    "D": "S",
+    "A": "Z",
+    "position": "Position",
+    "distance": "Distanz",
+    "altitude": "Höhe",
+    "time": "Zeit",
+    "duration": "Dauer",
+    "description_placeholder": "Beschreibung",
+    "name_placeholder": "Name"
+  },
+  "trailGraph": {
+    "distance": "Distanz",
+    "elevation": "Höhe",
+    "time_duration": "Zeit",
+    "elevation_grade": "Steigung",
+    "location": "Position",
+    "precision": "Genauigkeit",
+    "speed": "Geschwindigkeit",
+    "legend_estimated_speed": "Geschätzte Geschwindigkeit"
+  },
+  "offline_map": {
+    "download_trail": "Die Karten für die Tour werden heruntergeladen, um offline verfügbar zu sein",
+    "download_map": "Die Karten des aktuell angezeigten Bereichs werden heruntergeladen, um offline verfügbar zu sein",
+    "select_layers": "Wählen Sie die herunterzuladenden Karten aus",
+    "parameters": "Einstellungen",
+    "max_zoom": "Maximale Zoomstufe zum Herunterladen",
+    "max_zoom_explaination": "Je höher die gewählte Zoomstufe, desto weiter können Sie während Ihrer Tour im Offline-Modus hineinzoomen, aber entsprechend länger dauert der Download und desto mehr Speicherplatz wird auf Ihrem Gerät benötigt.",
+    "max_zoom_reco": "Ein Wert zwischen 15 und 17 wird empfohlen. Unter 15 ist der Detailgrad oft zu gering, um kleine Wege gut zu erkennen. Über 17 ist die Downloadgröße erheblich und in der Regel nicht nötig, um einer Route genau zu folgen.",
+    "padding": "Herunterzuladenden Bereich erweitern (%)",
+    "padding_explaination_for_trail": "Prozentsatz des herunterzuladenden Bereichs rund um die Tour (100 % bedeutet nicht mehr als die Tour). Ermöglicht es, im Offline-Modus mehr rund um die Tour zu sehen.",
+    "padding_explaination_for_map": "Prozentsatz des herunterzuladenden Bereichs rund um den aktuell angezeigten Bereich (100 % bedeutet nicht mehr als die Tour). Ermöglicht es, im Offline-Modus einen etwas größeren Bereich zu sehen.",
+    "percent_done": "heruntergeladen",
+    "remaining": "verbleibende(s) Element(e)",
+    "todo": "herunterzuladende(s) Element(e)",
+    "downloading": {
+      "progress_title": "Download von {{1}}"
+    }
+  },
+  "layers_popup": {
+    "title": "Kartenhintergrund",
+    "overlays_title": "Ebenen hinzufügen",
+    "regional_title": "Nach Land oder Region"
+  },
+  "trace_recorder": {
+    "trail_name_start": "Tour vom",
+    "pause": "Pause",
+    "resume": "Fortsetzen",
+    "stop": "Beenden",
+    "start_this_trail": "Tour starten",
+    "notif_message": "Verfolgung Ihrer Position in Trailence",
+    "disclosure_popup": {
+      "title": "Verwendung Ihrer Position",
+      "message": "Trailence erfasst Standortdaten, um die Aufzeichnung eines Tracks während Ihrer Tour zu ermöglichen, auch wenn die App geschlossen ist oder nicht verwendet wird.",
+      "button_turnon": "Aktivieren"
+    },
+    "disabled_popup": {
+      "title": "GPS deaktiviert",
+      "message": "Ihr GPS ist derzeit deaktiviert. Bitte aktivieren Sie es, um eine Aufzeichnung starten zu können."
+    },
+    "confirm_popup": {
+      "resume_message": "Bitte bestätigen Sie das Fortsetzen der Tour",
+      "pause_message": "Bitte bestätigen Sie das Pausieren der Tour",
+      "stop_message": "Bitte bestätigen Sie das Beenden der Tour"
+    },
+    "saving": "Tour wird gespeichert",
+    "empty_trail": "Ihre Tour ist leer und wurde daher nicht gespeichert",
+    "follow_this_trail": "Dieser Tour folgen",
+    "follow_this_trail_confirmation": "Möchten Sie der Tour {{1}} folgen?",
+    "not_native_message": "Es wird empfohlen, die Android-App zu verwenden, um eine Aufzeichnung durchzuführen. Bei Verwendung der Web-App kann es zu Einschränkungen kommen: geringere GPS-Genauigkeit und vor allem der Abbruch der Aufzeichnung, sobald Sie die App verlassen (Bildschirm im Ruhezustand, Seitenwechsel oder Wechsel zu einer anderen App), da der Browser dann möglicherweise keine GPS-Koordinaten mehr sendet."
+  },
+  "waiting_for_gps": "Warten auf GPS-Signal...",
+  "bytes": {
+    "bytes": "Bytes",
+    "kb": "KB",
+    "mb": "MB",
+    "gb": "GB"
+  },
+  "duration": {
+    "days": "T",
+    "hours": "h",
+    "minutes": "min"
+  },
+  "logout": {
+    "title": "Abmelden",
+    "title_anonymous": "Testmodus verlassen",
+    "text": "Möchten Sie auch alle Ihre Daten auf diesem Gerät löschen?",
+    "text_info": "Ihre Daten werden auf unseren Servern gespeichert und bei Ihrer nächsten Anmeldung heruntergeladen",
+    "text_warning": "Sie haben lokale Daten, die beim Löschen verloren gehen!",
+    "button_delete": "Löschen",
+    "button_keep": "Behalten"
+  },
+  "synchro": {
+    "in_progress": "Synchronisierung läuft",
+    "offline": "Offline",
+    "last_sync": "Letzte Synchronisierung",
+    "not_yet": "Noch nicht",
+    "local_changes": "Lokale Änderungen",
+    "yes": "Ja",
+    "no": "Nein",
+    "sync_now": "Jetzt synchronisieren",
+    "reset_all": "Alles zurücksetzen und erneut vom Server herunterladen"
+  },
+  "confirm_delete_share": {
+    "title": "Freigabe löschen",
+    "message": "Möchten Sie {{}} wirklich löschen?",
+    "yes": "Ja, löschen",
+    "no": "Abbrechen, behalten"
+  },
+  "search_place": {
+    "placeholder": "Ort suchen",
+    "tap_enter": "Eingabetaste ↵ zum Starten der Suche",
+    "no_result": "Kein Ergebnis"
+  },
+  "loopType": {
+    "ow": "Strecke",
+    "lp": "Rundtour",
+    "hl": "Halbe Rundtour",
+    "sl": "Kleine Rundtour",
+    "ob": "Hin und zurück"
+  },
+  "activities_groups": {
+    "pedestrian": "Zu Fuß",
+    "bike": "Mit dem Fahrrad",
+    "snow": "Auf Schnee",
+    "water": "Auf dem Wasser",
+    "others": "Sonstige"
+  },
+  "activity": {
+    "walking": "Gehen",
+    "hiking": "Wandern",
+    "trail": "Trailrunning",
+    "moutain-biking": "Mountainbike",
+    "gravel-biking": "Gravelbike",
+    "road-biking": "Rennrad",
+    "snowshoeing": "Schneeschuhwandern",
+    "on-water": "Boot",
+    "skiing": "Skifahren",
+    "running": "Laufen",
+    "horseback-riding": "Reiten",
+    "via-ferrata": "Klettersteig",
+    "rock-climbing": "Klettern",
+    "canoe": "Kanu/Kajak",
+    "unspecified": "Nicht angegeben"
+  },
+  "tags_filter": {
+    "onlyWithAnyTag": "Touren mit mindestens einem Tag",
+    "onlyWithoutAnyTag": "Touren ohne Tags",
+    "include_and": "Touren mit allen folgenden Tags",
+    "include_or": "Touren mit mindestens einem der folgenden Tags",
+    "exclude": "Touren mit keinem der folgenden Tags",
+    "click_to_select": "Zum Auswählen klicken",
+    "popup": {
+      "title": "Filter nach Tags"
+    }
+  },
+  "update": {
+    "download_android": "Android-App herunterladen",
+    "update_android": "Update anzeigen",
+    "not_allowed": "Wenn Sie das automatische Update nicht zulassen möchten, können Sie das Update herunterladen und manuell installieren.",
+    "download_manually": "Manuell herunterladen",
+    "updating": "Update läuft",
+    "downloading": "Download läuft",
+    "installing": "Update wird installiert",
+    "release_notes": {
+      "popup": {
+        "updated": "Trailence wurde aktualisiert!",
+        "available": "Update verfügbar!",
+        "news": "Neuigkeiten",
+        "later": "Später",
+        "download": "Installieren"
+      },
+      "version": "Version"
+    }
+  },
+  "metadata": {
+    "collection": "Sammlung",
+    "title": "Titel",
+    "tags": "Tags",
+    "description": "Beschreibung",
+    "trail_date": "Datum der Tour",
+    "trail_location": "Ort",
+    "loop_type": "Typ",
+    "activity": "Aktivität",
+    "duration": "Dauer",
+    "distance": "Distanz",
+    "positiveElevation": "Aufstieg",
+    "negativeElevation": "Abstieg",
+    "breaksDuration": "Pausen",
+    "estimatedDuration": "Geschätzte Dauer",
+    "averageSpeed": "Durchschnittsgeschwindigkeit",
+    "maxSpeed": "Max. Geschwindigkeit",
+    "highestAltitude": "Höchster Punkt",
+    "lowestAltitude": "Tiefster Punkt",
+    "current_position": "Aktuelle Position",
+    "current_altitude": "Aktuelle Höhe",
+    "remaining_time": "Verbleibende Zeit",
+    "remaining_distance": "Verbleibende Distanz",
+    "remaining_ascent": "Verbleibender Aufstieg",
+    "remaining_descent": "Verbleibender Abstieg"
+  },
+  "synchronizing_your_data": "Ihre Touren werden heruntergeladen",
+  "errors": {
+    "modal_title_singular": "Fehler",
+    "modal_title_plural": "Fehler",
+    "import": {
+      "file_not_imported": "Die Datei '{{1}}' konnte nicht importiert werden: {{2}}",
+      "not_gpx": "Die Datei ist nicht im GPX-Format oder ist ungültig"
+    },
+    "download_offline_map": "{{1}} Fehler beim Herunterladen der Karten",
+    "stores": {
+      "save_photo": "Fehler beim Senden des Fotos {{1}} an den Server",
+      "save_track": "Fehler beim Senden eines Tracks an den Server",
+      "delete_tracks": "Fehler beim Löschen von Tracks auf dem Server",
+      "get_track": "Fehler beim Herunterladen eines Tracks vom Server",
+      "save_tracks": "Fehler beim Speichern von Tracks auf Ihrem Gerät",
+      "update_track": "Fehler beim Aktualisieren eines Tracks auf dem Server",
+      "create_items": "Fehler beim Erstellen auf dem Server ({{1}})",
+      "get_updates": "Fehler beim Abrufen von Aktualisierungen vom Server ({{1}})",
+      "send_updates": "Fehler beim Senden Ihrer Aktualisierungen an den Server ({{1}})",
+      "delete_items": "Fehler beim Löschen auf dem Server ({{1}})"
+    },
+    "import_photo": "Foto {{1}} konnte nicht importiert werden",
+    "invalid_format": "Ungültiges/nicht unterstütztes Format",
+    "search_places": "Fehler bei der Ortssuche",
+    "search_routes": "Fehler bei der Suche nach Routen",
+    "password_strength": "Das Passwort ist nicht stark genug",
+    "photos_error_no_network": "Einige Fotos können nicht angezeigt werden, da Sie nicht angemeldet sind oder keine Netzwerkverbindung haben",
+    "photos_error": "Einige Fotos konnten nicht heruntergeladen werden"
+  },
+  "export": {
+    "trail": "Tour",
+    "photo": "Foto"
+  },
+  "osm": {
+    "from": "Von",
+    "to": "bis"
+  },
+  "administration": "Administration",
+  "quota_error": {
+    "trail_collections": "Sie haben die maximale Anzahl an Sammlungen überschritten; neue können nicht auf dem Server gespeichert werden!",
+    "trails": "Sie haben die maximale Anzahl an Touren überschritten; neue können nicht auf dem Server gespeichert werden!",
+    "tracks": "Sie haben die maximale Anzahl an Tracks überschritten; neue können nicht auf dem Server gespeichert werden!",
+    "tags": "Sie haben die maximale Anzahl an Tags überschritten; neue können nicht auf dem Server gespeichert werden!",
+    "trails_tags": "Sie haben die maximale Anzahl an getaggten Touren überschritten; neue können nicht auf dem Server gespeichert werden!",
+    "photos": "Sie haben die maximale Anzahl an Fotos überschritten; neue können nicht auf dem Server gespeichert werden!",
+    "shares": "Sie haben die maximale Anzahl an Freigaben überschritten; neue können nicht auf dem Server gespeichert werden!"
+  },
+  "quota_reached": {
+    "trail_collections": "Sie haben die maximale Anzahl an Sammlungen erreicht",
+    "trails": "Sie haben die maximale Anzahl an Touren erreicht",
+    "tracks": "Sie haben die maximale Anzahl an Tracks erreicht",
+    "tags": "Sie haben die maximale Anzahl an Tags erreicht",
+    "trails_tags": "Sie haben die maximale Anzahl an getaggten Touren erreicht",
+    "photos": "Sie haben die maximale Anzahl an Fotos erreicht",
+    "shares": "Sie haben die maximale Anzahl an Freigaben erreicht",
+    "photos_max": "Ihr Fotokontingent beträgt {{1}} und Sie haben bereits {{2}}: Sie können nicht {{3}} neue hinzufügen",
+    "photos_max_by_trail": "Es gibt bereits {{1}}/{{2}} Fotos für diese Tour: Sie können nicht {{3}} neue hinzufügen"
+  },
+  "obsolete_message": {
+    "title": "Update erforderlich",
+    "message": "Ihre App liegt in einer veralteten Version vor und muss aktualisiert werden. Wenn Sie diese Version verwenden, können Ihre Änderungen nicht auf dem Server gespeichert werden und gehen möglicherweise verloren."
+  },
+  "downloading_elevation": "Höhendaten werden heruntergeladen",
+  "track_edit_tools": {
+    "title": "Bearbeiten",
+    "categories": {
+      "track": "Track",
+      "way_point": "Wegpunkt",
+      "elevation": "Höhe",
+      "path": "Weg",
+      "selection": "Auswahl",
+      "elevation_provider": "Höhendaten-Anbieter verwenden",
+      "join_departure_and_arrival": "Start und Ziel verbinden",
+      "improvements": "Verbesserungen",
+      "set_elevation_on_range": "Höhe ändern",
+      "time": "Zeit"
+    },
+    "stop_interactive": "Stoppen",
+    "tools": {
+      "remove_unprobable_elevations": "Unwahrscheinliche Höhen anpassen",
+      "remove_unprobable_points": "Unwahrscheinliche Punkte entfernen",
+      "remove_breaks_moves": "Bewegungen während der Pausen entfernen",
+      "slope_threshold": {
+        "button_label": "Mit Höhenschwelle glätten",
+        "elevation_threshold": "Höhenschwelle",
+        "max_distance": "Maximale Distanz",
+        "explaination": "Ziel der Glättung ist es, GPS-Ungenauigkeiten zu beseitigen.<br/>Aufgrund dieser Ungenauigkeiten kommt es häufig vor, dass die Höhe auf wenigen Metern Distanz um einige Meter steigt und wieder fällt, obwohl in Wirklichkeit eine gleichmäßige Steigung vorliegt.<br/>Die Glättung funktioniert daher wie folgt:<ul><li>Es werden Abschnitte gesucht, in denen die Höhe innerhalb der eingestellten Schwelle und über eine eingestellte maximale Distanz variiert hat.</li><li>Für jeden gefundenen Abschnitt werden die Anfangshöhe und die Endhöhe genommen und zu einer gleichmäßigen Steigung geglättet.</li><li>Um die höchsten und tiefsten Punkte der Tour nicht zu verlieren, verkleinern wir den Abschnitt, wenn sich ein solcher Punkt in seiner Mitte befindet, um diesen Punkt zu erhalten.</li></ul>"
+      },
+      "selection": {
+        "title": "Auswahl",
+        "extend_selection": "Auswahl erweitern bis...",
+        "close": "Auswahl schließen",
+        "select_target_point": "Wählen Sie einen Punkt auf der Karte oder im Höhenprofil, um die Auswahl bis zu diesem Punkt zu erweitern",
+        "remove_all_next_points": "Alle Punkte danach entfernen",
+        "remove_all_previous_points": "Alle Punkte davor entfernen"
+      },
+      "remove_selection": {
+        "button_single_label": "Ausgewählten Punkt löschen",
+        "button_multiple_label": "Ausgewählten Abschnitt löschen",
+        "button_single_label_and_join": "Ausgewählten Punkt löschen und Track verbinden",
+        "button_multiple_label_and_join": "Ausgewählten Abschnitt löschen und Track verbinden",
+        "button_single_label_and_open": "Ausgewählten Punkt löschen und Track in zwei Teile trennen",
+        "button_multiple_label_and_open": "Ausgewählten Abschnitt löschen und Track in zwei Teile trennen"
+      },
+      "replace_elevation_with_provider": "Höhen ersetzen",
+      "improve_elevation_with_provider": "Höhen verbessern",
+      "calibrate_elevation": "Höhe kalibrieren",
+      "calibrate_elevation_message": "Die bekannte Höhe weicht im Durchschnitt um {{1}} {{2}} von der auf dieser Tour aufgezeichneten Höhe ab",
+      "arrival_to_departure": "Am selben Ort wie der Start enden",
+      "departure_to_arrival": "Am selben Ort wie das Ziel starten",
+      "start_from_arrival": "Den fehlenden Anfang erstellen, indem dem Rückweg zum Ziel gefolgt wird",
+      "arrival_to_start": "Das fehlende Ende erstellen, indem dem Hinweg zum Start gefolgt wird",
+      "back_to_departure": "Eine Rückkehr zum Start über dieselbe Route erstellen",
+      "back_to_original_track": "Zum Originaltrack ohne Verbesserungen zurückkehren",
+      "remove_time": "Zeitinformationen entfernen",
+      "link_to_next_segment_with_line": "Mit dem nächsten Abschnitt durch eine gerade Linie verbinden",
+      "link_to_next_segment_follow": "Mit dem nächsten Abschnitt entlang des Weges verbinden",
+      "toggle_show_only_modified_track": {
+        "button_label_hide": "Nur den bearbeiteten Track anzeigen (blau)",
+        "button_label_show": "Unbearbeiteten Track anzeigen"
+      },
+      "way_points": {
+        "create_waypoint": "Wegpunkt erstellen",
+        "remove_waypoint": "Wegpunkt löschen",
+        "edit_waypoint": "Wegpunkt bearbeiten",
+        "move_waypoint": "Wegpunkt verschieben",
+        "move_waypoint_index": "Reihenfolge ändern",
+        "move_waypoint_index_submenu": "An Position verschieben",
+        "popup": {
+          "title": "Wegpunkt"
+        },
+        "select_new_position": "Wählen Sie die neue Position",
+        "remove_waypoint_confirmation": "Möchten Sie den Wegpunkt wirklich löschen?"
+      },
+      "set_elevation_on_range": {
+        "with_start": "Anhand der des ersten ausgewählten Punktes",
+        "with_end": "Anhand der des letzten ausgewählten Punktes",
+        "smoothing": "Durch Glätten vom ersten bis zum letzten ausgewählten Punkt",
+        "manual_value": "Durch manuelle Eingabe einer festen Höhe",
+        "manual_diff": "Durch Eingabe einer anzuwendenden Differenz"
+      },
+      "apply_default_improvements": "Standardverbesserungen anwenden (die bei der Erstellung eines Tracks verwendeten)",
+      "merge_segments": "Pausen- und Fortsetzungspunkte verbinden",
+      "add_points": {
+        "free": {
+          "title": "Mit freien Punkten ergänzen"
+        },
+        "osm": {
+          "title": "Mit Open-Street-Map-Wegen ergänzen"
+        }
+      }
+    },
+    "no_modification": "Diese Funktion hat keine Änderungen vorgenommen",
+    "close_confirmation": {
+      "title": "Track-Editor schließen",
+      "message": "Sie haben Ihre Änderungen nicht gespeichert. Möchten Sie den Track-Editor wirklich schließen?"
+    }
+  },
+  "go_to_position": "Zu dieser Position gehen",
+  "datetime_popup": {
+    "time": "Uhrzeit"
+  },
+  "recompute_metadata": "Schätzungen Ihrer Touren werden neu berechnet",
+  "you_are_offline": "Sie sind offline",
+  "toast_anonymous_account": "Wenn Sie die App ohne Konto verwenden, verbleiben Ihre Daten ausschließlich in Ihrem Browser und können automatisch gelöscht werden, wenn der Browser keinen Speicherplatz mehr hat. Um Ihre Daten zu sichern und zu synchronisieren, können Sie sie exportieren, ein Konto erstellen und sie anschließend erneut importieren.",
+  "notifications": {
+    "menu": {
+      "no_unread": "Benachrichtigungen",
+      "unread_single": "1 ungelesene Benachrichtigung",
+      "unread_plural": "{{1}} ungelesene Benachrichtigungen"
+    },
+    "load_more": "Mehr anzeigen",
+    "error_loading": "Fehler beim Laden der Benachrichtigungen",
+    "items": {
+      "publications": {
+        "accepted": {
+          "text": "Ihre Tour :*:/trail/trailence/{{2}}:*:{{1}}:*: wurde veröffentlicht! Danke für Ihren Beitrag zur Community 🎉"
+        },
+        "rejected": {
+          "text": "Die Veröffentlichung Ihrer Tour :*:/trail/{{3}}/{{2}}:*:{{1}}:*: wurde abgelehnt. Sehen Sie sie sich an, um den Grund zu erfahren und die nötigen Verbesserungen vorzunehmen."
+        }
+      },
+      "shares": {
+        "new_share_with_you": {
+          "text": "{{1}} hat eine neue Freigabe mit Ihnen erstellt: :*:/trails/share/{{3}}/{{1}}:*:{{2}}:*:"
+        },
+        "new_trails_in_share": {
+          "text": "{{1}} hat {{2}} Tour(en) zur Freigabe :*:/trails/share/{{3}}/{{1}}:*:{{4}}:*: hinzugefügt"
+        }
+      },
+      "comments": {
+        "someone_leave_a_rate": {
+          "text": "Jemand hat Ihre Tour :*:/trail/trailence/{{1}}:*:{{2}}:*: bewertet"
+        },
+        "someone_leave_a_comment": {
+          "text": "Jemand hat Ihre Tour :*:/trail/trailence/{{1}}:*:{{2}}:*: kommentiert"
+        },
+        "someone_leave_a_rate_with_comment": {
+          "text": "Jemand hat Ihre Tour :*:/trail/trailence/{{1}}:*:{{2}}:*: bewertet und kommentiert"
+        },
+        "reply": {
+          "text": "Jemand hat auf Ihren Kommentar zur Tour :*:/trail/trailence/{{1}}:*:{{2}}:*: geantwortet"
+        }
+      },
+      "avatar": {
+        "accepted": {
+          "text": "Ihr Profilbild wurde akzeptiert."
+        },
+        "rejected": {
+          "text": "Ihr Profilbild wurde abgelehnt."
+        }
+      }
+    }
+  },
+  "mapAdditions": {
+    "title": "Anzeigen / Ausblenden",
+    "only_zoom_10": "Nur bei Zoom > 10 angezeigt",
+    "guidepost": "Wegweiser",
+    "water": "Wasserstellen",
+    "toilets": "Toiletten",
+    "way_foot": "Zu Fuß",
+    "way_bicycle": "Mit dem Fahrrad",
+    "way_forbidden": "Verbotene Wege",
+    "way_permissive": "Geduldete Wege",
+    "overlays": {
+      "wmth": "Markierte Wege"
+    },
+    "errors": {
+      "no_net": "Einige Elemente können nicht angezeigt werden, da Sie offline sind"
+    }
+  },
+  "relativeDates": {
+    "justNow": "Gerade eben",
+    "secondsAgo": "vor {{1}} Sekunden",
+    "minuteAgo": "vor 1 Minute",
+    "minutesAgo": "vor {{1}} Minuten",
+    "ago": "vor {{1}}"
+  },
+  "translations": {
+    "translated_from": "Übersetzt",
+    "from": {
+      "en": "aus dem Englischen",
+      "es": "aus dem Spanischen",
+      "fr": "aus dem Französischen",
+      "it": "aus dem Italienischen",
+      "pt": "aus dem Portugiesischen"
+    },
+    "view_original": "Originaltext anzeigen",
+    "view_translated": "Ins Deutsche übersetzen",
+    "trail_moderation": {
+      "title": "Übersetzungen",
+      "original_language": "Verwendete Sprache",
+      "detect": "Erkennen",
+      "needed_translations": "Erforderliche Übersetzungen",
+      "name": "Name der Tour",
+      "description": "Beschreibung"
+    }
+  },
+  "months": [
+    "Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"
+  ],
+  "regions": {
+    "be": "Belgien",
+    "ch": "Schweiz",
+    "fr": "Frankreich",
+    "no": "Norwegen",
+    "se": "Schweden",
+    "us": "USA"
+  },
+  "show_more": "Mehr anzeigen",
+  "show_less": "Weniger anzeigen",
+  "exit": {
+    "title": "Trailence beenden",
+    "message": "Möchten Sie Trailence beenden?"
+  },
+  "help": {
+    "contextual": {
+      "original_trace": "Der Originaltrack ist der rohe Track, genau so, wie er vom GPS aufgezeichnet oder aus einer Datei importiert wurde.<p>Wenn Sie einen Track bearbeiten, bleibt der Originaltrack stets erhalten, sodass Sie jederzeit zum Originaltrack zurückkehren können, der als Referenz dient.</p><p>Auch wenn Sie den Track nicht manuell bearbeitet haben, wendet Trailence automatisch Verbesserungen an, um GPS-Ungenauigkeiten zu glätten.</p>",
+      "show_osm": "Wir gleichen den Track mit den Open-Street-Map-Wegen ab",
+      "estimated_duration": "Die geschätzte Dauer wird auf Basis einer Grundgeschwindigkeit in der Ebene berechnet und anschließend anhand des Höhenunterschieds und der Dauer gewichtet, wobei kleine regelmäßige Pausen berücksichtigt werden (etwa 2 bis 3 Minuten pro Stunde).<p>Standardmäßig beträgt die Grundgeschwindigkeit 5 km/h, was der Durchschnittsgeschwindigkeit eines Wanderers entspricht. Sie können diese Geschwindigkeit in Ihren Einstellungen ändern.</p>",
+      "breaks": "Die Pausenzeit entspricht der Summe der <i>langen</i> Pausen. Diese Zeit wird von der Tourdauer abgezogen.<p>Wir unterscheiden zwischen <i>kurzen</i> Pausen (zum Beispiel zum Erfrischen, um die Aussicht zu genießen …) und <i>langen</i> Pausen (zum Beispiel für ein Picknick).</p><p>Kurze Pausen sind Teil der angezeigten Tourdauer, da es normal ist, sie einzubeziehen. Wird jedoch eine lange Pause erkannt, wird ihre Dauer von der Tourzeit abgezogen, damit die angezeigte Zeit nicht von der Länge Ihres Nickerchens abhängt 😉. Die so abgezogene Zeit wird im Bereich <i>Pausen</i> angezeigt.</p><p><i>Lange</i> Pausen sind Pausen von mindestens {{1}} Minuten. Diese Zeit können Sie in Ihren Einstellungen konfigurieren.</p>"
+    }
+  },
+  "password_strength": ["Sehr schwach", "Schwach", "Unzureichend", "Akzeptabel", "Stark", "Sehr stark"],
+  "contributions": {
+    "publications": "Touren",
+    "ratings": "Bewertungen",
+    "reviews": "Rezensionen",
+    "title": "Beiträge",
+    "levels": {
+      "publications": [
+        "Keine",
+        "Erste Touren",
+        "Entdecker",
+        "Erkunder",
+        "Großer Entdecker",
+        "Kartograf",
+        "Meisterkartograf",
+        "Legende der Wege"
+      ],
+      "comments": [
+        "Keine",
+        "Erste Rezensionen",
+        "Beobachter",
+        "Ratgeber",
+        "Community-Guide",
+        "Weiser der Wege",
+        "Mentor",
+        "Stütze der Community"
+      ],
+      "rates": [
+        "Keine",
+        "Erste Bewertungen",
+        "Bewerter",
+        "Pfadfinder",
+        "Guter Kenner",
+        "Tourenexperte",
+        "Referenz",
+        "Kompass der Community"
+      ]
+    }
+  },
+  "open_web_version": "In der Web-Version öffnen",
+  "osm_stats": {
+    "title": "Merkmale der Tour",
+    "attribution": "Daten von Open Street Map",
+    "types": {
+      "wayType": {
+        "title": "Wegtyp",
+        "descriptions": {
+          "unknown": "Unbekannt",
+          "others": "Sonstige",
+          "1": "Straße, Gasse…",
+          "2": "Weg",
+          "3": "Treppe",
+          "4": "Klettersteig",
+          "5": "Leiter"
+        }
+      },
+      "surface": {
+        "title": "Oberfläche",
+        "descriptions": {
+          "unknown": "Unbekannt",
+          "others": "Sonstige",
+          "1": "Hart (Asphalt…)",
+          "2": "Ziemlich hart (Schotter…)",
+          "5": "Weich (Erde, Gras…)",
+          "6": "Schwieriger weicher Untergrund (Schlamm, Sand…)",
+          "7": "Fels/steinig"
+        }
+      },
+      "hikingDifficulty": {
+        "title": "Schwierigkeit",
+        "descriptions": {
+          "unknown": "Unbekannt",
+          "others": "Sonstige",
+          "1": "Sehr leicht",
+          "2": "Leicht",
+          "3": "Mittel",
+          "4": "Schwer",
+          "5": "Sehr schwer",
+          "6": "Unpassierbar"
+        }
+      },
+      "visibility": {
+        "title": "Sichtbarkeit des Weges",
+        "descriptions": {
+          "unknown": "Unbekannt",
+          "others": "Sonstige",
+          "1": "Ausgezeichnet",
+          "2": "Gut",
+          "3": "Mittel",
+          "4": "Schlecht",
+          "5": "Schwierig",
+          "6": "Keine"
+        }
+      }
+    },
+    "messages": {
+      "no_match": "Keine Informationen verfügbar",
+      "partial_data": "Einige Informationen wurden nicht heruntergeladen; die Ergebnisse sind unvollständig",
+      "no_data": "Keine Daten heruntergeladen"
+    }
+  },
+  "mapRotate": {
+    "north": "Norden oben",
+    "heading": "GPS-Ausrichtung",
+    "device": "Bildschirmausrichtung",
+    "custom": "Manuell",
+    "noDeviceOrientation": "Ihr Gerät liefert keine Ausrichtung"
+  },
+  "alertNoElevation": {
+    "title": "Höhendaten hinzufügen?",
+    "message": "Einige importierte Touren enthalten keine Höhendaten. Möchten Sie diese automatisch hinzufügen, indem sie von einem Höhendaten-Anbieter heruntergeladen werden?"
+  }
+}

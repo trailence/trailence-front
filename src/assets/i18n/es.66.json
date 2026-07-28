@@ -1,0 +1,1727 @@
+{
+  "tools": {
+    "filters": "Filtros",
+    "import": "Importar",
+    "import_gpx_description": "Importar archivos GPX",
+    "importing": "Importando",
+    "sort": "Ordenar",
+    "more": "Más",
+    "display": "Visualización",
+    "display_detailed": "Detallado con fotos",
+    "display_detailed_small_map": "Detallado con mapa",
+    "display_detailed_elevation": "Detallado con altimetría",
+    "display_condensed": "Compacto",
+    "search_text": "Por nombre"
+  },
+  "pages": {
+    "home": {
+      "title": "Senderismo y gestión de tracks GPS (GPX)",
+      "subTitle": "Trailence es gratuito, de código abierto, sin publicidad y sin rastreadores.",
+      "meta_description": "Herramienta para el senderismo y la gestión de tus tracks GPS (GPX). Trailence es gratuito, sin publicidad y de código abierto",
+      "slides": [
+        {
+          "header": "Organiza tus rutas",
+          "footer": ["Crea colecciones", "Etiqueta tus rutas", "Visualiza en el mapa", "Ordenación, filtros..."]
+        }, {
+          "header": "Crea tus tracks",
+          "footer": ["Graba un track durante tu actividad", "Mapas sin conexión", "Sigue una ruta existente"]
+        }, {
+          "header": "Rutas en detalle",
+          "footer": ["Altimetría", "Descripción", "Puntos de paso"]
+        }, {
+          "header": "Añade fotos",
+          "footer": ["Añade fotos a tus rutas", "Visualiza las fotos en el mapa"]
+        }, {
+          "header": "Pero también...",
+          "footer": ["Comparte rutas", "Importa tracks", "Exporta tus tracks", "Mejora tus tracks con la herramienta de edición", "Planifica una ruta con Open Street Map", "Copia y mueve entre tus colecciones", "Compara y busca rutas similares", "Estimación del tiempo de ruta", "Estadísticas", "¡Y mucho más!"]
+        }
+      ],
+      "download_apk": "Descargar la app de Android",
+      "try_app1": "Probar ahora",
+      "try_app2": "¡Sin necesidad de cuenta!",
+      "available_on": "Disponible en Android y como aplicación web",
+      "examples_title": "Ejemplos de rutas"
+    },
+    "installApk": {
+      "title": "App de Android",
+      "stores": {
+        "intro": "Trailence se puede instalar desde una de las siguientes tiendas:",
+        "else1": "Si no puedes (o no quieres) usar estas tiendas, puedes instalar Trailence con su archivo APK.",
+        "else2": "Una vez instalado, Trailence te avisará cuando haya una actualización disponible. Si decides instalarla, Trailence descargará e instalará automáticamente la nueva versión, sin tener que repetir todos los pasos de la instalación inicial.",
+        "else3": "Para instalar Trailence manualmente, sigue estos pasos:"
+      },
+      "download": "Descarga el archivo de instalación",
+      "meta_description": "Instrucciones para instalar la aplicación Android de Trailence",
+      "steps": [
+        {
+          "beforeImg": "Puede aparecer una ventana similar a la de abajo",
+          "afterImg": "Confirma la descarga y luego abre el archivo"
+        }, {
+          "beforeImg": "Si es la primera vez que intentas instalar una aplicación de esta manera, puede aparecer una alerta similar a la de abajo",
+          "afterImg": "Ve a los ajustes para permitir la instalación"
+        }, {
+          "beforeImg": "Aparece entonces una ventana",
+          "afterImg": "Haz clic en Permitir de esta fuente"
+        }, {
+          "beforeImg": "Después aparece una ventana para confirmar la instalación",
+          "afterImg": "Haz clic en Instalar"
+        }, {
+          "beforeImg": "Aparece entonces una ventana similar a la de abajo",
+          "afterImg": "Haz clic en Más detalles en el centro de la pantalla"
+        }, {
+          "beforeImg": "La pantalla muestra entonces un botón 'Instalar sin analizar'",
+          "afterImg": "Puedes hacer clic en él o solicitar el análisis si lo deseas"
+        }, {
+          "beforeImg": "Por último, la aplicación queda instalada",
+          "afterImg": ""
+        }
+      ]
+    },
+    "login": {
+      "meta_description": "Inicia sesión en tu cuenta de Trailence",
+      "title": "Iniciar sesión",
+      "email": "Email",
+      "password": "Contraseña",
+      "signin_button": "Iniciar sesión",
+      "offline": "Conéctate a Internet para iniciar sesión en Trailence",
+      "incorrect_message": "Credenciales incorrectas",
+      "error_message": "Error de autenticación, inténtalo de nuevo",
+      "captcha_message": "Tras varios intentos, necesitamos comprobar que no eres un robot",
+      "locked_message": "Tu cuenta ha sido bloqueada; usa el botón «¿Has olvidado tu contraseña?»",
+      "forgot_password": "¿Has olvidado tu contraseña?",
+      "create_account": "Crear una cuenta",
+      "try_without_account": "Probar sin cuenta",
+      "reset_password": {
+        "title": "Restablecer la contraseña",
+        "email": "Email",
+        "new_password1": "Nueva contraseña",
+        "new_password2": "Confirma la nueva contraseña",
+        "verification_code_explaination": "Acabamos de enviar un código de 6 dígitos a tu dirección de correo electrónico; introdúcelo a continuación",
+        "in_progress": "Cambiando la contraseña...",
+        "error": "Se ha producido un error; vuelve atrás e inténtalo de nuevo",
+        "errors": {
+          "email": "Introduce un correo electrónico válido",
+          "password": "Debe tener al menos 8 caracteres",
+          "passwordsDontMatch": "Las contraseñas no coinciden",
+          "mail_already_sent": "Ya se ha realizado una solicitud para tu cuenta hace menos de 10 minutos.",
+          "mail_error": "Se ha producido un error, inténtalo de nuevo."
+        }
+      },
+      "signing_in": "Iniciando sesión...",
+      "downloading_data": "Cargando tus datos..."
+    },
+    "register": {
+      "meta_description": "Crea una cuenta en Trailence",
+      "title": "Crear una cuenta",
+      "offline": "Conéctate a Internet para poder crear una cuenta en Trailence",
+      "step1": "Introduce tus datos",
+      "email": "Email",
+      "password1": "Contraseña",
+      "password2": "Confirma la contraseña",
+      "step2": "Confirma tu Email",
+      "code_text": "Te hemos enviado un correo electrónico con un código de confirmación de 6 dígitos; introdúcelo a continuación",
+      "step3": "Cuenta creada",
+      "connection": "Iniciando sesión...",
+      "continue": "Continuar",
+      "back": "Volver",
+      "errors": {
+        "network": "Se ha producido un error, inténtalo de nuevo",
+        "passwordsDontMatch": "Las dos contraseñas no coinciden",
+        "invalidEmail": "Introduce una dirección de correo electrónico válida"
+      }
+    },
+    "trails": {
+      "collection": "Colección",
+      "share_from": "Elemento compartido de",
+      "your_share": "Tu elemento compartido",
+      "edit_filters_popup_title": "Filtrar las rutas",
+      "edit_sort_popup_title": "Ordenar las rutas",
+      "missing_trails_because_offline": "Algunas rutas no se pueden mostrar porque estás sin conexión",
+      "sorts": {
+        "trail_date": "Fecha de la ruta",
+        "creation_date": "Creación en Trailence",
+        "update_date": "Última actualización en Trailence",
+        "distance": "Distancia",
+        "duration": "Duración",
+        "estimatedDuration": "Duración estimada de senderismo",
+        "positive_elevation": "Desnivel positivo",
+        "negative_elevation": "Desnivel negativo",
+        "highest_altitude": "Punto más alto",
+        "lowest_altitude": "Punto más bajo",
+        "rating": "Valoración"
+      },
+      "filters": {
+        "duration": "Duración",
+        "estimatedDuration": "Duración estimada de senderismo",
+        "distance": "Distancia",
+        "positive_elevation": "Desnivel positivo",
+        "negative_elevation": "Desnivel negativo",
+        "loopType": "Tipo de ruta",
+        "loopTypePlaceholder": "Selecciona los tipos",
+        "activity": "Actividad",
+        "select_activities_button": "Haz clic para seleccionar",
+        "tags": "Etiquetas",
+        "rate": "Valoración",
+        "onlyVisibleOnMap": "Mostrar en la lista solo las rutas visibles en el mapa",
+        "onlyWithPhotos": "Solo las rutas con fotos",
+        "reset_button": "Quitar todos los filtros",
+        "preset": "Mis filtros",
+        "load": "Cargar",
+        "save": "Guardar",
+        "remove": "Eliminar",
+        "save_new": "Nuevo filtro...",
+        "no_saved_filter": "Ningún filtro guardado",
+        "save_title": "Guardar el filtro",
+        "save_name": "Nombre del filtro",
+        "enum_or": "o"
+      },
+      "tabs": {
+        "list": "Lista",
+        "map": "Mapa"
+      },
+      "open_trail": "Abrir",
+      "empty_list": {
+        "collection": "Aún no hay ninguna ruta en esta colección",
+        "share": "No hay ninguna ruta en este elemento compartido",
+        "filter": "Ninguna ruta coincide con tus filtros",
+        "filter_search": "Ninguna ruta coincide con tus filtros en esta zona",
+        "filter_search_enlarge_button": "Ampliar la zona de búsqueda",
+        "all_collections": "Aún no tienes ninguna ruta",
+        "my_selection": "No tienes ninguna ruta en tu selección",
+        "search": "No se ha encontrado ninguna ruta en esta zona.",
+        "launch_search": "Desplázate por el mapa hasta la zona donde quieres buscar rutas y luego haz clic en «Buscar en esta zona».",
+        "only_bubbles": "Amplía el mapa y haz clic en «Buscar en esta zona», o haz clic directamente en las burbujas para ver las rutas disponibles."
+      },
+      "search_trail_placeholder": "Buscar una ruta",
+      "actions": {
+        "share_global": "Crear un elemento compartido",
+        "share_trail": "Crear un elemento compartido",
+        "share_trails": "Crear un elemento compartido con estas rutas",
+        "delete_confirm_single": {
+          "title": "Eliminar una ruta",
+          "message": "¿Seguro que quieres eliminar {{}}?",
+          "yes": "Sí, eliminar",
+          "no": "Cancelar, conservar"
+        },
+        "delete_confirm_multiple": {
+          "title": "Eliminación de {{}} rutas",
+          "message": "¿Seguro que quieres eliminar estas {{}} rutas?",
+          "yes": "Sí, eliminar",
+          "no": "Cancelar, conservar"
+        },
+        "deleting_trails": "Eliminando",
+        "move_to_collection": "Mover a...",
+        "copy_to_collection": "Copiar en...",
+        "new_collection": "Nueva colección...",
+        "copying": "Copiando",
+        "moving": "Moviendo",
+        "edit_collection": "Renombrar",
+        "export": "Exportar",
+        "export_collection": "Exportar la colección",
+        "open_gpx": "Abrir el GPX con",
+        "prepare": "Preparar",
+        "modify": "Editar",
+        "share_section": "Compartir",
+        "rename": "Título",
+        "edit_date": "Fecha",
+        "rename_popup": {
+          "title": "Renombrar la ruta",
+          "name": "Nombre"
+        },
+        "edit_location": "Lugar",
+        "edit_activity": "Actividad",
+        "copy_photos_alert": {
+          "title": "Copiar las fotos",
+          "message_singular": "La ruta copiada contiene fotos. ¿Quieres hacer también una copia de las fotos?",
+          "message_plural": "Las rutas copiadas contienen fotos. ¿Quieres hacer también una copia de las fotos?"
+        },
+        "copying_photos": "Copiando las fotos",
+        "copy_photo_error": "Error al copiar la foto {{1}}",
+        "add_to_my_selection": "Añadir a mi selección",
+        "remove_from_my_selection": "Quitar de mi selección",
+        "copy_link": "Copiar el enlace",
+        "share_link": "Compartir el enlace",
+        "create_link": "Crear un enlace público",
+        "edit_link": "Enlace público"
+      },
+      "tags": {
+        "menu_item": "Etiquetas",
+        "collection_menu_item": "Editar las etiquetas",
+        "popup": {
+          "title_trail": "Etiquetas de la ruta",
+          "title_trails": "Etiquetas de las rutas",
+          "title_collection": "Etiquetas de la colección",
+          "add_tag_label": "Nueva etiqueta",
+          "confirm_delete": {
+            "title": "Eliminar la etiqueta",
+            "message": "¿Seguro que quieres eliminar esta etiqueta? Actualmente se usa en {{1}} ruta(s)",
+            "yes": "Sí, eliminar",
+            "no": "Cancelar, conservar"
+          }
+        }
+      },
+      "search": {
+        "sources": "Fuentes",
+        "searching": "Buscando",
+        "error": "Error durante la búsqueda",
+        "needs_zoom": "Mapa demasiado amplio, amplía más",
+        "too_much_results": "Demasiados resultados",
+        "search_in_this_area": "Buscar en esta zona",
+        "clear_search_results": "Borrar los resultados"
+      }
+    },
+    "trail": {
+      "title_compare": "Comparación de",
+      "title_compare_and": "y",
+      "tabs": {
+        "details": "Detalles",
+        "map": "Mapa",
+        "photos": "Fotos",
+        "waypoints": "Puntos de paso",
+        "comments": "Reseñas"
+      },
+      "show_original": "Mostrar el track original",
+      "show_osm": "Mostrar la ruta siguiendo los caminos conocidos",
+      "show_breaks": "Mostrar las pausas",
+      "show_guideposts": "Mostrar las balizas",
+      "show_intersections": "Mostrar las intersecciones",
+      "map_elements": {
+        "photos": "Fotos",
+        "breaks": "Pausas",
+        "guideposts": "Balizas",
+        "waypoints": "Puntos de paso",
+        "marked_trails": "Señalización de senderos"
+      },
+      "reverse_way": "Sentido invertido",
+      "open_in_app": "Abrir en",
+      "open_in_trailence": "Ver la ruta original",
+      "actions": {
+        "open": "Abrir la ruta",
+        "go_to_departure": "Ir a la salida",
+        "download_map": "Descargar el mapa",
+        "compare": "Comparar",
+        "compare_with": "Comparar con...",
+        "compare_with_explanation": "Para comparar esta ruta con otra, abre el menú de la otra ruta y haz clic en «Comparar con esta ruta».",
+        "compare_with_this_one": "Comparar con esta ruta",
+        "merge_trails": "Fusionar estas rutas",
+        "merged_trail_name": "Ruta fusionada"
+      },
+      "no_tag_message": "Esta ruta no tiene ninguna etiqueta",
+      "no_photo_message": "Esta ruta no tiene ninguna foto",
+      "photo_no_description": "Descripción",
+      "take_photo": "Hacer una foto",
+      "comparison_message": "Estas rutas son similares en un {{1}} %",
+      "propose_to_publish": {
+        "be_the_first": "Aún no hay rutas en esta zona. Comparte la primera y ayuda a la comunidad 🙏",
+        "improve_region": "En esta zona faltan rutas. Ayuda a la comunidad compartiendo la tuya 🙏",
+        "participate_region": "Todavía hay pocas rutas en esta zona. Contribuye a la comunidad compartiendo la tuya 🙏"
+      },
+      "sections": {
+        "description": {
+          "placeholder": "Escribe una descripción aquí"
+        },
+        "waypoints": {
+          "title": "Puntos de paso"
+        },
+        "comments": {
+          "title": "Reseñas",
+          "you": "Tú",
+          "rate": {
+            "global": "Valoración media:",
+            "global_on_nb": " de {{1}} reseñas",
+            "no_rate": "Aún no hay valoraciones",
+            "yours": "Tu valoración:",
+            "write_a_review": "⭐ Valorar y comentar esta ruta",
+            "change_rate_or_review": "Cambiar mi valoración o añadir un comentario",
+            "modal": {
+              "title": "Valorar y comentar",
+              "rate_title": "Asigna una valoración",
+              "comment_title": "Deja un comentario",
+              "comment_advise": {
+                "header": "Algunas reglas y consejos antes de comentar:",
+                "items": [
+                  "Comparte brevemente tu impresión general sobre la ruta.",
+                  "Menciona si has encontrado dificultades.",
+                  "Señala los tramos que requieren especial atención.",
+                  "No dudes en indicar lo que te ha gustado o lo que menos te ha gustado para ayudar a la comunidad.",
+                  "Mantén un tono cortés y respetuoso: ningún comentario injurioso, ofensivo ni discriminatorio."
+                ],
+                "footer": "🙏 ¡Gracias por tu contribución!"
+              },
+              "send_error": "Error al enviar tu comentario"
+            }
+          },
+          "delete_comment_confirmation": {
+            "title": "Eliminar el comentario",
+            "message": "¿Seguro que quieres eliminar este comentario?"
+          },
+          "delete_reply_confirmation": {
+            "title": "Eliminar la respuesta",
+            "message": "¿Seguro que quieres eliminar esta respuesta?"
+          },
+          "reply": "Responder",
+          "reply_placeholder": "Escribe tu respuesta aquí",
+          "reply_send_error": "Error al enviar tu respuesta",
+          "load_more_comments": "Ver más comentarios",
+          "has_done_this_trail": "ha seguido esta ruta ✅",
+          "filter_has_done_this_trail": "Incluir a las personas que han seguido esta ruta",
+          "show_reviews_with_rate": "Filtro activo: valoraciones de {{1}}/5",
+          "not_authenticated": "Inicia sesión para ver las reseñas",
+          "not_connected": "Se requiere conexión a Internet para recuperar las reseñas"
+        }
+      },
+      "remaining_metadata_title": "Restante",
+      "created_in_trailence_on": "Creada en Trailence el",
+      "last_update_on": "Última actualización el",
+      "published_by": "Publicada por",
+      "published__by": "Por",
+      "published_on": "Publicada el",
+      "published__on": "El",
+      "published_from": "a partir de",
+      "select_photo_position": "Selecciona dónde se hizo la foto en la ruta",
+      "source": {
+        "trailence_recorder": "Track grabado en Trailence",
+        "trailence_planner": "Ruta planificada en Trailence",
+        "with_date": " el {{1}}",
+        "with_owner": " por {{1}}",
+        "file_import": "Importado del archivo {{1}}",
+        "file_import_unknown": "Importado de un archivo",
+        "external": "Encontrado en {{1}}",
+        "following": " siguiendo :*:{{1}}:*:{{2}}:*:",
+        "following_a_deleted_track": " siguiendo una ruta (ahora eliminada)",
+        "initially_found_on": " encontrado inicialmente en :*:{{1}}:*:{{2}}:*:",
+        "following_found_on": " siguiendo una ruta encontrada en :*:{{1}}:*:{{2}}:*:",
+        "source_url": "Fuente:",
+        "source_advise": "💡 Se recomienda consultar la fuente antes de seguir la ruta, para disponer de la información más reciente.",
+        "add_source_url": "Añadir una fuente (enlace)"
+      },
+      "my_feedback": {
+        "you_leave_a_rate": "Has valorado esta ruta con {{1}}/5 el {{2}}",
+        "you_leave_a_comment": "Has dejado un comentario sobre esta ruta el {{1}}",
+        "you_leave_a_rate_and_a_comment_same_date": "Has valorado esta ruta con {{1}}/5 y un comentario el {{2}}",
+        "you_leave_a_rate_and_a_comment_different_date": "Has valorado esta ruta con {{1}}/5 el {{2}} y dejado un comentario el {{3}}",
+        "invite_to_rate_title": "🙏 ¡Participa en la comunidad!",
+        "invite_to_rate_button": "⭐ Valora esta ruta"
+      }
+    },
+    "collection_form": {
+      "title": "Colección",
+      "collection_name": "Nombre"
+    },
+    "location_popup": {
+      "title": "Lugar de la ruta",
+      "location": "Lugar",
+      "search_from_departure": "Sugerir lugares en función de la salida",
+      "radius": "En un radio de",
+      "search": "Buscar"
+    },
+    "import_gpx_popup": {
+      "title": "Importar una nueva ruta",
+      "message": "Selecciona la colección en la que quieres que el archivo{{1}}se importe"
+    },
+    "import_tags_popup": {
+      "title_import": "Importar las etiquetas",
+      "title_copy": "Copiar las etiquetas",
+      "message_import": "Se han encontrado las siguientes etiquetas en los archivos importados",
+      "message_copy": "Las siguientes etiquetas están presentes en las rutas copiadas",
+      "tag": "Etiqueta",
+      "status": "Estado",
+      "status_exists": "Existe",
+      "status_does_not_exist": "No existe",
+      "message2": "¿Qué quieres hacer con estas etiquetas?",
+      "import_existing_only": "Importar solo las etiquetas ya existentes",
+      "import_and_create": "Importar todas las etiquetas y crear las que falten",
+      "import_all": "Importar todo",
+      "ignore_all_import": "No importar las etiquetas",
+      "copy_existing_only": "Copiar solo las etiquetas ya existentes",
+      "copy_and_create": "Copiar todas las etiquetas y crear las que falten",
+      "copy_all": "Copiar todo",
+      "ignore_all_copy": "No copiar las etiquetas"
+    },
+    "import_from_sources": {
+      "title": "Importar datos",
+      "message1": "Hemos encontrado las siguientes fuentes:",
+      "message2": "¿Quieres intentar importar datos adicionales desde estas fuentes?",
+      "message_internet": "Debes conectarte a Internet para poder importar desde estas fuentes"
+    },
+    "share_popup": {
+      "title": "Compartir",
+      "type": {
+        "question": "¿Qué quieres compartir?",
+        "collection": "Toda la colección",
+        "tags": "Algunas etiquetas",
+        "explanation": {
+          "collection": "Se compartirán todas las rutas de la colección. Si añades, eliminas o editas una ruta de la colección, el elemento compartido se actualizará automáticamente.",
+          "tags": "Solo se compartirán las rutas de la colección que tengan las etiquetas seleccionadas (en el paso siguiente). Si añades una etiqueta seleccionada a una nueva ruta, se incluirá automáticamente en el elemento compartido. Del mismo modo, si quitas una etiqueta de una ruta, el elemento compartido se actualizará."
+        }
+      },
+      "tags": {
+        "question": "¿Qué etiquetas?"
+      },
+      "name": "Dale un nombre al elemento compartido",
+      "name_info": "Este nombre será visible para ti y para la persona con quien compartes",
+      "who_question": "¿Con quién? (hasta 20 personas)",
+      "includePhotos": "Compartir las fotos con las rutas",
+      "photos_info": "Las fotos asociadas a las rutas compartidas serán visibles para la persona con quien compartes",
+      "email": "Email",
+      "email_info": "Se enviará un correo electrónico a la persona para informarle del elemento compartido",
+      "language": "¿En qué idioma debemos enviar el correo?",
+      "recipient_error": "Introduce una dirección de correo electrónico válida",
+      "share_description": {
+        "COLLECTION": "Compartir toda la colección {{1}}",
+        "TRAIL": "Compartir {{1}} ruta(s)",
+        "TAGS": "Compartir las siguientes etiquetas: {{1}}"
+      }
+    },
+    "trail_link": {
+      "title": "Enlace público",
+      "explanation": "Cualquier persona que disponga de este enlace podrá consultar tu ruta, sus puntos de paso y sus fotos.<br/>En cambio, las etiquetas y la colección no serán visibles.<br/>Cualquier modificación de la ruta se reflejará automáticamente.",
+      "offline": "Conéctate a Internet para generar el enlace",
+      "anonymous": "Esta funcionalidad no está disponible sin una cuenta.",
+      "waiting": "Creando el enlace...",
+      "copy": "Copiar",
+      "copied": "Enlace copiado en el portapapeles",
+      "share": "Compartir",
+      "share_title": "Enlace público de Trailence",
+      "delete": {
+        "title": "Eliminar el enlace público",
+        "message": "¿Seguro que quieres eliminar este enlace?"
+      }
+    },
+    "find_duplicates": {
+      "title": "Buscar rutas similares",
+      "option_inside_collection": "Dentro de la colección {{1}}",
+      "option_between_collections": "Entre las rutas de la colección {{1}} y las de la colección",
+      "option_all": "Entre todas las rutas de todas las colecciones",
+      "threshold": "Con una similitud de al menos",
+      "end_message": "Fin de la búsqueda"
+    },
+    "preferences": {
+      "title": "Preferencias",
+      "display_section_title": "Visualización",
+      "language": "Idioma",
+      "theme": "Tema",
+      "themes": {
+        "light": "Claro",
+        "dark": "Oscuro",
+        "system": "Preferencia del sistema"
+      },
+      "larger_touch_targets": "Elementos táctiles más grandes",
+      "larger_texts": "Textos más grandes",
+      "distance_unit": "Unidad de distancia",
+      "distance_units": {
+        "meters": "Metros / Kilómetros",
+        "imperial": "Pies / Millas"
+      },
+      "elevation_units_long": {
+        "meters": "metros",
+        "imperial": "pies"
+      },
+      "date_format": "Formato de fecha",
+      "time_format": "Formato de hora",
+      "appearance_and_privacy": "Apariencia y privacidad",
+      "alias": "¿Cómo quieres aparecer públicamente?",
+      "alias_explaination": "Cuando publicas una ruta o dejas un comentario en una ruta pública, puedes optar por el anonimato o mostrar el nombre que quieras. Si eliges un nombre, asegúrate de que no contenga ningún término injurioso, ofensivo ni discriminatorio.",
+      "anonymous": "Anónimo",
+      "alias_name": "Con el nombre",
+      "avatar": "Foto de perfil",
+      "avatar_pending": "Foto pendiente de aprobación",
+      "create_avatar": "Añadir una foto de perfil",
+      "delete_avatar_error": "Error al eliminar la foto de perfil",
+      "avatar_public": "Foto visible públicamente",
+      "avatar_private": "Foto privada, visible solo para ti",
+      "trace_recorder": "Grabación de track",
+      "traceMinMeters": "Distancia mínima entre cada punto registrado",
+      "traceMinMeters_explaination": "Un valor demasiado bajo puede dar un track de mala calidad debido a la imprecisión del GPS.<br/>Un valor demasiado alto también puede dar un track de mala calidad, con trazos largos.<br/>También hay que tener en cuenta que cuanto menor es la distancia, mayor es el número de puntos registrados, lo que puede afectar al consumo de batería durante la grabación.<br/>Para un buen equilibrio, recomendamos un valor de entre 5 y 15 metros (es decir, entre 16 y 50 pies aproximadamente).",
+      "traceMinMillis": "Tiempo mínimo entre cada punto registrado",
+      "traceMinMillis_explaination": "Si quieres limitar el número de puntos registrados para reducir el consumo de batería, puedes usar un tiempo mínimo más largo entre cada punto.<br/>La distancia mínima entre cada punto también se tiene en cuenta: deberá alcanzarse tanto la distancia mínima COMO el tiempo mínimo antes de registrar un nuevo punto.<br/>Recomendamos un valor de entre 2 y 5 segundos.",
+      "elevation_calibration": "Altitud",
+      "elevation_calibration_explaination": "La altitud registrada por el GPS a menudo presenta un desfase respecto a la realidad.<br/>Aquí puedes ajustarla indicando una diferencia a aplicar.<br/>Por ejemplo, si tu GPS indica siempre unos {{1}} {{2}} más que la altitud real, puedes introducir <b>-{{1}}</b>.<br/>Como cada dispositivo es diferente, la configuración se hace por dispositivo.",
+      "elevation_calibration_this_device": "este dispositivo",
+      "offline_map": "Mapas sin conexión",
+      "offlineMapMaxKeepDays": "Número de días de validez de un mapa descargado",
+      "offlineMapMaxKeepDays_explaination": "Cuando descargas un mapa para tenerlo disponible sin conexión, este ajuste indica cuántos días se conservará. También evita descargar un elemento del mapa si ya se ha descargado recientemente, ahorrando así tiempo durante la descarga.",
+      "offline_maps": {
+        "title": "Mapas descargados",
+        "items": "Elementos",
+        "size": "Tamaño",
+        "remove_all": "Eliminar todo"
+      },
+      "more_maps_layers": "Más mapas base",
+      "photos": "Fotos",
+      "photos_max_pixels": "Anchura/Altura máxima de las fotos",
+      "photos_max_pixels_explaination": "Cuando añades una foto, si es más grande que el tamaño máximo, se reducirá automáticamente.",
+      "photos_max_quality": "Calidad de las fotos (%)",
+      "photos_max_quality_explaination": "Las fotos se convierten automáticamente al formato JPEG; este ajuste indica la calidad de la compresión. 100 % indica una calidad máxima, pero por tanto una compresión baja. Recomendamos un 90 %, que conserva una calidad muy buena permitiendo a la vez una buena compresión.",
+      "photos_max_size_kb": "Tamaño máximo de los archivos de foto (KB)",
+      "photos_max_size_kb_explaination": "Cuando guardas una foto, se aplican el tamaño máximo en píxeles y la calidad máxima. Si el resultado es un archivo de tamaño superior a este valor, el tamaño y la calidad se reducirán ligeramente hasta alcanzar un tamaño de archivo por debajo de este umbral.",
+      "photos_cache": "Fotos descargadas",
+      "photos_cache_explaination": "Cuando se muestra una foto, se descarga y luego se guarda en la caché de tu dispositivo. Esto evita tener que descargar una foto cada vez y, por tanto, permite mostrarla más rápido. También permite mostrar las fotos sin conexión. Así, si planeas seguir una ruta que contiene fotos y quieres poder verlas sin conexión durante tu ruta, al mostrarlas antes de tu ruta mientras tienes red, estarán disponibles sin conexión.",
+      "photos_cache_total": "Tamaño total de los archivos",
+      "photos_cache_expired": "Tamaño de archivos caducados",
+      "photos_cache_remove_all": "Eliminar todo",
+      "photos_cache_remove_expired": "Eliminar los archivos caducados",
+      "photos_cache_max_days": "Conservación de las fotos descargadas (días)",
+      "thunderforest_explaination": "Puedes añadir los mapas de thunderforest.com si tienes una cuenta con ellos (hay disponible una cuenta gratuita). Para ello, introduce tu clave de API a continuación",
+      "time_calculation": {
+        "title": "Cálculo del tiempo de ruta",
+        "base_speed": "Velocidad base en terreno llano",
+        "base_speed_explaination": "Esta velocidad se usa para estimar el tiempo de ruta. Se pondera en función del desnivel y del tiempo de ruta. Por defecto, el valor es de 5 km/h (3,1 mi/h), lo que corresponde a la velocidad media de un senderista.",
+        "long_breaks_title": "Detección de las pausas largas",
+        "long_break_explaination": "Cuando mostramos el tiempo de una ruta, distinguimos entre las pausas cortas (por ejemplo, para refrescarte, admirar las vistas, etc.) y las pausas largas (por ejemplo, para hacer un pícnic).<br/><br/>Las pausas cortas forman parte del tiempo de ruta mostrado, ya que es normal incluirlas. En cambio, cuando se detecta una pausa larga, su tiempo se descuenta del tiempo de ruta, para que el tiempo mostrado no dependa de lo que dure tu siesta 😉. El tiempo así descontado se muestra en la sección <i>Pausas</i>.<br/><br/>Para detectar las pausas largas, puedes configurar 2 parámetros: un perímetro y una duración mínima. Una pausa se considerará larga si has permanecido dentro de ese perímetro durante al menos la duración mínima configurada.",
+        "long_break_minimum_duration": "Duración mínima de una pausa larga",
+        "long_break_maximum_distance": "Perímetro máximo"
+      },
+      "reset_all": "Restablecer todo a los valores predeterminados"
+    },
+    "edit_avatar": {
+      "title": "Foto de perfil",
+      "edit": "Editar la foto",
+      "select_file": "Cargar un archivo",
+      "is_public": "Visible públicamente",
+      "error_saving": "Error al guardar la foto de perfil"
+    },
+    "myaccount": {
+      "title": "Mi cuenta",
+      "quotas": {
+        "title": "Límites",
+        "collections": "Colecciones",
+        "trails": "Rutas",
+        "tracks-size": "Almacenamiento de tracks",
+        "tags": "Etiquetas",
+        "trail-tags": "Rutas etiquetadas",
+        "photos": "Fotos",
+        "photos-size": "Almacenamiento de fotos",
+        "shares": "Elementos compartidos"
+      },
+      "devices": "Dispositivos conectados",
+      "devices_table": {
+        "connected_since": "Conectado desde",
+        "last_usage": "Último uso",
+        "this_device": "Este dispositivo",
+        "deleted_at": "Eliminado el",
+        "mobile_app": "Aplicación móvil",
+        "web_app": "Aplicación web",
+        "systems": {
+          "android": "Android",
+          "ios": "iOS",
+          "windows": "Windows"
+        },
+        "browsers": {
+          "chrome": "Google Chrome",
+          "edge": "Microsoft Edge",
+          "firefox": "Mozilla Firefox"
+        }
+      },
+      "not_connected": "No has iniciado sesión",
+      "change_password": {
+        "button": "Cambiar mi contraseña",
+        "button_new": "Crear mi cuenta",
+        "current_password": "Contraseña actual",
+        "new_password1": "Nueva contraseña",
+        "new_password2": "Confirma la nueva contraseña",
+        "new_password1_new": "Contraseña",
+        "new_password2_new": "Confirma tu contraseña",
+        "verification_code_explaination": "Acabamos de enviar un código de 6 dígitos a tu dirección de correo electrónico; introdúcelo a continuación",
+        "in_progress": "Cambiando la contraseña...",
+        "error": "Se ha producido un error; vuelve atrás e inténtalo de nuevo",
+        "errors": {
+          "current_password": "Introduce tu contraseña actual",
+          "passwordsDontMatch": "Las 2 contraseñas no coinciden",
+          "mail_already_sent": "Ya se ha realizado una solicitud para tu cuenta hace menos de 10 minutos.",
+          "mail_error": "Se ha producido un error, inténtalo de nuevo."
+        }
+      },
+      "delete_me": {
+        "button": "Eliminar mi cuenta",
+        "button_new": "Eliminar mis datos",
+        "confirm_message": "¿Confirmas que quieres eliminar de forma permanente tu cuenta y todos tus datos de Trailence?",
+        "code_message": "Acabamos de enviar un código de 6 dígitos a tu dirección de correo electrónico; introdúcelo a continuación",
+        "done": "Tu cuenta y tus datos han sido eliminados."
+      }
+    },
+    "link": {
+      "stop_change_password": {
+        "in_progress": "Gracias por informarnos del problema; estamos cancelando la solicitud de cambio de contraseña de tu cuenta...",
+        "done": "Gracias por informarnos del problema; hemos cancelado todas las solicitudes de cambio de contraseña de tu cuenta."
+      },
+      "stop_registration": {
+        "in_progress": "Gracias por informarnos del problema; estamos cancelando la solicitud de creación de cuenta...",
+        "done": "Gracias por informarnos del problema; hemos cancelado la solicitud de creación de tu cuenta."
+      },
+      "stop_deletion": {
+        "in_progress": "Gracias por informarnos del problema; estamos cancelando la solicitud de eliminación de cuenta...",
+        "done": "Gracias por informarnos del problema; hemos cancelado la solicitud de eliminación de tu cuenta."
+      },
+      "share": {
+        "in_progress": "Estamos cargando los datos de tu enlace para compartir...",
+        "error": "Tu enlace no es válido. Es posible que el elemento compartido de este enlace se haya eliminado."
+      }
+    },
+    "trailplanner": {
+      "title": "Planificador de rutas",
+      "please_zoom": "Para ver los caminos posibles y colocar puntos, acerca el zoom al menos hasta el nivel",
+      "start": "Comenzar",
+      "stop": "Pausa",
+      "reset": "Restablecer todo",
+      "resume": "Reanudar",
+      "undo": "Deshacer",
+      "show_routes": "Mostrar los circuitos",
+      "show_trails": "Mostrar mis rutas",
+      "put_free_point": "Punto libre",
+      "back_to_non_free_point": "Seguir caminos",
+      "meta": {
+        "from": "De",
+        "to": "a"
+      },
+      "legend": {
+        "permissive": "Paso tolerado (puede cerrarse en cualquier momento)",
+        "forbidden": "Paso prohibido"
+      },
+      "save": {
+        "trail_name": "Nombre de la ruta",
+        "collection": "En qué colección"
+      },
+      "reset_confirmation": {
+        "title": "Restablecer todo",
+        "message": "¿Confirmas que quieres eliminar toda la ruta planificada?"
+      }
+    },
+    "export_popup": {
+      "which_tracks": "¿Qué track quieres exportar?",
+      "track_original": "El track original",
+      "track_original_explaination": "Únicamente el track original (importado o grabado por el GPS), sin mejoras ni modificaciones",
+      "track_current": "El track actual",
+      "track_current_explaination": "El track actual en Trailence, con las mejoras y modificaciones",
+      "track_both": "Ambos",
+      "track_both_explaination": "Ambos se exportarán en el mismo archivo. Esto permitirá volver a importar en Trailence los 2 tracks en una sola ruta, ideal por tanto para una copia de seguridad. En cambio, puede que no se abra correctamente si importas el archivo en otra aplicación.",
+      "include_photos": "Incluir las fotos",
+      "include_photos_explaination": "Las fotos se incluirán en un archivo ZIP, que podrá importarse en Trailence"
+    },
+    "photos_popup": {
+      "title": "Fotos",
+      "importing": "Importando",
+      "add_photos_buttons": "Añadir fotos",
+      "selected_plural": "fotos seleccionadas",
+      "selected_single": "foto seleccionada",
+      "deleting": "Eliminando las fotos",
+      "position": {
+        "available": "Localizada en la ruta",
+        "not_available": "No localizada en la ruta",
+        "clear_title": "Eliminar la ubicación de la foto",
+        "clear_message": "¿Seguro que quieres eliminar la ubicación de esta foto?"
+      },
+      "buttons": {
+        "edit": "Editar la foto"
+      }
+    },
+    "import_popup": {
+      "title": "Importar",
+      "from_file_title": "Desde un archivo GPX o ZIP",
+      "from_file_button": "Elegir...",
+      "from_url_title": "Desde una URL",
+      "url_placeholder": "URL",
+      "unknown_source": "Ninguna fuente compatible coincide con esta URL",
+      "fetch_error": "No se ha podido recuperar la ruta correctamente",
+      "from_clipboard_title": "Desde el portapapeles",
+      "from_clipboard_button": "Leer el portapapeles",
+      "nothing_found_in_clipboard": "No se ha encontrado ninguna ruta en el portapapeles",
+      "button_import": "Importar desde {{1}}",
+      "link_source": "un enlace de Trailence"
+    },
+    "pdf_popup": {
+      "title": "Crear un PDF",
+      "options": {
+        "model": "Plantilla",
+        "models": {
+          "BIG_MAP": "Mapa grande en una página",
+          "ONE_PAGE": "Condensado"
+        },
+        "include": {
+          "title": "Incluir",
+          "description": "Descripción de la ruta",
+          "waypoints": "Puntos de paso",
+          "elevation": "Perfil altimétrico",
+          "qrcode": "Código QR del enlace",
+          "no_qrcode_message": "Esta ruta no tiene enlace público",
+          "avatar": "Mi foto de perfil",
+          "avatar_size": {
+            "small": "Tamaño pequeño",
+            "large": "Tamaño grande"
+          },
+          "photo": "Foto"
+        },
+        "map_layer": "Mapa base"
+      },
+      "preview": {
+        "title": "Vista previa del PDF"
+      },
+      "progress_message": "Creando el PDF...",
+      "qr_code_link": "Abrir en Trailence",
+      "download_button": "Guardar el PDF",
+      "error_downloading_tile": "Error al descargar el mapa"
+    },
+    "live_group": {
+      "title": "Grupo de seguimiento",
+      "explaination_title": "Funcionamiento de un grupo",
+      "explaination": "Un grupo de seguimiento permite compartir tu ubicación durante una actividad.<br/>Cualquiera puede unirse a un grupo mediante un enlace o un código QR, sin necesitar obligatoriamente una cuenta en Trailence.<br/>La ubicación de cada miembro se registra y se comparte periódicamente con los demás miembros del grupo, para poder reencontrarse fácilmente si es necesario.<br/>Por supuesto, el uso compartido de la ubicación solo funciona cuando hay una conexión de red disponible. No obstante, puedes desactivar la red durante tu actividad y activarla únicamente cuando sea necesario.<br/>Un grupo se elimina automáticamente si tiene más de una semana.",
+      "group_name": "Nombre del grupo",
+      "my_name": "Mi nombre / alias",
+      "create_error": "Error al crear el grupo",
+      "save_error": "Error al guardar",
+      "create_offline": "Conéctate a Internet para crear un grupo",
+      "save_offline": "Conéctate a Internet para editar el grupo",
+      "member_not_localized": "No localizado/a",
+      "member_localized": "Localizado/a",
+      "link_button": "Enlace",
+      "join_group": "Unirse al grupo",
+      "joining_offline": "Conéctate a Internet para unirte al grupo",
+      "joining_error": "Error al unirse al grupo",
+      "stop": "Detener",
+      "leave": "Salir",
+      "offline": "Sin conexión a Internet",
+      "rename_me": "Nombre",
+      "nb_members_singular": "{{1}} persona",
+      "nb_members_plural": "{{1}} personas",
+      "updated_at": "Actualizado",
+      "date_from": "Del",
+      "date_to": "al",
+      "remove_trail_attachment": "Quitar la vinculación con la ruta",
+      "confirm": {
+        "stop": {
+          "title": "Detener el grupo",
+          "message": "Una vez detenido, el grupo se elimina de forma permanente.<br/>Todos los miembros salen automáticamente del grupo y el enlace deja de funcionar.<br/><br/>¿Seguro que quieres detener el grupo?"
+        },
+        "leave": {
+          "title": "Salir del grupo",
+          "message": "¿Seguro que quieres salir del grupo?"
+        }
+      },
+      "no_trail": "El grupo no se vinculará a ninguna ruta.",
+      "no_trail_explaination": "Esto significa que el grupo se consultará en una pantalla específica, donde solo verás los miembros del grupo y su ubicación. En cambio, cuando el grupo está vinculado a una ruta, puedes consultar el grupo directamente desde la pantalla de la ruta. Esto es mucho más práctico si prevés seguir esa ruta con el grupo.<br/><br/>Para crear un grupo vinculado a una ruta, abre la ruta y, en su menú, selecciona «Crear un grupo de seguimiento».<br/>También puedes vincular un grupo existente abriendo la ruta y, en su menú, seleccionando «Vincular a un grupo de seguimiento»",
+      "share_trail": "Compartir la ruta con los miembros del grupo",
+      "explaination_trail_restricted_access": "Esta ruta proviene de un elemento compartido contigo. Solo los miembros que también tengan acceso a esta ruta podrán verla.",
+      "explaination_trail_needs_public_link": "Solo los miembros con quienes has compartido esta ruta pueden verla. Para que todos los miembros puedan verla, puedes crear un enlace público para esta ruta.",
+      "trail_menu": {
+        "attach": "Vincular a un grupo de seguimiento",
+        "create": "Crear un grupo de seguimiento"
+      },
+      "listening_info_message": "Hay un grupo de seguimiento activado. Tu ubicación se registrará y se compartirá con los miembros del grupo cuando haya una conexión de red disponible.",
+      "pause": "Pausar la grabación",
+      "resume": "Reanudar la grabación",
+      "paused": "Grabación en pausa"
+    },
+    "donation": {
+      "meta_description": "Apoyar el proyecto Trailence",
+      "title": "Contribuir",
+      "header": "¡Gracias por considerar ayudar a este proyecto!",
+      "text": "Trailence es gratuito, sin publicidad y de código abierto.<br/><br/>Para que siga siéndolo, nos gustaría pedir tu ayuda.<br/><br/>Somos transparentes sobre nuestros costes y sobre para qué sirven tus donaciones.<br/>&nbsp; - Actualmente pagamos 67 euros al año por el alojamiento (un servidor básico + el nombre de dominio).<br/>&nbsp; - Tenemos un espacio de almacenamiento de 100 GB por 20 euros.<br/>&nbsp; - Hemos pagado 25 USD a Google para estar presentes en Google Play.<br/>",
+      "button": "Hacer una donación",
+      "goals": {
+        "goal": "Objetivo",
+        "raised": "recaudados",
+        "thanks": "¡Gracias!",
+        "descriptions": {
+          "past_costs": "Cubrir nuestros gastos desde 2025",
+          "future_costs": "Garantizar la continuidad cubriendo los gastos de 2 años adicionales",
+          "increase_capacity": "Aumentar la capacidad para todos los usuarios (más almacenamiento, un servidor capaz de atender a más usuarios)"
+        }
+      },
+      "developer": {
+        "title": "¿Eres desarrollador?",
+        "message": "También puedes contribuir al código. Trailence es de código abierto y está disponible en ",
+        "message2": "Más concretamente, una contribución que buscamos es el desarrollo de la app para iOS. Usamos Ionic, así que solo se necesitan algunas funcionalidades nativas."
+      },
+      "translations": {
+        "title": "¡Ayúdanos a traducir Trailence!",
+        "message": "Nos gustaría que Trailence estuviera disponible en aún más idiomas. Si quieres participar traduciendo Trailence a un nuevo idioma o mejorando las traducciones existentes, ¡no dudes en ponerte en contacto con nosotros!"
+      }
+    },
+    "contact": {
+      "meta_description": "Formulario de contacto, pregunta, notificar un problema...",
+      "title": "Contacto",
+      "email": "Tu Email para responderte",
+      "type": "Tipo de solicitud",
+      "types": {
+        "question": "Pregunta",
+        "bug": "Notificar un problema",
+        "feature": "Sugerir una mejora",
+        "other": "Otro"
+      },
+      "message": "Tu mensaje",
+      "send_button": "Enviar",
+      "sent": "Tu mensaje se ha enviado",
+      "error": "Se ha producido un error, inténtalo de nuevo",
+      "retry_with_captcha": "Tenemos que comprobar que no eres un robot; vuelve a hacer clic en Enviar",
+      "network_needed": "Conéctate a Internet para enviar un mensaje",
+      "accept_send_data": "Acepto enviar datos técnicos de la aplicación para ayudar a resolver el problema",
+      "show_data": "Ver estos datos",
+      "email_alternative": "También puedes contactar con nosotros por correo electrónico:"
+    },
+    "stats": {
+      "title": "Mis estadísticas",
+      "config_title": "Configuración",
+      "type_title": "Estadísticas sobre",
+      "time_unit_title": "Por",
+      "source_title": "Entre",
+      "filter_title": "Teniendo en cuenta únicamente las rutas",
+      "activity_filter_title": "con la actividad",
+      "types": {
+        "nb_trails": {
+          "title": "El número de rutas"
+        },
+        "distance": {
+          "title": "La distancia"
+        },
+        "positive-elevation": {
+          "title": "El desnivel positivo"
+        },
+        "negative-elevation": {
+          "title": "El desnivel negativo"
+        },
+        "duration": {
+          "title": "La duración"
+        }
+      },
+      "time_units": {
+        "year": {
+          "title": "Año"
+        },
+        "month": {
+          "title": "Mes"
+        },
+        "month_of_year": {
+          "title": "Mes (todos los años juntos)"
+        }
+      },
+      "sources": {
+        "the_collection": "La colección",
+        "collection_single": "colección",
+        "collection_plural": "colecciones",
+        "the_share": "El elemento compartido",
+        "share_single": "elemento compartido",
+        "share_plural": "elementos compartidos",
+        "shared_by": "compartido por"
+      },
+      "activities": {
+        "all": "(Todas)",
+        "or": "o",
+        "n_activities": "actividades"
+      }
+    },
+    "privacy_policy": {
+      "title": "Política de privacidad"
+    },
+    "photo_editor": {
+      "title": "Edición de una foto",
+      "rotate_clockwise": "Girar a la derecha",
+      "rotate_counterclockwise": "Girar a la izquierda",
+      "crop": "Recortar",
+      "blur": "Desenfocar"
+    },
+    "avatar_moderation": {
+      "menu_title": "Fotos de perfil",
+      "validate": "Aprobar",
+      "reject": "Rechazar"
+    }
+  },
+  "menu": {
+    "collections": "Colecciones",
+    "shared_with_me": "Compartido conmigo",
+    "nothing_shared_with_me": "Ninguna ruta compartida contigo",
+    "shared_by_me": "Compartido por mí",
+    "nothing_shared_by_me": "No compartes ninguna ruta",
+    "my_publications": "Mis publicaciones",
+    "start_trace": "Iniciar grabación",
+    "current_trace": "Grabación en curso",
+    "planner": "Planificar una ruta",
+    "search_trail": "Buscar una ruta",
+    "no_share_for_anonymous": "Las funciones para compartir no están disponibles sin una cuenta",
+    "anonymous_account": "Prueba sin cuenta",
+    "help": "Ayuda",
+    "create_live_group": "Crear un grupo de seguimiento",
+    "one_live_group": "Grupo de seguimiento en curso",
+    "several_live_groups": "{{1}} grupos de seguimiento en curso"
+  },
+  "collection_menu": {
+    "delete_confirm": {
+      "title": "Eliminar la colección",
+      "message": "¿Seguro que quieres eliminar la colección {{}}?",
+      "yes": "Sí, eliminar",
+      "no": "Cancelar, conservar"
+    },
+    "deleting": "Eliminando la colección"
+  },
+  "my_trails": "Mis rutas",
+  "all_collections": "Todas las colecciones",
+  "my_selection": "Mi selección",
+  "publications": {
+    "draft_name": "Borradores",
+    "submit_name": "En revisión",
+    "reject_name": "Cambios solicitados",
+    "my_public_trails_name": "Publicados",
+    "publish": "Publicar",
+    "publish_confirmation": "Al confirmar la publicación de esta ruta, afirmas haber respetado las reglas y confirmas que esta ruta puede hacerse pública",
+    "publish_message_placeholder": "Si quieres dejar un mensaje para el moderador que revisará tu ruta, puedes escribirlo aquí.",
+    "reject_to_draft": "Mejorar",
+    "checklist": "Lista de comprobación",
+    "modify": "Editar",
+    "remove": "Eliminar",
+    "compare_current": "Comparar con la publicación actual",
+    "exit_compare_current": "Detener la comparación",
+    "check_public_trails_around": "Mostrar las rutas públicas",
+    "exit_check_public_trails_around": "Ocultar las rutas públicas",
+    "show_html_text": "Textos en HTML",
+    "exit_show_html_text": "Textos normales",
+    "remove_publication_title": "Eliminar la ruta publicada",
+    "remove_publication_message": "Indica el motivo por el que quieres que se elimine esta ruta",
+    "remove_publication_sent": "Tu solicitud de eliminación se ha enviado",
+    "remove_publication_error": "Error al enviar tu solicitud de eliminación",
+    "start_popup": {
+      "header": "¡Gracias por contribuir a la comunidad Trailence!",
+      "text_before": "Quieres publicar tu ruta, lo que la hará visible para todos los usuarios. Aquí tienes información importante sobre la publicación:",
+      "bullets": [
+        {
+          "text": "La ruta publicada se convierte en una copia de tu ruta original. Esto significa que los cambios que hagas en la ruta que vas a publicar no se aplicarán a tu ruta personal, que seguirá siendo privada. Del mismo modo, si más adelante modificas tu ruta original, esto no afectará a la ruta publicada."
+        }, {
+          "text": "Al principio, la ruta estará en estado «Borrador». Esto te permitirá prepararla antes de su publicación y hacer ajustes respecto a tu ruta original."
+        }, {
+          "text": "Durante esta fase, te acompañará una lista de comprobación que te ayudará a validar los puntos importantes antes de publicar. Entre ellos:",
+          "bullets": [
+            {
+              "text": "Los comentarios injuriosos, ofensivos o discriminatorios están estrictamente prohibidos."
+            }, {
+              "text": "Asegúrate de quitar toda la información personal que no quieras hacer pública."
+            }, {
+              "text": "No añadas fotos en las que se pueda reconocer a personas."
+            }
+          ]
+        }, {
+          "text": "Una vez esté lista, podrás enviar tu ruta. Entonces podrá revisarla un moderador, que comprobará que se respetan las reglas."
+        }, {
+          "text": "¡Una vez aprobada, será visible para toda la comunidad!"
+        }, {
+          "text": "Después, si lo deseas, podrás editar o retirar tu publicación en cualquier momento."
+        }
+      ],
+      "text_after": "¡Gracias por tu participación y feliz publicación!"
+    },
+    "edit_popup": {
+      "title": "Edición de una ruta publicada",
+      "message": "La ruta se copiará en tus borradores. La edición funciona igual que para una primera publicación: una vez hechos tus cambios, los revisará un moderador. ¿Confirmas que quieres editar esta publicación?"
+    },
+    "checklist_items": {
+      "iam_author": {
+        "title": "Derechos de autor y autorizaciones",
+        "description_start": "©️ Asegúrate de ser el autor de la información que publicas, o de haber obtenido la autorización explícita del autor para publicarla en Trailence."
+      },
+      "name": {
+        "title": "Nombre de la ruta",
+        "description_start": "El nombre debe ser corto y describir claramente el objetivo del recorrido. Aquí tienes algunos ejemplos:",
+        "description_bullets": [
+          "<b>Los lagos Enol y Ercina</b>: el objetivo es claro y conciso.",
+          "<b>El Peñalara desde el Puerto de Cotos</b>: se indica la cumbre, así como el itinerario seguido si existen varias opciones.",
+          "<b>De Sant Feliu de Guíxols a Tossa de Mar por el Camí de Ronda</b>: se indica la salida, la llegada y el camino seguido si es pertinente."
+        ]
+      },
+      "description": {
+        "title": "Descripción de la ruta",
+        "description_start": "La descripción debe permitir entender rápidamente qué esperar en la ruta. Recuerda incluir:",
+        "description_bullets": [
+          "Las posibles dificultades (tipo y ubicación)",
+          "Los miradores, puntos de interés o curiosidades que no hay que perderse",
+          "El tipo de camino (sendero, pista, carretera…) y una idea de la proporción si es necesario",
+          "Si la ruta transcurre por el bosque, a campo abierto, en altura, etc.",
+          "Posibles consejos sobre la mejor época para hacerla",
+          "Si la ruta es variada, una descripción de las grandes etapas (p. ej.: salida por el bosque, paso por una ermita, cresta panorámica…)",
+          "Termina con información práctica si es pertinente: aparcamiento, puntos de agua disponibles, etc."
+        ]
+      },
+      "date": {
+        "title": "Fecha indicada",
+        "set_date": "Poner una fecha"
+      },
+      "location": {
+        "title": "Lugar indicado",
+        "set_location": "Poner un lugar"
+      },
+      "activity": {
+        "title": "Tipo de actividad indicado",
+        "description_start": "Elige la actividad principal de la ruta. Permite a los demás usuarios interpretar mejor su duración e identificar los itinerarios adecuados y realmente practicables para esa actividad."
+      },
+      "track": {
+        "title": "Calidad del track",
+        "description_start": "Si es posible, intenta mejorar la calidad del track:",
+        "description_bullets": [
+          "Corrige las altitudes si algunos valores parecen incoherentes.",
+          "Si te has salido de la ruta normal (por ejemplo, para una pequeña pausa técnica 🤭), intenta eliminar esos tramos del track."
+        ],
+        "description_end": "👉 Para ello, usa el botón Editar en el mapa."
+      },
+      "waypoints": {
+        "title": "Puntos de paso",
+        "description_start": "Recuerda añadir puntos de paso a tu ruta:",
+        "description_bullets": [
+          "Pueden servir para señalar un punto concreto: un mirador, una curiosidad, una fuente…",
+          "Pero, sobre todo, permiten dar indicaciones de dirección, especialmente en los lugares donde el itinerario no es evidente sobre el terreno (por ejemplo, en un cruce o cuando el sendero está mal señalizado)."
+        ],
+        "description_end": "👉 Para ello, usa el botón Editar en el mapa, selecciona la ubicación deseada y usa el menú Punto de paso."
+      },
+      "photos": {
+        "title": "Fotos",
+        "description_start": "Recuerda incluir fotos que inviten a seguir tu ruta: bonitos paisajes, miradores, lugares singulares…",
+        "description_bullets": [
+          "📍 Comprueba que cada foto está bien posicionada en la ruta si no se ha hecho automáticamente.",
+          "⚠️ No pongas fotos en las que se pueda reconocer a personas.",
+          "🙏 Evita también compartir fotos de propiedades privadas sin autorización."
+        ]
+      }
+    },
+    "moderation": {
+      "menu_title": "Moderación",
+      "menu_trails": "Rutas",
+      "menu_comments": "Comentarios",
+      "menu_remove": "Eliminaciones",
+      "publishing": "Publicación",
+      "error_publishing": "Error durante la publicación",
+      "error_updating_trail": "Error al actualizar la ruta",
+      "error_translating": "Error durante la traducción",
+      "publish_confirmation": "¿Confirmas que esta ruta puede hacerse pública?",
+      "reject": "Rechazar",
+      "reject_message_placeholder": "Escribe aquí un mensaje para explicar el motivo del rechazo de esta ruta.",
+      "message_from_author": "Mensaje del autor",
+      "previous_moderator_message": "Mensaje anterior del moderador",
+      "moderator_message": "Mensaje del moderador",
+      "refresh": "Actualizar",
+      "comments": {
+        "reviewed_button": "Aprobar"
+      }
+    }
+  },
+  "buttons": {
+    "apply": "Aplicar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "create": "Crear",
+    "close": "Cerrar",
+    "delete": "Eliminar",
+    "download": "Descargar",
+    "edit": "Editar",
+    "next": "Continuar",
+    "ok": "Ok",
+    "previous": "Atrás",
+    "quit": "Salir",
+    "save": "Guardar",
+    "send": "Enviar",
+    "start": "Iniciar",
+    "reset": "Restablecer",
+    "retry": "Reintentar",
+    "understood": "Entendido",
+    "undo": "Deshacer",
+    "redo": "Rehacer",
+    "yes": "Sí",
+    "no": "No"
+  },
+  "order_way": "Orden",
+  "order_asc": "Ascendente",
+  "order_desc": "Descendente",
+  "selected_single": "seleccionada",
+  "selected_plural": "seleccionadas",
+  "way_points": {
+    "DA": "S L",
+    "D": "S",
+    "A": "L",
+    "position": "Posición",
+    "distance": "Distancia",
+    "altitude": "Altitud",
+    "time": "Hora",
+    "duration": "Duración",
+    "description_placeholder": "Descripción",
+    "name_placeholder": "Nombre"
+  },
+  "trailGraph": {
+    "distance": "Distancia",
+    "elevation": "Altitud",
+    "time_duration": "Tiempo",
+    "elevation_grade": "Pendiente",
+    "location": "Posición",
+    "precision": "Precisión",
+    "speed": "Velocidad",
+    "legend_estimated_speed": "Velocidad estimada"
+  },
+  "offline_map": {
+    "download_trail": "Los mapas correspondientes a la ruta se descargarán para estar disponibles sin conexión",
+    "download_map": "Los mapas de la zona mostrada actualmente se descargarán para estar disponibles sin conexión",
+    "select_layers": "Selecciona los mapas para descargar",
+    "parameters": "Ajustes",
+    "max_zoom": "Nivel de zoom máximo para descargar",
+    "max_zoom_explaination": "Cuanto más alto sea el nivel de zoom que selecciones, más podrás hacer zoom durante tu ruta cuando estés sin conexión, pero, en consecuencia, más tardará la descarga y más espacio de almacenamiento necesitará en tu dispositivo.",
+    "max_zoom_reco": "Se recomienda un valor entre 15 y 17. Por debajo de 15, el nivel de detalle suele ser demasiado bajo para ver bien los caminos pequeños. Por encima de 17, el tamaño de la descarga es grande y, por lo general, no es necesario para seguir perfectamente un itinerario.",
+    "padding": "Ampliar la zona a descargar (%)",
+    "padding_explaination_for_trail": "Porcentaje de la zona a descargar alrededor de la zona de la ruta (100 % significa no más que la ruta). Permite ver más alrededor de la ruta en modo sin conexión.",
+    "padding_explaination_for_map": "Porcentaje de la zona a descargar alrededor de la zona mostrada actualmente (100 % significa no más que la ruta). Permite ver una zona un poco más amplia en modo sin conexión.",
+    "percent_done": "descargado",
+    "remaining": "elemento(s) restante(s)",
+    "todo": "elemento(s) por descargar",
+    "downloading": {
+      "progress_title": "Descargando desde {{1}}"
+    }
+  },
+  "layers_popup": {
+    "title": "Mapa base",
+    "overlays_title": "Añadir capas",
+    "regional_title": "Por país o región"
+  },
+  "trace_recorder": {
+    "trail_name_start": "Ruta del",
+    "pause": "Pausa",
+    "resume": "Reanudar",
+    "stop": "Finalizar",
+    "start_this_trail": "Iniciar la ruta",
+    "notif_message": "Siguiendo tu ubicación en Trailence",
+    "disclosure_popup": {
+      "title": "Uso de tu ubicación",
+      "message": "Trailence recopila datos de ubicación para permitir la grabación de un track durante tu ruta, incluso cuando la aplicación está cerrada o no se está usando.",
+      "button_turnon": "Activar"
+    },
+    "disabled_popup": {
+      "title": "GPS desactivado",
+      "message": "Tu GPS está desactivado actualmente; actívalo para poder iniciar una grabación."
+    },
+    "confirm_popup": {
+      "resume_message": "Confirma la reanudación de la ruta",
+      "pause_message": "Confirma la pausa de la ruta",
+      "stop_message": "Confirma la finalización de la ruta"
+    },
+    "saving": "Guardando la ruta",
+    "empty_trail": "Como tu ruta está vacía, no se ha guardado",
+    "follow_this_trail": "Seguir esta ruta",
+    "follow_this_trail_confirmation": "¿Quieres seguir la ruta {{1}}?",
+    "not_native_message": "Se recomienda usar la aplicación de Android para grabar un track. Al usar la aplicación web, esto puede conllevar limitaciones: una menor precisión del GPS y, sobre todo, la interrupción de la grabación cuando ya no estás en la aplicación (pantalla en reposo, cambio de página o paso a otra aplicación), ya que el navegador puede dejar de enviar coordenadas GPS."
+  },
+  "waiting_for_gps": "Esperando la señal GPS...",
+  "bytes": {
+    "bytes": "Bytes",
+    "kb": "KB",
+    "mb": "MB",
+    "gb": "GB"
+  },
+  "duration": {
+    "days": "d",
+    "hours": "h",
+    "minutes": "min"
+  },
+  "logout": {
+    "title": "Cerrar sesión",
+    "title_anonymous": "Salir del modo de prueba",
+    "text": "¿Quieres eliminar también todos tus datos de este dispositivo?",
+    "text_info": "Tus datos se conservan en nuestros servidores y se descargarán la próxima vez que inicies sesión",
+    "text_warning": "¡Tienes datos locales que se perderán si los eliminas!",
+    "button_delete": "Eliminar",
+    "button_keep": "Conservar"
+  },
+  "synchro": {
+    "in_progress": "Sincronización en curso",
+    "offline": "Sin conexión",
+    "last_sync": "Última sincronización",
+    "not_yet": "Todavía no",
+    "local_changes": "Cambios locales",
+    "yes": "Sí",
+    "no": "No",
+    "sync_now": "Sincronizar ahora",
+    "reset_all": "Restablecer todo y volver a descargar desde el servidor"
+  },
+  "confirm_delete_share": {
+    "title": "Eliminar un elemento compartido",
+    "message": "¿Seguro que quieres eliminar {{}}?",
+    "yes": "Sí, eliminar",
+    "no": "Cancelar, conservar"
+  },
+  "search_place": {
+    "placeholder": "Buscar un lugar",
+    "tap_enter": "Tecla Intro ↵ para iniciar la búsqueda",
+    "no_result": "Sin resultados"
+  },
+  "loopType": {
+    "ow": "Solo ida",
+    "lp": "Circular",
+    "hl": "Semicircular",
+    "sl": "Circular pequeña",
+    "ob": "Ida y vuelta"
+  },
+  "activities_groups": {
+    "pedestrian": "A pie",
+    "bike": "En bicicleta",
+    "snow": "En la nieve",
+    "water": "En el agua",
+    "others": "Otros"
+  },
+  "activity": {
+    "walking": "Marcha",
+    "hiking": "Senderismo",
+    "trail": "Trail",
+    "moutain-biking": "BTT",
+    "gravel-biking": "Ciclismo de gravel",
+    "road-biking": "Ciclismo de carretera",
+    "snowshoeing": "Raquetas de nieve",
+    "on-water": "Barco",
+    "skiing": "Esquí",
+    "running": "Correr",
+    "horseback-riding": "A caballo",
+    "via-ferrata": "Vía ferrata",
+    "rock-climbing": "Escalada",
+    "canoe": "Piragüismo",
+    "unspecified": "Sin especificar"
+  },
+  "tags_filter": {
+    "onlyWithAnyTag": "Rutas con al menos una etiqueta",
+    "onlyWithoutAnyTag": "Rutas sin ninguna etiqueta",
+    "include_and": "Rutas con todas las siguientes etiquetas",
+    "include_or": "Rutas con al menos una de las siguientes etiquetas",
+    "exclude": "Rutas sin ninguna de las siguientes etiquetas",
+    "click_to_select": "Haz clic para seleccionar",
+    "popup": {
+      "title": "Filtrar por etiquetas"
+    }
+  },
+  "update": {
+    "download_android": "Descargar la aplicación de Android",
+    "update_android": "Ver la actualización",
+    "not_allowed": "Si prefieres no permitir la actualización automática, puedes descargar la actualización e instalarla manualmente.",
+    "download_manually": "Descargar manualmente",
+    "updating": "Actualizando",
+    "downloading": "Descargando",
+    "installing": "Instalando la actualización",
+    "release_notes": {
+      "popup": {
+        "updated": "¡Trailence se ha actualizado!",
+        "available": "¡Actualización disponible!",
+        "news": "Novedades",
+        "later": "Más tarde",
+        "download": "Instalar"
+      },
+      "version": "Versión"
+    }
+  },
+  "metadata": {
+    "collection": "Colección",
+    "title": "Título",
+    "tags": "Etiquetas",
+    "description": "Descripción",
+    "trail_date": "Fecha de la ruta",
+    "trail_location": "Lugar",
+    "loop_type": "Tipo",
+    "activity": "Actividad",
+    "duration": "Duración",
+    "distance": "Distancia",
+    "positiveElevation": "Desnivel positivo",
+    "negativeElevation": "Desnivel negativo",
+    "breaksDuration": "Pausas",
+    "estimatedDuration": "Duración estimada",
+    "averageSpeed": "Velocidad media",
+    "maxSpeed": "Velocidad máxima",
+    "highestAltitude": "Punto más alto",
+    "lowestAltitude": "Punto más bajo",
+    "current_position": "Posición actual",
+    "current_altitude": "Altitud actual",
+    "remaining_time": "Tiempo restante",
+    "remaining_distance": "Distancia restante",
+    "remaining_ascent": "Desnivel + restante",
+    "remaining_descent": "Desnivel - restante"
+  },
+  "synchronizing_your_data": "Descargando tus rutas",
+  "errors": {
+    "modal_title_singular": "Error",
+    "modal_title_plural": "Errores",
+    "import": {
+      "file_not_imported": "No se ha podido importar el archivo '{{1}}': {{2}}",
+      "not_gpx": "El archivo no está en formato GPX o no es válido"
+    },
+    "download_offline_map": "{{1}} error(es) al descargar los mapas",
+    "stores": {
+      "save_photo": "Error al enviar la foto {{1}} al servidor",
+      "save_track": "Error al enviar un track al servidor",
+      "delete_tracks": "Error al eliminar tracks en el servidor",
+      "get_track": "Error al descargar un track desde el servidor",
+      "save_tracks": "Error al guardar tracks en tu dispositivo",
+      "update_track": "Error al actualizar un track en el servidor",
+      "create_items": "Error al crear en el servidor ({{1}})",
+      "get_updates": "Error al solicitar actualizaciones desde el servidor ({{1}})",
+      "send_updates": "Error al enviar tus actualizaciones al servidor ({{1}})",
+      "delete_items": "Error al eliminar en el servidor ({{1}})"
+    },
+    "import_photo": "No se puede cargar la foto {{1}}",
+    "invalid_format": "Formato no válido/no compatible",
+    "search_places": "Error al buscar lugares",
+    "search_routes": "Error al buscar circuitos",
+    "password_strength": "La contraseña no es lo suficientemente segura",
+    "photos_error_no_network": "Algunas fotos no se pueden mostrar porque no has iniciado sesión o no tienes conexión de red",
+    "photos_error": "No se han podido descargar algunas fotos"
+  },
+  "export": {
+    "trail": "Ruta",
+    "photo": "Foto"
+  },
+  "osm": {
+    "from": "De",
+    "to": "a"
+  },
+  "administration": "Administración",
+  "quota_error": {
+    "trail_collections": "¡Has superado el número máximo de colecciones, las nuevas no se pueden guardar en el servidor!",
+    "trails": "¡Has superado el número máximo de rutas, las nuevas no se pueden guardar en el servidor!",
+    "tracks": "¡Has superado el número máximo de tracks, los nuevos no se pueden guardar en el servidor!",
+    "tags": "¡Has superado el número máximo de etiquetas, las nuevas no se pueden guardar en el servidor!",
+    "trails_tags": "¡Has superado el número máximo de rutas etiquetadas, las nuevas no se pueden guardar en el servidor!",
+    "photos": "¡Has superado el número máximo de fotos, las nuevas no se pueden guardar en el servidor!",
+    "shares": "¡Has superado el número máximo de elementos compartidos, los nuevos no se pueden guardar en el servidor!"
+  },
+  "quota_reached": {
+    "trail_collections": "Has alcanzado el número máximo de colecciones",
+    "trails": "Has alcanzado el número máximo de rutas",
+    "tracks": "Has alcanzado el número máximo de tracks",
+    "tags": "Has alcanzado el número máximo de etiquetas",
+    "trails_tags": "Has alcanzado el número máximo de rutas etiquetadas",
+    "photos": "Has alcanzado el número máximo de fotos",
+    "shares": "Has alcanzado el número máximo de elementos compartidos",
+    "photos_max": "Tu límite de fotos es {{1}} y ya tienes {{2}}: no puedes añadir {{3}} nueva(s)",
+    "photos_max_by_trail": "Ya hay {{1}}/{{2}} fotos en esta ruta: no puedes añadir {{3}} nueva(s)"
+  },
+  "obsolete_message": {
+    "title": "Actualización necesaria",
+    "message": "Tu aplicación tiene una versión obsoleta y debe actualizarse. Si usas esta versión, tus cambios no se podrán guardar en el servidor y podrían perderse."
+  },
+  "downloading_elevation": "Descargando las altitudes",
+  "track_edit_tools": {
+    "title": "Editar",
+    "categories": {
+      "track": "Track",
+      "way_point": "Punto de paso",
+      "elevation": "Altitud",
+      "path": "Camino",
+      "selection": "Selección",
+      "elevation_provider": "Usar un proveedor de altitud",
+      "join_departure_and_arrival": "Unir la salida con la llegada",
+      "improvements": "Mejoras",
+      "set_elevation_on_range": "Cambiar la altitud",
+      "time": "Tiempo"
+    },
+    "stop_interactive": "Detener",
+    "tools": {
+      "remove_unprobable_elevations": "Ajustar las altitudes atípicas",
+      "remove_unprobable_points": "Quitar los puntos atípicos",
+      "remove_breaks_moves": "Quitar los movimientos durante las pausas",
+      "slope_threshold": {
+        "button_label": "Suavizar con un umbral de desnivel",
+        "elevation_threshold": "Umbral de desnivel",
+        "max_distance": "Distancia máxima",
+        "explaination": "El objetivo del suavizado es corregir las imprecisiones del GPS.<br/>Debido a estas imprecisiones, es frecuente que, en pocos metros de distancia, la altitud suba y baje también unos metros, cuando en realidad se trata de una pendiente continua.<br/>Por tanto, el suavizado funciona así:<ul><li>Se buscan los tramos en los que la altitud ha variado dentro del límite del umbral configurado y en una distancia máxima configurada.</li><li>Para cada tramo encontrado, se toma la altitud inicial y la altitud final, y se suaviza en una pendiente continua.</li><li>Para evitar perder los puntos altos o bajos de la ruta, si encontramos uno de esos puntos en medio del tramo, reducimos el tramo para conservarlo.</li></ul>"
+      },
+      "selection": {
+        "title": "Selección",
+        "extend_selection": "Ampliar la selección hasta...",
+        "close": "Cerrar la selección",
+        "select_target_point": "Selecciona un punto en el mapa o en el gráfico de altimetría para ampliar la selección hasta ese punto",
+        "remove_all_next_points": "Eliminar todos los puntos posteriores",
+        "remove_all_previous_points": "Eliminar todos los puntos anteriores"
+      },
+      "remove_selection": {
+        "button_single_label": "Eliminar el punto seleccionado",
+        "button_multiple_label": "Eliminar el tramo seleccionado",
+        "button_single_label_and_join": "Eliminar el punto seleccionado y conectar el trazado",
+        "button_multiple_label_and_join": "Eliminar el tramo seleccionado y conectar el trazado",
+        "button_single_label_and_open": "Eliminar el punto seleccionado y dividir el trazado en dos",
+        "button_multiple_label_and_open": "Eliminar el tramo seleccionado y dividir el trazado en dos"
+      },
+      "replace_elevation_with_provider": "Reemplazar las altitudes",
+      "improve_elevation_with_provider": "Mejorar las altitudes",
+      "calibrate_elevation": "Calibrar la altitud",
+      "calibrate_elevation_message": "La altitud conocida presenta una diferencia media de {{1}} {{2}} respecto a la altitud registrada en esta ruta",
+      "arrival_to_departure": "Terminar en el mismo lugar que la salida",
+      "departure_to_arrival": "Comenzar en el mismo lugar que la llegada",
+      "start_from_arrival": "Crear el inicio que falta alcanzando el punto de llegada por el camino de vuelta",
+      "arrival_to_start": "Crear el final que falta alcanzando el punto de salida por el camino de ida",
+      "back_to_departure": "Crear una vuelta a la salida siguiendo el mismo itinerario",
+      "back_to_original_track": "Volver al track original sin mejoras",
+      "remove_time": "Eliminar la información de tiempo",
+      "link_to_next_segment_with_line": "Conectar con el tramo siguiente mediante una línea recta",
+      "link_to_next_segment_follow": "Conectar con el tramo siguiente siguiendo el camino",
+      "toggle_show_only_modified_track": {
+        "button_label_hide": "Mostrar solo el track modificado (azul)",
+        "button_label_show": "Mostrar el track sin modificar"
+      },
+      "way_points": {
+        "create_waypoint": "Crear un punto de paso",
+        "remove_waypoint": "Eliminar el punto de paso",
+        "edit_waypoint": "Editar el punto de paso",
+        "move_waypoint": "Mover el punto de paso",
+        "move_waypoint_index": "Cambiar el orden",
+        "move_waypoint_index_submenu": "Mover a la posición",
+        "popup": {
+          "title": "Punto de paso"
+        },
+        "select_new_position": "Selecciona la nueva posición",
+        "remove_waypoint_confirmation": "¿Confirmas la eliminación del punto de paso?"
+      },
+      "set_elevation_on_range": {
+        "with_start": "Usando la del primer punto seleccionado",
+        "with_end": "Usando la del último punto seleccionado",
+        "smoothing": "Suavizando desde el primero hasta el último punto seleccionado",
+        "manual_value": "Introduciendo una altitud fija manualmente",
+        "manual_diff": "Introduciendo una diferencia a aplicar"
+      },
+      "apply_default_improvements": "Aplicar las mejoras predeterminadas (las que se usan al crear un track)",
+      "merge_segments": "Conectar los puntos de pausa y reanudación",
+      "add_points": {
+        "free": {
+          "title": "Completar con puntos libres"
+        },
+        "osm": {
+          "title": "Completar con caminos de Open Street Map"
+        }
+      }
+    },
+    "no_modification": "Esta función no ha realizado ninguna modificación",
+    "close_confirmation": {
+      "title": "Cerrar el editor de track",
+      "message": "No has guardado los cambios. ¿Seguro que quieres cerrar el editor del track?"
+    }
+  },
+  "go_to_position": "Ir a esta ubicación",
+  "datetime_popup": {
+    "time": "Hora"
+  },
+  "recompute_metadata": "Recalculando las estimaciones de tus rutas",
+  "you_are_offline": "Estás sin conexión",
+  "toast_anonymous_account": "Cuando usas la aplicación sin cuenta, tus datos permanecen únicamente en tu navegador y pueden eliminarse automáticamente si al navegador le falta espacio. Para guardar y sincronizar tus datos, puedes exportarlos, crear una cuenta y luego importarlos de nuevo.",
+  "notifications": {
+    "menu": {
+      "no_unread": "Notificaciones",
+      "unread_single": "1 notificación sin leer",
+      "unread_plural": "{{1}} notificaciones sin leer"
+    },
+    "load_more": "Ver más",
+    "error_loading": "Error al cargar las notificaciones",
+    "items": {
+      "publications": {
+        "accepted": {
+          "text": "¡Tu ruta :*:/trail/trailence/{{2}}:*:{{1}}:*: se ha publicado! Gracias por tu contribución a la comunidad 🎉"
+        },
+        "rejected": {
+          "text": "La publicación de tu ruta :*:/trail/{{3}}/{{2}}:*:{{1}}:*: ha sido rechazada. Revísala para conocer el motivo y hacer las mejoras necesarias."
+        }
+      },
+      "shares": {
+        "new_share_with_you": {
+          "text": "{{1}} ha compartido algo nuevo contigo: :*:/trails/share/{{3}}/{{1}}:*:{{2}}:*:"
+        },
+        "new_trails_in_share": {
+          "text": "{{1}} ha añadido {{2}} rutas al elemento compartido :*:/trails/share/{{3}}/{{1}}:*:{{4}}:*:"
+        }
+      },
+      "comments": {
+        "someone_leave_a_rate": {
+          "text": "Alguien ha valorado tu ruta :*:/trail/trailence/{{1}}:*:{{2}}:*:"
+        },
+        "someone_leave_a_comment": {
+          "text": "Alguien ha dejado un comentario en tu ruta :*:/trail/trailence/{{1}}:*:{{2}}:*:"
+        },
+        "someone_leave_a_rate_with_comment": {
+          "text": "Alguien ha valorado y comentado tu ruta :*:/trail/trailence/{{1}}:*:{{2}}:*:"
+        },
+        "reply": {
+          "text": "Alguien ha respondido a tu comentario en la ruta :*:/trail/trailence/{{1}}:*:{{2}}:*:"
+        }
+      },
+      "avatar": {
+        "accepted": {
+          "text": "Tu foto de perfil ha sido aprobada."
+        },
+        "rejected": {
+          "text": "Tu foto de perfil ha sido rechazada."
+        }
+      }
+    }
+  },
+  "mapAdditions": {
+    "title": "Mostrar / Ocultar",
+    "only_zoom_10": "Solo se muestran con un zoom > 10",
+    "guidepost": "Postes indicadores",
+    "water": "Puntos de agua",
+    "toilets": "Aseos",
+    "way_foot": "A pie",
+    "way_bicycle": "En bicicleta",
+    "way_forbidden": "Pasos prohibidos",
+    "way_permissive": "Pasos tolerados",
+    "overlays": {
+      "wmth": "Senderos señalizados"
+    },
+    "errors": {
+      "no_net": "Algunos elementos no se pueden mostrar porque estás sin conexión"
+    }
+  },
+  "relativeDates": {
+    "justNow": "Ahora mismo",
+    "secondsAgo": "Hace {{1}} segundos",
+    "minuteAgo": "Hace 1 minuto",
+    "minutesAgo": "Hace {{1}} minutos",
+    "ago": "Hace {{1}}"
+  },
+  "translations": {
+    "translated_from": "Traducido",
+    "from": {
+      "de": "del alemán",
+      "en": "del inglés",
+      "fr": "del francés",
+      "it": "del italiano",
+      "pt": "del portugués"
+    },
+    "view_original": "Ver el texto original",
+    "view_translated": "Traducir al español",
+    "trail_moderation": {
+      "title": "Traducciones",
+      "original_language": "Idioma utilizado",
+      "detect": "Detectar",
+      "needed_translations": "Traducciones necesarias",
+      "name": "Nombre de la ruta",
+      "description": "Descripción"
+    }
+  },
+  "months": [
+    "enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+  ],
+  "regions": {
+    "be": "Bélgica",
+    "ch": "Suiza",
+    "fr": "Francia",
+    "no": "Noruega",
+    "se": "Suecia",
+    "us": "Estados Unidos"
+  },
+  "show_more": "Ver más",
+  "show_less": "Ver menos",
+  "exit": {
+    "title": "Salir de Trailence",
+    "message": "¿Quieres salir de Trailence?"
+  },
+  "help": {
+    "contextual": {
+      "original_trace": "El track original es el track sin procesar, tal como lo ha registrado el GPS o se ha importado desde un archivo.<p>Cuando editas un track, el track original siempre se conserva, lo que permite volver en cualquier momento al track original, que sirve de referencia.</p><p>Aunque no hayas editado el track manualmente, Trailence aplica automáticamente mejoras para corregir las imperfecciones del GPS.</p>",
+      "show_osm": "Hacemos coincidir el track con los caminos de Open Street Map",
+      "estimated_duration": "La duración estimada se calcula a partir de una velocidad base en llano, y luego se pondera en función del desnivel, de la duración y teniendo en cuenta pequeñas pausas regulares (de 2 a 3 minutos aproximadamente cada hora).<p>Por defecto, la velocidad base es de 5 km/h, lo que corresponde a la velocidad media de un senderista. Puedes cambiar esta velocidad en tus preferencias.</p>",
+      "breaks": "El tiempo de pausas corresponde a la suma de las pausas <i>largas</i>. Este tiempo se descuenta de la duración de la ruta.<p>Distinguimos entre las pausas <i>cortas</i> (por ejemplo, para refrescarte, admirar las vistas, etc.) y las pausas <i>largas</i> (por ejemplo, para hacer un pícnic).</p><p>Las pausas cortas forman parte del tiempo de ruta que se muestra, ya que es normal incluirlas. En cambio, cuando se detecta una pausa larga, su tiempo se resta del tiempo de ruta, para que el tiempo mostrado no dependa de lo que dure tu siesta 😉. El tiempo así descontado se muestra en la sección <i>Pausas</i>.</p><p>Las pausas <i>largas</i> son pausas de al menos {{1}} minutos. Este tiempo se puede configurar en tus preferencias.</p>"
+    }
+  },
+  "password_strength": ["Muy débil", "Débil", "Insuficiente", "Aceptable", "Fuerte", "Muy fuerte"],
+  "contributions": {
+    "publications": "Rutas",
+    "ratings": "Valoraciones",
+    "reviews": "Reseñas",
+    "title": "Contribuciones",
+    "levels": {
+      "publications": [
+        "Ninguno",
+        "Primeras rutas",
+        "Explorador",
+        "Descubridor",
+        "Gran explorador",
+        "Cartógrafo",
+        "Maestro cartógrafo",
+        "Leyenda de los senderos"
+      ],
+      "comments": [
+        "Ninguno",
+        "Primeras reseñas",
+        "Observador",
+        "Consejero",
+        "Guía de la comunidad",
+        "Sabio de los senderos",
+        "Mentor",
+        "Pilar de la comunidad"
+      ],
+      "rates": [
+        "Ninguna",
+        "Primeras valoraciones",
+        "Evaluador",
+        "Rastreador",
+        "Buen conocedor",
+        "Experto en rutas",
+        "Referente",
+        "Brújula de la comunidad"
+      ]
+    }
+  },
+  "open_web_version": "Abrir la versión web",
+  "osm_stats": {
+    "title": "Características de la ruta",
+    "attribution": "Datos procedentes de Open Street Map",
+    "types": {
+      "wayType": {
+        "title": "Tipo de camino",
+        "descriptions": {
+          "unknown": "Desconocido",
+          "others": "Otros",
+          "1": "Carretera, calle…",
+          "2": "Camino",
+          "3": "Escaleras",
+          "4": "Vía ferrata",
+          "5": "Escala"
+        }
+      },
+      "surface": {
+        "title": "Superficie",
+        "descriptions": {
+          "unknown": "Desconocida",
+          "others": "Otros",
+          "1": "Duro (asfalto…)",
+          "2": "Bastante duro (grava…)",
+          "5": "Blando (tierra, hierba…)",
+          "6": "Blando difícil (barro, arena…)",
+          "7": "Roca/pedregoso"
+        }
+      },
+      "hikingDifficulty": {
+        "title": "Dificultad",
+        "descriptions": {
+          "unknown": "Desconocida",
+          "others": "Otros",
+          "1": "Muy fácil",
+          "2": "Fácil",
+          "3": "Medio",
+          "4": "Difícil",
+          "5": "Muy difícil",
+          "6": "Imposible"
+        }
+      },
+      "visibility": {
+        "title": "Visibilidad del camino",
+        "descriptions": {
+          "unknown": "Desconocida",
+          "others": "Otros",
+          "1": "Excelente",
+          "2": "Buena",
+          "3": "Media",
+          "4": "Mala",
+          "5": "Difícil",
+          "6": "Ninguna"
+        }
+      }
+    },
+    "messages": {
+      "no_match": "No hay información disponible",
+      "partial_data": "Algunos datos no se han descargado, los resultados están incompletos",
+      "no_data": "No se han descargado datos"
+    }
+  },
+  "mapRotate": {
+    "north": "Norte arriba",
+    "heading": "Rumbo GPS",
+    "device": "Orientación de la pantalla",
+    "custom": "Manual",
+    "noDeviceOrientation": "Tu dispositivo no proporciona orientación"
+  },
+  "alertNoElevation": {
+    "title": "¿Añadir las altitudes?",
+    "message": "Algunas rutas importadas no contienen ninguna altitud. ¿Quieres añadirlas automáticamente descargándolas desde un proveedor de datos de altitud?"
+  }
+}

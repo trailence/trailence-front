@@ -272,7 +272,7 @@ async function processTile(tile: number, waysIdsMap: Map<number, number[]>, rout
       const extraSizeBefore = pointsBuffer.readUInt16LE(pointsSize - 2);
       const extraBefore = await src.read(extraSizeBefore);
       if (extraBefore.length !== extraSizeBefore) throw new Error('Cannot read ways tile ' + tile + ': only ' + extraBefore.length + ' bytes read at ' + (src.offset - extraBefore.length) + ', expected ' + extraSizeBefore + ' for extra data');
-      const extraWithoutRoutes = removeRoutes(extraBefore);
+      const extraWithoutRoutes = resume ? removeRoutes(extraBefore) : extraBefore;
 
       const linkedRoutes: Route[] = [];
       let linkedRoutesSize = 0;
