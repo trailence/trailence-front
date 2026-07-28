@@ -1,11 +1,12 @@
 import * as fs from 'fs';
+import { AvailableLocales } from 'src/app/services/i18n/available-locales';
 
 interface PublicPage {
   name: string;
   i18n?: string;
 }
 
-const languages = ['en', 'fr'];
+const languages = Object.keys(AvailableLocales);
 const pages: PublicPage[] = [{
   name: 'home'
 }, {

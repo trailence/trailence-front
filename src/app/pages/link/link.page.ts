@@ -85,7 +85,7 @@ export class LinkPage {
             if (lang.startsWith('?lang=')) {
               lang = lang.substring(6);
               Console.info('Switch language from share link to', lang);
-              this.injector.get(PreferencesService).setLanguage(lang);
+              this.injector.get(PreferencesService).setLanguageIfKnown(lang);
             }
             let i = payload.data.indexOf('/');
             Console.info('Opening share id', payload.data.substring(0, i), 'from', payload.data.substring(i + 1));

@@ -10,16 +10,41 @@ import { Console } from 'src/app/utils/console';
 import Trailence from '../trailence.service';
 import { I18nService } from '../i18n/i18n.service';
 import { Filters, FiltersUtils } from 'src/app/components/trails-list/filters';
+import { AvailableLocales, DEFAULT_LOCALE_KEY, LocaleKey, toLocaleKey } from '../i18n/available-locales';
 
-const defaultPreferences: {[key:string]: Preferences} = {
+const defaultPreferences: {[key in LocaleKey]: Preferences} = {
+  'de': {
+    lang: 'de',
+    distanceUnit: 'METERS',
+    hourFormat: 'H24',
+    dateFormat: 'dd.mm.yyyy'
+  },
   'en': {
     lang: 'en',
-    distanceUnit: 'IMPERIAL',
+    distanceUnit: 'METERS',
     hourFormat: 'H12',
     dateFormat: 'm/d/yyyy'
   },
+  'es': {
+    lang: 'es',
+    distanceUnit: 'METERS',
+    hourFormat: 'H24',
+    dateFormat: 'dd/mm/yyyy'
+  },
   'fr': {
     lang: 'fr',
+    distanceUnit: 'METERS',
+    hourFormat: 'H24',
+    dateFormat: 'dd/mm/yyyy'
+  },
+  'it': {
+    lang: 'it',
+    distanceUnit: 'METERS',
+    hourFormat: 'H24',
+    dateFormat: 'dd/mm/yyyy'
+  },
+  'pt': {
+    lang: 'pt',
     distanceUnit: 'METERS',
     hourFormat: 'H24',
     dateFormat: 'dd/mm/yyyy'
@@ -70,7 +95,7 @@ export class PreferencesService implements OnDestroy {
       if (stored) {
         const parsed = JSON.parse(stored);
         prefs = {
-          lang: parsed['lang'],
+          lang: toLocaleKey(parsed['lang']),
           distanceUnit: parsed['distanceUnit'],
           hourFormat: parsed['hourFormat'],
           dateFormat: parsed['dateFormat'],
@@ -186,7 +211,7 @@ export class PreferencesService implements OnDestroy {
     const result = {...p};
     if (!result.lang || !defaultPreferences[result.lang])
       result.lang = this.getDefaultLanguage();
-    this.complete(result, defaultPreferences[result.lang]);
+    this.complete(result, defaultPreferences[result.lang!]);
     result.theme ??= 'SYSTEM';
     return result as ComputedPreferences;
   }
@@ -218,37 +243,38 @@ export class PreferencesService implements OnDestroy {
     return defaultValue;
   }
 
-  private getDefaultLanguage(): string {
+  private getDefaultLanguage(): LocaleKey { // NOSONAR
     let s = globalThis.location.search;
     if (s.length > 0) {
       const params = StringUtils.parseQueryParams(s);
-      if (params['lang'] && defaultPreferences[params['lang']]) {
-        return params['lang'];
+      let l = params['lang'];
+      if ('string' === typeof l) {
+        l = l.toLowerCase();
+        if (Object.keys(defaultPreferences).includes(params['lang'])) return l;
       }
     }
     s = globalThis.navigator.language;
     if (s) {
       if (s.length > 2) s = s.substring(0, 2);
       s = s.toLowerCase();
-      if (defaultPreferences[s]) {
-        return s;
+      if (Object.keys(defaultPreferences).includes(s)) {
+        return s as LocaleKey;
       }
     }
     for (s in globalThis.navigator.languages) {
       if (s.length > 2) s = s.substring(0, 2);
       s = s.toLowerCase();
-      if (defaultPreferences[s]) {
-        return s;
+      if (Object.keys(defaultPreferences).includes(s)) {
+        return s as LocaleKey;
       }
     }
-    return 'en';
+    return DEFAULT_LOCALE_KEY;
   }
 
   public get preferences$(): Observable<ComputedPreferences> { return this._computed$ };
   public get preferences(): ComputedPreferences { return this._computed$.value; }
 
-  public setLanguage(lang: string): void {
-    if (!defaultPreferences[lang]) return;
+  public setLanguage(lang: LocaleKey): void {
     const authService = this.injector.get(AuthService);
     const auth = authService.auth;
     if (auth && auth.preferences?.lang !== lang) {
@@ -261,6 +287,12 @@ export class PreferencesService implements OnDestroy {
       this._prefs$.value.lang = lang;
       this._prefs$.next(this._prefs$.value);
     }
+  }
+
+  public setLanguageIfKnown(lang: string | null | undefined): void {
+    const key = toLocaleKey(lang);
+    if (!key) return;
+    this.setLanguage(key);
   }
 
   public setTheme(theme: ThemeType): void {

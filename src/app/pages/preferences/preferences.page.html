@@ -11,14 +11,7 @@
     <div class="preference-content">
       <div class="title">{{i18n.texts.pages.preferences.language}}</div>
       <div class="value">
-        <ion-segment [value]="preferences.preferences.lang" mode="ios" (ionChange)="preferences.setLanguage($event.detail.value?.toString() ?? 'en')" [scrollable]="true">
-          <ion-segment-button value="en">
-            <ion-label>English</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="fr">
-            <ion-label>Français</ion-label>
-          </ion-segment-button>
-        </ion-segment>
+        <app-lang-picker [showText]="true"></app-lang-picker>
       </div>
     </div>
   </div>

@@ -21,9 +21,9 @@
     "install-android-appgallery": "npm run install-android --env=appgallery",
     "install-android-fdroid": "npm run install-android --env=fdroid",
     "set-version": "node ./scripts/set-version.js %npm_config_newversion%",
-    "check-i18n": "node ./scripts/check-i18n-keys.js",
+    "check-i18n": "node --import=tsx ./scripts/check-i18n.ts",
     "check-assets-version": "node ./scripts/check-assets-version.js",
-    "check-release-note": "node ./scripts/check-release-note.js %npm_config_newversion%",
+    "check-release-note": "node --import=tsx ./scripts/check-release-note.ts %npm_config_newversion%",
     "release": "npm run check-i18n && npm run check-assets-version && npm run check-release-note && npm run set-version && ng build --configuration=production",
     "instrument": "nyc instrument www/browser www/browser --exclude-after-remap=false --complete-copy --in-place --exclude=**/polyfills*.js --exclude=**/scripts*.js --exclude=**/swipe-back*.js --exclude=**/shadow-css*.js --exclude=**/jszip*.js --exclude=**/ios.transition*.js --exclude=**/md.transition*.js --exclude=**/input-shims*.js --exclude=**/hardward-back-button*.js --exclude=**/focus-visible*.js --exclude=**/keyboard2*.js --exclude=**/status-tap*.js --exclude=**/*.mjs --exclude=**/assets/*.js",
     "analyze-bundle": "ng build --configuration=analyze-bundle --progress=false --stats-json > build.output && node ./scripts/extract-initial-bundle.js ./build.output",
@@ -101,7 +101,8 @@
     "pdfkit": "^0.17.2",
     "svg-to-pdfkit": "^0.1.8",
     "tsx": "^4.21.0",
-    "typescript": "~5.8.3"
+    "typescript": "~5.8.3",
+    "jsdom": "^26.1.0"
   },
   "description": "Trailence"
 }

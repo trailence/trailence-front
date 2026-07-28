@@ -16,6 +16,7 @@ import { LongPressDirective } from 'src/app/utils/long-press.directive';
 import { NgClass } from '@angular/common';
 import { LiveGroupDto, LiveGroupService } from 'src/app/services/live-group/live-group.service';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
+import { LangPickerComponent } from '../lang-picker/lang-picker.component';
 
 @Component({
     selector: 'app-header',
@@ -27,6 +28,7 @@ import { I18nPipe } from 'src/app/services/i18n/i18n-string';
       LongPressDirective,
       NgClass,
       I18nPipe,
+      LangPickerComponent,
     ]
 })
 export class HeaderComponent extends AbstractComponent {
@@ -81,10 +83,6 @@ export class HeaderComponent extends AbstractComponent {
       this.goTo('/home');
     else
       this.goTo('/');
-  }
-
-  setLanguage(lang: string): void {
-    this.prefs.setLanguage(lang);
   }
 
   protected override initComponent(): void {

@@ -26,7 +26,7 @@ export class PlatformService {
               text: i18n.update.release_notes.popup.later,
               role: 'cancel',
             }, {
-              text: i18n.update.release_notes.popup.install,
+              text: i18n.update.release_notes.popup.download,
               role: 'install',
             }]
           });

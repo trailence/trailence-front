@@ -1,13 +1,14 @@
 import { Filters } from 'src/app/components/trails-list/filters';
+import { LocaleKey } from '../i18n/available-locales';
 
 export type DistanceUnit = 'IMPERIAL' | 'METERS';
 export type HourFormat = 'H12' | 'H24';
-export type DateFormat = 'm/d/yyyy' | 'dd/mm/yyyy';
+export type DateFormat = 'm/d/yyyy' | 'dd/mm/yyyy' | 'dd.mm.yyyy';
 export type ThemeType = 'DARK' | 'LIGHT' | 'SYSTEM';
 
 export interface Preferences {
 
-  lang?: string;
+  lang?: LocaleKey;
   distanceUnit?: DistanceUnit;
   hourFormat?: HourFormat;
   dateFormat?: DateFormat;
@@ -36,7 +37,7 @@ export interface Preferences {
 
 export interface ComputedPreferences extends Preferences {
 
-  lang: string;
+  lang: LocaleKey;
   distanceUnit: DistanceUnit;
   hourFormat: HourFormat;
   dateFormat: DateFormat;

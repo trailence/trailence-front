@@ -14,6 +14,7 @@ import { ContributionsBadgesComponent } from "../contributions-badges/contributi
 import { environment } from 'src/environments/environment';
 import Trailence from 'src/app/services/trailence.service';
 import { StoreService } from 'src/app/services/database/store/store.service';
+import { AvailableLocales } from 'src/app/services/i18n/available-locales';
 
 @Component({
     selector: 'app-header-user-menu',
@@ -40,6 +41,9 @@ export class HeaderUserMenuComponent extends AbstractComponent {
   nbUnreadNotifications = 0;
   notificationsMenuTitle = '';
   webUrl?: string;
+
+  langIconBaseUrl = environment.assetsUrl + '/i18n/';
+  languages = Object.values(AvailableLocales);
 
   @ViewChild('logoutModal') logoutModal?: IonModal;
   @ViewChild('accountPopover') accountPopover?: IonPopover;

@@ -119,12 +119,14 @@
           <ng-template>
             <ion-content>
               <ion-list>
-                <ion-item button (click)="preferences.setLanguage('en')" lines="full">
-                  <ion-label>English</ion-label>
-                </ion-item>
-                <ion-item button (click)="preferences.setLanguage('fr')" lines="full">
-                  <ion-label>Français</ion-label>
-                </ion-item>
+                @for (lang of languages; track lang.key) {
+                  <ion-item button (click)="preferences.setLanguage(lang.key)" lines="full">
+                    <div class="flag" slot="start">
+                      <img [src]="langIconBaseUrl + lang.key + '.' + lang.iconVersion + '.svg'" />
+                    </div>
+                    <ion-label>{{lang.displayName}}</ion-label>
+                  </ion-item>
+                }
               </ion-list>
             </ion-content>
           </ng-template>

@@ -9,71 +9,319 @@
   <url>
     <loc>https://${TRAILENCE_HOSTNAME}/</loc>
     <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/home" />
     <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/home" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/home" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/home" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/home" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/home" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://${TRAILENCE_HOSTNAME}/" />
   </url>
   <url>
     <loc>https://${TRAILENCE_HOSTNAME}/fr/home</loc>
     <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/home" />
     <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/home" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/home" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/home" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/home" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/home" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://${TRAILENCE_HOSTNAME}/" />
   </url>
   <url>
     <loc>https://${TRAILENCE_HOSTNAME}/en/home</loc>
     <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/home" />
     <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/home" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/home" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/home" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/home" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/home" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://${TRAILENCE_HOSTNAME}/" />
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/de/home</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/home" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/home" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/home" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/home" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/home" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/home" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://${TRAILENCE_HOSTNAME}/" />
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/es/home</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/home" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/home" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/home" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/home" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/home" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/home" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://${TRAILENCE_HOSTNAME}/" />
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/it/home</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/home" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/home" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/home" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/home" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/home" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/home" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://${TRAILENCE_HOSTNAME}/" />
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/pt/home</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/home" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/home" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/home" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/home" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/home" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/home" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://${TRAILENCE_HOSTNAME}/" />
   </url>
   <url>
     <loc>https://${TRAILENCE_HOSTNAME}/fr/contact</loc>
     <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/contact" />
     <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/contact" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/contact" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/contact" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/contact" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/contact" />
   </url>
   <url>
     <loc>https://${TRAILENCE_HOSTNAME}/en/contact</loc>
     <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/contact" />
     <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/contact" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/contact" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/contact" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/contact" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/contact" />
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/de/contact</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/contact" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/contact" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/contact" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/contact" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/contact" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/contact" />
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/es/contact</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/contact" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/contact" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/contact" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/contact" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/contact" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/contact" />
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/it/contact</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/contact" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/contact" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/contact" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/contact" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/contact" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/contact" />
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/pt/contact</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/contact" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/contact" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/contact" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/contact" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/contact" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/contact" />
   </url>
   <url>
     <loc>https://${TRAILENCE_HOSTNAME}/fr/register</loc>
     <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/register" />
     <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/register" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/register" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/register" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/register" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/register" />
   </url>
   <url>
     <loc>https://${TRAILENCE_HOSTNAME}/en/register</loc>
     <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/register" />
     <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/register" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/register" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/register" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/register" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/register" />
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/de/register</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/register" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/register" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/register" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/register" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/register" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/register" />
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/es/register</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/register" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/register" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/register" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/register" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/register" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/register" />
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/it/register</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/register" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/register" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/register" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/register" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/register" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/register" />
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/pt/register</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/register" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/register" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/register" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/register" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/register" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/register" />
   </url>
   <url>
     <loc>https://${TRAILENCE_HOSTNAME}/fr/login</loc>
     <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/login" />
     <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/login" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/login" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/login" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/login" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/login" />
   </url>
   <url>
     <loc>https://${TRAILENCE_HOSTNAME}/en/login</loc>
     <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/login" />
     <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/login" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/login" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/login" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/login" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/login" />
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/de/login</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/login" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/login" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/login" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/login" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/login" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/login" />
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/es/login</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/login" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/login" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/login" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/login" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/login" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/login" />
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/it/login</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/login" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/login" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/login" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/login" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/login" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/login" />
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/pt/login</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/login" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/login" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/login" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/login" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/login" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/login" />
   </url>
   <url>
     <loc>https://${TRAILENCE_HOSTNAME}/fr/donation</loc>
     <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/donation" />
     <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/donation" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/donation" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/donation" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/donation" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/donation" />
   </url>
   <url>
     <loc>https://${TRAILENCE_HOSTNAME}/en/donation</loc>
     <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/donation" />
     <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/donation" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/donation" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/donation" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/donation" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/donation" />
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/de/donation</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/donation" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/donation" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/donation" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/donation" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/donation" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/donation" />
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/es/donation</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/donation" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/donation" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/donation" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/donation" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/donation" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/donation" />
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/it/donation</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/donation" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/donation" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/donation" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/donation" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/donation" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/donation" />
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/pt/donation</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="de" href="https://${TRAILENCE_HOSTNAME}/de/donation" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://${TRAILENCE_HOSTNAME}/en/donation" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://${TRAILENCE_HOSTNAME}/es/donation" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://${TRAILENCE_HOSTNAME}/fr/donation" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://${TRAILENCE_HOSTNAME}/it/donation" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://${TRAILENCE_HOSTNAME}/pt/donation" />
   </url>
   <url>
     <loc>https://${TRAILENCE_HOSTNAME}/search-route</loc>

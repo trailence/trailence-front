@@ -3,6 +3,7 @@ import { IonRouterOutlet, NavController } from '@ionic/angular/standalone';
 import { AbstractPage } from '../utils/component-utils';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PreferencesService } from '../services/preferences/preferences.service';
+import { AvailableLocales, LocaleKey } from '../services/i18n/available-locales';
 
 @Component({
   template: `<ion-router-outlet></ion-router-outlet>`,
@@ -60,7 +61,7 @@ export abstract class PublicPage extends AbstractPage {
     this.visible$.subscribe(visible => {
       if (visible) {
         const lang = this.injector.get(ActivatedRoute).snapshot.parent?.routeConfig?.path;
-        if (lang) this.injector.get(PreferencesService).setLanguage(lang);
+        if (lang && Object.keys(AvailableLocales).includes(lang)) this.injector.get(PreferencesService).setLanguage(lang as LocaleKey);
       }
     });
   }

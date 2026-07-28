@@ -17,6 +17,7 @@ import { InputNumberComponent } from 'src/app/components/input-number/input-numb
 import { AvatarDto, AvatarService } from 'src/app/services/avatar/avatar.service';
 import { AvatarComponent } from 'src/app/components/avatar/avatar.component';
 import { ObserverHelper } from 'src/app/utils/observer-helper';
+import { LangPickerComponent } from 'src/app/components/lang-picker/lang-picker.component';
 
 @Component({
   selector: 'app-preferences',
@@ -29,6 +30,7 @@ import { ObserverHelper } from 'src/app/utils/observer-helper';
     FilterNumericCustomComponent,
     InputNumberComponent,
     AvatarComponent,
+    LangPickerComponent,
   ]
 })
 export class PreferencesPage implements OnDestroy {

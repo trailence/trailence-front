@@ -92,12 +92,11 @@
 
       <div class="question">{{i18n.texts.pages.share_popup.language}}</div>
       <ion-radio-group name="lang" [value]="mailLanguage" (ionChange)="mailLanguage = $event.detail.value">
-        <div>
-          <ion-radio value="en" labelPlacement="end">English</ion-radio>
-        </div>
-        <div>
-          <ion-radio value="fr" labelPlacement="end">Français</ion-radio>
-        </div>
+        @for (lang of languages; track lang.key) {
+          <div>
+            <ion-radio [value]="lang.key" labelPlacement="end">{{lang.displayName}}</ion-radio>
+          </div>
+        }
       </ion-radio-group>
     }
   }

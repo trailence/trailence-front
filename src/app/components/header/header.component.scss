@@ -139,6 +139,9 @@ ion-toolbar {
     a:hover, a:active, a {
       color: var(--ion-color-primary-contrast);
     }
+    app-lang-picker {
+      --button-height: var(--header-height);
+    }
   }
 }
 

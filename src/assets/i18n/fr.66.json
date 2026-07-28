@@ -1568,12 +1568,13 @@
     "ago": "Il y a {{1}}"
   },
   "translations": {
-    "translated_from": "Traduit de",
+    "translated_from": "Traduit",
     "from": {
-      "de": "l'allemand",
-      "en": "l'anglais",
-      "es": "l'espagnol",
-      "it": "l'italien"
+      "de": "de l'allemand",
+      "en": "de l'anglais",
+      "es": "de l'espagnol",
+      "it": "de l'italien",
+      "pt": "du portugais"
     },
     "view_original": "Voir le texte d'origine",
     "view_translated": "Traduire en français",

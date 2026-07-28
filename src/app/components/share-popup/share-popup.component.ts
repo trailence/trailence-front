@@ -19,6 +19,7 @@ import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { TagService } from 'src/app/services/database/tag.service';
 import { AsyncPipe } from '@angular/common';
+import { AvailableLocales, LocaleKey } from 'src/app/services/i18n/available-locales';
 
 export function openSharePopup(injector: Injector, collectionUuid: string, trails: Trail[]) {
   injector.get(ModalController).create({
@@ -64,7 +65,7 @@ export class SharePopupComponent implements OnInit {
   elements: string[] = [];
   name: string = '';
   recipients: Recipient[] = [{email: '', error: false, id: IdGenerator.generateId()}];
-  mailLanguage: string = 'en';
+  mailLanguage: LocaleKey = 'en';
   includePhotos = false;
 
   pages: SharePage[] = [SharePage.TYPE, SharePage.ELEMENTS, SharePage.NAME_WHO];
@@ -72,6 +73,8 @@ export class SharePopupComponent implements OnInit {
 
   collectionName = '';
   shareDescription: Observable<string> = of('');
+
+  languages = Object.values(AvailableLocales);
 
   constructor(
     public i18n: I18nService,

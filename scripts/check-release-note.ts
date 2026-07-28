@@ -1,4 +1,5 @@
 const fs = require('fs');
+import { AvailableLocales } from '../src/app/services/i18n/available-locales';
 
 if (process.argv.length < 3) {
   console.log('Usage: check-release-note <major>.<minor>.<fix>');
@@ -20,8 +21,9 @@ const fix = parseInt(version[3]);
 console.log('Checking release note for version: ', versionStr);
 
 const versionCode = fix + minor * 100 + major * 10000;
-const knownLanguages = ['en', 'fr'];
-const fastlaneLanguages = ['en-US', 'fr-FR'];
+const knownLanguages = Object.keys(AvailableLocales);
+const fastlaneLanguages = ['de-DE', 'en-US', 'fr-FR', 'es-ES', 'it', 'pt-PT'];
+if (fastlaneLanguages.length !== knownLanguages.length) throw Error('Fastlane languages count does not match with available locales');
 
 const json = fs.readFileSync('./src/assets/releases/notes.json', { encoding: 'utf-8'});
 const releases = JSON.parse(json);

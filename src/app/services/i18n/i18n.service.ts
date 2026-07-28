@@ -7,6 +7,7 @@ import { StringUtils } from 'src/app/utils/string-utils';
 import { AssetsService } from '../assets/assets.service';
 import { Console } from 'src/app/utils/console';
 import { DomSanitizer } from '@angular/platform-browser';
+import { LocaleKey } from './available-locales';
 
 const TEXTS_VERSION = '66';
 
@@ -16,7 +17,7 @@ interface TextToLoad {
   textPath: string;
 }
 interface TextLoaded {
-  lang: string;
+  lang: LocaleKey;
   filePath: string;
   textPath: string;
   texts: any;

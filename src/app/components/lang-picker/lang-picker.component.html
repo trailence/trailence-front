@@ -1,0 +1,33 @@
+@let currentLang = preferences.preferences.lang;
+<ion-button [shape]="showText ? undefined : 'round'" id="lang-picker-trigger-{{id}}">
+  <div class="flag">
+    <img class="flag" [src]="iconBaseUrl + currentLang + '.' + languagesMap[currentLang].iconVersion + '.svg'" />
+  </div>
+  @if (showText) {
+    <div class="text">{{languagesMap[currentLang].displayName}}</div>
+  }
+  <div class="arrow">
+    <ion-icon name="caret-down"></ion-icon>
+  </div>
+</ion-button>
+
+<ion-popover trigger="lang-picker-trigger-{{id}}" #menu>
+  <ng-template>
+    <ion-list>
+      @for (lang of languagesList; track lang.key) {
+        <ion-item lines="none" [button]="true" [detail]="false" (click)="setLanguage(lang.key, menu)">
+          <div class="flag" slot="start">
+            <img [src]="iconBaseUrl + lang.key + '.' + lang.iconVersion + '.svg'" />
+          </div>
+          <ion-label>
+            @if (link) {
+              <a href="/{{lang.key}}/{{link}}" (click)="$event.preventDefault(); followLink(lang.key, menu)">{{lang.displayName}}</a>
+            } @else {
+              {{lang.displayName}}
+            }
+          </ion-label>
+        </ion-item>
+      }
+    </ion-list>
+  </ng-template>
+</ion-popover>

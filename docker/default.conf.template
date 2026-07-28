@@ -38,14 +38,14 @@ server {
     location /.well-known {
       root /var/www/wellknown;
     }
-    location ~* ^/(en|fr)/trail/ {
+    location ~* ^/(de|en|es|fr|it|pt)/trail/ {
       js_content trail_page.generate;
     }
     location ~* ^/trail/trailence/ {
       js_content no_description.generate;
     }
 
-    location ~* ^/(en|fr)/([a-z\-]+)$ {
+    location ~* ^/(de|en|es|fr|it|pt)/([a-z\-]+)$ {
       root   /usr/share/nginx/html;
       add_header Cache-Control no-cache;
       add_header X-Frame-Options SAMEORIGIN always;

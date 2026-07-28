@@ -8,7 +8,7 @@ server {
   js_import trail_page from generate_trail_page.js;
   js_import no_description from index_without_description.js;
 
-  location ~* ^/(en|fr)/trail/ {
+  location ~* ^/(de|en|es|fr|it|pt)/trail/ {
     js_content trail_page.generate;
   }
   location ~* ^/trail/trailence/ {
