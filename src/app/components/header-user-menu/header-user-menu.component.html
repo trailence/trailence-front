@@ -120,7 +120,7 @@
             <ion-content>
               <ion-list>
                 @for (lang of languages; track lang.key) {
-                  <ion-item button (click)="preferences.setLanguage(lang.key)" lines="full">
+                  <ion-item button (click)="preferences.setLanguage(lang.key)" lines="full" class="lang-{{lang.key}}">
                     <div class="flag" slot="start">
                       <img [src]="langIconBaseUrl + lang.key + '.' + lang.iconVersion + '.svg'" />
                     </div>
@@ -136,15 +136,15 @@
           <ng-template>
             <ion-content>
               <ion-list>
-                <ion-item button (click)="preferences.setTheme('LIGHT')" lines="full">
+                <ion-item button (click)="preferences.setTheme('LIGHT')" lines="full" class="button-theme-light">
                   <ion-icon slot="start" name="theme-light"></ion-icon>
                   <ion-label>{{i18n.texts.pages.preferences.themes.light}}</ion-label>
                 </ion-item>
-                <ion-item button (click)="preferences.setTheme('DARK')" lines="full">
+                <ion-item button (click)="preferences.setTheme('DARK')" lines="full" class="button-theme-dark">
                   <ion-icon slot="start" name="theme-dark"></ion-icon>
                   <ion-label>{{i18n.texts.pages.preferences.themes.dark}}</ion-label>
                 </ion-item>
-                <ion-item button (click)="preferences.setTheme('SYSTEM')" lines="full">
+                <ion-item button (click)="preferences.setTheme('SYSTEM')" lines="full" class="button-theme-system">
                   <ion-icon slot="start" name="theme-system"></ion-icon>
                   <ion-label>{{i18n.texts.pages.preferences.themes.system}}</ion-label>
                 </ion-item>

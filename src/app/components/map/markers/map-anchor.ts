@@ -56,6 +56,16 @@ export class MapAnchor {
     }
   }
 
+  public resetText(newText: string) {
+    this.text = newText;
+    this.marker.setIcon(L.icon({
+      iconUrl: MapAnchor.createDataIcon(this.borderColor, newText, this.textColor, this.fillColor, this.fillColor2),
+      iconSize: [40, 40],
+      iconAnchor: [20, 40],
+      className: 'anchor text-' + newText.replace('/', '_'),
+    }));
+  }
+
   public bindTooltip(content: string): this {
     this.tooltipContent = content;
     this.marker.bindTooltip(content);

@@ -15,32 +15,109 @@
   },
   "pages": {
     "home": {
-      "title": "Hiking and GPS Track Management Tool (GPX)",
-      "subTitle": "Trailence is free and open source. No ads, no trackers.",
-      "meta_description": "Hiking and GPS Track Management Tool (GPX). Trailence is free, ad-free, and open source",
-      "slides": [
-        {
-          "header": "Organize your tracks",
-          "footer": ["Create collections", "Tag your tracks", "View them on the map", "Sorting, filters..."]
-        }, {
-          "header": "Create your tracks",
-          "footer": ["Record a track during your activity", "Offline maps", "Follow an existing track"]
-        }, {
-          "header": "Trail details",
-          "footer": ["Elevation profile", "Description", "Waypoints"]
-        }, {
-          "header": "Add photos",
-          "footer": ["Attach photos to your tracks", "View them on the map"]
-        }, {
-          "header": "But also...",
-          "footer": ["Share tracks", "Import tracks", "Export your tracks", "Enhance your tracks with the editing tool", "Plan a hike with Open Street Map", "Copy, move between your collections", "Compare, search for similar tracks", "Estimated hike time", "Statistics", "And more !"]
+      "hero": {
+        "h1": "Plan, record, organize and share your trails.",
+        "sub": "Your hiking companion and GPS track manager. Open to all your outdoor activities.",
+        "chips": [
+          "Free",
+          "Open source",
+          "No trackers",
+          "No ads",
+          "Web + Android"
+        ]
+      },
+      "try_now_button": "Try it now",
+      "try_note": "No account required — try it right away.",
+      "download_app_button": "Download the app",
+      "features": {
+        "eyebrow": "What Trailence does for you",
+        "h2": "From the trail to sharing.",
+        "on_field": {
+          "h3": "Out there",
+          "text": "Record your track, follow an existing trail, and stay on course with directions and live stats (elevation gain, distance, time remaining). Take photos that attach directly to the trail. Offline maps and printing included."
+        },
+        "organize": {
+          "h3": "Organize",
+          "text": "Group your trails into collections, add tags, sort and filter to find anything. Edit, compare, and manage your library however you like."
+        },
+        "analyze": {
+          "h3": "Analyze",
+          "text": "Detailed elevation profile, trail description, waypoints, estimated walking time, breaks, path waymarking, path characteristics. Plan your outing in advance — and review it when you get back."
+        },
+        "enrich": {
+          "h3": "Enrich & share",
+          "text": "Attach your photos and find them again on the map. Share your trails with friends or the community, import and export as GPX, print for your outing."
+        },
+        "and_more": {
+          "h3": "And so much more",
+          "lead": "One app for everything you do outdoors — from scouting the map to reliving the outing.",
+          "features": [
+            "Offline maps",
+            "IGN, OSM basemaps, ...",
+            "Import / export GPX",
+            "Trail printing",
+            "Geotagged photos",
+            "Elevation profile",
+            "Tags & collections",
+            "Search & filters",
+            "Live group tracking",
+            "Waypoints",
+            "Web ↔ Android sync",
+            "Sharing & links",
+            "Estimated walking time",
+            "Path waymarking",
+            "Trail markers",
+            "Path surfaces & types",
+            "Distance & time remaining",
+            "Trail creation",
+            "Map rotation",
+            "Track editor"
+          ]
         }
-      ],
-      "download_apk": "Download Android App",
-      "try_app1": "Try the app now",
-      "try_app2": "No account needed!",
-      "available_on": "Available on Android and web application",
-      "examples_title": "Sample Trails"
+      },
+      "manifesto": {
+        "eyebrow": "What makes Trailence different",
+        "h2": "Your trails, your tracks, your data.",
+        "block1": {
+          "h3": "Open, free, shared",
+          "text": "Auditable code under the Apache-2.0 license. Nothing is hidden: you can check it and contribute. Trailence will always be free and open source — no 'premium' accounts. An open trail database that anyone can help grow."
+        },
+        "block2": {
+          "h3": "No ads, no trackers",
+          "text": "No ads, no trackers, nothing to resell. We don't live off your data — we protect it. And it stays yours: export it or delete everything, anytime."
+        },
+        "block3": {
+          "h3": "Your data, everywhere",
+          "text": "One account, with your trails synced across Web and Android. Find them on every device, wherever you are."
+        }
+      },
+      "community": {
+        "eyebrow": "The open database",
+        "h2": "An open, documented, quality trail database — a work in progress.",
+        "text": "No locked-down copyright, no empty listings: real trails, documented and verified. It starts small and grows with you — <b>help us build the first truly open trail database.</b>",
+        "search_route_button": "Search for a trail",
+        "search_route_button_sub": "No account needed."
+      },
+      "join": {
+        "h2": "Ready to get started?",
+        "text": "Create a free account to find your tracks on all your devices — Web and Android.",
+        "create_account_button": "Create an account",
+        "login_button": "Log in",
+        "email_privacy": "Your email is used <b>only</b> to confirm your sign-up and reset your password. No newsletters, ever, and never shared with third parties."
+      },
+      "footer": {
+        "slogan": "Your outdoor companion and GPS track manager — free and open source.",
+        "resources": {
+          "title": "Resources",
+          "search_route": "Search for a trail",
+          "contribute": "Contribute",
+          "contact": "Contact",
+          "github": "Source code (GitHub)"
+        },
+        "download": "Download",
+        "or_use_web": "…or use the web version — nothing to install.",
+        "privacy_policy": "Privacy policy"
+      }
     },
     "installApk": {
       "title": "Android App",

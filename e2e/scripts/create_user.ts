@@ -68,3 +68,17 @@ export async function setUserRoles(adminToken: string, email: string, roles: str
     process.exit(1);
   }
 }
+
+export async function userExists(adminToken: string, email: string) {
+  const response = await fetch(baseUrl + '/api/admin/users/v1/' + email + '/keys', {
+    headers: {
+      'Authorization': 'Bearer ' + adminToken
+    }
+  });
+  if (!response.ok) {
+    console.error('Get user keys error: ', await response.json());
+    return false;
+  }
+  const json = await response.json();
+  return Array.isArray(json) && json.length > 0;
+}

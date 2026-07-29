@@ -55,9 +55,13 @@ export class MapTrackWayPoints {
     private readonly i18n: I18nService,
   ) {}
 
+  private i18nSubscription?: Subscription;
+
   public addTo(map: L.Map): void {
     if (this._map) return;
+    this.i18nSubscription?.unsubscribe();
     this._map = map;
+    this.i18nSubscription = this.i18n.texts$.subscribe(() => this._resetDA());
     if (this._showDA) this.addDAToMap();
     if (this._showBreaks) this.addBreaksToMap(this._showBreaks);
     if (this._showWP) this.addWPToMap();
@@ -66,6 +70,8 @@ export class MapTrackWayPoints {
 
   public remove(): void {
     if (!this._map) return;
+    this.i18nSubscription?.unsubscribe();
+    this.i18nSubscription = undefined;
     if (this._showDA) this.removeDAFromMap();
     if (this._showBreaks) this.removeBreaksFromMap();
     if (this._showWP) this.removeWPFromMap();
@@ -128,6 +134,12 @@ export class MapTrackWayPoints {
     } else {
       this.loadFromSimplifiedTrack(this.track);
     }
+  }
+
+  private _resetDA() {
+    this._departure?.resetText(this.i18n.texts.way_points.D);
+    this._arrival?.resetText(this.i18n.texts.way_points.A);
+    this._departureAndArrival?.resetText(this.i18n.texts.way_points.DA);
   }
 
   private loadFromTrack(list: TrackWayPoint[], guidepostIcon: SVGSVGElement): void {

@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import { AvailableLocales } from 'src/app/services/i18n/available-locales';
 
 interface PublicPage {
@@ -8,8 +8,6 @@ interface PublicPage {
 
 const languages = Object.keys(AvailableLocales);
 const pages: PublicPage[] = [{
-  name: 'home'
-}, {
   name: 'login'
 }, {
   name: 'register'
@@ -41,6 +39,88 @@ function generateIndex(srcIndex: string, dstPath: string, page: PublicPage, lang
   fs.writeFileSync(dstPath, dstIndex);
 }
 
+function generateHome(srcIndex: string, dstPath: string, language: string, i18n: any) {
+  let dstIndex = fs.readFileSync('../src/app/pages/home/home.page.html', { encoding: 'utf-8' });
+  dstIndex = dstIndex.replaceAll('{{lang}}', language);
+  dstIndex = dstIndex.replaceAll('{{theme}}', 'DARK');
+  dstIndex = dstIndex.replaceAll('{{themeFile}}', 'dark');
+  dstIndex = dstIndex.replaceAll('{{ssUrl}}', '/assets/home-ss/ss.3');
+  dstIndex = dstIndex.replaceAll('{{imgLocale}}', 'en');
+  dstIndex = dstIndex.replaceAll('{{year}}', '' + new Date().getFullYear());
+
+  let i: number = 0;
+  while ((i = dstIndex.indexOf('{{i18n.texts.pages.home.', i)) !== -1) {
+    const j = dstIndex.indexOf('}}', i);
+    const key = dstIndex.substring(i + 24, j);
+    const keys = key.split('.');
+    let value = i18n.pages.home;
+    for (let k = 0; k < keys.length; ++k) value = value[keys[k]];
+    if (!value) throw new Error('Unknown key: ' + key);
+    dstIndex = dstIndex.substring(0, i) + value + dstIndex.substring(j + 2);
+  }
+
+  i = 0;
+  while ((i = dstIndex.indexOf('[innerHTML]="i18n.texts.pages.home.', i)) !== -1) {
+    const j1 = dstIndex.indexOf('"', i + 35);
+    const j2 = dstIndex.indexOf('>', j1);
+    const key = dstIndex.substring(i + 35, j1);
+    const keys = key.split('.');
+    let value = i18n.pages.home;
+    for (let k = 0; k < keys.length; ++k) value = value[keys[k]];
+    if (!value) throw new Error('Unknown key: ' + key);
+    dstIndex = dstIndex.substring(0, i) + '>' + value + dstIndex.substring(j2 + 1);
+  }
+
+  i = 0;
+  while ((i = dstIndex.indexOf('@let', i)) !== -1) {
+    const j = dstIndex.indexOf(';', i);
+    dstIndex = dstIndex.substring(0, i) + dstIndex.substring(j + 1);
+  }
+
+  i = 0;
+  while ((i = dstIndex.indexOf('@if (!isAndroidApp) {', i)) !== -1) {
+    const j = dstIndex.indexOf('}<!--endif-->', i);
+    dstIndex = dstIndex.substring(0, i) + dstIndex.substring(i + 21, j) + dstIndex.substring(j + 13);
+  }
+
+  i = 0;
+  while ((i = dstIndex.indexOf('@defer {', i)) !== -1) {
+    const j = dstIndex.indexOf('}<!--end defer-->', i);
+    dstIndex = dstIndex.substring(0, i) + dstIndex.substring(j + 17);
+  }
+
+  i = 0;
+  while ((i = dstIndex.indexOf('@if (lang === \'fr\') {', i)) !== -1) {
+    const j = dstIndex.indexOf('}<!--endif-->', i);
+    dstIndex = dstIndex.substring(0, i) + dstIndex.substring(j + 17);
+  }
+
+
+  i = dstIndex.indexOf('@for (chip of i18n.texts.pages.home.hero.chips; track $index) {');
+  let j = dstIndex.indexOf('</span>', i);
+  j = dstIndex.indexOf('</span>', j + 1);
+  j = dstIndex.indexOf('}', j + 1);
+  let content = dstIndex.substring(i + 63, j);
+  let newContent = '';
+  for (const chip of i18n.pages.home.hero.chips) {
+    newContent += content.replace('{{chip}}', chip);
+  }
+  dstIndex = dstIndex.substring(0, i) + newContent + dstIndex.substring(j + 1);
+
+  i = dstIndex.indexOf('@for (feature of i18n.texts.pages.home.features.and_more.features; track $index) {');
+  j = dstIndex.indexOf('}}', i);
+  j = dstIndex.indexOf('}', j + 2);
+  content = dstIndex.substring(i + 82, j);
+  newContent = '';
+  for (const feature of i18n.pages.home.features.and_more.features) {
+    newContent += content.replace('{{feature}}', feature);
+  }
+  dstIndex = dstIndex.substring(0, i) + newContent + dstIndex.substring(j + 1);
+
+  dstIndex = srcIndex.replace('<!-- content -->', dstIndex);
+  fs.writeFileSync(dstPath, dstIndex);
+}
+
 function readIndex(): string {
   return fs.readFileSync('../www/browser/index.html', { encoding: 'utf-8' });
 }
@@ -68,6 +148,7 @@ function loadI18n(language: string): any {
 const srcIndex = readIndex();
 for (const language of languages) {
   const i18n = loadI18n(language);
+  generateHome(srcIndex, '../www/browser/index_' + language + '_home.html', language, i18n);
   for (const page of pages) {
     generateIndex(srcIndex, '../www/browser/index_' + language + '_' + page.name + '.html', page, language, i18n);
   }

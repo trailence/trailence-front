@@ -63,7 +63,24 @@ export class ReplayService {
     let startTime = Date.now();
     let totalIndex = 0;
     const sendNextPoint = (success: PositionCallback, error: PositionErrorCallback | null | undefined) => {
-      if ((window as any)['_isDemo'] && pointIndex >= 50) return;
+      let nextNow = false;
+      if ((window as any)['_isDemo']) {
+        const step = (window as any)['_demoReplayStep'];
+        if (typeof step === 'number') {
+          if (step === 0 && pointIndex >= 120) {
+            setTimeout(() => sendNextPoint(success, error), 10);
+            return;
+          }
+          if (step === -1) {
+            return;
+          }
+          if (step > 0 && pointIndex > step) {
+            setTimeout(() => sendNextPoint(success, error), 10);
+            return;
+          }
+          nextNow = step > 0;
+        }
+      }
       if (segmentIndex >= track.segments.length) return;
       const segment = track.segments[segmentIndex];
       if (pointIndex >= segment.points.length) {
@@ -110,7 +127,7 @@ export class ReplayService {
         toJSON: function() {},
       });
       pointIndex++;
-      setTimeout(() => sendNextPoint(success, error), (pointIndex % 10) == 0 ? Math.max(speed * 3, 150) : speed);
+      setTimeout(() => sendNextPoint(success, error), nextNow ? 1 : (pointIndex % 10) == 0 ? Math.max(speed * 3, 150) : speed);
     };
 
     window.navigator.geolocation.watchPosition = function(success, error) {

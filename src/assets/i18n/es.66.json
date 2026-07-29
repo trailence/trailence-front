@@ -15,32 +15,109 @@
   },
   "pages": {
     "home": {
-      "title": "Senderismo y gestión de tracks GPS (GPX)",
-      "subTitle": "Trailence es gratuito, de código abierto, sin publicidad y sin rastreadores.",
-      "meta_description": "Herramienta para el senderismo y la gestión de tus tracks GPS (GPX). Trailence es gratuito, sin publicidad y de código abierto",
-      "slides": [
-        {
-          "header": "Organiza tus rutas",
-          "footer": ["Crea colecciones", "Etiqueta tus rutas", "Visualiza en el mapa", "Ordenación, filtros..."]
-        }, {
-          "header": "Crea tus tracks",
-          "footer": ["Graba un track durante tu actividad", "Mapas sin conexión", "Sigue una ruta existente"]
-        }, {
-          "header": "Rutas en detalle",
-          "footer": ["Altimetría", "Descripción", "Puntos de paso"]
-        }, {
-          "header": "Añade fotos",
-          "footer": ["Añade fotos a tus rutas", "Visualiza las fotos en el mapa"]
-        }, {
-          "header": "Pero también...",
-          "footer": ["Comparte rutas", "Importa tracks", "Exporta tus tracks", "Mejora tus tracks con la herramienta de edición", "Planifica una ruta con Open Street Map", "Copia y mueve entre tus colecciones", "Compara y busca rutas similares", "Estimación del tiempo de ruta", "Estadísticas", "¡Y mucho más!"]
+      "hero": {
+        "h1": "Prepara, graba, organiza y comparte tus rutas.",
+        "sub": "Tu compañero de senderismo y gestor de tracks GPS. Abierto a todas tus actividades al aire libre.",
+        "chips": [
+          "Gratis",
+          "Libre & código abierto",
+          "Sin rastreadores",
+          "Sin publicidad",
+          "Web + Android"
+        ]
+      },
+      "try_now_button": "Probar ahora",
+      "try_note": "Sin cuenta — pruébalo al instante.",
+      "download_app_button": "Descargar la app",
+      "features": {
+        "eyebrow": "Lo que Trailence hace por ti",
+        "h2": "Del sendero a compartir.",
+        "on_field": {
+          "h3": "Sobre el terreno",
+          "text": "Graba tu track, sigue una ruta existente, mantén el rumbo con las indicaciones y tus datos en tiempo real (desnivel, distancia, tiempo restante) y haz fotos que se integran directamente en la ruta. Mapas sin conexión e impresión incluidos."
+        },
+        "organize": {
+          "h3": "Organizar",
+          "text": "Agrupa tus rutas en colecciones, añade etiquetas, ordena y filtra para encontrarlo todo. Edita, compara y gestiona tu biblioteca como quieras."
+        },
+        "analyze": {
+          "h3": "Analizar",
+          "text": "Perfil altimétrico detallado, descripción de la ruta, puntos de paso, tiempo de marcha estimado, pausas, señalización de los caminos, características de los caminos. Para preparar tu salida de antemano y analizarla a la vuelta."
+        },
+        "enrich": {
+          "h3": "Enriquecer & compartir",
+          "text": "Adjunta tus fotos y encuéntralas en el mapa. Comparte tus rutas con tus amigos o con la comunidad, importa y exporta en formato GPX e imprime para la salida."
+        },
+        "and_more": {
+          "h3": "Y mucho más",
+          "lead": "Una sola app para todo lo que haces — desde el reconocimiento en el mapa hasta el recuerdo de la salida.",
+          "features": [
+            "Mapas sin conexión",
+            "Mapas base IGN, OSM, ...",
+            "Importar / exportar GPX",
+            "Impresión de la ruta",
+            "Fotos geolocalizadas",
+            "Perfil altimétrico",
+            "Etiquetas & colecciones",
+            "Búsqueda & filtros",
+            "Seguimiento de grupo en tiempo real",
+            "Puntos de paso",
+            "Sync Web ↔ Android",
+            "Compartir & enlaces",
+            "Tiempo de marcha estimado",
+            "Señalización de caminos",
+            "Balizas de sendero",
+            "Superficies y tipos de caminos",
+            "Distancia y tiempo restante",
+            "Creación de rutas",
+            "Rotación del mapa",
+            "Editor de tracks"
+          ]
         }
-      ],
-      "download_apk": "Descargar la app de Android",
-      "try_app1": "Probar ahora",
-      "try_app2": "¡Sin necesidad de cuenta!",
-      "available_on": "Disponible en Android y como aplicación web",
-      "examples_title": "Ejemplos de rutas"
+      },
+      "manifesto": {
+        "eyebrow": "Lo que hace diferente a Trailence",
+        "h2": "Tus rutas, tus tracks, tus datos.",
+        "block1": {
+          "h3": "Libre, gratuito, compartido",
+          "text": "Código auditable bajo licencia Apache-2.0. No se oculta nada: puedes verificarlo y contribuir. Trailence seguirá siendo libre y gratuito — sin cuenta «premium». Base de rutas abierta, que cualquiera puede enriquecer."
+        },
+        "block2": {
+          "h3": "Sin publicidad, sin rastreadores",
+          "text": "Ninguna publicidad, ningún rastreador, nada que revender. No vivimos de tus datos — los protegemos. Y siguen siendo tuyos: expórtalos o elimínalo todo, cuando quieras."
+        },
+        "block3": {
+          "h3": "Tus datos, en todas partes",
+          "text": "Una sola cuenta, tus rutas sincronizadas entre la Web y Android. Encuéntralas en todos tus dispositivos, estés donde estés."
+        }
+      },
+      "community": {
+        "eyebrow": "La base abierta",
+        "h2": "Una base de rutas abierta, descrita y de calidad — en construcción.",
+        "text": "Sin copyright bloqueado, sin fichas vacías: rutas de verdad, descritas y verificadas. Empieza pequeña y crece contigo — <b>ayúdanos a construir la primera base de rutas verdaderamente libre.</b>",
+        "search_route_button": "Buscar una ruta",
+        "search_route_button_sub": "Accesible sin cuenta."
+      },
+      "join": {
+        "h2": "¿Todo listo para empezar?",
+        "text": "Crea una cuenta gratis para acceder a tus tracks desde todos tus dispositivos — Web y Android.",
+        "create_account_button": "Crear una cuenta",
+        "login_button": "Iniciar sesión",
+        "email_privacy": "Tu correo electrónico se usa <b>únicamente</b> para validar el registro y restablecer tu contraseña. Nunca enviaremos boletines ni cederemos tu correo a terceros."
+      },
+      "footer": {
+        "slogan": "Tu compañero de actividades al aire libre y gestor de tracks GPS, libre y gratuito.",
+        "resources": {
+          "title": "Recursos",
+          "search_route": "Buscar una ruta",
+          "contribute": "Contribuir",
+          "contact": "Contacto",
+          "github": "Código fuente (GitHub)"
+        },
+        "download": "Descargar",
+        "or_use_web": "…o usa la versión web, sin instalar nada.",
+        "privacy_policy": "Política de privacidad"
+      }
     },
     "installApk": {
       "title": "App de Android",

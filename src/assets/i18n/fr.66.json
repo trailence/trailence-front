@@ -15,32 +15,109 @@
   },
   "pages": {
     "home": {
-      "title": "Randonnée et gestion de traces GPS (GPX)",
-      "subTitle": "Trailence est gratuit, open source, sans publicité, sans traceur.",
-      "meta_description": "Outil pour la randonnée et la gestion de vos traces GPS (GPX). Trailence est gratuit, sans publicité, et open source",
-      "slides": [
-        {
-          "header": "Organisez vos parcours",
-          "footer": ["Créez des collections", "Tagguez vos parcours", "Visualisez sur la carte", "Tri, filtres..."]
-        }, {
-          "header": "Créez vos traces",
-          "footer": ["Créez une trace pendant votre activité", "Cartes hors-ligne", "Suivez un parcours existant"]
-        }, {
-          "header": "Parcours en détails",
-          "footer": ["Altimétrie", "Description", "Étapes"]
-        }, {
-          "header": "Ajoutez des photos",
-          "footer": ["Mettez des photos sur vos parcours", "Visualisez les photos sur la carte"]
-        }, {
-          "header": "Mais aussi...",
-          "footer": ["Partagez des parcours", "Importez des traces", "Exportez vos traces", "Améliorez vos traces avec l'outil d'édition", "Planifiez un parcours avec Open Street Map", "Copiez, déplacez entre vos collections", "Comparez, recherchez les parcours similaires", "Estimation du temps de parcours", "Statistiques", "Et bien plus !"]
+      "hero": {
+        "h1": "Préparez, enregistrez, organisez et partagez vos parcours.",
+        "sub": "Votre compagnon de randonnée et gestionnaire de traces GPS. Ouvert à toutes vos activités outdoor.",
+        "chips": [
+          "Gratuit",
+          "Libre & open source",
+          "Sans tracker",
+          "Pas de pub",
+          "Web + Android"
+        ]
+      },
+      "try_now_button": "Essayer maintenant",
+      "try_note": "Sans compte requis — vous testez tout de suite.",
+      "download_app_button": "Télécharger l'app",
+      "features": {
+        "eyebrow": "Ce que Trailence fait pour vous",
+        "h2": "Du sentier au partage.",
+        "on_field": {
+          "h3": "Sur le terrain",
+          "text": "Enregistrez votre trace, suivez un parcours existant, gardez le cap avec les indications et vos données en direct (dénivelé, distance, temps restant), prenez des photos qui sont directement intégrées sur le parcours. Cartes hors-ligne et impression incluses."
+        },
+        "organize": {
+          "h3": "Organiser",
+          "text": "Rangez vos parcours en collections, ajoutez des tags, triez et filtrez pour tout retrouver. Éditez, comparez, gérez votre bibliothèque comme vous l'entendez."
+        },
+        "analyze": {
+          "h3": "Analyser",
+          "text": "Profil altimétrique détaillé, description du parcours, points de passage, temps de marche estimé, pauses, balisage des chemins, caractéristiques des chemins. Pour préparer votre sortie en amont, et l'analyser au retour."
+        },
+        "enrich": {
+          "h3": "Enrichir & partager",
+          "text": "Attachez vos photos et retrouvez-les sur la carte. Partagez vos parcours avec vos amis ou la communauté, importez et exportez au format GPX, imprimez pour la sortie."
+        },
+        "and_more": {
+          "h3": "Et bien plus encore",
+          "lead": "Une seule app pour couvrir toute votre pratique — du repérage sur la carte au souvenir de la sortie.",
+          "features": [
+            "Cartes hors-ligne",
+            "Fonds de carte IGN, OSM, ...",
+            "Import / export GPX",
+            "Impression du parcours",
+            "Photos géolocalisées",
+            "Profil altimétrique",
+            "Tags & collections",
+            "Recherche & filtres",
+            "Suivi de groupe en direct",
+            "Points de passage",
+            "Sync Web ↔ Android",
+            "Partage & liens",
+            "Temps de marche estimé",
+            "Balisage des chemins",
+            "Balises de sentier",
+            "Surfaces et types de chemins",
+            "Distance et temps restant",
+            "Création de parcours",
+            "Rotation de la carte",
+            "Éditeur de trace"
+          ]
         }
-      ],
-      "download_apk": "Télécharger l'app Android",
-      "try_app1": "Tester maintenant",
-      "try_app2": "Pas besoin de compte !",
-      "available_on": "Disponible sur Android et comme application web",
-      "examples_title": "Exemples de parcours"
+      },
+      "manifesto": {
+        "eyebrow": "Ce qui rend Trailence différent",
+        "h2": "Vos parcours, vos traces, vos données.",
+        "block1": {
+          "h3": "Libre, gratuit, partagé",
+          "text": "Code auditable sous licence Apache-2.0. Rien n'est caché : vous pouvez vérifier et contribuer. Trailence restera libre et gratuit — pas de compte 'premium'. Base de parcours ouverte, que chacun peut enrichir."
+        },
+        "block2": {
+          "h3": "Sans pub, sans tracker",
+          "text": "Aucune publicité, aucun pisteur, rien à revendre. Nous ne vivons pas de vos données — nous les protégeons. Et elles restent les vôtres : exportez-les ou supprimez tout, à tout moment."
+        },
+        "block3": {
+          "h3": "Vos données, partout",
+          "text": "Un seul compte, vos parcours synchronisés entre le Web et Android. Retrouvez-les sur tous vos appareils, où que vous soyez."
+        }
+      },
+      "community": {
+        "eyebrow": "La base ouverte",
+        "h2": "Une base de parcours ouverte, décrite et de qualité — en construction.",
+        "text": "Pas de copyright verrouillé, pas de fiches vides : de vrais parcours, décrits et vérifiés. Elle démarre petit et grandit avec vous — <b>aidez-nous à bâtir la première base de parcours vraiment libre.</b>",
+        "search_route_button": "Rechercher un parcours",
+        "search_route_button_sub": "Accessible sans compte."
+      },
+      "join": {
+        "h2": "Prêt·e à commencer ?",
+        "text": "Créez un compte gratuit pour retrouver vos traces sur tous vos appareils — Web et Android.",
+        "create_account_button": "Créer un compte",
+        "login_button": "Se connecter",
+        "email_privacy": "Votre e-mail sert <b>uniquement</b> à valider l'inscription et à réinitialiser votre mot de passe. Jamais de newsletter, jamais de communication à des tiers."
+      },
+      "footer": {
+        "slogan": "Votre compagnon d'activités outdoor et gestionnaire de traces GPS, libre et gratuit.",
+        "resources": {
+          "title": "Ressources",
+          "search_route": "Rechercher un parcours",
+          "contribute": "Contribuer",
+          "contact": "Contact",
+          "github": "Code source (GitHub)"
+        },
+        "download": "Télécharger",
+        "or_use_web": "…ou utilisez la version web, sans rien installer.",
+        "privacy_policy": "Politique de confidentialité"
+      }
     },
     "installApk": {
       "title": "App Android",

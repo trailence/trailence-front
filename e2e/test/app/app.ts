@@ -336,7 +336,7 @@ export class App {
     return await header.openAppMenu();
   }
 
-  public static async synchronize(andLogout: boolean = false) {
+  public static async synchronize(andLogout: boolean = false, maxSyncTrials: number = 10) {
     const header = await TestUtils.retry(async () => {
       const page = await Page.getActivePageElement();
       const header = new HeaderComponent(page);
@@ -344,7 +344,7 @@ export class App {
       return header;
     }, 2, 100);
     const menu = await header.openUserMenu();
-    await menu.synchronizeLocalChanges();
+    await menu.synchronizeLocalChanges(maxSyncTrials);
     if (!andLogout) {
       await menu.close();
       return;

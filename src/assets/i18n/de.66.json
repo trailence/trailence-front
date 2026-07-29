@@ -15,32 +15,109 @@
   },
   "pages": {
     "home": {
-      "title": "Wandern und Verwaltung von GPS-Tracks (GPX)",
-      "subTitle": "Trailence ist kostenlos, quelloffen, werbefrei und ohne Tracker.",
-      "meta_description": "Werkzeug zum Wandern und zur Verwaltung Ihrer GPS-Tracks (GPX). Trailence ist kostenlos, werbefrei und quelloffen",
-      "slides": [
-        {
-          "header": "Organisieren Sie Ihre Touren",
-          "footer": ["Sammlungen erstellen", "Ihre Touren taggen", "Auf der Karte anzeigen", "Sortierung, Filter..."]
-        }, {
-          "header": "Erstellen Sie Ihre Tracks",
-          "footer": ["Einen Track während Ihrer Aktivität aufzeichnen", "Offline-Karten", "Einer bestehenden Tour folgen"]
-        }, {
-          "header": "Tour im Detail",
-          "footer": ["Höhenprofil", "Beschreibung", "Wegpunkte"]
-        }, {
-          "header": "Fügen Sie Fotos hinzu",
-          "footer": ["Fotos zu Ihren Touren hinzufügen", "Die Fotos auf der Karte anzeigen"]
-        }, {
-          "header": "Und außerdem...",
-          "footer": ["Touren teilen", "Tracks importieren", "Ihre Tracks exportieren", "Verbessern Sie Ihre Tracks mit dem Bearbeitungswerkzeug", "Planen Sie eine Tour mit Open Street Map", "Kopieren, zwischen Ihren Sammlungen verschieben", "Vergleichen, ähnliche Touren suchen", "Schätzung der Tourdauer", "Statistiken", "Und vieles mehr!"]
+      "hero": {
+        "h1": "Ihre Touren planen, aufzeichnen, organisieren und teilen.",
+        "sub": "Ihr Wanderbegleiter und GPS-Track-Manager. Offen für alle Ihre Outdoor-Aktivitäten.",
+        "chips": [
+          "Kostenlos",
+          "Frei & Open Source",
+          "Ohne Tracker",
+          "Keine Werbung",
+          "Web + Android"
+        ]
+      },
+      "try_now_button": "Jetzt ausprobieren",
+      "try_note": "Kein Konto nötig — Sie legen sofort los.",
+      "download_app_button": "App herunterladen",
+      "features": {
+        "eyebrow": "Was Trailence für Sie tut",
+        "h2": "Vom Weg zum Teilen.",
+        "on_field": {
+          "h3": "Unterwegs",
+          "text": "Zeichnen Sie Ihren Track auf, folgen Sie einer bestehenden Tour, bleiben Sie mit Richtungshinweisen und Ihren Live-Daten auf Kurs (Aufstieg, Distanz, Restzeit), machen Sie Fotos, die direkt in die Tour eingebunden werden. Offline-Karten und Ausdruck inklusive."
+        },
+        "organize": {
+          "h3": "Organisieren",
+          "text": "Ordnen Sie Ihre Touren in Sammlungen, vergeben Sie Tags, sortieren und filtern Sie, um alles wiederzufinden. Bearbeiten, vergleichen und verwalten Sie Ihre Bibliothek ganz nach Ihren Vorstellungen."
+        },
+        "analyze": {
+          "h3": "Analysieren",
+          "text": "Detailliertes Höhenprofil, Tourenbeschreibung, Wegpunkte, geschätzte Gehzeit, Pausen, Wegmarkierungen, Wegeigenschaften. Um Ihre Tour im Voraus zu planen und sie nach der Rückkehr auszuwerten."
+        },
+        "enrich": {
+          "h3": "Anreichern & teilen",
+          "text": "Fügen Sie Ihre Fotos hinzu und finden Sie sie auf der Karte wieder. Teilen Sie Ihre Touren mit Freunden oder der Community, importieren und exportieren Sie im GPX-Format, drucken Sie für unterwegs."
+        },
+        "and_more": {
+          "h3": "Und vieles mehr",
+          "lead": "Eine einzige App für alles, was dazugehört — vom Erkunden auf der Karte bis zur Erinnerung an die Tour.",
+          "features": [
+            "Offline-Karten",
+            "Kartengrundlagen IGN, OSM, ...",
+            "GPX-Import / -Export",
+            "Tourenausdruck",
+            "Geotaggte Fotos",
+            "Höhenprofil",
+            "Tags & Sammlungen",
+            "Suche & Filter",
+            "Live-Gruppen-Tracking",
+            "Wegpunkte",
+            "Sync Web ↔ Android",
+            "Teilen & Links",
+            "Geschätzte Gehzeit",
+            "Wegmarkierungen",
+            "Wegzeichen",
+            "Oberflächen und Wegtypen",
+            "Distanz und Restzeit",
+            "Tourenerstellung",
+            "Kartenrotation",
+            "Track-Editor"
+          ]
         }
-      ],
-      "download_apk": "Android-App herunterladen",
-      "try_app1": "Jetzt ausprobieren",
-      "try_app2": "Kein Konto erforderlich!",
-      "available_on": "Verfügbar für Android und als Web-App",
-      "examples_title": "Beispiel-Touren"
+      },
+      "manifesto": {
+        "eyebrow": "Was Trailence anders macht",
+        "h2": "Ihre Touren, Ihre Tracks, Ihre Daten.",
+        "block1": {
+          "h3": "Frei, kostenlos, geteilt",
+          "text": "Prüfbarer Code unter der Apache-2.0-Lizenz. Nichts ist verborgen: Sie können alles überprüfen und selbst mitwirken. Trailence bleibt frei und kostenlos — kein „Premium“-Konto. Eine offene Tourendatenbank, die jeder erweitern kann."
+        },
+        "block2": {
+          "h3": "Ohne Werbung, ohne Tracker",
+          "text": "Keine Werbung, kein Tracker, nichts weiterzuverkaufen. Wir leben nicht von Ihren Daten — wir schützen sie. Und sie bleiben die Ihren: Exportieren Sie sie oder löschen Sie alles, jederzeit."
+        },
+        "block3": {
+          "h3": "Ihre Daten, überall",
+          "text": "Ein einziges Konto, Ihre Touren synchronisiert zwischen Web und Android. Finden Sie sie auf all Ihren Geräten wieder, wo immer Sie sind."
+        }
+      },
+      "community": {
+        "eyebrow": "Die offene Datenbank",
+        "h2": "Eine offene, gut beschriebene und hochwertige Tourendatenbank — im Aufbau.",
+        "text": "Kein gesperrtes Copyright, keine leeren Einträge: echte Touren, beschrieben und geprüft. Sie startet klein und wächst mit Ihnen — <b>helfen Sie uns, die erste wirklich freie Tourendatenbank aufzubauen.</b>",
+        "search_route_button": "Tour suchen",
+        "search_route_button_sub": "Ohne Konto zugänglich."
+      },
+      "join": {
+        "h2": "Bereit loszulegen?",
+        "text": "Erstellen Sie ein kostenloses Konto, um Ihre Tracks auf all Ihren Geräten wiederzufinden — Web und Android.",
+        "create_account_button": "Konto erstellen",
+        "login_button": "Anmelden",
+        "email_privacy": "Ihre E-Mail-Adresse dient <b>ausschließlich</b> dazu, Ihre Registrierung zu bestätigen und Ihr Passwort zurückzusetzen. Niemals Newsletter, niemals Weitergabe an Dritte."
+      },
+      "footer": {
+        "slogan": "Ihr Begleiter für Outdoor-Aktivitäten und GPS-Track-Manager, frei und kostenlos.",
+        "resources": {
+          "title": "Ressourcen",
+          "search_route": "Tour suchen",
+          "contribute": "Mitwirken",
+          "contact": "Kontakt",
+          "github": "Quellcode (GitHub)"
+        },
+        "download": "Herunterladen",
+        "or_use_web": "…oder nutzen Sie die Web-Version, ganz ohne Installation.",
+        "privacy_policy": "Datenschutzerklärung"
+      }
     },
     "installApk": {
       "title": "Android-App",

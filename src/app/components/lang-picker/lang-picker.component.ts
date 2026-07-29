@@ -33,7 +33,10 @@ export class LangPickerComponent {
   }
 
   setLanguage(lang: LocaleKey, menu: IonPopover): void {
-    if (this.link) return;
+    if (this.link) {
+      this.followLink(lang, menu);
+      return;
+    }
     menu.dismiss();
     this.preferences.setLanguage(lang);
   }

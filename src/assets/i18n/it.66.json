@@ -4,9 +4,9 @@
     "import": "Importa",
     "import_gpx_description": "Importare file GPX",
     "importing": "Importazione...",
-    "sort": "Ordinamento",
+    "sort": "Ordina",
     "more": "Altro",
-    "display": "Visualizzazione",
+    "display": "Vista",
     "display_detailed": "Dettagliato con foto",
     "display_detailed_small_map": "Dettagliato con mappa",
     "display_detailed_elevation": "Dettagliato con altimetria",
@@ -15,32 +15,109 @@
   },
   "pages": {
     "home": {
-      "title": "Escursionismo e gestione di tracce GPS (GPX)",
-      "subTitle": "Trailence è gratuito, open source, senza pubblicità, senza tracker.",
-      "meta_description": "Strumento per l'escursionismo e la gestione delle tue tracce GPS (GPX). Trailence è gratuito, senza pubblicità e open source",
-      "slides": [
-        {
-          "header": "Organizza i tuoi percorsi",
-          "footer": ["Crea raccolte", "Etichetta i tuoi percorsi", "Visualizza sulla mappa", "Ordinamento, filtri..."]
-        }, {
-          "header": "Crea le tue tracce",
-          "footer": ["Registra una traccia durante la tua attività", "Mappe offline", "Segui un percorso esistente"]
-        }, {
-          "header": "Percorsi in dettaglio",
-          "footer": ["Altimetria", "Descrizione", "Punti di passaggio"]
-        }, {
-          "header": "Aggiungi foto",
-          "footer": ["Aggiungi foto ai tuoi percorsi", "Visualizza le foto sulla mappa"]
-        }, {
-          "header": "Ma anche...",
-          "footer": ["Condividi percorsi", "Importa tracce", "Esporta le tue tracce", "Migliora le tue tracce con lo strumento di modifica", "Pianifica un percorso con Open Street Map", "Copia, sposta tra le tue raccolte", "Confronta, cerca percorsi simili", "Stima del tempo di percorrenza", "Statistiche", "E molto altro!"]
+      "hero": {
+        "h1": "Prepara, registra, organizza e condividi i tuoi percorsi.",
+        "sub": "Il tuo compagno di escursioni e gestore di tracce GPS. Aperto a tutte le tue attività outdoor.",
+        "chips": [
+          "Gratis",
+          "Libero & open source",
+          "Senza tracker",
+          "Senza pubblicità",
+          "Web + Android"
+        ]
+      },
+      "try_now_button": "Prova subito",
+      "try_note": "Nessun account richiesto — provi subito.",
+      "download_app_button": "Scarica l'app",
+      "features": {
+        "eyebrow": "Cosa fa Trailence per te",
+        "h2": "Dal sentiero alla condivisione.",
+        "on_field": {
+          "h3": "Sul terreno",
+          "text": "Registra la tua traccia, segui un percorso esistente, mantieni la rotta con le indicazioni e i tuoi dati in tempo reale (dislivello, distanza, tempo rimanente), scatta foto che vengono integrate direttamente nel percorso. Mappe offline e stampa incluse."
+        },
+        "organize": {
+          "h3": "Organizza",
+          "text": "Raggruppa i tuoi percorsi in raccolte, aggiungi etichette, ordina e filtra per ritrovare tutto. Modifica, confronta, gestisci la tua libreria come preferisci."
+        },
+        "analyze": {
+          "h3": "Analizza",
+          "text": "Profilo altimetrico dettagliato, descrizione del percorso, punti di passaggio, tempo di percorrenza stimato, soste, segnaletica dei sentieri, caratteristiche dei sentieri. Per preparare la tua uscita in anticipo e analizzarla al ritorno."
+        },
+        "enrich": {
+          "h3": "Arricchisci & condividi",
+          "text": "Allega le tue foto e ritrovale sulla mappa. Condividi i tuoi percorsi con gli amici o la comunità, importa ed esporta in formato GPX, stampa per l'uscita."
+        },
+        "and_more": {
+          "h3": "E molto altro ancora",
+          "lead": "Una sola app per tutto ciò che fai — dalla ricognizione sulla mappa al ricordo dell'uscita.",
+          "features": [
+            "Mappe offline",
+            "Mappe di base IGN, OSM, ...",
+            "Import / export GPX",
+            "Stampa del percorso",
+            "Foto geolocalizzate",
+            "Profilo altimetrico",
+            "Etichette & raccolte",
+            "Ricerca & filtri",
+            "Monitoraggio del gruppo in tempo reale",
+            "Punti di passaggio",
+            "Sync Web ↔ Android",
+            "Condivisione & link",
+            "Tempo di percorrenza stimato",
+            "Segnaletica dei sentieri",
+            "Segnavia",
+            "Superfici e tipi di sentieri",
+            "Distanza e tempo rimanente",
+            "Creazione di percorsi",
+            "Rotazione della mappa",
+            "Editor di tracce"
+          ]
         }
-      ],
-      "download_apk": "Scarica l'app Android",
-      "try_app1": "Prova ora",
-      "try_app2": "Non serve un account!",
-      "available_on": "Disponibile su Android e come applicazione web",
-      "examples_title": "Esempi di percorsi"
+      },
+      "manifesto": {
+        "eyebrow": "Ciò che rende Trailence diverso",
+        "h2": "I tuoi percorsi, le tue tracce, i tuoi dati.",
+        "block1": {
+          "h3": "Libero, gratuito, condiviso",
+          "text": "Codice verificabile sotto licenza Apache-2.0. Nulla è nascosto: puoi controllare e contribuire. Trailence resterà libero e gratuito — nessun account 'premium'. Base di percorsi aperta, che tutti possono arricchire."
+        },
+        "block2": {
+          "h3": "Senza pubblicità, senza tracker",
+          "text": "Nessuna pubblicità, nessun tracker, niente da rivendere. Non viviamo dei tuoi dati — li proteggiamo. E restano tuoi: esportali o elimina tutto, in qualsiasi momento."
+        },
+        "block3": {
+          "h3": "I tuoi dati, ovunque",
+          "text": "Un solo account, i tuoi percorsi sincronizzati tra Web e Android. Ritrovali su tutti i tuoi dispositivi, ovunque tu sia."
+        }
+      },
+      "community": {
+        "eyebrow": "La base aperta",
+        "h2": "Una base di percorsi aperta, descritta e di qualità — in costruzione.",
+        "text": "Nessun copyright bloccato, nessuna scheda vuota: percorsi veri, descritti e verificati. Inizia in piccolo e cresce con te — <b>aiutaci a costruire la prima base di percorsi davvero libera.</b>",
+        "search_route_button": "Cerca un percorso",
+        "search_route_button_sub": "Accessibile senza account."
+      },
+      "join": {
+        "h2": "Tutto pronto per iniziare?",
+        "text": "Crea un account gratuito per ritrovare le tue tracce su tutti i tuoi dispositivi — Web e Android.",
+        "create_account_button": "Crea un account",
+        "login_button": "Accedi",
+        "email_privacy": "La tua e-mail serve <b>esclusivamente</b> a convalidare l'iscrizione e a reimpostare la password. Mai newsletter, mai comunicazioni a terzi."
+      },
+      "footer": {
+        "slogan": "Il tuo compagno per le attività outdoor e gestore di tracce GPS, libero e gratuito.",
+        "resources": {
+          "title": "Risorse",
+          "search_route": "Cerca un percorso",
+          "contribute": "Contribuisci",
+          "contact": "Contatti",
+          "github": "Codice sorgente (GitHub)"
+        },
+        "download": "Scarica",
+        "or_use_web": "…oppure usa la versione web, senza installare nulla.",
+        "privacy_policy": "Informativa sulla privacy"
+      }
     },
     "installApk": {
       "title": "App Android",

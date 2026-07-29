@@ -56,6 +56,12 @@ export class TrailComponent extends Component {
     return this.getElement().$('div.top-container>div.trail-details');
   }
 
+  public async centerOnMetadata() {
+    const details = await this.openDetails();
+    const meta = await details.$$('.metadata-item-container').getElements();
+    await Component.scrollIntoView(meta[meta.length - 1]);
+  }
+
   public async getMetadataItems() {
     const details = await this.openDetails();
     return details.$$('.metadata-item-container>.metadata-item>.metadata-content');

@@ -1,3 +1,4 @@
+import { Key } from 'webdriverio';
 import { App } from '../app/app';
 import { TestUtils } from '../utils/test-utils';
 import { Component } from './component';
@@ -179,5 +180,26 @@ export class MapComponent extends Component {
   }
 
   public get tiles() { return this.getElement().$$('div.leaflet-container div.leaflet-tile-pane div.leaflet-layer div.leaflet-tile-container img'); }
+
+  public async showOnMap(iconNames: string[]) {
+    await this.rightToolbar.clickByIcon('privacy');
+    const popover = await App.waitPopover();
+    const list = popover.$('>>>ion-list');
+    for (const iconName of iconNames) {
+      const icon = list.$('ion-icon[name=' + iconName + ']');
+      await icon.click();
+    }
+    await browser.action('key').down(Key.Escape).pause(50).up(Key.Escape).perform();
+    await App.waitNoPopover();
+  }
+
+  public async rotate(color: string) {
+    await this.leftToolbar.clickByIcon('compass');
+    const popover = await App.waitPopover();
+    const list = popover.$('>>>ion-list');
+    const icon = list.$('ion-icon[color=' + color + ']');
+    await icon.click();
+    await App.waitNoPopover();
+  }
 
 }

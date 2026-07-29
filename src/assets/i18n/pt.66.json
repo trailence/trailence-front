@@ -15,32 +15,109 @@
   },
   "pages": {
     "home": {
-      "title": "Pedestrianismo e gestão de traçados GPS (GPX)",
-      "subTitle": "O Trailence é gratuito, open source, sem publicidade, sem rastreadores.",
-      "meta_description": "Ferramenta para o pedestrianismo e a gestão dos seus traçados GPS (GPX). O Trailence é gratuito, sem publicidade e open source",
-      "slides": [
-        {
-          "header": "Organize os seus percursos",
-          "footer": ["Crie coleções", "Etiquete os seus percursos", "Visualize no mapa", "Ordenação, filtros..."]
-        }, {
-          "header": "Crie os seus traçados",
-          "footer": ["Grave um traçado durante a sua atividade", "Mapas offline", "Siga um percurso existente"]
-        }, {
-          "header": "Percursos em detalhe",
-          "footer": ["Altimetria", "Descrição", "Pontos de passagem"]
-        }, {
-          "header": "Adicione fotografias",
-          "footer": ["Adicione fotografias aos seus percursos", "Visualize as fotografias no mapa"]
-        }, {
-          "header": "Mas também...",
-          "footer": ["Partilhe percursos", "Importe traçados", "Exporte os seus traçados", "Melhore os seus traçados com a ferramenta de edição", "Planeie um percurso com o Open Street Map", "Copie, mova entre as suas coleções", "Compare, pesquise percursos semelhantes", "Estimativa do tempo de percurso", "Estatísticas", "E muito mais!"]
+      "hero": {
+        "h1": "Prepare, grave, organize e partilhe os seus percursos.",
+        "sub": "O seu companheiro de caminhadas e gestor de traçados GPS. Aberto a todas as suas atividades ao ar livre.",
+        "chips": [
+          "Gratuito",
+          "Livre & open source",
+          "Sem rastreadores",
+          "Sem publicidade",
+          "Web + Android"
+        ]
+      },
+      "try_now_button": "Experimentar agora",
+      "try_note": "Sem necessidade de conta — experimente já.",
+      "download_app_button": "Transferir a aplicação",
+      "features": {
+        "eyebrow": "O que o Trailence faz por si",
+        "h2": "Do trilho à partilha.",
+        "on_field": {
+          "h3": "No terreno",
+          "text": "Grave o seu traçado, siga um percurso existente, mantenha o rumo com as indicações e os seus dados em tempo real (desnível, distância, tempo restante), tire fotografias que ficam integradas diretamente no percurso. Mapas offline e impressão incluídos."
+        },
+        "organize": {
+          "h3": "Organizar",
+          "text": "Arrume os seus percursos em coleções, adicione etiquetas, ordene e filtre para encontrar tudo. Edite, compare e faça a gestão da sua biblioteca como entender."
+        },
+        "analyze": {
+          "h3": "Analisar",
+          "text": "Perfil altimétrico detalhado, descrição do percurso, pontos de passagem, tempo de marcha estimado, pausas, marcação dos caminhos, características dos caminhos. Para preparar a sua saída com antecedência e analisá-la no regresso."
+        },
+        "enrich": {
+          "h3": "Enriquecer & partilhar",
+          "text": "Anexe as suas fotografias e encontre-as no mapa. Partilhe os seus percursos com os seus amigos ou com a comunidade, importe e exporte em formato GPX, imprima para a saída."
+        },
+        "and_more": {
+          "h3": "E muito mais",
+          "lead": "Uma única aplicação para abranger toda a sua prática — do reconhecimento no mapa à recordação da saída.",
+          "features": [
+            "Mapas offline",
+            "Mapas base IGN, OSM, ...",
+            "Importar / exportar GPX",
+            "Impressão do percurso",
+            "Fotografias geolocalizadas",
+            "Perfil altimétrico",
+            "Etiquetas & coleções",
+            "Pesquisa & filtros",
+            "Acompanhamento de grupo em direto",
+            "Pontos de passagem",
+            "Sincronização Web ↔ Android",
+            "Partilha & ligações",
+            "Tempo de marcha estimado",
+            "Marcação dos caminhos",
+            "Balizas de trilho",
+            "Superfícies e tipos de caminhos",
+            "Distância e tempo restante",
+            "Criação de percursos",
+            "Rotação do mapa",
+            "Editor de traçado"
+          ]
         }
-      ],
-      "download_apk": "Transferir a app Android",
-      "try_app1": "Experimentar agora",
-      "try_app2": "Não precisa de conta!",
-      "available_on": "Disponível para Android e como aplicação web",
-      "examples_title": "Exemplos de percursos"
+      },
+      "manifesto": {
+        "eyebrow": "O que torna o Trailence diferente",
+        "h2": "Os seus percursos, os seus traçados, os seus dados.",
+        "block1": {
+          "h3": "Livre, gratuito, partilhado",
+          "text": "Código auditável sob a licença Apache-2.0. Nada está escondido: pode verificar e contribuir. O Trailence continuará livre e gratuito — sem conta «premium». Uma base de percursos aberta, que qualquer pessoa pode enriquecer."
+        },
+        "block2": {
+          "h3": "Sem publicidade, sem rastreadores",
+          "text": "Nenhuma publicidade, nenhum rastreador, nada para revender. Não vivemos dos seus dados — protegemo-los. E continuam a ser seus: exporte-os ou elimine tudo, a qualquer momento."
+        },
+        "block3": {
+          "h3": "Os seus dados, em todo o lado",
+          "text": "Uma única conta, os seus percursos sincronizados entre a Web e o Android. Encontre-os em todos os seus dispositivos, onde quer que esteja."
+        }
+      },
+      "community": {
+        "eyebrow": "A base aberta",
+        "h2": "Uma base de percursos aberta, descrita e de qualidade — em construção.",
+        "text": "Sem copyright bloqueado, sem fichas vazias: percursos reais, descritos e verificados. Começa pequena e cresce consigo — <b>ajude-nos a construir a primeira base de percursos verdadeiramente livre.</b>",
+        "search_route_button": "Pesquisar um percurso",
+        "search_route_button_sub": "Acessível sem conta."
+      },
+      "join": {
+        "h2": "Tudo pronto para começar?",
+        "text": "Crie uma conta gratuita para encontrar os seus traçados em todos os seus dispositivos — Web e Android.",
+        "create_account_button": "Criar conta",
+        "login_button": "Iniciar sessão",
+        "email_privacy": "O seu email serve <b>apenas</b> para validar o registo e repor a sua palavra-passe. Nada de newsletters, nada de comunicação a terceiros."
+      },
+      "footer": {
+        "slogan": "O seu companheiro de atividades ao ar livre e gestor de traçados GPS, livre e gratuito.",
+        "resources": {
+          "title": "Recursos",
+          "search_route": "Pesquisar um percurso",
+          "contribute": "Contribuir",
+          "contact": "Contacto",
+          "github": "Código-fonte (GitHub)"
+        },
+        "download": "Transferir",
+        "or_use_web": "…ou utilize a versão web, sem instalar nada.",
+        "privacy_policy": "Política de Privacidade"
+      }
     },
     "installApk": {
       "title": "App Android",

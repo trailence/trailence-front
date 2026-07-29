@@ -185,6 +185,7 @@ export class PreferencesService implements OnDestroy {
       globalThis.document.body.classList.remove('dark-theme', 'light-theme');
       const theme = computed.theme === 'SYSTEM' ? this._systemTheme : computed.theme;
       globalThis.document.body.classList.add(theme.toLowerCase() + '-theme');
+      document.documentElement.style.colorScheme = theme;
       this._computed$.next(computed);
     });
     this.injector.get(AuthService).auth$.subscribe(auth => {

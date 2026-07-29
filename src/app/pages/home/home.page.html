@@ -1,164 +1,307 @@
-<app-header [title]="auth.email ? 'Trailence' : ''" [description]="i18n.texts.pages.home.meta_description"></app-header>
-<div class="page-content">
-  <div class="content-container">
-    <h1>{{i18n.texts.pages.home.title}}</h1>
-    <h2>{{i18n.texts.pages.home.subTitle}}</h2>
-    <div class="slider" id="slider-{{id}}">
-      @for (slide of slides; track $index; let index = $index) {
-        <div class="slider-item" id="slider-{{id}}-slide-{{index}}">
-          <div class="slider-item-header">{{ i18n.texts.pages.home.slides[index].header }}</div>
-          <div class="slider-item-image-container {{slide.hasImages ? '' : 'no-image'}}">
-            @if (mode === 'desktop') {
-              @for (img of slide.desktopImages; track $index; let imgIndex = $index) {
-                <div class="slider-item-image desktop" id="slider-{{id}}-slide-{{index}}-image-{{imgIndex}}">
-                  <div class="screen"><img [src]="ssUrl + '/ss_' + img + '.' + prefs.preferences.lang + '.desktop.png'" draggable="false" /></div>
-                  <div class="mask"><img [src]="maskUrl + '/' + desktopMaskSize + '.png'" draggable="false" /></div>
-                </div>
+<app-header [title]="auth.email ? 'Trailence' : ''" [description]="i18n.texts.pages.home.hero.sub"></app-header>
+
+<!-- Background -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<g id="bg-home" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-miterlimit="4">
+<path d="M1319.179,614.141C1322.56,620.689,1330.329,626.113,1340.512,630.303C1358.481,637.696,1395.228,642.423,1423.116,641.298C1452.139,640.127,1493.29,631.125,1511.333,622.222C1520.824,617.539,1526.753,612.13,1530.373,606.061C1533.318,601.124,1534.61,595.136,1533.797,589.899C1532.934,584.343,1529.223,578.628,1524.61,573.737C1518.78,567.556,1510.611,561.888,1499.691,557.576C1482.972,550.974,1454.256,544.795,1431.156,545.334C1407.307,545.89,1378.485,552.073,1358.794,561.771C1342.277,569.907,1323.439,584.349,1318.593,595.084C1315.664,601.571,1316.326,608.615,1319.179,614.141"/>
+<path d="M1596,634.013C1596,634.013,1573.112,649.048,1559.799,654.469C1545.214,660.409,1531.94,663.997,1511.558,667.257C1477.798,672.657,1417.154,678.127,1374.874,675.205C1337.668,672.633,1292.446,663.807,1270.88,654.545C1259.797,649.786,1253.322,645.315,1248.009,638.384C1242.907,631.727,1238.748,622.725,1239.099,614.141C1239.51,604.061,1246.378,591.797,1254.073,581.818C1263.257,569.91,1278.238,559.129,1293.175,549.495C1309.964,538.666,1331.309,528.577,1350.754,521.331C1369.285,514.425,1388.118,509.324,1407.035,506.448C1425.644,503.619,1445.334,502.913,1463.317,504.013C1480.072,505.038,1495.686,507.78,1511.558,512.066C1527.858,516.468,1545.302,522.659,1559.799,530.34C1573.224,537.452,1596,555.767,1596,555.767"/>
+<path d="M218.819,4C218.819,4,222.276,23.748,227.096,32.323C232.18,41.367,238.717,49.96,249.227,56.566C264.262,66.015,294.479,74.227,313.568,75.857C328.39,77.122,341.278,74.387,353.769,70.968C365.523,67.752,377.354,63.242,386.615,56.566C395.455,50.193,404.616,41.463,408.521,32.323C412.161,23.802,410.585,4,410.585,4"/>
+<path d="M1596,678.398C1596,678.398,1515.718,696.509,1471.357,699.871C1421.333,703.661,1357.035,703.021,1310.553,696.76C1273.986,691.835,1234.799,682.178,1214.07,672.284C1202.763,666.887,1195.966,661.846,1190.353,654.545C1185.082,647.689,1180.738,639.439,1180.608,630.303C1180.441,618.574,1187.366,602.52,1195.528,589.899C1204.971,575.297,1220.534,562.176,1236.66,549.495C1255.362,534.789,1279.541,520.359,1302.513,508.551C1325.602,496.683,1351.932,485.413,1374.874,478.525C1394.497,472.633,1413.039,469.301,1431.156,467.698C1447.778,466.228,1462.786,466.544,1479.397,468.356C1497.526,470.333,1516.862,474.224,1535.678,479.979C1555.723,486.108,1596,504.769,1596,504.769"/>
+<path d="M150.977,4C150.977,4,155.27,40.445,163.197,56.566C171.536,73.522,185.54,90.732,201.005,102.782C216.785,115.077,237.417,123.48,257.286,129.187C277.571,135.013,298.994,137.283,321.608,136.988C346.936,136.658,377.256,132.809,402.01,125.104C425.255,117.869,449.99,107.572,466.332,93.498C480.615,81.197,493.718,64.209,497.497,48.485C500.919,34.247,491.506,4,491.506,4"/>
+<path d="M1596,709.132C1596,709.132,1493.091,723.32,1439.196,724.724C1382.063,726.212,1312.086,723.859,1262.312,716.402C1224.984,710.809,1187.938,702.117,1165.829,691.723C1152.584,685.495,1143.454,679.022,1136.917,670.707C1131.318,663.587,1127.156,655.981,1126.94,646.465C1126.637,633.124,1134.944,613.209,1144.363,597.98C1155.109,580.604,1171.826,565.568,1190.705,549.495C1214.488,529.248,1248.539,507.124,1278.392,489.176C1307.288,471.803,1340.173,453.673,1366.834,443.124C1387.247,435.046,1404.912,430.114,1423.116,427.336C1439.656,424.812,1454.736,424.555,1471.357,425.918C1489.475,427.403,1508.214,431.357,1527.638,436.916C1549.579,443.197,1596,463.005,1596,463.005"/>
+<path d="M101.756,4C101.756,4,106.572,57.806,116.666,80.808C126.508,103.236,141.945,124.938,160.804,140.675C180.433,157.054,206.091,167.906,233.166,176.103C264.14,185.481,301.04,190.049,337.688,190.054C378.345,190.06,432.909,181.028,466.332,172.92C488.588,167.521,504.188,161.317,520.519,153.535C535.231,146.526,549.926,138.331,560.437,129.293C569.083,121.859,576.163,114.343,580.701,105.051C585.343,95.544,587.771,83.49,587.669,72.727C587.567,61.941,584.316,51.188,580.058,40.404C575.272,28.281,559.177,4,559.177,4"/>
+<path d="M1596,736.454C1596,736.454,1464.02,747.523,1398.995,747.265C1335.203,747.011,1262.261,744.082,1209.479,735.354C1170.503,728.908,1131.633,719.373,1109.548,708.234C1096.811,701.811,1088.643,695.158,1082.537,686.869C1077.233,679.669,1073.595,671.811,1073.185,662.626C1072.663,650.945,1077.836,635.612,1084.756,622.222C1093.168,605.945,1104.074,593.03,1123.571,573.737C1162.606,535.111,1274.656,459.939,1319.55,420.202C1345.008,397.667,1365.347,381.065,1376.212,363.636C1383.308,352.254,1388.363,343.301,1387.233,331.313C1385.675,314.769,1356.079,286.118,1355.113,274.747C1354.719,270.11,1355.912,266.409,1358.794,264.57C1363.08,261.835,1374.435,264.255,1382.631,266.667C1392.498,269.571,1402.326,274.603,1413.322,282.828C1429.904,295.231,1444.583,320.825,1468.291,339.394C1500.761,364.824,1596,414.073,1596,414.073"/>
+<path d="M59.15,4C59.15,4,61.923,62.988,68.865,88.889C75.17,112.413,83.772,135.527,96.946,153.535C109.442,170.615,125.043,183.751,144.724,195.22C168.653,209.165,202.669,218.779,233.166,226.297C264.27,233.964,296.759,237.48,329.648,240.43C363.708,243.484,390.205,243.951,434.171,243.924C509.34,243.879,643.949,239.406,739.698,233.342C824.928,227.943,920.289,210.315,980.905,211.116C1017.66,211.601,1041.655,215.333,1069.347,221.627C1095.003,227.459,1118.761,235.98,1141.709,246.311C1164.285,256.476,1187.658,269.831,1206.03,282.911C1221.648,294.031,1235.011,305.486,1246.231,318.177C1256.546,329.845,1267.408,342.948,1271.648,355.556C1275.235,366.224,1276.487,376.177,1273.317,387.879C1268.735,404.796,1254.5,423.854,1236.207,444.444C1206.713,477.644,1137.04,524.227,1101.532,557.576C1076.23,581.339,1054.265,601.029,1039.919,622.222C1028.835,638.596,1018.525,655.134,1017.756,670.707C1017.068,684.646,1022.038,699.822,1031.601,711.111C1043.667,725.356,1067.847,735.313,1091.432,743.434C1121.165,753.672,1157.08,757.168,1197.99,761.496C1252.679,767.283,1325.65,769.422,1390.955,769.785C1458.259,770.159,1596,763.259,1596,763.259"/>
+<path d="M1596,303.149C1596,303.149,1562.381,268.234,1538.595,250.505C1506.51,226.591,1456.423,203.4,1416.955,177.778C1377.742,152.321,1334.726,115.565,1302.513,97.321C1281.14,85.216,1265.97,78.72,1246.231,72.33C1225.836,65.726,1204.663,61.901,1181.91,58.732C1156.718,55.223,1137.694,53.943,1101.508,53.219C1026.543,51.72,824.824,71.944,755.779,63.062C725.387,59.153,711.875,53.777,691.457,44.264C670.202,34.361,631.018,4,631.018,4"/>
+<path d="M19.436,4C19.436,4,20.885,88.099,25.724,121.212C29.367,146.136,32.601,167.562,41.317,185.859C48.96,201.902,58.375,215.406,72.362,226.488C88.785,239.501,109.277,246.888,136.683,255.349C180.438,268.858,253.752,279.501,313.568,287.014C374.328,294.645,437.505,299.315,498.492,300.493C558.078,301.643,611.962,299.287,675.377,294.451C749.667,288.786,857.651,269.838,916.583,265.839C950.491,263.538,969.105,261.919,996.985,264.438C1027.825,267.224,1063.791,273.395,1093.467,283.757C1121.282,293.47,1149.889,307.025,1170.364,323.232C1187.942,337.147,1205.704,357.464,1211.695,371.717C1215.398,380.527,1215.09,387.449,1213.881,395.96C1212.437,406.121,1207.751,417.463,1201.262,428.283C1193.227,441.681,1183.164,451.967,1166.655,468.687C1134.003,501.757,1045.776,567.05,1010.328,606.061C988.387,630.207,971.085,653.678,963.656,670.707C959.519,680.189,958.744,686.875,958.807,694.949C958.87,703.037,960.561,711.689,964.053,719.192C967.734,727.099,973.878,734.526,980.905,740.986C988.741,748.19,997.904,754.06,1009.676,759.596C1025.583,767.076,1046.815,773.67,1069.347,778.383C1097.41,784.254,1122.094,786.278,1165.829,788.786C1257.911,794.068,1596,791.878,1596,791.878"/>
+<path d="M1596,222.083C1596,222.083,1517.506,179.667,1480.035,153.535C1441.017,126.324,1401.764,82.319,1366.834,61.225C1341.204,45.748,1321.825,37.841,1294.472,30.423C1261.615,21.513,1230.013,19.088,1181.91,16.027C1096.977,10.623,907.86,21.235,828.141,16.068C787.176,13.413,735.509,4,735.509,4"/>
+<path d="M5.189,565.657C5.189,565.657,18.533,532.292,24.481,509.091C33.514,473.859,35.651,401.659,48.241,373.334C54.954,358.233,62.624,349.965,72.362,342.465C81.565,335.376,91.043,331.845,104.523,328.673C124.972,323.86,149.674,323.705,184.925,324.073C252.778,324.78,373.5,348.283,482.412,347.323C615.301,346.151,821.303,305.727,924.623,304.903C980.311,304.459,1021.051,308.126,1053.266,315.175C1073.593,319.622,1087.097,325.627,1101.508,332.846C1114.474,339.341,1127.024,347.007,1136.352,355.556C1144.379,362.912,1151.512,370.535,1155.352,379.798C1159.301,389.322,1161.894,400.356,1159.293,412.121C1155.573,428.949,1142.479,447.084,1124.105,468.687C1090.625,508.05,995.195,575.709,957.477,614.141C935.677,636.355,920.101,653.723,909.941,670.707C902.968,682.363,899.131,692.05,897.055,703.03C895.054,713.613,894.7,724.87,897.236,735.354C899.921,746.454,905.922,757.948,913.617,767.677C922.085,778.384,947.139,796,947.139,796"/>
+<path d="M1595.653,169.697C1595.653,169.697,1555.521,147.147,1533.745,129.293C1504.312,105.16,1466.413,54.574,1439.196,32.853C1421.821,18.987,1392.328,4,1392.328,4"/>
+<path d="M4,660.035C4,660.035,101.565,475.896,128.643,439.671C138.666,426.264,143.441,421.335,152.764,414.749C162.176,408.1,172.03,403.7,184.925,400.067C202.381,395.149,221.6,393.802,249.246,392.245C298.905,389.449,375.282,398.595,458.291,394.025C581.631,387.234,823.247,342.723,916.583,339.453C957.465,338.02,978.174,338.896,1005.025,343.742C1028.471,347.974,1052.313,354.133,1069.347,364.251C1083.386,372.591,1096.879,385.109,1102.484,395.96C1106.58,403.89,1106.836,412.218,1106.051,420.202C1105.247,428.384,1102.775,435.264,1097.422,444.444C1088.292,460.101,1071.167,478.343,1048.421,501.01C1007.03,542.259,895.605,620.045,860.549,662.626C842.585,684.446,835.028,698.106,828.375,719.192C821.131,742.15,821.124,796,821.124,796"/>
+<path d="M1596,107.184C1596,107.184,1569.168,80.72,1557.009,64.646C1543.504,46.793,1519.598,4.074,1519.598,4.074"/>
+<path d="M65.971,796C65.971,796,50.71,778.501,45.92,767.677C40.69,755.858,37.298,740.77,37.005,727.273C36.712,713.834,39.984,700.078,44.094,686.869C48.372,673.12,52.932,661.791,62.604,646.465C78.196,621.756,108.198,582.998,136.683,557.847C165.077,532.777,187.809,514.869,233.166,495.716C318.617,459.631,534.522,422.936,630.03,404.04C683.455,393.471,710.153,388.464,755.779,383.28C809.582,377.168,889.961,370.703,932.663,372.189C957.035,373.037,972.904,375.045,989.89,379.798C1004.527,383.894,1019.439,388.363,1029.146,397.025C1038.061,404.981,1046.729,416.548,1047.34,428.283C1048.08,442.511,1036.098,461.528,1025.508,476.768C1013.447,494.126,998.447,506.029,976.431,525.253C937.846,558.944,842.578,622.255,808.548,654.545C791.493,670.728,786.487,677.866,773.908,694.949C755.074,720.528,710.464,796,710.464,796"/>
+<path d="M168.844,795.589C168.844,795.589,143.35,783.574,133.245,775.758C124.081,768.669,115.747,760.151,110.101,751.515C105.101,743.869,101.713,736.128,99.967,727.273C98.03,717.451,98.187,705.546,100.18,694.949C102.243,683.985,106.828,673.02,112.545,662.626C118.714,651.409,125.257,641.317,136.625,630.303C153.448,614.004,184.012,592.689,209.045,579.832C232.389,567.842,251.684,562.878,281.407,554.211C327.118,540.884,400.576,531.541,458.291,513.333C516.372,495.01,581.015,460.485,628.748,444.444C662.137,433.225,681.909,427.047,715.578,420.946C760.694,412.771,836.364,405.415,876.382,405.752C900.252,405.954,917.189,407.512,933.494,412.121C946.744,415.867,960.709,419.755,967.831,428.283C974.517,436.289,978.508,449.256,976.455,460.606C973.716,475.744,960.294,490.91,941.937,509.091C906.163,544.52,808.922,593.136,756.558,638.384C711.631,677.205,675.622,732.25,642.599,759.596C621.521,777.05,585.432,796,585.432,796"/>
+<path d="M201.005,652.526C213.677,641.34,231.519,632.604,249.246,625.262C268.703,617.205,285.78,613.593,313.568,607.401C363.09,596.366,477.935,585.635,522.613,572.027C544.934,565.228,552.834,560.3,570.854,550.27C596.428,536.037,631.486,505.937,659.296,490.787C681.834,478.51,699.063,470.003,723.618,463.172C753.765,454.786,803.281,448.713,828.141,448.75C841.933,448.771,850.773,449.698,860.302,453.286C869.164,456.624,880.707,461.737,883.796,468.687C886.683,475.182,883.832,485.415,880.031,492.929C875.544,501.8,868.774,507.368,855.927,517.172C823.578,541.858,719.73,584.095,667.337,624.003C622.704,658.001,590.246,710.397,556.233,735.354C532.882,752.487,516.12,761.329,490.452,769.559C458.667,779.751,416.102,784.832,377.889,785.547C338.426,786.285,286.43,779.623,257.286,772.998C239.993,769.067,229.277,765.091,217.085,758.624C205.375,752.413,192.718,744.207,185.301,735.354C179.16,728.024,174.968,719.413,173.414,711.111C171.939,703.23,172.346,695.187,175.499,686.869C179.679,675.839,189.871,662.354,201.005,652.526"/>
+</g></defs></svg>
+
+@let theme = preferences.getResolvedTheme();
+@let lang = preferences.preferences.lang;
+@let themeFile = theme.toLowerCase();
+
+<div class="page-content {{theme}}">
+  <main>
+    <header class="hero has-topo">
+      <div class="topo">
+        <svg class="a" viewBox="0 0 1600 800"><use href="#bg-home"/></svg>
+        <svg class="b" viewBox="0 0 1600 800"><use href="#bg-home"/></svg>
+      </div>
+      <div class="wrap">
+        <div class="grid">
+          <div class="hero-text reveal">
+            <h1>{{i18n.texts.pages.home.hero.h1}}</h1>
+            <p class="sub">{{i18n.texts.pages.home.hero.sub}}</p>
+            <div class="chips">
+              @for (chip of i18n.texts.pages.home.hero.chips; track $index) {
+                <span class="chip"><span class="dot"></span>{{chip}}</span>
               }
-              <div class="slider-item-image mobile multiple" id="slider-{{id}}-slide-{{index}}-image-{{slide.desktopImages.length}}">
-                @for (img of slide.mobileImages; track $index; let imgIndex = $index) {
-                  <div class="slider-item-image-item">
-                    <div class="screen"><img [src]="ssUrl + '/ss_' + img + '.' + prefs.preferences.lang + '.mobile.png'" draggable="false" /></div>
-                    <div class="mask"><img [src]="maskUrl + '/mobile.png'" draggable="false" /></div>
-                  </div>
-                }
+            </div>
+            <div class="cta-row">
+              <a class="btn btn-primary btn-lg" href="/try" (click)="$event.preventDefault(); router.navigateByUrl('/try')">{{i18n.texts.pages.home.try_now_button}}</a>
+              @if (!isAndroidApp) {
+                <a class="btn btn-ghost btn-lg" href="/{{lang}}/install-apk" (click)="$event.preventDefault(); router.navigateByUrl('/' + lang + '/install-apk')">
+                  <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+                  {{i18n.texts.pages.home.download_app_button}}
+                </a>
+              }<!--endif-->
+            </div>
+            <div class="cta-note">{{i18n.texts.pages.home.try_note}}</div>
+          </div>
+          <div class="hero-visual reveal">
+            <div class="hero-stage">
+              <div class="shot shot-desktop">
+                <img loading="lazy" src="{{ssUrl}}/hero.{{lang}}.desktop.{{themeFile}}.jpg">
               </div>
-            } @else {
-              @for (img of slide.mobileImages; track $index; let imgIndex = $index) {
-                <div class="slider-item-image mobile" id="slider-{{id}}-slide-{{index}}-image-{{imgIndex}}">
-                  <div class="screen"><img [src]="ssUrl + '/ss_' + img + '.' + prefs.preferences.lang + '.mobile.png'" draggable="false" /></div>
-                  <div class="mask"><img [src]="maskUrl + '/mobile.png'" draggable="false" /></div>
-                </div>
-              }
-            }
+              <div class="shot-mobile">
+                <img loading="lazy" src="{{ssUrl}}/mobile_trace_recording.gif">
+              </div>
+            </div>
           </div>
-          <div class="slider-item-footer {{slide.hasImages ? '' : 'no-image'}}">
-            @for (footerItem of i18n.texts.pages.home.slides[index].footer; track $index) {
-              <div>{{ footerItem }}</div>
+        </div>
+      </div>
+    </header>
+
+
+
+    <section class="section section-features">
+      <div class="wrap">
+        <div class="reveal" style="text-align:center;margin-bottom:clamp(34px,5vw,60px)">
+          <div class="eyebrow">{{i18n.texts.pages.home.features.eyebrow}}</div>
+          <h2 style="font-size:clamp(26px,3.6vw,40px);font-weight:700">{{i18n.texts.pages.home.features.h2}}</h2>
+        </div>
+
+        <div class="feature reveal">
+          <div class="f-text">
+            <div class="f-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+            </div>
+            <h3>{{i18n.texts.pages.home.features.on_field.h3}}</h3>
+            <p>{{i18n.texts.pages.home.features.on_field.text}}</p>
+          </div>
+          <div class="f-stage">
+            <div class="phone">
+              <img loading="lazy" src="{{ssUrl}}/trace.{{lang}}.mobile.{{themeFile}}.jpg">
+            </div>
+          </div>
+        </div>
+
+        <div class="feature reveal">
+          <div class="f-text">
+            <div class="f-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 12l9 5 9-5"/><path d="M3 16.5l9 5 9-5"/></svg>
+            </div>
+            <h3>{{i18n.texts.pages.home.features.organize.h3}}</h3>
+            <p>{{i18n.texts.pages.home.features.organize.text}}</p>
+          </div>
+          <div class="f-stage">
+            <div class="phone">
+              <img loading="lazy" src="{{ssUrl}}/collection.{{lang}}.desktop.{{themeFile}}.jpg">
+            </div>
+          </div>
+        </div>
+
+        <div class="feature reveal">
+          <div class="f-text">
+            <div class="f-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M4 16l5-6 4 3 6-8"/></svg>
+            </div>
+            <h3>{{i18n.texts.pages.home.features.analyze.h3}}</h3>
+            <p>{{i18n.texts.pages.home.features.analyze.text}}</p>
+          </div>
+          <div class="f-stage">
+            <div class="phone">
+              <img loading="lazy" src="{{ssUrl}}/trail_details.{{lang}}.mobile.{{themeFile}}.jpg">
+            </div>
+          </div>
+        </div>
+
+        <div class="feature reveal">
+          <div class="f-text">
+            <div class="f-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-6 6"/></svg>
+            </div>
+            <h3>{{i18n.texts.pages.home.features.enrich.h3}}</h3>
+            <p>{{i18n.texts.pages.home.features.enrich.text}}</p>
+          </div>
+          <div class="f-stage">
+            <div class="phone">
+              <img loading="lazy" src="{{ssUrl}}/trail_with_photos.{{lang}}.mobile.{{themeFile}}.jpg">
+            </div>
+          </div>
+        </div>
+
+        <div class="more reveal">
+          <h3>{{i18n.texts.pages.home.features.and_more.h3}}</h3>
+          <p class="lead">{{i18n.texts.pages.home.features.and_more.lead}}</p>
+          <div class="more-grid">
+            @for (feature of i18n.texts.pages.home.features.and_more.features; track $index) {
+              <div class="more-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>{{feature}}</span></div>
             }
           </div>
         </div>
-      }
-    </div>
-    <div class="slider-buttons">
-      @for (slide of slides; track $index; let slideIndex = $index) {
-        @if (mode === 'desktop') {
-          @for (img of slide.desktopImages; track $index; let imgIndex = $index) {
-            <div class="slider-button" [ngClass]="{'selected': slideIndex === currentSlideIndex && imgIndex === currentSlideImageIndex}" (click)="setSlide(slideIndex, imgIndex, currentSlideIndex < slideIndex || currentSlideIndex === slideIndex && currentSlideImageIndex < imgIndex, true)"></div>
-          }
-          <div class="slider-button" [ngClass]="{'selected': slideIndex === currentSlideIndex && currentSlideImageIndex === slide.desktopImages.length}" (click)="setSlide(slideIndex, slide.desktopImages.length, currentSlideIndex < slideIndex || currentSlideIndex === slideIndex && currentSlideImageIndex < slide.desktopImages.length, true)"></div>
-        } @else {
-          @for (img of slide.mobileImages; track $index; let imgIndex = $index) {
-            <div class="slider-button" [ngClass]="{'selected': slideIndex === currentSlideIndex && imgIndex === currentSlideImageIndex}" (click)="setSlide(slideIndex, imgIndex, currentSlideIndex < slideIndex || currentSlideIndex === slideIndex && currentSlideImageIndex < imgIndex, true)"></div>
-          }
-          @if (slide.mobileImages.length === 0) {
-            <div class="slider-button" [ngClass]="{'selected': slideIndex === currentSlideIndex}" (click)="setSlide(slideIndex, 0, currentSlideIndex < slideIndex, true)"></div>
-          }
-        }
-      }
-    </div>
-    <div class="footer">
-      <div class="available-on">{{ i18n.texts.pages.home.available_on }}</div>
-    </div>
-  </div>
+      </div>
+    </section>
 
-  <div class="bottom-buttons">
-    @if (!isAndroidApp) {
-      <div class="download">
-        <div>
-          <a href="/{{prefs.preferences.lang}}/install-apk" (click)="$event.preventDefault()">
-            <ion-button (click)="router.navigateByUrl('/' + prefs.preferences.lang + '/install-apk')">
-              <ion-icon name="android" slot="start"></ion-icon>
-              <ion-label>{{i18n.texts.pages.home.download_apk}}</ion-label>
-            </ion-button>
+
+
+    <section class="section manifesto has-topo" id="manifesto">
+      <div class="topo">
+        <svg class="a" viewBox="0 0 1600 800"><use href="#bg-home"/></svg>
+        <svg class="b" viewBox="0 0 1600 800"><use href="#bg-home"/></svg>
+      </div>
+      <div class="wrap">
+        <div class="head reveal">
+          <div class="eyebrow">{{i18n.texts.pages.home.manifesto.eyebrow}}</div>
+          <h2>{{i18n.texts.pages.home.manifesto.h2}}</h2>
+        </div>
+        <div class="pillars">
+          <div class="pillar reveal">
+            <div class="p-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8l-4 4 4 4"/><path d="M16 8l4 4-4 4"/><path d="M13 5l-2 14"/></svg>
+            </div>
+            <h3>{{i18n.texts.pages.home.manifesto.block1.h3}}</h3>
+            <p>{{i18n.texts.pages.home.manifesto.block1.text}}</p>
+          </div>
+          <div class="pillar reveal">
+            <div class="p-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
+            </div>
+            <h3>{{i18n.texts.pages.home.manifesto.block2.h3}}</h3>
+            <p>{{i18n.texts.pages.home.manifesto.block2.text}}</p>
+          </div>
+          <div class="pillar reveal">
+            <div class="p-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="14" height="10" rx="2"/><rect x="14" y="9" width="8" height="11" rx="2"/><path d="M6 20h6"/></svg>
+            </div>
+            <h3>{{i18n.texts.pages.home.manifesto.block3.h3}}</h3>
+            <p>{{i18n.texts.pages.home.manifesto.block3.text}}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+
+    <section class="section community" id="community">
+      <div class="wrap">
+        <div class="head reveal">
+          <div class="eyebrow">{{i18n.texts.pages.home.community.eyebrow}}</div>
+          <h2>{{i18n.texts.pages.home.community.h2}}</h2>
+          <p class="muted" style="font-size:17px;max-width:60ch" innerHTML="i18n.texts.pages.home.community.text"></p>
+        </div>
+
+        <div class="cards">
+          @defer {
+            @for (t of examples; track t.trail.uuid; let index = $index) {
+              <div class="tcard reveal metadata-container two-columns">
+                <app-trail-overview
+                  [trail]="t.trail"
+                  [trackSnapshot]="t.track"
+                  [trailInfo]="t.info"
+                  [hideMenu]="true"
+                  [fromCollection]="false"
+                  [config]="exampleConfig"
+                  [linkWithSlug]="true"
+                  [photoEnabled]="index != 2"
+                  [smallMapEnabled]="index == 2"
+                  [dateWithoutTime]="true"
+                ></app-trail-overview>
+              </div>
+            }
+          }<!--end defer-->
+        </div>
+
+        <div class="actions reveal">
+          <a class="btn btn-primary" href="/search-route" (click)="$event.preventDefault(); router.navigateByUrl('/search-route');">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+            {{i18n.texts.pages.home.community.search_route_button}}
           </a>
+          <span class="muted" style="font-size:14px">{{i18n.texts.pages.home.community.search_route_button_sub}}</span>
         </div>
       </div>
-    }
-    <div class="account">
-      <div>
-        <a href="/{{prefs.preferences.lang}}/login" (click)="$event.preventDefault()">
-          <ion-button (click)="router.navigateByUrl('/' + prefs.preferences.lang + '/login')" fill="clear" color="secondary">{{i18n.texts.pages.login.title}}</ion-button>
-        </a>
-      </div>
-      <div>
-        <a href="/{{prefs.preferences.lang}}/register" (click)="$event.preventDefault()">
-          <ion-button (click)="router.navigateByUrl('/' + prefs.preferences.lang + '/register')" fill="clear" color="secondary">{{i18n.texts.pages.register.title}}</ion-button>
-        </a>
-      </div>
-      <div>
-        <a href="/try" (click)="$event.preventDefault()" class="home-page-try-app-button">
-          <ion-button (click)="router.navigateByUrl('/try')" fill="clear" color="secondary">{{i18n.texts.pages.home.try_app1}}</ion-button>
-        </a>
-        <div class="under-button">{{i18n.texts.pages.home.try_app2}}</div>
-      </div>
-    </div>
-  </div>
-  <div class="side-buttons">
-    @if (!isAndroidApp) {
-      <div>
-        <a href="/{{prefs.preferences.lang}}/install-apk" (click)="$event.preventDefault()">
-          <ion-button (click)="router.navigateByUrl('/' + prefs.preferences.lang + '/install-apk')">
-            <ion-icon name="android" slot="start"></ion-icon>
-            <ion-label>{{i18n.texts.pages.home.download_apk}}</ion-label>
-          </ion-button>
-        </a>
-      </div>
-    }
-    <div>
-      <a href="/{{prefs.preferences.lang}}/login" (click)="$event.preventDefault()">
-        <ion-button (click)="router.navigateByUrl('/' + prefs.preferences.lang + '/login')">{{i18n.texts.pages.login.title}}</ion-button>
-      </a>
-    </div>
-    <div>
-      <a href="/{{prefs.preferences.lang}}/register" (click)="$event.preventDefault()">
-        <ion-button (click)="router.navigateByUrl('/' + prefs.preferences.lang + '/register')">{{i18n.texts.pages.register.title}}</ion-button>
-      </a>
-    </div>
-    <div>
-      <a href="/try" (click)="$event.preventDefault()" class="home-page-try-app-button">
-        <ion-button (click)="router.navigateByUrl('/try')">{{i18n.texts.pages.home.try_app1}}</ion-button>
-      </a>
-      <div class="under-button">{{i18n.texts.pages.home.try_app2}}</div>
-    </div>
-  </div>
+    </section>
 
-  @if (examples) {
-    <div class="examples">
-      <div class="examples_title">{{i18n.texts.pages.home.examples_title}}</div>
-      @defer {
-        @for (t of examples; track t.trail.uuid) {
-          <div class="example metadata-container two-columns">
-            <app-trail-overview
-              [trail]="t.trail"
-              [trackSnapshot]="t.track"
-              [trailInfo]="t.info"
-              [hideMenu]="true"
-              [fromCollection]="false"
-              [config]="exampleConfig"
-              [linkWithSlug]="true"
-              [dateWithoutTime]="true"
-            ></app-trail-overview>
+
+
+    <section class="section finalcta has-topo" id="join">
+      <div class="topo">
+        <svg class="a" viewBox="0 0 1600 800"><use href="#bg-home"/></svg>
+        <svg class="b" viewBox="0 0 1600 800"><use href="#bg-home"/></svg>
+      </div>
+      <div class="wrap reveal">
+        <h2>{{i18n.texts.pages.home.join.h2}}</h2>
+        <p>{{i18n.texts.pages.home.join.text}}</p>
+        <div class="cta-row">
+          <a class="btn btn-primary btn-lg" href="/{{lang}}/register" (click)="$event.preventDefault(); router.navigateByUrl('/' + lang + '/register')">{{i18n.texts.pages.home.join.create_account_button}}</a>
+          <a class="btn btn-ghost btn-lg" href="/{{lang}}/login" (click)="$event.preventDefault(); router.navigateByUrl('/' + lang + '/login')">{{i18n.texts.pages.home.join.login_button}}</a>
+        </div>
+        <div class="privacy-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span [innerHTML]="i18n.texts.pages.home.join.email_privacy"></span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="wrap">
+      @if (!isAndroidApp) {
+        <div class="foot-grid">
+          <div class="foot-col">
+            <div class="brand" style="margin-bottom:12px">
+              <img src="/assets/icon/favicon.png" alt="" style="width:26px;height:26px">
+              Trailence
+            </div>
+            <p class="muted" style="font-size:14px;max-width:34ch;margin:0">{{i18n.texts.pages.home.footer.slogan}}</p>
           </div>
-        }
-      }
-      <div class="search-button">
-        <a href="/search-route" (click)="$event.preventDefault()" class="home-page-search-route-button">
-          <ion-button (click)="router.navigateByUrl('/search-route')">
-            <ion-icon name="search" slot="start"></ion-icon>
-            <ion-label>{{i18n.texts.menu.search_trail}}</ion-label>
-          </ion-button>
-        </a>
+          <div class="foot-col">
+            <h5>{{i18n.texts.pages.home.footer.resources.title}}</h5>
+            <a href="/search-route" (click)="$event.preventDefault(); router.navigateByUrl('/search-route')">{{i18n.texts.pages.home.footer.resources.search_route}}</a>
+            <a href="/{{lang}}/donation" (click)="$event.preventDefault(); router.navigateByUrl('/' + lang + '/donation')">{{i18n.texts.pages.home.footer.resources.contribute}}</a>
+            <a href="/{{lang}}/contact" (click)="$event.preventDefault(); router.navigateByUrl('/' + lang + '/contact')">{{i18n.texts.pages.home.footer.resources.contact}}</a>
+            <a href="https://github.com/trailence/trailence-front" target="_blank">{{i18n.texts.pages.home.footer.resources.github}}</a>
+          </div>
+          <div class="foot-col">
+            <h5>{{i18n.texts.pages.home.footer.download}}</h5>
+            <div class="badges">
+              @let imgLocale = badgeLang();
+              <a href="https://play.google.com/store/apps/details?id=trailence.org&hl={{lang}}" target="_blank">
+                <img loading="lazy" src="/assets/home-page/google-playstore-{{imgLocale}}.svg" alt="Google Play"/>
+              </a>
+              <a href="https://appgallery.huawei.com/app/C114938253?locale={{lang}}" target="_blank">
+                <img loading="lazy" src="/assets/home-page/huawei-appgallery-{{imgLocale}}.svg" alt="AppGallery"/>
+              </a>
+              <a href="https://f-droid.org/{{lang}}/packages/trailence.org" target="_blank">
+                <img loading="lazy" src="/assets/home-page/fdroid-{{imgLocale}}.svg" alt="F-Droid"/>
+              </a>
+              <a href="https://trailence.{{lang}}.uptodown.com/android" target="_blank">
+                <img loading="lazy" src="/assets/home-page/uptodown.png" alt="Uptodown"/>
+              </a>
+            </div>
+            <p class="muted" style="font-size:13px;margin-top:12px">{{i18n.texts.pages.home.footer.or_use_web}}</p>
+          </div>
+        </div>
+      }<!--endif-->
+      <div class="foot-bottom">
+        <div>© {{year}} Trailence</div>
+        <div style="display:flex;gap:18px;flex-wrap:wrap">
+          <a href="/{{lang}}/privay-policy" (click)="$event.preventDefault(); router.navigateByUrl('/' + lang + '/privacy-policy');" class="muted">{{i18n.texts.pages.home.footer.privacy_policy}}</a>
+          @if (lang === 'fr') {
+            &nbsp;<a href="/assets/mentions-legales.2.html" target="_blank" class="muted">Mentions légales</a>
+          }<!--endif-->
+        </div>
       </div>
     </div>
-  }
+  </footer>
 
-  <div class="legal">
-    © {{ year }} Trailence
-    -
-    <a href="/{{prefs.preferences.lang}}/privay-policy" (click)="$event.preventDefault(); router.navigateByUrl('/' + prefs.preferences.lang + '/privacy-policy');">{{i18n.texts.pages.privacy_policy.title}}</a>
-    @if (prefs.preferences.lang === 'fr') {
-      &nbsp;<a href="/assets/mentions-legales.2.html" target="_blank">Mentions légales</a>
-    }
-  </div>
 </div>
