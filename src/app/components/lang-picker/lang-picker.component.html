@@ -16,7 +16,7 @@
     <ion-list>
       @for (lang of languagesList; track lang.key) {
         <ion-item lines="none" [button]="true" [detail]="false" (click)="setLanguage(lang.key, menu)">
-          <div class="flag" slot="start">
+          <div class="flag in-menu" slot="start">
             <img [src]="iconBaseUrl + lang.key + '.' + lang.iconVersion + '.svg'" />
           </div>
           <ion-label>

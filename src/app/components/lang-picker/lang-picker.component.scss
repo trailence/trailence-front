@@ -23,3 +23,14 @@ a, a:hover, a:active {
   color: var(--ion-text-color);
   text-decoration: none;
 }
+div.flag.in-menu {
+  img {
+    width: 24px;
+    min-width: 24px;
+    max-width: 24px;
+    height: 18px;
+    min-height: 18px;
+    max-height: 18px;
+    margin-right: 3px;
+  }
+}

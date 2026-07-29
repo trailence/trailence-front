@@ -21,4 +21,10 @@ export class InstallApkPage extends PublicPage {
     super(injector);
   }
 
+  imgLang(): string {
+    const l = this.prefs.preferences.lang;
+    if (['en', 'fr'].includes(l)) return l;
+    return 'en';
+  }
+
 }

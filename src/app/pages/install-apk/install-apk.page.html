@@ -1,17 +1,18 @@
 <app-header [title]="i18n.texts.pages.installApk.title" [description]="i18n.texts.pages.installApk.meta_description" [useH1]="true"></app-header>
+@let imgLocale = imgLang();
 <div class="page-content">
   <div class="content-container">
     <div class="stores">
       <div class="intro">{{i18n.texts.pages.installApk.stores.intro}}</div>
       <div class="links">
         <a href="https://play.google.com/store/apps/details?id=trailence.org&hl={{prefs.preferences.lang}}" target="_blank">
-          <img src="/assets/home-page/google-playstore-{{prefs.preferences.lang}}.svg" height="64"/>
+          <img src="/assets/home-page/google-playstore-{{imgLocale}}.svg" height="64"/>
         </a>
         <a href="https://appgallery.huawei.com/app/C114938253?locale={{prefs.preferences.lang}}" target="_blank">
-          <img src="/assets/home-page/huawei-appgallery-{{prefs.preferences.lang}}.svg" height="64"/>
+          <img src="/assets/home-page/huawei-appgallery-{{imgLocale}}.svg" height="64"/>
         </a>
         <a href="https://f-droid.org/{{prefs.preferences.lang}}/packages/trailence.org" target="_blank">
-          <img src="/assets/home-page/fdroid-{{prefs.preferences.lang}}.svg" height="64"/>
+          <img src="/assets/home-page/fdroid-{{imgLocale}}.svg" height="64"/>
         </a>
         <a href="https://trailence.{{prefs.preferences.lang}}.uptodown.com/android" target="_blank">
           <img src="/assets/home-page/uptodown.png" height="60"/>
@@ -42,7 +43,7 @@
           <div class="text-before">{{ step.beforeImg }}</div>
         </div>
         <div class="img-container">
-          <img [src]="'/assets/home-page/apk-install-' + ($index + 1) + '.' + prefs.preferences.lang + '.png'" />
+          <img [src]="'/assets/home-page/apk-install-' + ($index + 1) + '.' + imgLocale + '.png'" />
         </div>
         <div class="text-after">{{ step.afterImg }}</div>
       </div>
