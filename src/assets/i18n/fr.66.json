@@ -490,6 +490,7 @@
     },
     "find_duplicates": {
       "title": "Rechercher les parcours similaires",
+      "menu_label": "Rechercher les parcours similaires",
       "option_inside_collection": "A l'intérieur de la collection {{1}}",
       "option_between_collections": "Entre les parcours de la collection {{1}} et ceux de la collection",
       "option_all": "Entre tous les parcours de toutes les collections",
@@ -731,6 +732,7 @@
     },
     "pdf_popup": {
       "title": "Créer un PDF",
+      "menu_label": "Créer un PDF",
       "options": {
         "model": "Modèle",
         "models": {

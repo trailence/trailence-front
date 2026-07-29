@@ -256,7 +256,7 @@ export class TrailMenuService {
 
     if (trails.length === 1 && !onlyGlobal) {
       menu.push(
-        new MenuItem().setIcon('text').setI18nLabel('pages.pdf_popup.title')
+        new MenuItem().setIcon('text').setI18nLabel('pages.pdf_popup.menu_label')
           .setAction(() => import('../../components/pdf-popup/pdf-popup.component').then(m => m.openPdfPopup(this.injector, trails[0]))),
         new MenuItem().setIcon('live-group').setI18nLabel('pages.live_group.trail_menu.create')
           .setAction(() => import('../../components/live-group/live-group-popup.component').then(m => m.openCreateLiveGroupPopup(this.injector, trails[0].owner, trails[0].uuid))),
@@ -303,7 +303,7 @@ export class TrailMenuService {
     if (fromCollection && onlyGlobal && trails.length > 0) {
       menu.push(
         new MenuItem(),
-        new MenuItem().setIcon('compare').setI18nLabel('pages.find_duplicates.title')
+        new MenuItem().setIcon('compare').setI18nLabel('pages.find_duplicates.menu_label')
           .setAction(() => import('../../components/find-duplicates/find-duplicates.component').then(m => m.openFindDuplicates(this.injector, fromCollection.uuid))),
       );
     }

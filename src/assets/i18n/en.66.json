@@ -490,6 +490,7 @@
     },
     "find_duplicates": {
       "title": "Search for similar tracks",
+      "menu_label": "Search for similar tracks",
       "option_inside_collection": "Inside collection {{1}}",
       "option_between_collections": "Between tracks of collection {{1}} and collection",
       "option_all": "Between all tracks of all collections",
@@ -731,6 +732,7 @@
     },
     "pdf_popup": {
       "title": "Create PDF",
+      "menu_label": "Create PDF",
       "options": {
         "model": "Template",
         "models": {

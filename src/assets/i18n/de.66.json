@@ -490,6 +490,7 @@
     },
     "find_duplicates": {
       "title": "Ähnliche Touren suchen",
+      "menu_label": "Ähnliche Touren suchen",
       "option_inside_collection": "Innerhalb der Sammlung {{1}}",
       "option_between_collections": "Zwischen den Touren der Sammlung {{1}} und denen der Sammlung",
       "option_all": "Zwischen allen Touren aller Sammlungen",
@@ -731,6 +732,7 @@
     },
     "pdf_popup": {
       "title": "PDF erstellen",
+      "menu_label": "PDF erstellen",
       "options": {
         "model": "Vorlage",
         "models": {

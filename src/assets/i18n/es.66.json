@@ -490,6 +490,7 @@
     },
     "find_duplicates": {
       "title": "Buscar rutas similares",
+      "menu_label": "Buscar rutas similares",
       "option_inside_collection": "Dentro de la colección {{1}}",
       "option_between_collections": "Entre las rutas de la colección {{1}} y las de la colección",
       "option_all": "Entre todas las rutas de todas las colecciones",
@@ -731,6 +732,7 @@
     },
     "pdf_popup": {
       "title": "Crear un PDF",
+      "menu_label": "Crear un PDF",
       "options": {
         "model": "Plantilla",
         "models": {
