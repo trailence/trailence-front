@@ -1,0 +1,1729 @@
+{
+  "tools": {
+    "filters": "Filtros",
+    "import": "Importar",
+    "import_gpx_description": "Importar ficheiros GPX",
+    "importing": "A importar",
+    "sort": "Ordenar",
+    "more": "Mais",
+    "display": "Apresentação",
+    "display_detailed": "Detalhado com fotografias",
+    "display_detailed_small_map": "Detalhado com mapa",
+    "display_detailed_elevation": "Detalhado com altimetria",
+    "display_condensed": "Compacto",
+    "search_text": "Por nome"
+  },
+  "pages": {
+    "home": {
+      "title": "Pedestrianismo e gestão de traçados GPS (GPX)",
+      "subTitle": "O Trailence é gratuito, open source, sem publicidade, sem rastreadores.",
+      "meta_description": "Ferramenta para o pedestrianismo e a gestão dos seus traçados GPS (GPX). O Trailence é gratuito, sem publicidade e open source",
+      "slides": [
+        {
+          "header": "Organize os seus percursos",
+          "footer": ["Crie coleções", "Etiquete os seus percursos", "Visualize no mapa", "Ordenação, filtros..."]
+        }, {
+          "header": "Crie os seus traçados",
+          "footer": ["Grave um traçado durante a sua atividade", "Mapas offline", "Siga um percurso existente"]
+        }, {
+          "header": "Percursos em detalhe",
+          "footer": ["Altimetria", "Descrição", "Pontos de passagem"]
+        }, {
+          "header": "Adicione fotografias",
+          "footer": ["Adicione fotografias aos seus percursos", "Visualize as fotografias no mapa"]
+        }, {
+          "header": "Mas também...",
+          "footer": ["Partilhe percursos", "Importe traçados", "Exporte os seus traçados", "Melhore os seus traçados com a ferramenta de edição", "Planeie um percurso com o Open Street Map", "Copie, mova entre as suas coleções", "Compare, pesquise percursos semelhantes", "Estimativa do tempo de percurso", "Estatísticas", "E muito mais!"]
+        }
+      ],
+      "download_apk": "Transferir a app Android",
+      "try_app1": "Experimentar agora",
+      "try_app2": "Não precisa de conta!",
+      "available_on": "Disponível para Android e como aplicação web",
+      "examples_title": "Exemplos de percursos"
+    },
+    "installApk": {
+      "title": "App Android",
+      "stores": {
+        "intro": "O Trailence pode ser instalado a partir de uma das seguintes lojas:",
+        "else1": "Se não puder (ou não quiser) utilizar estas lojas, pode instalar o Trailence com o seu ficheiro APK.",
+        "else2": "Uma vez instalado, o Trailence irá avisá-lo quando estiver disponível uma atualização. Se optar por instalá-la, o Trailence transferirá e instalará automaticamente a nova versão — sem ter de repetir todos os passos da instalação inicial.",
+        "else3": "Para instalar o Trailence manualmente, siga estes passos:"
+      },
+      "download": "Transferir o ficheiro de instalação",
+      "meta_description": "Instruções para instalar a aplicação Android Trailence",
+      "steps": [
+        {
+          "beforeImg": "Pode aparecer uma janela semelhante à apresentada abaixo",
+          "afterImg": "Confirme a transferência e, em seguida, abra o ficheiro"
+        }, {
+          "beforeImg": "Se for a primeira vez que tenta instalar uma aplicação desta forma, pode aparecer um alerta semelhante ao apresentado abaixo",
+          "afterImg": "Aceda às Definições para autorizar a instalação"
+        }, {
+          "beforeImg": "Aparece então uma janela",
+          "afterImg": "Toque em Autorizar a partir desta fonte"
+        }, {
+          "beforeImg": "Aparece depois uma janela para confirmar a instalação",
+          "afterImg": "Toque em Instalar"
+        }, {
+          "beforeImg": "Aparece então uma janela semelhante à apresentada abaixo",
+          "afterImg": "Toque em Mais detalhes no meio do ecrã"
+        }, {
+          "beforeImg": "O ecrã apresenta então um botão «Instalar sem analisar»",
+          "afterImg": "Pode tocar nele ou pedir a análise, se preferir"
+        }, {
+          "beforeImg": "Por fim, a aplicação está instalada",
+          "afterImg": ""
+        }
+      ]
+    },
+    "login": {
+      "meta_description": "Início de sessão na sua conta Trailence",
+      "title": "Iniciar sessão",
+      "email": "Email",
+      "password": "Palavra-passe",
+      "signin_button": "Iniciar sessão",
+      "offline": "Ligue-se à Internet para iniciar sessão no Trailence",
+      "incorrect_message": "Credenciais incorretas",
+      "error_message": "Erro de autenticação, tente novamente",
+      "captcha_message": "Após várias tentativas, precisamos de verificar que não é um robô",
+      "locked_message": "A sua conta foi bloqueada, utilize o botão Esqueceu-se da palavra-passe",
+      "forgot_password": "Esqueceu-se da palavra-passe?",
+      "create_account": "Criar conta",
+      "try_without_account": "Experimentar sem conta",
+      "reset_password": {
+        "title": "Esqueceu-se da palavra-passe",
+        "email": "Email",
+        "new_password1": "Nova palavra-passe",
+        "new_password2": "Confirme a nova palavra-passe",
+        "verification_code_explaination": "Acabámos de enviar um código de 6 dígitos para o seu endereço de email. Introduza-o abaixo",
+        "in_progress": "A alterar a palavra-passe...",
+        "error": "Ocorreu um erro, volte atrás e tente novamente",
+        "errors": {
+          "email": "Introduza um endereço de email válido",
+          "password": "Deve conter pelo menos 8 caracteres",
+          "passwordsDontMatch": "As palavras-passe não coincidem",
+          "mail_already_sent": "Já foi feito um pedido para a sua conta há menos de 10 minutos.",
+          "mail_error": "Ocorreu um erro, tente novamente."
+        }
+      },
+      "signing_in": "A iniciar sessão...",
+      "downloading_data": "A carregar os seus dados..."
+    },
+    "register": {
+      "meta_description": "Crie uma conta no Trailence",
+      "title": "Criar conta",
+      "offline": "Ligue-se à Internet para poder criar uma conta no Trailence",
+      "step1": "Introduza os seus dados",
+      "email": "Email",
+      "password1": "Palavra-passe",
+      "password2": "Confirme a sua palavra-passe",
+      "step2": "Confirme o seu email",
+      "code_text": "Foi-lhe enviado um email com um código de confirmação de 6 dígitos. Introduza-o abaixo.",
+      "step3": "Conta criada",
+      "connection": "A iniciar sessão...",
+      "continue": "Continuar",
+      "back": "Voltar",
+      "errors": {
+        "network": "Ocorreu um erro, tente novamente",
+        "passwordsDontMatch": "As duas palavras-passe não coincidem",
+        "invalidEmail": "Introduza um endereço de email válido"
+      }
+    },
+    "trails": {
+      "collection": "Coleção",
+      "share_from": "Partilha de",
+      "your_share": "A sua partilha",
+      "edit_filters_popup_title": "Filtrar os percursos",
+      "edit_sort_popup_title": "Ordenar os percursos",
+      "missing_trails_because_offline": "Alguns percursos não podem ser apresentados porque está offline",
+      "sorts": {
+        "trail_date": "Data do percurso",
+        "creation_date": "Criação no Trailence",
+        "update_date": "Última atualização no Trailence",
+        "distance": "Distância",
+        "duration": "Duração",
+        "estimatedDuration": "Duração estimada de caminhada",
+        "positive_elevation": "Desnível positivo",
+        "negative_elevation": "Desnível negativo",
+        "highest_altitude": "Ponto mais alto",
+        "lowest_altitude": "Ponto mais baixo",
+        "rating": "Classificação"
+      },
+      "filters": {
+        "duration": "Duração",
+        "estimatedDuration": "Duração estimada de caminhada",
+        "distance": "Distância",
+        "positive_elevation": "Desnível positivo",
+        "negative_elevation": "Desnível negativo",
+        "loopType": "Tipo de percurso",
+        "loopTypePlaceholder": "Selecione os tipos",
+        "activity": "Atividade",
+        "select_activities_button": "Clique para selecionar",
+        "tags": "Etiquetas",
+        "rate": "Classificação",
+        "onlyVisibleOnMap": "Mostrar na lista apenas os percursos visíveis no mapa",
+        "onlyWithPhotos": "Apenas os percursos com fotografias",
+        "reset_button": "Remover todos os filtros",
+        "preset": "Os meus filtros",
+        "load": "Carregar",
+        "save": "Guardar",
+        "remove": "Eliminar",
+        "save_new": "Novo filtro...",
+        "no_saved_filter": "Nenhum filtro guardado",
+        "save_title": "Guardar o filtro",
+        "save_name": "Nome do filtro",
+        "enum_or": "ou"
+      },
+      "tabs": {
+        "list": "Lista",
+        "map": "Mapa"
+      },
+      "open_trail": "Abrir",
+      "empty_list": {
+        "collection": "Ainda não existem percursos nesta coleção",
+        "share": "Nenhum percurso nesta partilha",
+        "filter": "Nenhum percurso corresponde aos seus filtros",
+        "filter_search": "Nenhum percurso corresponde aos seus filtros nesta área",
+        "filter_search_enlarge_button": "Alargar a área de pesquisa",
+        "all_collections": "Ainda não tem nenhum percurso",
+        "my_selection": "Não tem nenhum percurso na sua seleção",
+        "search": "Nenhum percurso encontrado nesta área.",
+        "launch_search": "Desloque-se no mapa até à área onde pretende pesquisar percursos e, em seguida, clique em «Pesquisar nesta área».",
+        "only_bubbles": "Amplie o mapa e clique em «Pesquisar nesta área», ou clique diretamente nas bolhas para ver os percursos disponíveis."
+      },
+      "search_trail_placeholder": "Pesquisar um percurso",
+      "actions": {
+        "share_global": "Criar uma partilha",
+        "share_trail": "Criar uma partilha",
+        "share_trails": "Criar uma partilha com estes percursos",
+        "delete_confirm_single": {
+          "title": "Eliminar um percurso",
+          "message": "Tem a certeza de que pretende eliminar {{}}?",
+          "yes": "Sim, eliminar",
+          "no": "Cancelar, manter"
+        },
+        "delete_confirm_multiple": {
+          "title": "Eliminação de {{}} percursos",
+          "message": "Tem a certeza de que pretende eliminar estes {{}} percursos?",
+          "yes": "Sim, eliminar",
+          "no": "Cancelar, manter"
+        },
+        "deleting_trails": "A eliminar",
+        "move_to_collection": "Mover para...",
+        "copy_to_collection": "Copiar para...",
+        "new_collection": "Nova coleção...",
+        "copying": "A copiar",
+        "moving": "A mover",
+        "edit_collection": "Mudar o nome",
+        "export": "Exportar",
+        "export_collection": "Exportar a coleção",
+        "open_gpx": "Abrir o GPX com",
+        "prepare": "Preparar",
+        "modify": "Editar",
+        "share_section": "Partilhar",
+        "rename": "Título",
+        "edit_date": "Data",
+        "rename_popup": {
+          "title": "Mudar o nome do percurso",
+          "name": "Nome"
+        },
+        "edit_location": "Local",
+        "edit_activity": "Atividade",
+        "copy_photos_alert": {
+          "title": "Cópia das fotografias",
+          "message_singular": "O percurso copiado contém fotografias. Pretende também fazer uma cópia das fotografias?",
+          "message_plural": "Os percursos copiados contêm fotografias. Pretende também fazer uma cópia das fotografias?"
+        },
+        "copying_photos": "A copiar as fotografias",
+        "copy_photo_error": "Erro ao copiar a fotografia {{1}}",
+        "add_to_my_selection": "Adicionar à minha seleção",
+        "remove_from_my_selection": "Remover da minha seleção",
+        "copy_link": "Copiar a ligação",
+        "share_link": "Partilhar a ligação",
+        "create_link": "Criar uma ligação pública",
+        "edit_link": "Ligação pública"
+      },
+      "tags": {
+        "menu_item": "Etiquetas",
+        "collection_menu_item": "Editar as etiquetas",
+        "popup": {
+          "title_trail": "Etiquetas do percurso",
+          "title_trails": "Etiquetas dos percursos",
+          "title_collection": "Etiquetas da coleção",
+          "add_tag_label": "Nova etiqueta",
+          "confirm_delete": {
+            "title": "Eliminar a etiqueta",
+            "message": "Tem a certeza de que pretende eliminar esta etiqueta? Está atualmente a ser utilizada em {{1}} percursos",
+            "yes": "Sim, eliminar",
+            "no": "Cancelar, manter"
+          }
+        }
+      },
+      "search": {
+        "sources": "Fontes",
+        "searching": "A pesquisar",
+        "error": "Erro ao pesquisar",
+        "needs_zoom": "Mapa demasiado amplo, amplie mais",
+        "too_much_results": "Demasiados resultados",
+        "search_in_this_area": "Pesquisar nesta área",
+        "clear_search_results": "Limpar os resultados"
+      }
+    },
+    "trail": {
+      "title_compare": "Comparação de",
+      "title_compare_and": "e",
+      "tabs": {
+        "details": "Detalhes",
+        "map": "Mapa",
+        "photos": "Fotografias",
+        "waypoints": "Pontos de passagem",
+        "comments": "Avaliações"
+      },
+      "show_original": "Mostrar o traçado original",
+      "show_osm": "Mostrar o percurso seguindo os caminhos conhecidos",
+      "show_breaks": "Mostrar as pausas",
+      "show_guideposts": "Mostrar as balizas",
+      "show_intersections": "Mostrar as interseções",
+      "map_elements": {
+        "photos": "Fotografias",
+        "breaks": "Pausas",
+        "guideposts": "Balizas",
+        "waypoints": "Pontos de passagem",
+        "marked_trails": "Marcação dos trilhos"
+      },
+      "reverse_way": "Sentido invertido",
+      "open_in_app": "Abrir em",
+      "open_in_trailence": "Ver o percurso original",
+      "actions": {
+        "open": "Abrir o percurso",
+        "go_to_departure": "Ir para a partida",
+        "download_map": "Transferir o mapa",
+        "compare": "Comparar",
+        "compare_with": "Comparar com...",
+        "compare_with_explanation": "Para comparar este percurso com outro, abra o menu do outro percurso e clique em «Comparar com este percurso».",
+        "compare_with_this_one": "Comparar com este percurso",
+        "merge_trails": "Fundir estes percursos",
+        "merged_trail_name": "Percurso fundido"
+      },
+      "no_tag_message": "Nenhuma etiqueta neste percurso",
+      "no_photo_message": "Nenhuma fotografia neste percurso",
+      "photo_no_description": "Descrição",
+      "take_photo": "Tirar uma fotografia",
+      "comparison_message": "Estes percursos são {{1}}% semelhantes",
+      "propose_to_publish": {
+        "be_the_first": "Ainda não há percursos nesta zona. Seja o primeiro a partilhar um e a ajudar a comunidade 🙏",
+        "improve_region": "Esta zona precisa de mais percursos. Ajude a comunidade partilhando o seu 🙏",
+        "participate_region": "Ainda há poucos percursos nesta zona. Contribua para a comunidade partilhando o seu 🙏"
+      },
+      "sections": {
+        "description": {
+          "placeholder": "Introduza uma descrição aqui"
+        },
+        "waypoints": {
+          "title": "Pontos de passagem"
+        },
+        "comments": {
+          "title": "Avaliações",
+          "you": "Eu",
+          "rate": {
+            "global": "Classificação média:",
+            "global_on_nb": " de {{1}} avaliações",
+            "no_rate": "Ainda sem avaliações",
+            "yours": "A sua classificação:",
+            "write_a_review": "⭐ Avaliar e comentar este percurso",
+            "change_rate_or_review": "Alterar a minha classificação ou adicionar um comentário",
+            "modal": {
+              "title": "Avaliar e comentar",
+              "rate_title": "Atribua uma classificação",
+              "comment_title": "Deixe um comentário",
+              "comment_advise": {
+                "header": "Algumas regras e conselhos antes de comentar:",
+                "items": [
+                  "Partilhe brevemente a sua impressão geral sobre o percurso.",
+                  "Mencione se encontrou dificuldades.",
+                  "Assinale as passagens que exigem atenção especial.",
+                  "Não hesite em indicar o que gostou ou o que gostou menos, para ajudar a comunidade.",
+                  "Seja cortês e respeitoso: nenhuma linguagem injuriosa, ofensiva ou discriminatória."
+                ],
+                "footer": "🙏 Obrigado pela sua contribuição!"
+              },
+              "send_error": "Erro ao enviar o seu comentário"
+            }
+          },
+          "delete_comment_confirmation": {
+            "title": "Eliminar o comentário",
+            "message": "Tem a certeza de que pretende eliminar este comentário?"
+          },
+          "delete_reply_confirmation": {
+            "title": "Eliminar a resposta",
+            "message": "Tem a certeza de que pretende eliminar esta resposta?"
+          },
+          "reply": "Responder",
+          "reply_placeholder": "Introduza a sua resposta aqui",
+          "reply_send_error": "Erro ao enviar a sua resposta",
+          "load_more_comments": "Ver mais comentários",
+          "has_done_this_trail": "seguiu este percurso ✅",
+          "filter_has_done_this_trail": "Incluir as pessoas que seguiram este percurso",
+          "show_reviews_with_rate": "Filtro ativo: classificações de {{1}}/5",
+          "not_authenticated": "Inicie sessão para ver os comentários",
+          "not_connected": "É necessária ligação à Internet para obter as avaliações"
+        }
+      },
+      "remaining_metadata_title": "Restante",
+      "created_in_trailence_on": "Criado no Trailence a",
+      "last_update_on": "Última atualização a",
+      "published_by": "Publicado por",
+      "published__by": "Por",
+      "published_on": "Publicado a",
+      "published__on": "A",
+      "published_from": "a partir de",
+      "select_photo_position": "Selecione onde a fotografia foi tirada no percurso",
+      "source": {
+        "trailence_recorder": "Traçado gravado no Trailence",
+        "trailence_planner": "Percurso planeado no Trailence",
+        "with_date": " a {{1}}",
+        "with_owner": " por {{1}}",
+        "file_import": "Importado do ficheiro {{1}}",
+        "file_import_unknown": "Importado de um ficheiro",
+        "external": "Encontrado em {{1}}",
+        "following": " ao seguir :*:{{1}}:*:{{2}}:*:",
+        "following_a_deleted_track": " ao seguir um percurso (agora eliminado)",
+        "initially_found_on": " inicialmente encontrado em :*:{{1}}:*:{{2}}:*:",
+        "following_found_on": " ao seguir um percurso encontrado em :*:{{1}}:*:{{2}}:*:",
+        "source_url": "Fonte:",
+        "source_advise": "💡 Recomenda-se consultar a fonte antes de seguir o percurso, para dispor das informações mais recentes.",
+        "add_source_url": "Adicionar uma fonte (ligação)"
+      },
+      "my_feedback": {
+        "you_leave_a_rate": "Avaliou este percurso {{1}}/5 a {{2}}",
+        "you_leave_a_comment": "Deixou um comentário sobre este percurso a {{1}}",
+        "you_leave_a_rate_and_a_comment_same_date": "Avaliou este percurso {{1}}/5 com um comentário a {{2}}",
+        "you_leave_a_rate_and_a_comment_different_date": "Avaliou este percurso {{1}}/5 a {{2}} e deixou um comentário a {{3}}",
+        "invite_to_rate_title": "🙏 Participe na comunidade!",
+        "invite_to_rate_button": "⭐ Avaliar este percurso"
+      }
+    },
+    "collection_form": {
+      "title": "Coleção",
+      "collection_name": "Nome"
+    },
+    "location_popup": {
+      "title": "Localização do percurso",
+      "location": "Localização",
+      "search_from_departure": "Localizações propostas em relação ao ponto de partida",
+      "radius": "Num raio de",
+      "search": "Pesquisar"
+    },
+    "import_gpx_popup": {
+      "title": "Importação de um novo percurso",
+      "message": "Selecione a coleção para a qual pretende que o ficheiro{{1}}seja importado"
+    },
+    "import_tags_popup": {
+      "title_import": "Importação de etiquetas",
+      "title_copy": "Cópia de etiquetas",
+      "message_import": "As seguintes etiquetas foram encontradas nos ficheiros importados",
+      "message_copy": "As seguintes etiquetas estão presentes nos percursos copiados",
+      "tag": "Etiqueta",
+      "status": "Estado",
+      "status_exists": "Existe",
+      "status_does_not_exist": "Não existe",
+      "message2": "O que pretende fazer com estas etiquetas?",
+      "import_existing_only": "Importar apenas as etiquetas já existentes",
+      "import_and_create": "Importar todas as etiquetas, criando as que faltam",
+      "import_all": "Importar tudo",
+      "ignore_all_import": "Não importar as etiquetas",
+      "copy_existing_only": "Copiar apenas as etiquetas já existentes",
+      "copy_and_create": "Copiar todas as etiquetas, criando as que faltam",
+      "copy_all": "Copiar tudo",
+      "ignore_all_copy": "Não copiar as etiquetas"
+    },
+    "import_from_sources": {
+      "title": "Importação de dados",
+      "message1": "Encontrámos as seguintes fontes:",
+      "message2": "Pretende tentar importar dados adicionais a partir destas fontes?",
+      "message_internet": "Ligue-se à Internet para poder importar a partir destas fontes"
+    },
+    "share_popup": {
+      "title": "Partilhar",
+      "type": {
+        "question": "O que pretende partilhar?",
+        "collection": "Toda a coleção",
+        "tags": "Algumas etiquetas",
+        "explanation": {
+          "collection": "Todos os percursos da coleção serão partilhados. Se adicionar, remover ou modificar um percurso na coleção, a partilha será automaticamente atualizada.",
+          "tags": "Apenas os percursos da coleção com as etiquetas selecionadas (no passo seguinte) serão partilhados. Se adicionar uma etiqueta selecionada a um novo percurso, este será automaticamente incluído na partilha. Da mesma forma, se remover uma etiqueta de um percurso, a partilha será atualizada."
+        }
+      },
+      "tags": {
+        "question": "Que etiquetas?"
+      },
+      "name": "Atribua um nome à partilha",
+      "name_info": "Este nome será visível para si e para a pessoa com quem partilha",
+      "who_question": "Com quem? (até 20 pessoas)",
+      "includePhotos": "Partilhar as fotografias com os percursos",
+      "photos_info": "As fotografias associadas aos percursos partilhados serão visíveis para a pessoa com quem partilha",
+      "email": "Email",
+      "email_info": "Será enviado um email à pessoa para a informar da partilha",
+      "language": "Em que idioma devemos enviar o email?",
+      "recipient_error": "Introduza um endereço de email válido",
+      "share_description": {
+        "COLLECTION": "Partilha de toda a coleção {{1}}",
+        "TRAIL": "Partilha de {{1}} percurso(s)",
+        "TAGS": "Partilha das seguintes etiquetas: {{1}}"
+      }
+    },
+    "trail_link": {
+      "title": "Ligação pública",
+      "explanation": "Qualquer pessoa que tenha esta ligação poderá consultar o seu percurso, os seus pontos de passagem e as suas fotografias.<br/>Em contrapartida, as etiquetas e a coleção não serão visíveis.<br/>Qualquer alteração do percurso será automaticamente refletida.",
+      "offline": "Ligue-se à Internet para gerar a ligação",
+      "anonymous": "Esta funcionalidade não está disponível sem uma conta.",
+      "waiting": "A criar a ligação...",
+      "copy": "Copiar",
+      "copied": "Ligação copiada para a área de transferência",
+      "share": "Partilhar",
+      "share_title": "Ligação pública Trailence",
+      "delete": {
+        "title": "Eliminar a ligação pública",
+        "message": "Tem a certeza de que pretende eliminar esta ligação?"
+      }
+    },
+    "find_duplicates": {
+      "title": "Pesquisar percursos semelhantes",
+      "menu_label": "Pesquisar percursos semelhantes",
+      "option_inside_collection": "Dentro da coleção {{1}}",
+      "option_between_collections": "Entre os percursos da coleção {{1}} e os da coleção",
+      "option_all": "Entre todos os percursos de todas as coleções",
+      "threshold": "Com uma semelhança de pelo menos",
+      "end_message": "Fim da pesquisa"
+    },
+    "preferences": {
+      "title": "Preferências",
+      "display_section_title": "Visualização",
+      "language": "Idioma",
+      "theme": "Tema",
+      "themes": {
+        "light": "Claro",
+        "dark": "Escuro",
+        "system": "Predefinição do sistema"
+      },
+      "larger_touch_targets": "Elementos táteis ampliados",
+      "larger_texts": "Textos maiores",
+      "distance_unit": "Unidade de distância",
+      "distance_units": {
+        "meters": "Metros / Quilómetros",
+        "imperial": "Pés / Milhas"
+      },
+      "elevation_units_long": {
+        "meters": "metros",
+        "imperial": "pés"
+      },
+      "date_format": "Formato da data",
+      "time_format": "Formato da hora",
+      "appearance_and_privacy": "Aparência e privacidade",
+      "alias": "Como pretende aparecer publicamente?",
+      "alias_explaination": "Quando publica um percurso ou deixa um comentário num percurso público, pode optar por permanecer anónimo ou apresentar o nome à sua escolha. Se escolher um nome, certifique-se de que não contém qualquer termo injurioso, ofensivo ou discriminatório.",
+      "anonymous": "Anónimo",
+      "alias_name": "Com o nome",
+      "avatar": "Fotografia de perfil",
+      "avatar_pending": "Fotografia a aguardar aprovação",
+      "create_avatar": "Adicionar uma fotografia de perfil",
+      "delete_avatar_error": "Erro ao eliminar a fotografia de perfil",
+      "avatar_public": "Fotografia visível publicamente",
+      "avatar_private": "Fotografia privada, visível apenas para si",
+      "trace_recorder": "Gravação do traçado",
+      "traceMinMeters": "Distância mínima entre cada ponto gravado",
+      "traceMinMeters_explaination": "Um valor demasiado baixo pode resultar num traçado de má qualidade devido à imprecisão dos GPS.<br/>Um valor demasiado elevado também pode resultar num traçado de má qualidade, com traços longos.<br/>Deve também ter em conta que, quanto menor for a distância, maior será o número de pontos gravados, o que pode ter impacto no consumo da bateria durante a gravação.<br/>Para um bom equilíbrio, recomendamos um valor entre 5 e 15 metros (ou seja, cerca de 16 a 50 pés).",
+      "traceMinMillis": "Tempo mínimo entre cada ponto gravado",
+      "traceMinMillis_explaination": "Se pretender limitar o número de pontos gravados, de modo a reduzir o consumo da bateria, pode utilizar um tempo mínimo mais longo entre cada ponto.<br/>A distância mínima entre cada ponto também é tida em conta, sendo então necessário que a distância mínima seja atingida E que o tempo mínimo seja atingido antes de gravar um novo ponto.<br/>Recomendamos um valor entre 2 e 5 segundos.",
+      "elevation_calibration": "Altitude",
+      "elevation_calibration_explaination": "A altitude gravada pelo GPS apresenta frequentemente um desvio em relação à realidade.<br/>Aqui pode ajustá-la, indicando uma diferença a aplicar.<br/>Por exemplo, se o seu GPS indica sempre cerca de {{1}} {{2}} a mais do que a altitude real, pode introduzir <b>-{{1}}</b>.<br/>Como cada dispositivo é diferente, a configuração é feita por dispositivo.",
+      "elevation_calibration_this_device": "este dispositivo",
+      "offline_map": "Mapas offline",
+      "offlineMapMaxKeepDays": "Número de dias de validade de um mapa transferido",
+      "offlineMapMaxKeepDays_explaination": "Quando transfere um mapa para o tornar disponível offline, este parâmetro indica durante quantos dias será conservado. Isto permite também não transferir um elemento de mapa caso já tenha sido transferido recentemente, poupando assim tempo durante a transferência.",
+      "offline_maps": {
+        "title": "Mapas transferidos",
+        "items": "Elementos",
+        "size": "Tamanho",
+        "remove_all": "Eliminar tudo"
+      },
+      "more_maps_layers": "Mais mapas base",
+      "photos": "Fotografias",
+      "photos_max_pixels": "Largura/Altura máxima das fotografias",
+      "photos_max_pixels_explaination": "Quando adiciona uma fotografia, se esta for maior do que o tamanho máximo, será automaticamente reduzida.",
+      "photos_max_quality": "Qualidade das fotografias (%)",
+      "photos_max_quality_explaination": "As fotografias são automaticamente convertidas para o formato JPEG; este parâmetro indica a qualidade da compressão. 100% indica uma qualidade máxima, mas, por conseguinte, uma compressão fraca. Recomendamos 90%, que mantém uma qualidade muito boa, permitindo ao mesmo tempo uma boa compressão.",
+      "photos_max_size_kb": "Tamanho máximo dos ficheiros de fotografia (KB)",
+      "photos_max_size_kb_explaination": "Quando armazena uma fotografia, são aplicados o tamanho máximo em píxeis e a qualidade máxima. Se o resultado der um ficheiro de tamanho superior a este valor, o tamanho e a qualidade serão ligeiramente reduzidos até atingir um tamanho de ficheiro abaixo deste limite.",
+      "photos_cache": "Fotografias transferidas",
+      "photos_cache_explaination": "Quando uma fotografia é apresentada, é transferida e, em seguida, mantida em cache no seu dispositivo. Isto permite evitar ter de transferir uma fotografia de cada vez e, por conseguinte, uma apresentação mais rápida. Permite igualmente apresentar as fotografias offline. Assim, se planeia seguir um percurso que contém fotografias e pretende poder apresentar as fotografias offline durante o seu percurso, ao apresentar as fotografias antes do percurso, enquanto tem rede, estas ficarão disponíveis offline.",
+      "photos_cache_total": "Tamanho total dos ficheiros",
+      "photos_cache_expired": "Tamanho dos ficheiros expirados",
+      "photos_cache_remove_all": "Eliminar tudo",
+      "photos_cache_remove_expired": "Eliminar os ficheiros expirados",
+      "photos_cache_max_days": "Conservação das fotografias transferidas (dias)",
+      "thunderforest_explaination": "Pode adicionar os mapas de thunderforest.com se tiver uma conta com eles (está disponível uma conta gratuita). Para isso, introduza a sua chave de API abaixo",
+      "time_calculation": {
+        "title": "Cálculo dos tempos de percurso",
+        "base_speed": "Velocidade base num terreno plano",
+        "base_speed_explaination": "Esta velocidade é utilizada para a estimativa dos tempos de percurso. É ponderada em função do desnível e do tempo de percurso. Por predefinição, o valor é de 5 km/h (3.1 mi/h), o que corresponde à velocidade média de um caminhante.",
+        "long_breaks_title": "Deteção das pausas longas",
+        "long_break_explaination": "Quando apresentamos o tempo de um percurso, distinguimos as pausas curtas (por exemplo, para se refrescar, admirar a vista, ...) e as pausas longas (por exemplo, para fazer um piquenique).<br/><br/>As pausas curtas fazem parte do tempo de percurso apresentado, pois é normal incluí-las. Em contrapartida, quando é detetada uma pausa longa, o seu tempo é deduzido ao tempo de percurso, para que o tempo apresentado não dependa da duração da sua sesta 😉. O tempo assim descontado é apresentado na secção <i>Pausas</i>.<br/><br/>Para detetar as pausas longas, pode configurar 2 parâmetros: um perímetro e uma duração mínima. Uma pausa será então considerada longa se tiver permanecido dentro deste perímetro durante, pelo menos, a duração mínima configurada.",
+        "long_break_minimum_duration": "Duração mínima de uma pausa longa",
+        "long_break_maximum_distance": "Perímetro máximo"
+      },
+      "reset_all": "Repor tudo para os valores predefinidos"
+    },
+    "edit_avatar": {
+      "title": "Fotografia de perfil",
+      "edit": "Editar a fotografia",
+      "select_file": "Carregar um ficheiro",
+      "is_public": "Visível publicamente",
+      "error_saving": "Erro ao guardar a fotografia de perfil"
+    },
+    "myaccount": {
+      "title": "A minha conta",
+      "quotas": {
+        "title": "Quotas",
+        "collections": "Coleções",
+        "trails": "Percursos",
+        "tracks-size": "Armazenamento dos traçados",
+        "tags": "Etiquetas",
+        "trail-tags": "Percursos etiquetados",
+        "photos": "Fotografias",
+        "photos-size": "Armazenamento das fotografias",
+        "shares": "Partilhas"
+      },
+      "devices": "Dispositivos ligados",
+      "devices_table": {
+        "connected_since": "Ligado desde",
+        "last_usage": "Última utilização",
+        "this_device": "Este dispositivo",
+        "deleted_at": "Eliminado em",
+        "mobile_app": "Aplicação móvel",
+        "web_app": "Aplicação web",
+        "systems": {
+          "android": "Android",
+          "ios": "iOS",
+          "windows": "Windows"
+        },
+        "browsers": {
+          "chrome": "Google Chrome",
+          "edge": "Microsoft Edge",
+          "firefox": "Mozilla Firefox"
+        }
+      },
+      "not_connected": "Não tem sessão iniciada",
+      "change_password": {
+        "button": "Alterar a palavra-passe",
+        "button_new": "Criar a conta",
+        "current_password": "Palavra-passe atual",
+        "new_password1": "Nova palavra-passe",
+        "new_password2": "Confirme a nova palavra-passe",
+        "new_password1_new": "Palavra-passe",
+        "new_password2_new": "Confirme a sua palavra-passe",
+        "verification_code_explaination": "Acabámos de enviar um código de 6 dígitos para o seu endereço de email, introduza-o abaixo",
+        "in_progress": "A alterar a palavra-passe...",
+        "error": "Ocorreu um erro, volte atrás e tente novamente",
+        "errors": {
+          "current_password": "Introduza a sua palavra-passe atual",
+          "passwordsDontMatch": "As 2 palavras-passe não coincidem",
+          "mail_already_sent": "Já foi feito um pedido para a sua conta há menos de 10 minutos.",
+          "mail_error": "Ocorreu um erro, tente novamente."
+        }
+      },
+      "delete_me": {
+        "button": "Eliminar a conta",
+        "button_new": "Eliminar os dados",
+        "confirm_message": "Tem a certeza de que pretende eliminar definitivamente a sua conta e todos os seus dados no Trailence?",
+        "code_message": "Acabámos de enviar um código de 6 dígitos para o seu endereço de email, introduza-o abaixo",
+        "done": "A sua conta e os seus dados foram eliminados."
+      }
+    },
+    "link": {
+      "stop_change_password": {
+        "in_progress": "Obrigado por nos ter comunicado o problema, estamos a cancelar o pedido de alteração da palavra-passe da sua conta...",
+        "done": "Obrigado por nos ter comunicado o problema, cancelámos todos os pedidos de alteração da palavra-passe da sua conta."
+      },
+      "stop_registration": {
+        "in_progress": "Obrigado por nos ter comunicado o problema, estamos a cancelar o pedido de criação de conta...",
+        "done": "Obrigado por nos ter comunicado o problema, cancelámos o pedido de criação da sua conta."
+      },
+      "stop_deletion": {
+        "in_progress": "Obrigado por nos ter comunicado o problema, estamos a cancelar o pedido de eliminação de conta...",
+        "done": "Obrigado por nos ter comunicado o problema, cancelámos o pedido de eliminação da sua conta."
+      },
+      "share": {
+        "in_progress": "Estamos a carregar os dados da sua ligação de partilha...",
+        "error": "A sua ligação é inválida. É possível que a partilha desta ligação tenha sido eliminada."
+      }
+    },
+    "trailplanner": {
+      "title": "Planeador de percursos",
+      "please_zoom": "Para ver os caminhos possíveis e posicionar pontos, amplie pelo menos até ao nível",
+      "start": "Iniciar",
+      "stop": "Pausar",
+      "reset": "Desfazer tudo",
+      "resume": "Retomar",
+      "undo": "Desfazer",
+      "show_routes": "Mostrar os circuitos",
+      "show_trails": "Mostrar os meus percursos",
+      "put_free_point": "Ponto livre",
+      "back_to_non_free_point": "Seguir caminhos",
+      "meta": {
+        "from": "De",
+        "to": "a"
+      },
+      "legend": {
+        "permissive": "Passagem tolerada (pode ser fechada a qualquer momento)",
+        "forbidden": "Passagem proibida"
+      },
+      "save": {
+        "trail_name": "Nome do percurso",
+        "collection": "Em que coleção"
+      },
+      "reset_confirmation": {
+        "title": "Desfazer tudo",
+        "message": "Confirma que pretende eliminar todo o percurso planeado?"
+      }
+    },
+    "export_popup": {
+      "which_tracks": "Que traçado pretende exportar?",
+      "track_original": "O traçado original",
+      "track_original_explaination": "Apenas o traçado de origem (seja importado, seja gravado pelo GPS), sem melhoria nem modificação",
+      "track_current": "O traçado atual",
+      "track_current_explaination": "O traçado atual no Trailence, incluindo as melhorias e modificações",
+      "track_both": "Ambos",
+      "track_both_explaination": "Ambos serão exportados no mesmo ficheiro. Isto permitirá reimportar no Trailence os 2 traçados num único percurso, ideal, portanto, para uma cópia de segurança. No entanto, poderá não abrir corretamente se importar o ficheiro noutra aplicação.",
+      "include_photos": "Incluir as fotografias",
+      "include_photos_explaination": "As fotografias serão incluídas num ficheiro ZIP, que poderá ser importado no Trailence"
+    },
+    "photos_popup": {
+      "title": "Fotografias",
+      "importing": "A importar",
+      "add_photos_buttons": "Adicionar fotografias",
+      "selected_plural": "fotografias selecionadas",
+      "selected_single": "fotografia selecionada",
+      "deleting": "A eliminar as fotografias",
+      "position": {
+        "available": "Localizada no percurso",
+        "not_available": "Não localizada no percurso",
+        "clear_title": "Remover a posição da fotografia",
+        "clear_message": "Tem a certeza de que pretende remover a posição desta fotografia?"
+      },
+      "buttons": {
+        "edit": "Editar a fotografia"
+      }
+    },
+    "import_popup": {
+      "title": "Importar",
+      "from_file_title": "A partir de um ficheiro GPX ou ZIP",
+      "from_file_button": "Escolher...",
+      "from_url_title": "A partir de um URL",
+      "url_placeholder": "URL",
+      "unknown_source": "Nenhuma fonte suportada corresponde a este URL",
+      "fetch_error": "Não foi possível obter o percurso corretamente",
+      "from_clipboard_title": "A partir da área de transferência",
+      "from_clipboard_button": "Ler a área de transferência",
+      "nothing_found_in_clipboard": "Nenhum percurso encontrado na área de transferência",
+      "button_import": "Importar a partir de {{1}}",
+      "link_source": "uma ligação Trailence"
+    },
+    "pdf_popup": {
+      "title": "Criar PDF",
+      "menu_label": "Criar PDF",
+      "options": {
+        "model": "Modelo",
+        "models": {
+          "BIG_MAP": "Mapa grande numa página",
+          "ONE_PAGE": "Condensado"
+        },
+        "include": {
+          "title": "Incluir",
+          "description": "Descrição do percurso",
+          "waypoints": "Pontos de passagem",
+          "elevation": "Perfil altimétrico",
+          "qrcode": "QR code da ligação",
+          "no_qrcode_message": "Este percurso não tem ligação pública",
+          "avatar": "A minha fotografia de perfil",
+          "avatar_size": {
+            "small": "Tamanho pequeno",
+            "large": "Tamanho grande"
+          },
+          "photo": "Fotografia"
+        },
+        "map_layer": "Mapa base"
+      },
+      "preview": {
+        "title": "Pré-visualização do PDF"
+      },
+      "progress_message": "A criar o PDF...",
+      "qr_code_link": "Abrir no Trailence",
+      "download_button": "Guardar PDF",
+      "error_downloading_tile": "Erro ao transferir o mapa"
+    },
+    "live_group": {
+      "title": "Seguimento de grupo",
+      "explaination_title": "Funcionamento de um grupo",
+      "explaination": "Um grupo de seguimento permite partilhar a sua localização durante uma atividade.<br/>Qualquer pessoa pode juntar-se a um grupo através de uma ligação ou de um QR code, sem necessitar obrigatoriamente de uma conta no Trailence.<br/>A localização de cada membro é regularmente registada e partilhada com os outros membros do grupo, para que se possam reencontrar facilmente em caso de necessidade.<br/>Claro que a partilha de localização só funciona quando existe uma ligação de rede disponível. No entanto, pode desativar a rede durante a sua atividade e ativá-la apenas quando for necessário.<br/>Um grupo é automaticamente eliminado se tiver mais de uma semana.",
+      "group_name": "Nome do grupo",
+      "my_name": "O meu nome / alias",
+      "create_error": "Erro ao criar o grupo",
+      "save_error": "Erro ao guardar",
+      "create_offline": "Ligue-se à Internet para criar um grupo",
+      "save_offline": "Ligue-se à Internet para modificar o grupo",
+      "member_not_localized": "Sem localização",
+      "member_localized": "Com localização",
+      "link_button": "Ligação",
+      "join_group": "Juntar-se ao grupo",
+      "joining_offline": "Ligue-se à Internet para se juntar ao grupo",
+      "joining_error": "Erro ao juntar-se ao grupo",
+      "stop": "Parar",
+      "leave": "Sair",
+      "offline": "Sem ligação à Internet",
+      "rename_me": "Nome",
+      "nb_members_singular": "{{1}} pessoa",
+      "nb_members_plural": "{{1}} pessoas",
+      "updated_at": "Atualizado",
+      "date_from": "De",
+      "date_to": "a",
+      "remove_trail_attachment": "Remover a associação ao percurso",
+      "confirm": {
+        "stop": {
+          "title": "Parar o grupo",
+          "message": "Depois de parado, o grupo é definitivamente eliminado.<br/>Todos os membros saem automaticamente do grupo e a ligação deixa de funcionar.<br/><br/>Tem a certeza de que pretende parar o grupo?"
+        },
+        "leave": {
+          "title": "Sair do grupo",
+          "message": "Tem a certeza de que pretende sair do grupo?"
+        }
+      },
+      "no_trail": "O grupo não será associado a nenhum percurso.",
+      "no_trail_explaination": "Isto significa que a consulta do grupo será feita num ecrã dedicado, onde verá apenas os membros do grupo e a respetiva localização. Em contrapartida, quando o grupo está associado a um percurso, pode consultar o grupo diretamente a partir do ecrã do percurso. Isto é muito mais prático se pretender seguir esse percurso com o grupo.<br/><br/>Para criar um grupo associado a um percurso, abra o percurso e, no respetivo menu, selecione «Criar um grupo de seguimento».<br/>Também pode associar um grupo existente abrindo o percurso e, no respetivo menu, selecionando «Associar a um grupo de seguimento»",
+      "share_trail": "Partilhar o percurso com os membros do grupo",
+      "explaination_trail_restricted_access": "Este percurso provém de uma partilha consigo. Apenas os membros que também têm acesso a este percurso poderão vê-lo.",
+      "explaination_trail_needs_public_link": "Apenas os membros com quem partilhou este percurso o podem ver. Para que todos os membros o possam ver, pode criar uma ligação pública de partilha para este percurso.",
+      "trail_menu": {
+        "attach": "Associar a um grupo de seguimento",
+        "create": "Criar um grupo de seguimento"
+      },
+      "listening_info_message": "Um grupo de seguimento está ativado. A sua localização será registada e partilhada com os membros do grupo quando existir uma ligação de rede disponível.",
+      "pause": "Colocar o registo em pausa",
+      "resume": "Retomar o registo",
+      "paused": "Registo em pausa"
+    },
+    "donation": {
+      "meta_description": "Apoiar o projeto Trailence",
+      "title": "Contribuir",
+      "header": "Obrigado por considerar ajudar este projeto!",
+      "text": "O Trailence é gratuito, sem publicidade e open-source.<br/><br/>Para que assim continue, gostaríamos de pedir a sua ajuda.<br/><br/>Somos transparentes quanto aos nossos custos e àquilo para que servem os seus donativos.<br/>&nbsp; - Atualmente pagamos 67 euros por ano pelo alojamento (um servidor básico + o nome de domínio).<br/>&nbsp; - Temos um espaço de armazenamento de 100GB por 20 euros.<br/>&nbsp; - Pagámos 25$ à Google para estar presente no Google Play.<br/>",
+      "button": "Fazer um donativo",
+      "goals": {
+        "goal": "Objetivo",
+        "raised": "angariados",
+        "thanks": "Obrigado!",
+        "descriptions": {
+          "past_costs": "Cobrir as nossas despesas desde 2025",
+          "future_costs": "Assegurar a sustentabilidade cobrindo as despesas de mais 2 anos",
+          "increase_capacity": "Aumentar a capacidade para todos os utilizadores (mais armazenamento, servidor capaz de servir mais utilizadores)"
+        }
+      },
+      "developer": {
+        "title": "É programador?",
+        "message": "Também pode contribuir para o código. O Trailence é open-source e está disponível em ",
+        "message2": "Mais especificamente, uma contribuição procurada é o desenvolvimento da aplicação para iOS. Utilizamos o Ionic, por isso apenas são necessárias algumas funcionalidades nativas."
+      },
+      "translations": {
+        "title": "Ajude-nos a traduzir o Trailence!",
+        "message": "Gostaríamos de tornar o Trailence disponível em ainda mais idiomas. Se pretende participar traduzindo o Trailence para um novo idioma ou melhorando as traduções existentes, não hesite em contactar-nos!"
+      }
+    },
+    "contact": {
+      "meta_description": "Formulário de contacto, pergunta, comunicar um problema...",
+      "title": "Contacto",
+      "email": "O seu email para lhe responder",
+      "type": "Tipo de pedido",
+      "types": {
+        "question": "Pergunta",
+        "bug": "Comunicar um problema",
+        "feature": "Sugerir uma melhoria",
+        "other": "Outro"
+      },
+      "message": "A sua mensagem",
+      "send_button": "Enviar",
+      "sent": "A sua mensagem foi enviada",
+      "error": "Ocorreu um erro, tente novamente",
+      "retry_with_captcha": "Precisamos de verificar que não é um robô, clique novamente em Enviar",
+      "network_needed": "Ligue-se à Internet para enviar uma mensagem",
+      "accept_send_data": "Aceito enviar dados técnicos da aplicação para ajudar a resolver o problema",
+      "show_data": "Ver estes dados",
+      "email_alternative": "Também nos pode contactar por email:"
+    },
+    "stats": {
+      "title": "As minhas estatísticas",
+      "config_title": "Configuração",
+      "type_title": "Estatísticas sobre",
+      "time_unit_title": "Por",
+      "source_title": "Entre",
+      "filter_title": "Tendo em conta apenas os percursos",
+      "activity_filter_title": "com a atividade",
+      "types": {
+        "nb_trails": {
+          "title": "O número de percursos"
+        },
+        "distance": {
+          "title": "A distância"
+        },
+        "positive-elevation": {
+          "title": "O desnível positivo"
+        },
+        "negative-elevation": {
+          "title": "O desnível negativo"
+        },
+        "duration": {
+          "title": "A duração"
+        }
+      },
+      "time_units": {
+        "year": {
+          "title": "Ano"
+        },
+        "month": {
+          "title": "Mês"
+        },
+        "month_of_year": {
+          "title": "Mês (todos os anos juntos)"
+        }
+      },
+      "sources": {
+        "the_collection": "A coleção",
+        "collection_single": "coleção",
+        "collection_plural": "coleções",
+        "the_share": "A partilha",
+        "share_single": "partilha",
+        "share_plural": "partilhas",
+        "shared_by": "partilhado por"
+      },
+      "activities": {
+        "all": "(Todas)",
+        "or": "ou",
+        "n_activities": "atividades"
+      }
+    },
+    "privacy_policy": {
+      "title": "Política de Privacidade"
+    },
+    "photo_editor": {
+      "title": "Edição de uma fotografia",
+      "rotate_clockwise": "Rodar para a direita",
+      "rotate_counterclockwise": "Rodar para a esquerda",
+      "crop": "Recortar",
+      "blur": "Desfocar"
+    },
+    "avatar_moderation": {
+      "menu_title": "Fotografias de perfil",
+      "validate": "Validar",
+      "reject": "Rejeitar"
+    }
+  },
+  "menu": {
+    "collections": "Coleções",
+    "shared_with_me": "Partilhado comigo",
+    "nothing_shared_with_me": "Nenhum percurso partilhado consigo",
+    "shared_by_me": "Partilhado por mim",
+    "nothing_shared_by_me": "Não partilha nenhum percurso",
+    "my_publications": "As minhas publicações",
+    "start_trace": "Iniciar gravação",
+    "current_trace": "Gravação em curso",
+    "planner": "Planear um percurso",
+    "search_trail": "Encontrar um percurso",
+    "no_share_for_anonymous": "As funcionalidades de partilha não estão disponíveis sem uma conta",
+    "anonymous_account": "Experimentar sem conta",
+    "help": "Ajuda",
+    "create_live_group": "Criar um grupo de seguimento",
+    "one_live_group": "Grupo de seguimento em curso",
+    "several_live_groups": "{{1}} grupos de seguimento em curso"
+  },
+  "collection_menu": {
+    "delete_confirm": {
+      "title": "Eliminar a coleção",
+      "message": "Tem a certeza de que pretende eliminar a coleção {{}}?",
+      "yes": "Sim, eliminar",
+      "no": "Cancelar, manter"
+    },
+    "deleting": "A eliminar a coleção"
+  },
+  "my_trails": "Os meus percursos",
+  "all_collections": "Todas as coleções",
+  "my_selection": "A minha seleção",
+  "publications": {
+    "draft_name": "Rascunhos",
+    "submit_name": "Em revisão",
+    "reject_name": "Alterações solicitadas",
+    "my_public_trails_name": "Publicados",
+    "publish": "Publicar",
+    "publish_confirmation": "Ao confirmar a publicação deste percurso, afirma ter respeitado as regras e confirma que este percurso pode ser tornado público",
+    "publish_message_placeholder": "Se pretender deixar uma mensagem ao moderador que irá analisar o seu percurso, pode escrevê-la aqui.",
+    "reject_to_draft": "Melhorar",
+    "checklist": "Checklist",
+    "modify": "Editar",
+    "remove": "Eliminar",
+    "compare_current": "Comparar com a publicação atual",
+    "exit_compare_current": "Parar a comparação",
+    "check_public_trails_around": "Mostrar os percursos públicos",
+    "exit_check_public_trails_around": "Ocultar os percursos públicos",
+    "show_html_text": "Textos em HTML",
+    "exit_show_html_text": "Textos normais",
+    "remove_publication_title": "Eliminar o percurso publicado",
+    "remove_publication_message": "Indique o motivo pelo qual pretende que este percurso seja eliminado",
+    "remove_publication_sent": "O seu pedido de eliminação foi enviado",
+    "remove_publication_error": "Erro ao enviar o seu pedido de eliminação",
+    "start_popup": {
+      "header": "Obrigado por contribuir para a comunidade Trailence!",
+      "text_before": "Pretende publicar o seu percurso, o que o tornará visível para todos os utilizadores. Eis algumas informações importantes sobre a publicação:",
+      "bullets": [
+        {
+          "text": "O percurso publicado torna-se uma cópia do seu percurso original. Isto significa que as alterações que fizer no percurso a publicar não serão aplicadas ao seu percurso pessoal, que permanecerá privado. Da mesma forma, se posteriormente modificar o seu percurso original, isso não afetará o percurso publicado."
+        }, {
+          "text": "Numa primeira fase, o percurso ficará no estado «Rascunho». Isto permitir-lhe-á prepará-lo antes da publicação e efetuar ajustes relativamente ao seu percurso original."
+        }, {
+          "text": "Durante esta fase, será acompanhado por uma Checklist, que o ajudará a validar os pontos importantes antes da publicação. Entre estes elementos:",
+          "bullets": [
+            {
+              "text": "Expressões injuriosas, ofensivas ou discriminatórias são estritamente proibidas."
+            }, {
+              "text": "Certifique-se de remover qualquer informação pessoal que não pretenda tornar pública."
+            }, {
+              "text": "Não adicione fotografias onde as pessoas sejam reconhecíveis."
+            }
+          ]
+        }, {
+          "text": "Assim que estiver pronto, poderá submeter o seu percurso. Poderá então ser revisto por um moderador, que verificará o cumprimento das regras."
+        }, {
+          "text": "Assim que for validado, ficará visível para toda a comunidade!"
+        }, {
+          "text": "Poderá depois, se assim o desejar, editar ou remover a sua publicação a qualquer momento."
+        }
+      ],
+      "text_after": "Obrigado pela sua participação e boa publicação!"
+    },
+    "edit_popup": {
+      "title": "Edição de um percurso publicado",
+      "message": "O percurso será copiado para os seus rascunhos. A edição funciona como numa primeira publicação: assim que as suas alterações estiverem concluídas, serão revistas por um moderador. Confirma que pretende editar esta publicação?"
+    },
+    "checklist_items": {
+      "iam_author": {
+        "title": "Direitos de autor e autorizações",
+        "description_start": "©️ Certifique-se de que é realmente o autor das informações que publica, ou de que obteve a autorização explícita do autor para as publicar no Trailence."
+      },
+      "name": {
+        "title": "Nome do percurso",
+        "description_start": "O nome deve ser curto e descrever claramente o objetivo do percurso. Eis alguns exemplos:",
+        "description_bullets": [
+          "<b>Lagoa Comprida e Lagoa Escura (Serra da Estrela)</b>: o objetivo é claro e conciso.",
+          "<b>Torre pela Nave de Santo António</b>: o cume é indicado, bem como o itinerário seguido caso existam várias opções.",
+          "<b>Da Zambujeira do Mar a Odeceixe pela Rota Vicentina</b>: indica-se a partida, a chegada e o caminho seguido, se pertinente."
+        ]
+      },
+      "description": {
+        "title": "Descrição do percurso",
+        "description_start": "A descrição deve permitir compreender rapidamente o que esperar do percurso. Lembre-se de incluir:",
+        "description_bullets": [
+          "As eventuais dificuldades (tipo e localização)",
+          "Os miradouros, pontos de interesse ou curiosidades a não perder",
+          "O tipo de caminho (trilho, caminho largo, estrada…) e uma ideia da proporção, se necessário",
+          "Se o percurso decorre em floresta, a descoberto, em altitude, etc.",
+          "Eventuais conselhos sobre a melhor época para o fazer",
+          "Se o percurso for variado, uma descrição das grandes etapas (ex.: partida na floresta, passagem por uma capela, crista panorâmica…)",
+          "Termine com informações práticas, se pertinente: estacionamento, pontos de água disponíveis, etc."
+        ]
+      },
+      "date": {
+        "title": "Data indicada",
+        "set_date": "Definir uma data"
+      },
+      "location": {
+        "title": "Local indicado",
+        "set_location": "Definir um local"
+      },
+      "activity": {
+        "title": "Tipo de atividade indicado",
+        "description_start": "Escolha a atividade principal do percurso. Permite aos outros utilizadores interpretar melhor a sua duração e identificar os itinerários adequados e realmente praticáveis para essa atividade."
+      },
+      "track": {
+        "title": "Qualidade do traçado",
+        "description_start": "Se possível, tente melhorar a qualidade do traçado:",
+        "description_bullets": [
+          "Corrija as altitudes se alguns valores parecerem incoerentes.",
+          "Se saiu do percurso normal (por exemplo, para uma pequena pausa técnica 🤭), tente eliminar essas secções do traçado."
+        ],
+        "description_end": "👉 Para isso, utilize o botão Editar no mapa."
+      },
+      "waypoints": {
+        "title": "Pontos de passagem",
+        "description_start": "Lembre-se de adicionar pontos de passagem ao seu percurso:",
+        "description_bullets": [
+          "Podem servir para indicar um ponto específico: um miradouro, uma curiosidade, uma nascente…",
+          "Mas sobretudo, permitem dar indicações de direção, nomeadamente nos locais onde o itinerário não é evidente no terreno (por exemplo, num cruzamento, ou quando o trilho está mal marcado)."
+        ],
+        "description_end": "👉 Para isso, utilize o botão Editar no mapa, selecione o local pretendido e utilize o menu Ponto de passagem."
+      },
+      "photos": {
+        "title": "Fotografias",
+        "description_start": "Lembre-se de incluir fotografias que dão vontade de seguir o seu percurso: belas paisagens, miradouros, locais invulgares…",
+        "description_bullets": [
+          "📍 Verifique se cada fotografia está bem posicionada no percurso, se isso não foi feito automaticamente.",
+          "⚠️ Não coloque fotografias onde as pessoas sejam reconhecíveis.",
+          "🙏 Evite também partilhar fotografias de propriedades privadas sem autorização."
+        ]
+      }
+    },
+    "moderation": {
+      "menu_title": "Moderação",
+      "menu_trails": "Percursos",
+      "menu_comments": "Comentários",
+      "menu_remove": "Remoções",
+      "publishing": "Publicação",
+      "error_publishing": "Erro ao publicar",
+      "error_updating_trail": "Erro ao atualizar o percurso",
+      "error_translating": "Erro ao traduzir",
+      "publish_confirmation": "Confirma que este percurso pode ser tornado público?",
+      "reject": "Rejeitar",
+      "reject_message_placeholder": "Escreva aqui uma mensagem para explicar o motivo da rejeição deste percurso.",
+      "message_from_author": "Mensagem do autor",
+      "previous_moderator_message": "Mensagem anterior do moderador",
+      "moderator_message": "Mensagem do moderador",
+      "refresh": "Atualizar",
+      "comments": {
+        "reviewed_button": "Validar"
+      }
+    }
+  },
+  "buttons": {
+    "apply": "Aplicar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "create": "Criar",
+    "close": "Fechar",
+    "delete": "Eliminar",
+    "download": "Transferir",
+    "edit": "Editar",
+    "next": "Continuar",
+    "ok": "OK",
+    "previous": "Anterior",
+    "quit": "Sair",
+    "save": "Guardar",
+    "send": "Enviar",
+    "start": "Iniciar",
+    "reset": "Repor",
+    "retry": "Tentar novamente",
+    "understood": "Compreendido",
+    "undo": "Desfazer",
+    "redo": "Refazer",
+    "yes": "Sim",
+    "no": "Não"
+  },
+  "order_way": "Por ordem",
+  "order_asc": "Crescente",
+  "order_desc": "Decrescente",
+  "selected_single": "selecionado",
+  "selected_plural": "selecionados",
+  "way_points": {
+    "DA": "P C",
+    "D": "P",
+    "A": "C",
+    "position": "Posição",
+    "distance": "Distância",
+    "altitude": "Altitude",
+    "time": "Tempo",
+    "duration": "Duração",
+    "description_placeholder": "Descrição",
+    "name_placeholder": "Nome"
+  },
+  "trailGraph": {
+    "distance": "Distância",
+    "elevation": "Altitude",
+    "time_duration": "Tempo",
+    "elevation_grade": "Inclinação",
+    "location": "Posição",
+    "precision": "Precisão",
+    "speed": "Velocidade",
+    "legend_estimated_speed": "Velocidade estimada"
+  },
+  "offline_map": {
+    "download_trail": "Os mapas correspondentes ao percurso serão transferidos para ficarem disponíveis offline",
+    "download_map": "Os mapas da área atualmente apresentada serão transferidos para ficarem disponíveis offline",
+    "select_layers": "Selecione os mapas a transferir",
+    "parameters": "Definições",
+    "max_zoom": "Nível de zoom máximo a transferir",
+    "max_zoom_explaination": "Quanto mais alto for o nível de zoom selecionado, mais poderá fazer zoom durante o seu percurso quando estiver offline, mas, em consequência, mais longo será o tempo de transferência e mais espaço de armazenamento será necessário no seu dispositivo.",
+    "max_zoom_reco": "Recomenda-se um valor entre 15 e 17. Abaixo de 15, o nível de detalhe é frequentemente demasiado baixo para ver bem os pequenos caminhos. Acima de 17, o tamanho da transferência é considerável e, geralmente, não é necessário para seguir perfeitamente um itinerário.",
+    "padding": "Estender a área a transferir (%)",
+    "padding_explaination_for_trail": "Percentagem da área a transferir em redor da área do percurso (100% significa não mais do que o percurso). Permite ver mais em redor do percurso no modo offline.",
+    "padding_explaination_for_map": "Percentagem da área a transferir em redor da área atualmente apresentada (100% significa não mais do que o percurso). Permite ver uma área um pouco maior no modo offline.",
+    "percent_done": "transferido",
+    "remaining": "elemento(s) restante(s)",
+    "todo": "elemento(s) a transferir",
+    "downloading": {
+      "progress_title": "A transferir de {{1}}"
+    }
+  },
+  "layers_popup": {
+    "title": "Mapa base",
+    "overlays_title": "Adicionar camadas",
+    "regional_title": "Por país ou região"
+  },
+  "trace_recorder": {
+    "trail_name_start": "Percurso de",
+    "pause": "Pausar",
+    "resume": "Retomar",
+    "stop": "Terminar",
+    "start_this_trail": "Iniciar o percurso",
+    "notif_message": "A seguir a sua posição no Trailence",
+    "disclosure_popup": {
+      "title": "Utilização da sua localização",
+      "message": "O Trailence recolhe dados de localização para permitir a gravação de um traçado durante o seu percurso, mesmo quando a aplicação está fechada ou não está a ser utilizada.",
+      "button_turnon": "Ativar"
+    },
+    "disabled_popup": {
+      "title": "GPS desativado",
+      "message": "O seu GPS está atualmente desativado. Ative-o para poder iniciar um traçado."
+    },
+    "confirm_popup": {
+      "resume_message": "Confirme a retoma do percurso",
+      "pause_message": "Confirme a pausa do percurso",
+      "stop_message": "Confirme o fim do percurso"
+    },
+    "saving": "A guardar o percurso",
+    "empty_trail": "Como o seu percurso está vazio, não foi guardado",
+    "follow_this_trail": "Seguir este percurso",
+    "follow_this_trail_confirmation": "Pretende seguir o percurso {{1}}?",
+    "not_native_message": "Recomenda-se utilizar a aplicação Android para gravar um traçado. A utilização da aplicação web pode originar limitações: menor precisão do GPS e, sobretudo, a interrupção da gravação quando já não está na aplicação (ecrã em suspensão, mudança de página ou passagem para outra aplicação), uma vez que o navegador pode então deixar de enviar coordenadas GPS."
+  },
+  "waiting_for_gps": "A aguardar o sinal GPS...",
+  "bytes": {
+    "bytes": "Bytes",
+    "kb": "KB",
+    "mb": "MB",
+    "gb": "GB"
+  },
+  "duration": {
+    "days": "d",
+    "hours": "h",
+    "minutes": "m"
+  },
+  "logout": {
+    "title": "Terminar sessão",
+    "title_anonymous": "Sair do modo de experiência",
+    "text": "Pretende também eliminar todos os seus dados deste dispositivo?",
+    "text_info": "Os seus dados são conservados nos nossos servidores e serão transferidos no seu próximo início de sessão",
+    "text_warning": "Tem dados locais que serão perdidos se os eliminar!",
+    "button_delete": "Eliminar",
+    "button_keep": "Manter"
+  },
+  "synchro": {
+    "in_progress": "A sincronizar",
+    "offline": "Offline",
+    "last_sync": "Última sincronização",
+    "not_yet": "Ainda não",
+    "local_changes": "Alterações locais",
+    "yes": "Sim",
+    "no": "Não",
+    "sync_now": "Sincronizar agora",
+    "reset_all": "Repor tudo e transferir a partir do servidor"
+  },
+  "confirm_delete_share": {
+    "title": "Eliminar uma partilha",
+    "message": "Tem a certeza de que pretende eliminar {{}}?",
+    "yes": "Sim, eliminar",
+    "no": "Cancelar, manter"
+  },
+  "search_place": {
+    "placeholder": "Pesquisar um lugar",
+    "tap_enter": "Tecla Enter ↵ para iniciar a pesquisa",
+    "no_result": "Sem resultados"
+  },
+  "loopType": {
+    "ow": "Linear",
+    "lp": "Circular",
+    "hl": "Semicircular",
+    "sl": "Circular curto",
+    "ob": "Ida e volta"
+  },
+  "activities_groups": {
+    "pedestrian": "A pé",
+    "bike": "De bicicleta",
+    "snow": "Na neve",
+    "water": "Na água",
+    "others": "Outros"
+  },
+  "activity": {
+    "walking": "Caminhada",
+    "hiking": "Pedestrianismo",
+    "trail": "Trail running",
+    "moutain-biking": "BTT",
+    "gravel-biking": "Gravel",
+    "road-biking": "Ciclismo de estrada",
+    "snowshoeing": "Raquetas de neve",
+    "on-water": "Barco",
+    "skiing": "Esqui",
+    "running": "Corrida",
+    "horseback-riding": "Equitação",
+    "via-ferrata": "Via Ferrata",
+    "rock-climbing": "Escalada",
+    "canoe": "Canoagem / Caiaque",
+    "unspecified": "Não especificado"
+  },
+  "tags_filter": {
+    "onlyWithAnyTag": "Percursos com pelo menos uma etiqueta",
+    "onlyWithoutAnyTag": "Percursos sem qualquer etiqueta",
+    "include_and": "Percursos com todas as etiquetas seguintes",
+    "include_or": "Percursos com pelo menos uma das etiquetas seguintes",
+    "exclude": "Percursos sem nenhuma das etiquetas seguintes",
+    "click_to_select": "Clique para selecionar",
+    "popup": {
+      "title": "Filtro por etiquetas"
+    }
+  },
+  "update": {
+    "download_android": "Transferir a aplicação Android",
+    "update_android": "Ver a atualização",
+    "not_allowed": "Se preferir não autorizar a atualização automática, pode transferir a atualização e instalá-la manualmente.",
+    "download_manually": "Transferir manualmente",
+    "updating": "A atualizar",
+    "downloading": "A transferir",
+    "installing": "A instalar a atualização",
+    "release_notes": {
+      "popup": {
+        "updated": "O Trailence foi atualizado!",
+        "available": "Atualização disponível!",
+        "news": "Novidades",
+        "later": "Mais tarde",
+        "download": "Instalar"
+      },
+      "version": "Versão"
+    }
+  },
+  "metadata": {
+    "collection": "Coleção",
+    "title": "Título",
+    "tags": "Etiquetas",
+    "description": "Descrição",
+    "trail_date": "Data do percurso",
+    "trail_location": "Local",
+    "loop_type": "Tipo",
+    "activity": "Atividade",
+    "duration": "Duração",
+    "distance": "Distância",
+    "positiveElevation": "Desnível positivo",
+    "negativeElevation": "Desnível negativo",
+    "breaksDuration": "Pausas",
+    "estimatedDuration": "Duração estimada",
+    "averageSpeed": "Velocidade média",
+    "maxSpeed": "Velocidade máx.",
+    "highestAltitude": "Altitude máxima",
+    "lowestAltitude": "Altitude mínima",
+    "current_position": "Posição atual",
+    "current_altitude": "Altitude atual",
+    "remaining_time": "Tempo restante",
+    "remaining_distance": "Distância restante",
+    "remaining_ascent": "Desnível + restante",
+    "remaining_descent": "Desnível - restante"
+  },
+  "synchronizing_your_data": "A transferir os seus percursos",
+  "errors": {
+    "modal_title_singular": "Erro",
+    "modal_title_plural": "Erros",
+    "import": {
+      "file_not_imported": "Não foi possível importar o ficheiro '{{1}}': {{2}}",
+      "not_gpx": "O ficheiro não está no formato GPX ou é inválido"
+    },
+    "download_offline_map": "{{1}} erro(s) ao transferir os mapas",
+    "stores": {
+      "save_photo": "Erro ao enviar a fotografia {{1}} para o servidor",
+      "save_track": "Erro ao enviar um traçado para o servidor",
+      "delete_tracks": "Erro ao eliminar traçados no servidor",
+      "get_track": "Erro ao transferir um traçado do servidor",
+      "save_tracks": "Erro ao guardar traçados no seu dispositivo",
+      "update_track": "Erro ao atualizar um traçado no servidor",
+      "create_items": "Erro ao criar no servidor ({{1}})",
+      "get_updates": "Erro ao solicitar atualizações do servidor ({{1}})",
+      "send_updates": "Erro ao enviar as suas atualizações para o servidor ({{1}})",
+      "delete_items": "Erro ao eliminar no servidor ({{1}})"
+    },
+    "import_photo": "Não foi possível carregar a fotografia {{1}}",
+    "invalid_format": "Formato inválido/não suportado",
+    "search_places": "Erro ao pesquisar locais",
+    "search_routes": "Erro ao pesquisar circuitos",
+    "password_strength": "A palavra-passe não é suficientemente forte",
+    "photos_error_no_network": "Algumas fotografias não podem ser apresentadas porque não está ligado à Internet ou não tem rede",
+    "photos_error": "Não foi possível transferir algumas fotografias"
+  },
+  "export": {
+    "trail": "Percurso",
+    "photo": "Fotografia"
+  },
+  "osm": {
+    "from": "De",
+    "to": "a"
+  },
+  "administration": "Administração",
+  "quota_error": {
+    "trail_collections": "Excedeu o número máximo de coleções, as novas não podem ser guardadas no servidor!",
+    "trails": "Excedeu o número máximo de percursos, os novos não podem ser guardados no servidor!",
+    "tracks": "Excedeu o número máximo de traçados, os novos não podem ser guardados no servidor!",
+    "tags": "Excedeu o número máximo de etiquetas, as novas não podem ser guardadas no servidor!",
+    "trails_tags": "Excedeu o número máximo de percursos etiquetados, os novos não podem ser guardados no servidor!",
+    "photos": "Excedeu o número máximo de fotografias, as novas não podem ser guardadas no servidor!",
+    "shares": "Excedeu o número máximo de partilhas, as novas não podem ser guardadas no servidor!"
+  },
+  "quota_reached": {
+    "trail_collections": "Atingiu o número máximo de coleções",
+    "trails": "Atingiu o número máximo de percursos",
+    "tracks": "Atingiu o número máximo de traçados",
+    "tags": "Atingiu o número máximo de etiquetas",
+    "trails_tags": "Atingiu o número máximo de percursos etiquetados",
+    "photos": "Atingiu o número máximo de fotografias",
+    "shares": "Atingiu o número máximo de partilhas",
+    "photos_max": "A sua quota de fotografias é {{1}} e já tem {{2}}: não pode adicionar {{3}} nova(s)",
+    "photos_max_by_trail": "Já existem {{1}}/{{2}} fotografias neste percurso: não pode adicionar {{3}} nova(s)"
+  },
+  "obsolete_message": {
+    "title": "Atualização necessária",
+    "message": "A sua aplicação está numa versão obsoleta e tem de ser atualizada. Ao utilizar esta versão, as suas alterações não poderão ser guardadas no servidor e poderão ser perdidas."
+  },
+  "downloading_elevation": "A transferir as altitudes",
+  "track_edit_tools": {
+    "title": "Editar",
+    "categories": {
+      "track": "Traçado",
+      "way_point": "Ponto de passagem",
+      "elevation": "Altitude",
+      "path": "Caminho",
+      "selection": "Seleção",
+      "elevation_provider": "Utilizar um fornecedor de altitude",
+      "join_departure_and_arrival": "Unir a partida à chegada",
+      "improvements": "Melhorias",
+      "set_elevation_on_range": "Alterar a altitude",
+      "time": "Tempo"
+    },
+    "stop_interactive": "Parar",
+    "tools": {
+      "remove_unprobable_elevations": "Ajustar as altitudes improváveis",
+      "remove_unprobable_points": "Remover os pontos improváveis",
+      "remove_breaks_moves": "Remover os movimentos durante as pausas",
+      "slope_threshold": {
+        "button_label": "Suavizar com um limiar de desnível",
+        "elevation_threshold": "Limiar de desnível",
+        "max_distance": "Distância máxima",
+        "explaination": "O objetivo da suavização é eliminar as imprecisões do GPS.<br/>Devido a essas imprecisões, acontece frequentemente que, ao longo de alguns metros, a altitude sobe e desce igualmente alguns metros, quando na realidade se trata de uma inclinação contínua.<br/>A suavização funciona, portanto, da seguinte forma:<ul><li>Procuram-se as secções nas quais a altitude variou dentro do limite do limiar configurado e ao longo de uma distância máxima configurada.</li><li>Para cada secção encontrada, toma-se a altitude de partida e a altitude de chegada e suaviza-se numa inclinação contínua.</li><li>Para evitar perder os pontos altos ou os pontos baixos do percurso, se encontrarmos um ponto desses no meio da secção, reduzimos a secção para conservar esse ponto.</li></ul>"
+      },
+      "selection": {
+        "title": "Seleção",
+        "extend_selection": "Estender a seleção até...",
+        "close": "Fechar a seleção",
+        "select_target_point": "Selecione um ponto no mapa ou no gráfico de altimetria para estender a seleção até esse ponto",
+        "remove_all_next_points": "Eliminar todos os pontos seguintes",
+        "remove_all_previous_points": "Eliminar todos os pontos anteriores"
+      },
+      "remove_selection": {
+        "button_single_label": "Eliminar o ponto selecionado",
+        "button_multiple_label": "Eliminar a secção selecionada",
+        "button_single_label_and_join": "Eliminar o ponto selecionado e unir o traçado",
+        "button_multiple_label_and_join": "Eliminar a secção selecionada e unir o traçado",
+        "button_single_label_and_open": "Eliminar o ponto selecionado e cortar o traçado em dois",
+        "button_multiple_label_and_open": "Eliminar a secção selecionada e cortar o traçado em dois"
+      },
+      "replace_elevation_with_provider": "Substituir as altitudes",
+      "improve_elevation_with_provider": "Melhorar as altitudes",
+      "calibrate_elevation": "Calibrar a altitude",
+      "calibrate_elevation_message": "A altitude conhecida apresenta uma diferença média de {{1}} {{2}} em relação à altitude gravada neste percurso",
+      "arrival_to_departure": "Terminar no mesmo local que a partida",
+      "departure_to_arrival": "Iniciar no mesmo local que a chegada",
+      "start_from_arrival": "Criar o início em falta, alcançando o ponto de chegada pelo caminho de regresso",
+      "arrival_to_start": "Criar o fim em falta, alcançando o ponto de partida pelo caminho de ida",
+      "back_to_departure": "Criar um regresso à partida seguindo o mesmo itinerário",
+      "back_to_original_track": "Voltar ao traçado original sem melhorias",
+      "remove_time": "Eliminar as informações de tempo",
+      "link_to_next_segment_with_line": "Unir à secção seguinte com uma linha direta",
+      "link_to_next_segment_follow": "Unir à secção seguinte seguindo o caminho",
+      "toggle_show_only_modified_track": {
+        "button_label_hide": "Mostrar apenas o traçado modificado (azul)",
+        "button_label_show": "Mostrar o traçado não modificado"
+      },
+      "way_points": {
+        "create_waypoint": "Criar um ponto de passagem",
+        "remove_waypoint": "Eliminar o ponto de passagem",
+        "edit_waypoint": "Editar o ponto de passagem",
+        "move_waypoint": "Mover o ponto de passagem",
+        "move_waypoint_index": "Alterar a ordem",
+        "move_waypoint_index_submenu": "Mover para a posição",
+        "popup": {
+          "title": "Ponto de passagem"
+        },
+        "select_new_position": "Selecione a nova posição",
+        "remove_waypoint_confirmation": "Confirma a eliminação do ponto de passagem?"
+      },
+      "set_elevation_on_range": {
+        "with_start": "Utilizando a do primeiro ponto selecionado",
+        "with_end": "Utilizando a do último ponto selecionado",
+        "smoothing": "Suavizando desde o primeiro até ao último ponto selecionado",
+        "manual_value": "Introduzindo manualmente uma altitude fixa",
+        "manual_diff": "Introduzindo uma diferença a aplicar"
+      },
+      "apply_default_improvements": "Aplicar as melhorias predefinidas (as utilizadas durante a criação de um traçado)",
+      "merge_segments": "Unir os pontos de pausa e de retoma",
+      "add_points": {
+        "free": {
+          "title": "Completar com pontos livres"
+        },
+        "osm": {
+          "title": "Completar com caminhos Open Street Map"
+        }
+      }
+    },
+    "no_modification": "Esta função não efetuou qualquer alteração",
+    "close_confirmation": {
+      "title": "Fechar o editor de traçado",
+      "message": "Não guardou as suas alterações. Tem a certeza de que pretende fechar o editor de traçado?"
+    }
+  },
+  "go_to_position": "Ir para esta posição",
+  "datetime_popup": {
+    "time": "Hora"
+  },
+  "recompute_metadata": "A recalcular as estimativas dos seus percursos",
+  "you_are_offline": "Está offline",
+  "toast_anonymous_account": "Ao utilizar a aplicação sem uma conta, os seus dados permanecem apenas no seu navegador e podem ser eliminados automaticamente se o navegador ficar sem espaço. Para guardar e sincronizar os seus dados, pode exportá-los, criar uma conta e depois importá-los novamente.",
+  "notifications": {
+    "menu": {
+      "no_unread": "Notificações",
+      "unread_single": "1 notificação não lida",
+      "unread_plural": "{{1}} notificações não lidas"
+    },
+    "load_more": "Ver mais",
+    "error_loading": "Erro ao carregar as notificações",
+    "items": {
+      "publications": {
+        "accepted": {
+          "text": "O seu percurso :*:/trail/trailence/{{2}}:*:{{1}}:*: foi publicado! Obrigado pela sua contribuição para a comunidade 🎉"
+        },
+        "rejected": {
+          "text": "A publicação do seu percurso :*:/trail/{{3}}/{{2}}:*:{{1}}:*: foi rejeitada. Consulte-o para conhecer o motivo e efetuar as melhorias necessárias."
+        }
+      },
+      "shares": {
+        "new_share_with_you": {
+          "text": "{{1}} criou uma nova partilha consigo: :*:/trails/share/{{3}}/{{1}}:*:{{2}}:*:"
+        },
+        "new_trails_in_share": {
+          "text": "{{1}} adicionou {{2}} percursos à partilha :*:/trails/share/{{3}}/{{1}}:*:{{4}}:*:"
+        }
+      },
+      "comments": {
+        "someone_leave_a_rate": {
+          "text": "Alguém avaliou o seu percurso :*:/trail/trailence/{{1}}:*:{{2}}:*:"
+        },
+        "someone_leave_a_comment": {
+          "text": "Alguém deixou um comentário no seu percurso :*:/trail/trailence/{{1}}:*:{{2}}:*:"
+        },
+        "someone_leave_a_rate_with_comment": {
+          "text": "Alguém avaliou e comentou o seu percurso :*:/trail/trailence/{{1}}:*:{{2}}:*:"
+        },
+        "reply": {
+          "text": "Alguém respondeu ao seu comentário no percurso :*:/trail/trailence/{{1}}:*:{{2}}:*:"
+        }
+      },
+      "avatar": {
+        "accepted": {
+          "text": "A sua fotografia de perfil foi aceite."
+        },
+        "rejected": {
+          "text": "A sua fotografia de perfil foi rejeitada."
+        }
+      }
+    }
+  },
+  "mapAdditions": {
+    "title": "Mostrar / Ocultar",
+    "only_zoom_10": "Apenas apresentados com um zoom > 10",
+    "guidepost": "Balizas",
+    "water": "Pontos de água",
+    "toilets": "Casas de banho",
+    "way_foot": "A pé",
+    "way_bicycle": "De bicicleta",
+    "way_forbidden": "Passagem proibida",
+    "way_permissive": "Passagem tolerada",
+    "overlays": {
+      "wmth": "Trilhos sinalizados"
+    },
+    "errors": {
+      "no_net": "Alguns elementos não podem ser apresentados porque está offline"
+    }
+  },
+  "relativeDates": {
+    "justNow": "Agora mesmo",
+    "secondsAgo": "Há {{1}} segundos",
+    "minuteAgo": "Há 1 minuto",
+    "minutesAgo": "Há {{1}} minutos",
+    "ago": "Há {{1}}"
+  },
+  "translations": {
+    "translated_from": "Traduzido",
+    "from": {
+      "de": "do alemão",
+      "en": "do inglês",
+      "es": "do espanhol",
+      "fr": "do francês",
+      "it": "do italiano"
+    },
+    "view_original": "Ver o texto original",
+    "view_translated": "Traduzir para português",
+    "trail_moderation": {
+      "title": "Traduções",
+      "original_language": "Idioma utilizado",
+      "detect": "Detetar",
+      "needed_translations": "Traduções necessárias",
+      "name": "Nome do percurso",
+      "description": "Descrição"
+    }
+  },
+  "months": [
+    "janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
+  ],
+  "regions": {
+    "be": "Bélgica",
+    "ch": "Suíça",
+    "fr": "França",
+    "no": "Noruega",
+    "se": "Suécia",
+    "us": "EUA"
+  },
+  "show_more": "Mostrar mais",
+  "show_less": "Mostrar menos",
+  "exit": {
+    "title": "Sair do Trailence",
+    "message": "Pretende sair do Trailence?"
+  },
+  "help": {
+    "contextual": {
+      "original_trace": "O traçado original é o traçado em bruto, tal como gravado pelo GPS ou importado a partir de um ficheiro.<p>Ao modificar um traçado, o traçado original é sempre conservado, o que permite voltar em qualquer momento ao traçado original, que serve de referência.</p><p>Mesmo que não tenha modificado o traçado manualmente, o Trailence aplica automaticamente melhorias para eliminar as imperfeições do GPS.</p>",
+      "show_osm": "Fazemos corresponder o traçado aos caminhos do Open Street Map",
+      "estimated_duration": "A duração estimada é calculada a partir de uma velocidade base em terreno plano, depois ponderada em função do desnível, da duração e tendo em conta pequenas pausas regulares (de 2 a 3 minutos aproximadamente a cada hora).<p>Por predefinição, a velocidade base é de 5 km/h, o que corresponde à velocidade média de um caminhante. Pode alterar esta velocidade nas suas preferências.</p>",
+      "breaks": "O tempo de pausas corresponde à soma das pausas <i>longas</i>. Este tempo é descontado da duração do percurso.<p>Distinguimos as pausas <i>curtas</i> (por exemplo, para se refrescar, admirar a vista, ...) e as pausas <i>longas</i> (por exemplo, para fazer um piquenique).</p><p>As pausas curtas fazem parte do tempo de percurso apresentado, pois é normal incluí-las. Em contrapartida, quando uma pausa longa é detetada, o seu tempo é deduzido do tempo de percurso, para que o tempo apresentado não dependa da duração da sua sesta 😉. O tempo assim descontado é apresentado na secção <i>Pausas</i>.</p><p>As pausas <i>longas</i> são pausas de pelo menos {{1}} minutos. Este tempo é configurável nas suas preferências.</p>"
+    }
+  },
+  "password_strength": ["Muito fraca", "Fraca", "Insuficiente", "Aceitável", "Forte", "Muito forte"],
+  "contributions": {
+    "publications": "Percursos",
+    "ratings": "Classificações",
+    "reviews": "Avaliações",
+    "title": "Contribuições",
+    "levels": {
+      "publications": [
+        "Nenhum",
+        "Primeiros percursos",
+        "Explorador",
+        "Descobridor",
+        "Grande explorador",
+        "Cartógrafo",
+        "Mestre cartógrafo",
+        "Lenda dos trilhos"
+      ],
+      "comments": [
+        "Nenhum",
+        "Primeiras avaliações",
+        "Observador",
+        "Conselheiro",
+        "Guia da comunidade",
+        "Sábio dos trilhos",
+        "Mentor",
+        "Pilar da comunidade"
+      ],
+      "rates": [
+        "Nenhuma",
+        "Primeiras classificações",
+        "Avaliador",
+        "Desbravador",
+        "Bom conhecedor",
+        "Especialista em percursos",
+        "Referência",
+        "Bússola da comunidade"
+      ]
+    }
+  },
+  "open_web_version": "Ver na versão web",
+  "osm_stats": {
+    "title": "Características do percurso",
+    "attribution": "Dados provenientes do Open Street Map",
+    "types": {
+      "wayType": {
+        "title": "Tipo de caminho",
+        "descriptions": {
+          "unknown": "Desconhecido",
+          "others": "Outros",
+          "1": "Estrada, rua…",
+          "2": "Caminho",
+          "3": "Escadas",
+          "4": "Via Ferrata",
+          "5": "Escada de mão"
+        }
+      },
+      "surface": {
+        "title": "Superfície",
+        "descriptions": {
+          "unknown": "Desconhecida",
+          "others": "Outras",
+          "1": "Duro (alcatrão…)",
+          "2": "Moderadamente duro (gravilha…)",
+          "5": "Mole (terra, erva…)",
+          "6": "Mole difícil (lama, areia…)",
+          "7": "Rocha/pedregoso"
+        }
+      },
+      "hikingDifficulty": {
+        "title": "Dificuldade",
+        "descriptions": {
+          "unknown": "Desconhecida",
+          "others": "Outras",
+          "1": "Muito fácil",
+          "2": "Fácil",
+          "3": "Médio",
+          "4": "Difícil",
+          "5": "Muito difícil",
+          "6": "Impossível"
+        }
+      },
+      "visibility": {
+        "title": "Visibilidade do caminho",
+        "descriptions": {
+          "unknown": "Desconhecida",
+          "others": "Outras",
+          "1": "Excelente",
+          "2": "Boa",
+          "3": "Média",
+          "4": "Má",
+          "5": "Difícil",
+          "6": "Nenhuma"
+        }
+      }
+    },
+    "messages": {
+      "no_match": "Nenhuma informação disponível",
+      "partial_data": "Alguns dados não foram transferidos, os resultados estão incompletos",
+      "no_data": "Sem dados transferidos"
+    }
+  },
+  "mapRotate": {
+    "north": "Norte para cima",
+    "heading": "Direção GPS",
+    "device": "Orientação do ecrã",
+    "custom": "Manual",
+    "noDeviceOrientation": "O seu dispositivo não fornece orientação"
+  },
+  "alertNoElevation": {
+    "title": "Adicionar as altitudes?",
+    "message": "Alguns percursos importados não contêm qualquer altitude. Pretende adicioná-las automaticamente, transferindo-as de um fornecedor de altitude?"
+  }
+}
