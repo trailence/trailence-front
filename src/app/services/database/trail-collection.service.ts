@@ -274,10 +274,13 @@ class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollectio
 
     protected override beforeEmittingStoreLoaded(): void {
       if (this._store.value.length === 0 && this.injector.get(AuthService).email === ANONYMOUS_USER) {
-        this.create(new TrailCollection({
-          type: TrailCollectionType.MY_TRAILS,
-          owner: ANONYMOUS_USER,
-        }));
+        Console.info('Creating MyTrails for new trial');
+        setTimeout(() => {
+          this.create(new TrailCollection({
+            type: TrailCollectionType.MY_TRAILS,
+            owner: ANONYMOUS_USER,
+          })).subscribe(() => Console.info('MyTrails created.'));
+        });
       }
       super.beforeEmittingStoreLoaded();
     }
