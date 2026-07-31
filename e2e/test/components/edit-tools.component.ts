@@ -120,12 +120,15 @@ export class EditToolSelection extends Component {
     await new IonicButton(this.getElement().$('>>>div.point-carets').$('ion-button.go-to-previous')).click();
   }
 
+  public get elevationInput() { return new IonicInput(this.getElement().$('>>>div.selection-points').$('ion-icon[name=altitude]').parentElement().$('ion-input')); }
+
   public async getElevation() {
-    return await new IonicInput(this.getElement().$('>>>div.selection-points').$('ion-icon[name=altitude]').parentElement().$('ion-input')).getValue();
+    return await this.elevationInput.getValue();
   }
 
   public async setElevation(value: number) {
-    await new IonicInput(this.getElement().$('>>>div.selection-points').$('ion-icon[name=altitude]').parentElement().$('ion-input')).setValue('' + value);
+    await this.elevationInput.setValue('0');
+    await this.elevationInput.setValue('' + value);
   }
 
 }

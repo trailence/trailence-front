@@ -394,7 +394,7 @@ div.source a, div.source a:active, div.trail-description a, div.trail-descriptio
       </div>
       {{if:sourceUrl}}
         <div class="source">
-          Source
+          {{i18n.pages.trail.source.source_url}}
           <a href="{{sourceUrl}}">{{sourceUrl}}</a>
         </div>
       {{/if}}
@@ -515,7 +515,7 @@ const arrival = {x: pathPtX(geo.path.length / 2 - 1), y: pathPtY(geo.path.length
 
 const departureArrivalDistance = Math.sqrt((departure.x - arrival.x) * (departure.x - arrival.x) + (departure.y - arrival.y) * (departure.y - arrival.y));
 if (departureArrivalDistance < 15) {
-  const anchor = createAnchor('rgba(64, 128, 0, 0.75)', 'D/A', '#ffffff', 'rgba(0, 128, 0, 0.75)', 'rgba(196, 0, 0, 0.75)');
+  const anchor = createAnchor('rgba(64, 128, 0, 0.75)', '{{i18n.way_points.DA}}', '#ffffff', 'rgba(0, 128, 0, 0.75)', 'rgba(196, 0, 0, 0.75)');
   anchor.style.position = 'absolute';
   anchor.style.width = '40px';
   anchor.style.height = '40px';
@@ -523,8 +523,8 @@ if (departureArrivalDistance < 15) {
   anchor.style.left = (departure.x - 20) + 'px';
   document.getElementById('map-path-layer').appendChild(anchor);
 } else {
-  const dep = createAnchor('rgba(0, 128, 0, 0.75)', 'D', '#ffffff', 'rgba(0, 128, 0, 0.75)', undefined);
-  const arr = createAnchor('rgba(196, 0, 0, 0.75)', 'A', '#ffffff', 'rgba(196, 0, 0, 0.75)', undefined);
+  const dep = createAnchor('rgba(0, 128, 0, 0.75)', '{{i18n.way_points.D}}', '#ffffff', 'rgba(0, 128, 0, 0.75)', undefined);
+  const arr = createAnchor('rgba(196, 0, 0, 0.75)', '{{i18n.way_points.A}}', '#ffffff', 'rgba(196, 0, 0, 0.75)', undefined);
   dep.style.position = 'absolute';
   dep.style.width = '40px';
   dep.style.height = '40px';

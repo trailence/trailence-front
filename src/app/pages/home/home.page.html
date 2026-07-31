@@ -47,6 +47,7 @@
             </div>
             <div class="cta-row">
               <a class="btn btn-primary btn-lg" href="/try" (click)="$event.preventDefault(); router.navigateByUrl('/try')">{{i18n.texts.pages.home.try_now_button}}</a>
+              <div class="cta-note cta-note-small">{{i18n.texts.pages.home.try_note}}</div>
               @if (!isAndroidApp) {
                 <a class="btn btn-ghost btn-lg" href="/{{lang}}/install-apk" (click)="$event.preventDefault(); router.navigateByUrl('/' + lang + '/install-apk')">
                   <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
@@ -54,7 +55,10 @@
                 </a>
               }<!--endif-->
             </div>
-            <div class="cta-note">{{i18n.texts.pages.home.try_note}}</div>
+            <div class="cta-note cta-note-large">{{i18n.texts.pages.home.try_note}}</div>
+            <div class="cta-row cta-create-account">
+              <a class="btn btn-ghost btn-ghost-primary" href="/{{lang}}/register" (click)="$event.preventDefault(); router.navigateByUrl('/' + lang + '/register')">{{i18n.texts.pages.home.join.create_account_button}}</a>
+            </div>
           </div>
           <div class="hero-visual reveal">
             <div class="hero-stage">
@@ -69,7 +73,6 @@
         </div>
       </div>
     </header>
-
 
 
     <section class="section section-features">
@@ -196,7 +199,7 @@
         <div class="head reveal">
           <div class="eyebrow">{{i18n.texts.pages.home.community.eyebrow}}</div>
           <h2>{{i18n.texts.pages.home.community.h2}}</h2>
-          <p class="muted" style="font-size:17px;max-width:60ch" innerHTML="i18n.texts.pages.home.community.text"></p>
+          <p class="muted" style="font-size:17px;max-width:60ch" [innerHTML]="i18n.texts.pages.home.community.text"></p>
         </div>
 
         <div class="cards">

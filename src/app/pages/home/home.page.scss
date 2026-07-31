@@ -69,6 +69,7 @@ h1,h2,h3{line-height:1.15;margin:0}
     background:transparent;color:var(--ion-text-color);border:1.5px solid var(--border);
     &:hover{border-color:var(--accent);color:var(--accent)}
   }
+  &.btn-ghost-primary{color:var(--primary);border-color:var(--primary)}
   &.btn-lg{padding:16px 30px;font-size:17px;border-radius:14px}
 
   .ic{width:20px;height:20px}
@@ -110,6 +111,7 @@ h1,h2,h3{line-height:1.15;margin:0}
   }
   .cta-note{
     font-size:13px;color:var(--muted);margin-top:9px;
+    &.cta-note-small{display:none;margin-top:-5px}
   }
 
   .hero-visual{position:relative}
@@ -138,7 +140,7 @@ div.page-content.DARK .hero {
   .shot-desktop{width:75%;margin-left:auto}
 }
 .shot-mobile{
-  position:absolute;left:-1%;bottom:-10%;width:31%;min-width:130px;max-width:188px;
+  position:absolute;left:-1%;bottom:-10%;width:31%;max-width:188px;
   border-radius:24px;overflow:hidden;background:var(--card);border:1px solid var(--border);
   box-shadow:0 44px 72px -22px var(--card-shadow),0 12px 26px -12px var(--card-shadow), -9px 4px 3px -1px rgba(12,16,26,.32);
   transform-origin:left center; transform:perspective(1000px) rotateY(19deg) rotateX(4deg) rotateZ(-6deg);
@@ -159,8 +161,7 @@ div.page-content.DARK .shot-mobile{
   .phone:last-child{transform:rotate(4deg) translateX(-8%)}
   .phone img{max-height:430px}
 }
-
-
+.cta-row.cta-create-account {margin-top: 15px;}
 
 /* ===== Features ===== */
 .section-features{overflow-x:clip}
@@ -270,4 +271,8 @@ footer{border-top:1px solid var(--border);padding:52px 0 40px}
   .more-grid{grid-template-columns:1fr}
   .cta-row .btn{flex:1 1 auto;justify-content:center}
   .foot-bottom{flex-direction:column}
+}
+@media (max-width:413px) {
+  .hero .cta-note.cta-note-small{display:block}
+  .hero .cta-note.cta-note-large{display:none}
 }
