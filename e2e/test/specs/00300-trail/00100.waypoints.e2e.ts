@@ -41,21 +41,21 @@ describe('Trail - Waypoints', () => {
 
   it('Show trace with known trails', async () => {
     const distanceBefore = await trailPage.trailComponent.getMetadataValueByTitle('Distance', true);
-    expect(distanceBefore).toBe('4.968 mi');
+    expect(distanceBefore).toBe('8 km');
     await trailPage.trailComponent.setShowKnownTrails(true);
     const distanceAfter = await TestUtils.retry(async (trial) => {
       const d = await trailPage.trailComponent.getMetadataValueByTitle('Distance', true);
-      if (trial > 4 || d === '4.726 mi') return d;
+      if (trial > 4 || d === '7.61 km') return d;
       throw new Error('Found: ' + d);
     }, 5, 500);
-    expect(distanceAfter).toBe('4.726 mi');
+    expect(distanceAfter).toBe('7.61 km');
     await trailPage.trailComponent.setShowKnownTrails(false);
     const distanceBack = await TestUtils.retry(async (trial) => {
       const d = await trailPage.trailComponent.getMetadataValueByTitle('Distance', true);
-      if (trial > 4 || d === '4.968 mi') return d;
+      if (trial > 4 || d === '8 km') return d;
       throw new Error('Found: ' + d);
     }, 5, 500);
-    expect(distanceBack).toBe('4.968 mi');
+    expect(distanceBack).toBe('8 km');
   });
 
   it('Way points are present and include photo', async () => {

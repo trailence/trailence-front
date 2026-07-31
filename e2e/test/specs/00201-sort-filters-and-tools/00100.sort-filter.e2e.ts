@@ -104,22 +104,22 @@ describe('Trails list - Sort and filter', () => {
 
   // --- Filter
 
-  it('Filter on positive elevation greater than 1100 ft', async () => {
+  it('Filter on positive elevation greater than 300 m', async () => {
     await list.toolbar.clickByIcon('filters');
     const popup = new FilterTrailsPopup(await App.waitModal());
     await popup.resetFilters();
     await popup.setNumericFilterCustom('Positive elevation', 4, undefined);
     await popup.close();
-    await expectListContainsByName(list, [...EXPECTED_TRAILS].filter(t => t.ascent && t.ascent >= 1100));
+    await expectListContainsByName(list, [...EXPECTED_TRAILS].filter(t => t.ascent && t.ascent >= 300));
   });
 
-  it('Filter on negative elevation less than 1700 ft', async () => {
+  it('Filter on negative elevation less than 500 m', async () => {
     await list.toolbar.clickByIcon('filters');
     const popup = new FilterTrailsPopup(await App.waitModal());
     await popup.resetFilters();
     await popup.setNumericFilterCustom('Negative elevation', undefined, 6);
     await popup.close();
-    await expectListContainsByName(list, [...EXPECTED_TRAILS].filter(t => t.descent && t.descent <= 1700));
+    await expectListContainsByName(list, [...EXPECTED_TRAILS].filter(t => t.descent && t.descent <= 500));
   });
 
 

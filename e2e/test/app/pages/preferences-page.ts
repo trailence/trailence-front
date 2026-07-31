@@ -3,6 +3,7 @@ import { IonicButton } from '../../components/ionic/ion-button';
 import { IonicInput } from '../../components/ionic/ion-input';
 import { IonicRange } from '../../components/ionic/ion-range';
 import { IonicSegment } from '../../components/ionic/ion-segment';
+import { App } from '../app';
 import { PageWithHeader } from './page';
 
 export class PreferencesPage extends PageWithHeader {
@@ -11,6 +12,13 @@ export class PreferencesPage extends PageWithHeader {
 
   protected expectedUrl(url: string): boolean {
     return url.indexOf('/preferences') > 0;
+  }
+
+  public async setLanguage(lang: string) {
+    await this.getElement().$('app-lang-picker').click();
+    const popover = await App.waitPopover();
+    await popover.$('ion-item.lang-' + lang).click();
+    await App.waitNoPopover();
   }
 
   public async getOptionSegmentByTitle(title: string) {

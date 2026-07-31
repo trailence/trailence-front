@@ -44,7 +44,7 @@ describe('Preferences', () => {
     const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
     const trailsList = await myTrailsPage.trailsAndMap.openTrailsList();
     await trailsList.importFile('./test/assets/gpx-001.gpx');
-    await checkTrail(trailsList, expectedDateEn, 'Duration', '3h12 (≈ 2h30)', 'Distance', '5.335 mi', 'Ascent', '+ 1,007 ft', 'Descent', '- 925 ft');
+    await checkTrail(trailsList, expectedDateEn, 'Duration', '3h12 (≈ 2h30)', 'Distance', '8.59 km', 'Ascent', '+ 307 m', 'Descent', '- 282 m');
   });
 
   const goToPreferences = async (title: string) => {
@@ -62,7 +62,7 @@ describe('Preferences', () => {
 
   it('Change language to french', async () => {
     const preferences = await goToPreferences('Preferences');
-    await (await preferences.getOptionSegmentByTitle('Language')).setSelected('fr');
+    await preferences.setLanguage('fr');
     await browser.waitUntil(() => preferences.header.getTitle().then(title => title === 'Préférences'));
     expect(await (await preferences.getOptionSegmentByTitle('Unité de distance')).getSelected()).toBe('METERS');
     expect(await (await preferences.getOptionSegmentByTitle('Format de date')).getSelected()).toBe('dd/mm/yyyy');
@@ -71,10 +71,13 @@ describe('Preferences', () => {
     await checkTrail(await collection.trailsAndMap.openTrailsList(), expectedDateFr, 'Durée', '3h12 (≈ 2h30)', 'Distance', '8,59 km', 'Dénivelé positif', '+ 307 m', 'Dénivelé négatif', '- 282 m');
   });
 
-  it('Change back to english', async () => {
+  it('Change back to english with miles', async () => {
     const preferences = await goToPreferences('Préférences');
-    await (await preferences.getOptionSegmentByTitle('Langue')).setSelected('en');
+    await preferences.setLanguage('en');
     await browser.waitUntil(() => preferences.header.getTitle().then(title => title === 'Preferences'));
+    await (await preferences.getOptionSegmentByTitle('Distance Unit')).setSelected('IMPERIAL');
+    await (await preferences.getOptionSegmentByTitle('Date format')).setSelected('m/d/yyyy');
+    await (await preferences.getOptionSegmentByTitle('Time format')).setSelected('H12');
     expect(await (await preferences.getOptionSegmentByTitle('Distance Unit')).getSelected()).toBe('IMPERIAL');
     expect(await (await preferences.getOptionSegmentByTitle('Date format')).getSelected()).toBe('m/d/yyyy');
     expect(await (await preferences.getOptionSegmentByTitle('Time format')).getSelected()).toBe('H12');
@@ -116,7 +119,7 @@ describe('Preferences', () => {
     const collection = await goToCollection('My Trails');
     const trailsList = await collection.trailsAndMap.openTrailsList();
     await TestUtils.retry(
-      async () => await checkTrail(trailsList, expectedDateEn, 'Duration', '3h12 (≈ 2h30)', 'Distance', '5.335 mi', 'Ascent', '+ 1,007 ft', 'Descent', '- 925 ft'),
+      async () => await checkTrail(trailsList, expectedDateEn, 'Duration', '3h12 (≈ 2h30)', 'Distance', '8.59 km', 'Ascent', '+ 307 m', 'Descent', '- 282 m'),
       20, 1000
     );
     const trail = await trailsList.findItemByTrailName('Randonnée du 05/06/2023 à 08:58');

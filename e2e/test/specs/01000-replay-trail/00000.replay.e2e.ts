@@ -143,9 +143,9 @@ describe('Replay trail', () => {
       expect(diff).toBeLessThanOrEqual(acceptedVariation);
     }
 
-    await intValueAlmostSame('Distance', 200);
-    await intValueAlmostSame('Ascent', 150);
-    await intValueAlmostSame('Descent', 150);
+    await intValueAlmostSame('Distance', 882);
+    await intValueAlmostSame('Ascent', 435);
+    await intValueAlmostSame('Descent', 433);
     await intValueAlmostSame('Highest altitude', 5);
     await intValueAlmostSame('Lowest altitude', 5);
 

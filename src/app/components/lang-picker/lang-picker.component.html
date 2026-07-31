@@ -15,7 +15,7 @@
   <ng-template>
     <ion-list>
       @for (lang of languagesList; track lang.key) {
-        <ion-item lines="none" [button]="true" [detail]="false" (click)="setLanguage(lang.key, menu)">
+        <ion-item lines="none" [button]="true" [detail]="false" (click)="setLanguage(lang.key, menu)" class="lang-{{lang.key}}">
           <div class="flag in-menu" slot="start">
             <img [src]="iconBaseUrl + lang.key + '.' + lang.iconVersion + '.svg'" />
           </div>
