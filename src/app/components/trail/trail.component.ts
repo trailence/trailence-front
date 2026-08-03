@@ -218,6 +218,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   hasOsmTrack = false;
   hasMapMarkedTrails = false;
   showMapMarkedTrails$ = new BehaviorSubject<boolean>(false);
+  showTrackWithElevationColors = false;
+  canShowTrackWithElevationColors = false;
 
   get trail1WithInfo(): TrailWithInfo | null { return this.trail1WithInfo$.value; }
   get trail2WithInfo(): TrailWithInfo | null { return this.trail2WithInfo$.value; }
@@ -507,9 +509,23 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         this.showMapMarkedTrails$.next(!this.showMapMarkedTrails$.value);
         this.changesDetection.detectChanges();
       });
+    const showTrackWithElevationColors = new MenuItem()
+      .setIcon('elevation')
+      .setI18nLabel('pages.trail.map_elements.elevation_colors')
+      .setVisible(() => this.canShowTrackWithElevationColors)
+      .setSelected(() => this.showTrackWithElevationColors)
+      .setAction((event) => {
+        event.stopPropagation();
+        event.preventDefault();
+        this.showTrackWithElevationColors = !this.showTrackWithElevationColors;
+        const mapTrack = this.mapElements$.value.find(e => e instanceof MapTrack && e.track === this.tracks$.value[0]) as MapTrack | undefined;
+        mapTrack?.showPathWithElevationColors(this.showTrackWithElevationColors);
+        this.changesDetection.detectChanges();
+      })
+      ;
     const showElementsTool = new MenuItem()
       .setIcon('privacy')
-      .setChildren([showWaypointsTool, showBreaksTool, showGuidepostsTool, showPhotoTool, showMarkedTrailsTool]);
+      .setChildren([showWaypointsTool, showBreaksTool, showGuidepostsTool, showPhotoTool, showMarkedTrailsTool, showTrackWithElevationColors]);
     this.mapToolbarRightItems.push(new MenuItem(), showElementsTool);
     if (globalThis.location.hash === '#bottom-tab=live-group') {
       this.liveGroups$.pipe(first(groups => !!groups?.length)).subscribe(groups => {
@@ -568,6 +584,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this.hasOsmTrack = false;
     this.hasMapMarkedTrails = false;
     this.showMapMarkedTrails$.next(false);
+    this.canShowTrackWithElevationColors = false;
+    this.showTrackWithElevationColors = false;
     this.listenForTracks();
     this.listenForPhotos();
     this.listenForPhotosOnMap();
@@ -653,6 +671,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         debounceTime(1)
       ),
       ([trail1, trail2, recordingWithTrack, toolsBaseTrack, toolsModifiedTrack, selectionTracks, zoomOnSelection, hideBaseTrack, publicTrailsAround, showMapMarkedTrails]) => { // NOSONAR
+        this.canShowTrackWithElevationColors = !!trail1.track && !trail2.trail;
         if (this.trail1 !== trail1.trail) {
           if (this._lock) {
             this._lock();
@@ -686,6 +705,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
 
         let toolsBaseMapTrack: MapTrack | undefined = undefined;
         if (toolsBaseTrack && !recordingWithTrack && !trail2.trail) {
+          this.canShowTrackWithElevationColors = false;
           tracks.push(toolsBaseTrack);
           this.graphTrack1 = toolsBaseTrack;
           if (!hideBaseTrack || !toolsModifiedTrack) {
@@ -711,6 +731,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             }
           }
           if (trail2.track) {
+            this.canShowTrackWithElevationColors = false;
             tracks.push(trail2.track);
             this.graphTrack2 = trail2.track;
             if (trail2.mapTrack) {
@@ -740,6 +761,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         if (!recordingWithTrack && !trail2.trail) {
           this.toolsOriginalTrack$.next(trail1.track);
           if (toolsModifiedTrack) {
+            this.canShowTrackWithElevationColors = false;
             tracks.push(toolsModifiedTrack);
             if (this.graphTrack1)
               this.graphTrack2 = toolsModifiedTrack;
@@ -771,6 +793,15 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             this.map?.centerAndZoomOn(bounds);
           }
         }
+
+        const baseTrack = mapElements.find(e => e instanceof MapTrack && e.track === tracks[0]) as MapTrack | undefined;
+        if (!baseTrack) {
+          this.canShowTrackWithElevationColors = false;
+        } else {
+          this.canShowTrackWithElevationColors &&= !!tracks[0].segments.find(s => s.points.find(p => p.ele !== undefined));
+          baseTrack.showPathWithElevationColors(this.canShowTrackWithElevationColors && this.showTrackWithElevationColors);
+        }
+        if (!this.canShowTrackWithElevationColors) this.showTrackWithElevationColors = false;
 
         mapElements.push(...publicTrailsAround, ...this.highlightedMapTrackSections);
 

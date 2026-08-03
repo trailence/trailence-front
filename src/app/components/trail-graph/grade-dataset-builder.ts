@@ -16,7 +16,7 @@ export class GradeDatasetBuilder {
     let distanceFromPrevious = 0;
     let totalGradeFromPrevious = 0;
     for (let i = 1; i < points.length; ++i) {
-      const g = Math.abs(points[i].grade.gradeBefore as number);
+      const g = points[i].grade.gradeBefore as number;
       if (previousIndex === i - 1 && previousLevel === getGradeRange(g)) {
         // same level => add it to the current dataset
         this.addElevationGrade(ds, points, previousIndex, i, minY, previousLevel);

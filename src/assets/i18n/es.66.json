@@ -367,7 +367,8 @@
         "breaks": "Pausas",
         "guideposts": "Balizas",
         "waypoints": "Puntos de paso",
-        "marked_trails": "Señalización de senderos"
+        "marked_trails": "Señalización de senderos",
+        "elevation_colors": "Colores del perfil de elevación en la ruta"
       },
       "reverse_way": "Sentido invertido",
       "open_in_app": "Abrir en",

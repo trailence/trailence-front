@@ -2,7 +2,7 @@ import * as C from 'chart.js';
 import { Color } from 'src/app/utils/color';
 import { gradeColors, gradeLegend } from '../grade-values';
 
-const width = 25;
+const width = 20;
 const height = 15;
 const space = 1;
 
@@ -15,7 +15,7 @@ export class ElevationLegendPlugin implements C.Plugin<"line"> {
     if (xAxis.width < 225) return;
     let ctx = chart.ctx;
     ctx.save();
-    let x = xAxis.right;
+    let x = xAxis.width > 270 ? xAxis.right : chart.canvas.clientWidth;
     for (let i = gradeColors.length -1; i >= 0; --i) {
       const bg = new Color(gradeColors[i]);
       ctx.fillStyle = gradeColors[i];

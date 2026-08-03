@@ -367,7 +367,8 @@
         "breaks": "Pausen",
         "guideposts": "Wegweiser",
         "waypoints": "Wegpunkte",
-        "marked_trails": "Wegmarkierungen"
+        "marked_trails": "Wegmarkierungen",
+        "elevation_colors": "Farben des Höhenprofils auf der tour"
       },
       "reverse_way": "Umgekehrte Richtung",
       "open_in_app": "Öffnen in",

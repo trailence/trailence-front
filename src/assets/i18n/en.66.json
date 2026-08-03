@@ -367,7 +367,8 @@
         "breaks": "Breaks",
         "guideposts": "Guideposts",
         "waypoints": "Waypoints",
-        "marked_trails": "Trail markings"
+        "marked_trails": "Trail markings",
+        "elevation_colors": "Elevation profile colors on the route"
       },
       "reverse_way": "Reverse direction",
       "open_in_app": "Open in",

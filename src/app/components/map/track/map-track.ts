@@ -73,6 +73,10 @@ export class MapTrack implements MapElement {
     this._wayPoints.reset();
   }
 
+  public showPathWithElevationColors(show: boolean): void {
+    this._path.eleColors = show;
+  }
+
   public showDepartureAndArrivalAnchors(show: boolean = true): void {
     this._wayPoints.showDepartureAndArrival(show);
   }

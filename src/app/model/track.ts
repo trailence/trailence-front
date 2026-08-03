@@ -203,6 +203,18 @@ export class Track extends Owned {
     return result;
   }
 
+  public getAllPositionsSegmented(): L.LatLng[][] {
+    const result: L.LatLng[][] = [];
+    for (const segment of this.segments) {
+      const s: L.LatLng[] = [];
+      for (const point of segment.points) {
+        s.push(point.pos);
+      }
+      if (s.length > 0) result.push(s);
+    }
+    return result;
+  }
+
   public getAllPoints(): Point[] {
     const result: Point[] = [];
     for (const segment of this.segments) {

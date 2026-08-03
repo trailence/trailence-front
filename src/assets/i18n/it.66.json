@@ -367,7 +367,8 @@
         "breaks": "Soste",
         "guideposts": "Segnavia",
         "waypoints": "Punti di passaggio",
-        "marked_trails": "Segnaletica dei sentieri"
+        "marked_trails": "Segnaletica dei sentieri",
+        "elevation_colors": "Colori del profilo altimetrico sul percorso"
       },
       "reverse_way": "Senso inverso",
       "open_in_app": "Apri in",

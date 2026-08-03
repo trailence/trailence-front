@@ -64,7 +64,7 @@ export class TrailSmallElevationProfileComponent implements OnChanges {
         } else if (x - previous.x >= 1 || Math.abs(y - previous.y) >= 1) {
           const newGradeX = Math.floor(x);
           if (newGradeX > previousGradeX) {
-            const grade = Math.abs(eleSincePrevious / distSincePrevious);
+            const grade = eleSincePrevious / distSincePrevious;
             eleSincePrevious = 0;
             distSincePrevious = 0;
             for (let gx = previousGradeX + 1; gx <= newGradeX; gx++)
