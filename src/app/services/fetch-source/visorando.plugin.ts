@@ -11,7 +11,7 @@ import { environment } from 'src/environments/environment';
 import { Console } from 'src/app/utils/console';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import { PluginWithDb, TrailInfoBaseDto } from './abstract-plugin-with-db';
-import { TrailSourceType } from 'src/app/model/dto/trail';
+import { TrailDto, TrailSourceType } from 'src/app/model/dto/trail';
 import { TrailActivity } from 'src/app/model/dto/trail-activity';
 import { PendingRequests } from 'src/app/utils/pending-requests';
 import { OfflineMapService } from '../map/offline-map.service';
@@ -423,11 +423,13 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     return this.tableTrails.get(idTrail).then(t => t ?? this.fetchGpx(idTrail, idGpx, info));
   }
 
-  private fetchGpx(idTrail: string, idGpx: string, info: TrailInfo) {
+  private fetchGpx(idTrail: string, idGpx: string, info: TrailInfo): Promise<TrailDto | null> {
     return globalThis.fetch('https://www.visorando.com/visorando-' + idGpx + '.gpx')
     .then(response => response.arrayBuffer())
     .then(gpx => GpxFormat.importGpx(gpx, 'visorando', 'visorando', this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService), this.injector.get(TrackComputedDataCacheService), this.injector.get(NetworkService), TrailSourceType.EXTERNAL, info.externalUrl, Date.now()))
-    .then(gpx => {
+    .then(raws => {
+      if (raws.length !== 1) return null;
+      const gpx = raws[0];
       if (info.description && info.description.length > 0 && (gpx.trail.description ?? '').length === 0)
         gpx.trail.description = info.description;
       if (info.wayPoints && info.wayPoints.length > 0) {

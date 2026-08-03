@@ -6,7 +6,7 @@ import { Progress, ProgressService } from '../progress/progress.service';
 import { I18nError } from '../i18n/i18n-string';
 import { ErrorService } from '../progress/error.service';
 import { Arrays } from 'src/app/utils/arrays';
-import { GpxFormat } from 'src/app/utils/formats/gpx-format';
+import { GpxFormat, ImportedTrail } from 'src/app/utils/formats/gpx-format';
 import { PreferencesService } from '../preferences/preferences.service';
 import { TrackEditionService } from '../track-edition/track-edition.service';
 import { TrackService } from '../database/track.service';
@@ -109,15 +109,15 @@ export function openImportTrailsFileDialog(injector: Injector, collectionUuid: s
                 return gpxFile.async('arraybuffer')
                 .then(arraybuffer => {
                   const r = importGpx(injector, arraybuffer, email, collectionUuid, zip, TrailSourceType.FILE_IMPORT, filename + '/' + gpxFile.name, Date.now());
-                  allDone.push(r.allDone.catch(e => null));
-                  r.allDone.then(() => {
+                  for (const rt of r) allDone.push(rt.allDone.catch(() => null));
+                  Promise.all(r.map(rt => rt.allDone)).then(() => {
                     progress.subTitle = '' + (index + 1 + previousZipEntries + entryIndex + 1) + '/' + (nbFiles + zipEntries);
                     progress.addWorkDone(1);
                   });
-                  return r.imported;
+                  return Promise.all(r.map(rt => rt.imported));
                 })
                 .then(result => {
-                  done.push(result);
+                  done.push(...result);
                   if (entryIndex === gpxFiles.length - 1) {
                     injector.get(StoreService).resumeSync(syncPause);
                     resolve(done);
@@ -143,12 +143,12 @@ export function openImportTrailsFileDialog(injector: Injector, collectionUuid: s
           });
         }
       }
-      return importGpx(injector, file, email, collectionUuid, undefined, TrailSourceType.FILE_IMPORT, filename, Date.now()).allDone
+      return Promise.all(importGpx(injector, file, email, collectionUuid, undefined, TrailSourceType.FILE_IMPORT, filename, Date.now()).map(i => i.allDone))
       .then(result => {
         allDone.push(Promise.resolve(result));
         progress.subTitle = '' + (index + 1 + zipEntries) + '/' + (nbFiles + zipEntries);
         progress.addWorkDone(1);
-        return [result];
+        return [...result];
       }).catch((e) => {
         progress.subTitle = '' + (index + 1 + zipEntries) + '/' + (nbFiles + zipEntries);
         progress.addWorkDone(1);
@@ -173,12 +173,34 @@ export function openImportTrailsFileDialog(injector: Injector, collectionUuid: s
   });
 }
 
-export function importGpx(injector: Injector, file: ArrayBuffer, owner: string, collectionUuid: string, zip: any, sourceType: TrailSourceType | undefined, source: string | undefined, sourceDate: number | undefined): { // NOSONAR
+export function importGpx( // NOSONAR
+  injector: Injector,
+  file: ArrayBuffer,
+  owner: string, collectionUuid: string,
+  zip: any,
+  sourceType: TrailSourceType | undefined, source: string | undefined, sourceDate: number | undefined
+): {
+  imported: Promise<{trailUuid: string, tags: string[][], source?: string}>,
+  allDone: Promise<{trailUuid: string, tags: string[][], source?: string}>
+}[] {
+  try {
+    const imported = GpxFormat.importGpx(file, owner, collectionUuid, injector.get(PreferencesService), injector.get(OfflineMapService), injector.get(WorkerService), injector.get(TrackComputedDataCacheService), injector.get(NetworkService), sourceType, source, sourceDate);
+    return imported.map(i => importGpxTrail(i, injector, zip));
+  } catch (e) {
+    return [{ imported: Promise.reject(e), allDone: Promise.reject(e) }];
+  }
+}
+
+
+function importGpxTrail(
+  imported: ImportedTrail,
+  injector: Injector,
+  zip: any,
+): {
   imported: Promise<{trailUuid: string, tags: string[][], source?: string}>,
   allDone: Promise<{trailUuid: string, tags: string[][], source?: string}>
 } {
   try {
-    const imported = GpxFormat.importGpx(file, owner, collectionUuid, injector.get(PreferencesService), injector.get(OfflineMapService), injector.get(WorkerService), injector.get(TrackComputedDataCacheService), injector.get(NetworkService), sourceType, source, sourceDate);
     if (imported.tracks.length === 1) {
       const improved = injector.get(TrackEditionService).applyDefaultImprovments(imported.tracks[0]);
       if (!improved.isEquals(imported.tracks[0])) {

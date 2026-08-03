@@ -8,11 +8,12 @@ import { BinaryContent } from '../binary-content';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { Photo } from 'src/app/model/photo';
 import { PhotoDto } from 'src/app/model/dto/photo';
-import { GpxFormatRaw } from './gpx-format-raw';
+import { GpxFormatRaw, ImportedTrackRaw } from './gpx-format-raw';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { WorkerService } from 'src/app/worker/web-app';
 import { TrackComputedDataCacheService } from 'src/app/services/database/track-computed-data-cache.service';
 import { NetworkService } from 'src/app/services/network/network.service';
+import { distance } from '../latlng';
 
 export interface ImportedTrail {
   trail: Trail;
@@ -25,27 +26,93 @@ export interface ImportedTrail {
 
 export class GpxFormat {
 
-  public static importGpx(file: ArrayBuffer, user: string, collectionUuid: string, preferencesService: PreferencesService, mapService: OfflineMapService, workerService: WorkerService, trackCacheService: TrackComputedDataCacheService, networkService: NetworkService, trailSourceType: TrailSourceType | undefined, trailSource: string | undefined, trailSourceDate: number | undefined): ImportedTrail { // NOSONAR
+  public static importGpx(file: ArrayBuffer, user: string, collectionUuid: string, preferencesService: PreferencesService, mapService: OfflineMapService, workerService: WorkerService, trackCacheService: TrackComputedDataCacheService, networkService: NetworkService, trailSourceType: TrailSourceType | undefined, trailSource: string | undefined, trailSourceDate: number | undefined): ImportedTrail[] { // NOSONAR
     const raw = GpxFormatRaw.importGpxRaw(file, user, collectionUuid, trailSourceType, trailSource, trailSourceDate, new DOMParser());
-    const tracks = raw.tracks.map(trackRaw => {
+    if (raw.creator === 'Trailence' || raw.tracks.length === 1) {
+      // single trail case
+      const tracks = raw.tracks.map(trackRaw => {
+        if (!raw.trail.name?.length && trackRaw.name?.length) raw.trail.name = trackRaw.name;
+        if (!raw.trail.description?.length && trackRaw.description?.length) raw.trail.description = trackRaw.description;
+        const track = new Track({owner: user}, false, preferencesService, mapService, workerService, trackCacheService, networkService);
+        for (const segmentRaw of trackRaw.segments) {
+          const segment = track.newSegment();
+          segment.appendMany(segmentRaw);
+        }
+        for (const wp of trackRaw.wayPoints) {
+          track.appendWayPoint(wp);
+        }
+        return track;
+      });
+      if (tracks.at(-1)!.wayPoints.length === 0 && raw.wayPoints.length > 0) {
+        const track = tracks.at(-1)!;
+        for (const wp of raw.wayPoints) {
+          track.appendWayPoint(wp);
+        }
+      }
+      return [{
+        trail: new Trail({...raw.trail, originalTrackUuid: tracks[0].uuid, currentTrackUuid: tracks.at(-1)!.uuid}),
+        tracks,
+        tags: raw.tags,
+        photos: raw.photos,
+        photosFilenames: raw.photosFilenames,
+        source: raw.source,
+      }];
+    }
+    // attach waypoints to tracks
+    const wpAttachment = new Map<ImportedTrackRaw, WayPoint[]>();
+    for (const wp of raw.wayPoints) {
+      let bestTracks: ImportedTrackRaw[] = [];
+      let bestDistance = -1;
+      for (const track of raw.tracks) {
+        for (const segment of track.segments) {
+          for (const point of segment) {
+            const d = Math.floor(distance(wp.point.pos, point.pos) / 2);
+            if (d < 13) {
+              if (bestDistance === -1 || d < bestDistance) {
+                bestTracks = [track];
+                bestDistance = d;
+              } else if (d === bestDistance) {
+                bestTracks.push(track);
+              }
+            }
+          }
+        }
+      }
+      for (const track of bestTracks) {
+        let waypoints = wpAttachment.get(track);
+        if (!waypoints) {
+          wpAttachment.set(track, [wp]);
+        } else {
+          waypoints.push(wp);
+        }
+      }
+    }
+    return raw.tracks.map(trackRaw => {
       const track = new Track({owner: user}, false, preferencesService, mapService, workerService, trackCacheService, networkService);
       for (const segmentRaw of trackRaw.segments) {
         const segment = track.newSegment();
         segment.appendMany(segmentRaw);
       }
-      for (const wp of trackRaw.wayPoints) {
-        track.appendWayPoint(wp);
+      if (trackRaw.wayPoints.length === 0) {
+        const trackWaypoints = wpAttachment.get(trackRaw);
+        if (trackWaypoints) {
+          for (const wp of trackWaypoints) {
+            track.appendWayPoint(wp);
+          }
+        }
       }
-      return track;
+      return {
+        trail: new Trail({
+          ...raw.trail,
+          name: trackRaw.name ?? raw.trail.name,
+          description: trackRaw.description ?? raw.trail.description,
+          originalTrackUuid: track.uuid,
+          currentTrackUuid: track.uuid,
+        }),
+        tracks: [track],
+        tags: [], photos: [], photosFilenames: new Map(), source: undefined,
+      };
     });
-    return {
-      trail: new Trail({...raw.trail, originalTrackUuid: tracks[0].uuid, currentTrackUuid: tracks.at(-1)!.uuid}),
-      tracks,
-      tags: raw.tags,
-      photos: raw.photos,
-      photosFilenames: raw.photosFilenames,
-      source: raw.source,
-    }
   }
 
   public static exportGpx(trail: Trail, tracks: Track[], tags: string[][], photos: Photo[], photosFilenames: Map<Photo, string>): BinaryContent { // NOSONAR

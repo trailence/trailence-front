@@ -158,11 +158,12 @@ export class PlatformService {
             const progress = this.injector.get(ProgressService).create(i18n.texts.tools.importing, 1);
             import('src/app/services/functions/import')
             .then(importer => {
-              importer.importGpx(this.injector, buffer, owner, collectionUuid, undefined, TrailSourceType.FILE_IMPORT, filename, Date.now()).allDone
+              Promise.all(importer.importGpx(this.injector, buffer, owner, collectionUuid, undefined, TrailSourceType.FILE_IMPORT, filename, Date.now()).map(i => i.allDone))
               .then(imported => {
                 progress.done();
-                importer.finishImport(this.injector, [imported], collectionUuid, owner).then(
-                  () => this.injector.get(Router).navigateByUrl('/trail/' + encodeURIComponent(owner) + '/' + imported.trailUuid)
+                importer.finishImport(this.injector, imported, collectionUuid, owner).then(
+                  () => imported.length === 1 ? this.injector.get(Router).navigateByUrl('/trail/' + encodeURIComponent(owner) + '/' + imported[0].trailUuid) :
+                                                this.injector.get(Router).navigateByUrl('/collection/' + collectionUuid)
                 );
               })
               .catch(error => {

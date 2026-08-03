@@ -27,10 +27,11 @@ describe('Test Gpx Format', () => {
     const file = await firstValueFrom(http.get('/assets/test/gpx-001.gpx', { responseType: 'arraybuffer'}));
     const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService, undefined as any, undefined as any, undefined as any, undefined as any, undefined, undefined, undefined);
     expect(imported).not.toBeNull();
-    const trail = imported.trail;
+    expect(imported).toHaveSize(1);
+    const trail = imported[0].trail;
     expect(trail.name).toBe('Randonnée du 05/06/2023 à 08:58');
     expect(trail.description).toBe('');
-    const track = imported.tracks[0];
+    const track = imported[0].tracks[0];
     expect(Math.floor(track.metadata.distance)).toBe(8585);
     expect(track.metadata.positiveElevation).toBe(409);
     expect(track.metadata.negativeElevation).toBe(384);
@@ -84,13 +85,14 @@ describe('Test Gpx Format', () => {
   it('Import gpx-001, then export, then import again', async () => {
     const file = await firstValueFrom(http.get('/assets/test/gpx-001.gpx', { responseType: 'arraybuffer'}));
     const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService, undefined as any, undefined as any, undefined as any, undefined as any, undefined, undefined, undefined);
-    const exported = await GpxFormat.exportGpx(imported.trail, imported.tracks, [], [], new Map<Photo,string>()).toArrayBuffer();
+    const exported = await GpxFormat.exportGpx(imported[0].trail, imported[0].tracks, [], [], new Map<Photo,string>()).toArrayBuffer();
     const imported2 = GpxFormat.importGpx(exported, 'test@example.com', '0', preferencesService, undefined as any, undefined as any, undefined as any, undefined as any, undefined, undefined, undefined);
     expect(imported2).not.toBeNull();
-    compareTrails(imported.trail, imported2.trail);
-    expect(imported.tracks).toHaveSize(imported2.tracks.length);
-    for (let i = 0; i < imported.tracks.length; ++i)
-      compareTracks(imported.tracks[i], imported2.tracks[i]);
+    expect(imported2).toHaveSize(1);
+    compareTrails(imported[0].trail, imported2[0].trail);
+    expect(imported[0].tracks).toHaveSize(imported2[0].tracks.length);
+    for (let i = 0; i < imported[0].tracks.length; ++i)
+      compareTracks(imported[0].tracks[i], imported2[0].tracks[i]);
   });
 
 });

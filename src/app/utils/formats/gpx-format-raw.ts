@@ -10,15 +10,19 @@ import { TrailActivity } from '../../model/dto/trail-activity';
 export interface ImportedTrackRaw {
   segments: PointDescriptor[][];
   wayPoints: WayPoint[];
+  name?: string;
+  description?: string;
 }
 
 export interface ImportedTrailRaw {
+  creator?: string;
   trail: TrailDto;
   tracks: ImportedTrackRaw[];
   tags: string[][];
   photos: Partial<PhotoDto>[];
   photosFilenames: Map<Partial<PhotoDto>, string>;
   source?: string;
+  wayPoints: WayPoint[];
 }
 
 export class GpxFormatRaw {
@@ -28,6 +32,7 @@ export class GpxFormatRaw {
     const doc = parser.parseFromString(fileContent, "application/xml");
     if (doc.documentElement.nodeName.toLowerCase() !== 'gpx')
       throw new I18nError('errors.import.not_gpx');
+    const creator = doc.documentElement.getAttribute('creator') ?? undefined;
 
     const trailDto = {owner: user, collectionUuid, name: '', description: '', sourceType: trailSourceType, source: trailSource, sourceDate: trailSourceDate} as TrailDto;
     const tracks: ImportedTrackRaw[] = [];
@@ -122,12 +127,13 @@ export class GpxFormatRaw {
     }
 
     for (const trk of XmlUtils.getChildren(doc.documentElement, 'trk')) {
-      if (trailDto.name!.length === 0)
-        trailDto.name = XmlUtils.getChildText(trk, 'name') ?? '';
-      if (trailDto.description!.length === 0)
-        trailDto.description = XmlUtils.getChildText(trk, 'desc') ?? '';
+      const track: ImportedTrackRaw = {
+        segments: [],
+        wayPoints: [],
+        name: XmlUtils.getChildText(trk, 'name') ?? undefined,
+        description: XmlUtils.getChildText(trk, 'desc') ?? undefined,
+      };
 
-      const track: ImportedTrackRaw = {segments: [], wayPoints: []};
       for (const trkseg of XmlUtils.getChildren(trk, 'trkseg')) {
         const segment: PointDescriptor[] = [];
         track.segments.push(segment);
@@ -147,11 +153,12 @@ export class GpxFormatRaw {
       tracks.push(track);
     }
     for (const rte of XmlUtils.getChildren(doc.documentElement, 'rte')) {
-      if (trailDto.name!.length === 0)
-        trailDto.name = XmlUtils.getChildText(rte, 'name') ?? '';
-      if (trailDto.description!.length === 0)
-        trailDto.description = XmlUtils.getChildText(rte, 'desc') ?? '';
-      const track: ImportedTrackRaw = {segments: [], wayPoints: []};
+      const track: ImportedTrackRaw = {
+        segments: [],
+        wayPoints: [],
+        name: XmlUtils.getChildText(rte, 'name') ?? undefined,
+        description: XmlUtils.getChildText(rte, 'desc') ?? undefined,
+      };
       const segment: PointDescriptor[] = [];
       track.segments.push(segment);
       for (const rtept of XmlUtils.getChildren(rte, 'rtept')) {
@@ -162,16 +169,14 @@ export class GpxFormatRaw {
       tracks.push(track);
     }
 
-    if (tracks.length > 0 && tracks.at(-1)!.wayPoints.length === 0) {
-      const track = tracks.at(-1)!;
-      for (const wpt of XmlUtils.getChildren(doc.documentElement, 'wpt')) {
-        const wp = this.readWayPoint(wpt);
-        if (wp) track.wayPoints.push(wp);
-      }
+    const wayPoints: WayPoint[] = [];
+    for (const wpt of XmlUtils.getChildren(doc.documentElement, 'wpt')) {
+      const wp = this.readWayPoint(wpt);
+      if (wp) wayPoints.push(wp);
     }
 
     if (tracks.length === 0) throw new I18nError('errors.import.not_gpx');
-    return { trail: trailDto, tracks, tags: importedTags, photos, photosFilenames, source };
+    return { creator, trail: trailDto, tracks, tags: importedTags, photos, photosFilenames, source, wayPoints };
   }
 
   private static readPoint(point: Element): PointDescriptor | undefined {
