@@ -5,7 +5,7 @@ import { TrackMetadataComponent, TrackMetadataConfig } from '../track-metadata/t
 import { Track } from 'src/app/model/track';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonIcon, IonCheckbox, IonButton, IonSpinner, PopoverController, DomController, Platform, IonBadge } from "@ionic/angular/standalone";
-import { BehaviorSubject, combineLatest, concat, EMPTY, firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, concat, firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MenuContentComponent } from '../menus/menu-content/menu-content.component';
 import { TagService } from 'src/app/services/database/tag.service';
@@ -28,7 +28,6 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { RateComponent } from '../trail/rate-and-comments/rate/rate.component';
-import { MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
 import { MySelectionService } from 'src/app/services/database/my-selection.service';
 import { LongPressDirective } from 'src/app/utils/long-press.directive';
 import { TrailTag } from 'src/app/model/trail-tag';
@@ -40,8 +39,7 @@ import { TrailLinkService } from 'src/app/services/database/link.service';
 import { TrailSmallElevationProfileComponent } from '../trail-small-elevation-profile/trail-small-elevation-profile.component';
 import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
 import { ObserverHelper } from 'src/app/utils/observer-helper';
-import { collection$items } from 'src/app/utils/rxjs/collection$items';
-import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { TrailPublicationInfoService } from 'src/app/services/database/trail-publication-info.service';
 
 class Meta {
   name?: string;
@@ -152,12 +150,6 @@ export class TrailOverviewComponent extends AbstractComponent {
   external$ = new BehaviorSubject<TrailInfo | undefined>(undefined);
   external?: TrailInfo;
 
-  @Input() publishedUuid: string | null | undefined;
-  @Input() draftUuid: string | null | undefined;
-  @Input() submittedUuid: string | null | undefined;
-  @Input() rejectedUuid: string | null | undefined;
-  @Input() link: TrailLink | null | undefined;
-
   publicTrailUuid?: string;
   draftTrailUuid?: string;
   submittedTrailUuid?: string;
@@ -203,9 +195,6 @@ export class TrailOverviewComponent extends AbstractComponent {
 
   protected override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
     if (changes['selected'] || changes['enableShowOnMap'] || changes['hideMenu'] || changes['photoCanBeOnLeft'] || changes['maxWidth']) this.changesDetection.detectChanges();
-    if (changes['publishedUuid'] || changes['draftUuid'] || changes['submittedUuid'] || changes['rejectedUuid'] || changes['link']) {
-      if (this.refrehPublicTrailFromInput()) this.changesDetection.detectChanges();
-    }
   }
 
   protected override onComponentStateChanged(previousState: any, newState: any): void { // NOSONAR
@@ -361,63 +350,35 @@ export class TrailOverviewComponent extends AbstractComponent {
     this.byStateAndVisible.subscribe(
       this.load$.pipe(
         filterDefined(),
-        switchMap(() => this.auth.userChanged$),
-        switchMap(a => {
-          if (!a || this.trail?.owner !== a.email) return EMPTY;
-          if (this.refrehPublicTrailFromInput()) return EMPTY;
-          const uuid = this.trail.uuid;
-          return combineLatest([
-            this.injector.get(MyPublicTrailsService).myPublicTrails$,
-            this.trailLinkService.getLinkForTrail$(this.trail.uuid),
-            this.trailService.getAllWhenLoaded$().pipe(
-              collection$items(t => t.publishedFromUuid === uuid),
-              switchMap(publishedFrom => {
-                if (publishedFrom.length === 0) return of(undefined);
-                return this.injector.get(TrailCollectionService).getAllCollectionsReady$().pipe(
-                  map(collections => ({collections, publishedFrom}))
-                );
-              })
-            )
-          ]);
-        })
+        map(() => this.trail),
+        filterDefined(),
+        switchMap(trail => this.injector.get(TrailPublicationInfoService).getTrailPublicationInfo(trail)),
       ),
-      ([myPublicTrails, link, publications]) => {
-        const newValue = this.trail?.uuid ? myPublicTrails.find(p => p.privateUuid === this.trail?.uuid)?.publicUuid : undefined;
-        if (newValue !== this.publicTrailUuid) {
-          this.publicTrailUuid = newValue;
-          this.changesDetection.detectChanges();
+      publicationInfo => {
+        let changed = false;
+        if (publicationInfo.published?.publicUuid !== this.publicTrailUuid) {
+          this.publicTrailUuid = publicationInfo.published?.publicUuid;
+          changed = true;
         }
-        if (publications) {
-          const draftCol = publications.collections.find(c => c.type === TrailCollectionType.PUB_DRAFT);
-          const draftUuid = publications.publishedFrom.find(t => t.collectionUuid === draftCol?.uuid)?.uuid;
-          const submittedCol = publications.collections.find(c => c.type === TrailCollectionType.PUB_SUBMIT);
-          const submittedUuid = publications.publishedFrom.find(t => t.collectionUuid === submittedCol?.uuid)?.uuid;
-          const rejectedCol = publications.collections.find(c => c.type === TrailCollectionType.PUB_REJECT);
-          const rejectedUuid = publications.publishedFrom.find(t => t.collectionUuid === rejectedCol?.uuid)?.uuid;
-          if (draftUuid !== this.draftTrailUuid || submittedUuid !== this.submittedTrailUuid || rejectedUuid !== this.rejectedTrailUuid) {
-            this.draftTrailUuid = draftUuid;
-            this.submittedTrailUuid = submittedUuid;
-            this.rejectedTrailUuid = rejectedUuid;
-            this.changesDetection.detectChanges();
-          }
+        if (publicationInfo.link !== this.trailLink) {
+          this.trailLink = publicationInfo.link;
+          changed = true;
         }
-        const tl = link || undefined;
-        if (tl != this.trailLink) {
-          this.trailLink = tl;
-          this.changesDetection.detectChanges();
+        if (publicationInfo.draft?.uuid !== this.draftTrailUuid) {
+          this.draftTrailUuid = publicationInfo.draft?.uuid;
+          changed = true;
         }
+        if (publicationInfo.submitted?.uuid !== this.submittedTrailUuid) {
+          this.submittedTrailUuid = publicationInfo.submitted?.uuid;
+          changed = true;
+        }
+        if (publicationInfo.rejected?.uuid !== this.rejectedTrailUuid) {
+          this.rejectedTrailUuid = publicationInfo.rejected?.uuid;
+          changed = true;
+        }
+        if (changed) this.changesDetection.detectChanges();
       }
     );
-  }
-
-  private refrehPublicTrailFromInput(): boolean {
-    if (this.publishedUuid === undefined || this.draftUuid === undefined || this.submittedUuid === undefined || this.rejectedUuid === undefined || this.link === undefined) return false;
-    this.publicTrailUuid = this.publishedUuid || undefined;
-    this.draftTrailUuid = this.draftUuid || undefined;
-    this.submittedTrailUuid = this.submittedUuid || undefined;
-    this.rejectedTrailUuid = this.rejectedUuid || undefined;
-    this.trailLink = this.link || undefined;
-    return true;
   }
 
   private trackData$(trail: Trail, owner: string): Observable<[TrackMetadataSnapshot | Track | undefined, number | undefined]> {

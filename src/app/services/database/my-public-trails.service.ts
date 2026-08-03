@@ -25,7 +25,8 @@ export class MyPublicTrailsService {
   ) {
     dbs.myPublicationsTable.onStatus$().pipe(
       switchMap(status => {
-        this.myPublicTrails$.next([]);
+        if (this.myPublicTrails$.value.length > 0)
+          this.myPublicTrails$.next([]);
         if (!status || authService.auth?.isAnonymous) {
           return EMPTY;
         }
@@ -42,7 +43,10 @@ export class MyPublicTrailsService {
           )
         );
       })
-    ).subscribe(list => this.myPublicTrails$.next(list));
+    ).subscribe(list => {
+      if (list.length === 0 && this.myPublicTrails$.value.length === 0) return;
+      this.myPublicTrails$.next(list);
+    });
   }
 
 }

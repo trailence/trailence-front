@@ -87,7 +87,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     showSpeed: false,
   };
   mapTracksMapper = new CollectionMapper<{trail: Trail, data: SimplifiedTrackSnapshot}, MapTrack>(
-    trailAndTrack => new MapTrack(trailAndTrack.trail, trailAndTrack.data, 'red', 4, false, this.i18n),
+    trailAndTrack => new MapTrack(trailAndTrack.trail, trailAndTrack.data, 'red', 2, false, this.i18n),
     (t1, t2) => t1.data === t2.data
   );
   mapElements$ = new BehaviorSubject<MapElement[]>([]);
@@ -262,7 +262,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
         this.injector.get(ModerationService).getSimplifiedTrack$(t.trail.uuid, t.trail.owner, t.trackUuid) :
         this.trackService.getSimplifiedTrack$(t.trackUuid, t.trail.owner))
       .pipe(
-        debounceTimeExtended(1000, 1000, undefined, (p,n) => !!n),
+        debounceTimeExtended(v => v ? 0 : 1000, 1000, undefined, (p,n) => !!n),
         map(track => {
           if (!track) Console.warn('Track not found after 1s for trail', t.trail.owner, t.trail.uuid, t.trail.name);
           return {trail: t.trail, track};
