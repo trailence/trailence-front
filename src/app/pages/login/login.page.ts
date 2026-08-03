@@ -75,6 +75,7 @@ export class LoginPage extends PublicPage {
     });
     this.whenVisible.subscribe(auth.auth$, a => {
       if (this.inprogress || !a) return;
+      Console.debug('[LOGIN] Authenticated, routing to', this.returnUrl);
       this.injector.get(NavController).navigateRoot(this.returnUrl);
     });
   }
@@ -128,6 +129,7 @@ export class LoginPage extends PublicPage {
             ).subscribe(() => {
               this.inprogress = false;
             });
+            Console.debug('[LOGIN] login done, routing to', this.returnUrl);
             this.injector.get(NavController).navigateRoot(this.returnUrl);
           } else {
             this.inprogress = false;

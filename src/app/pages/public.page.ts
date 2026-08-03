@@ -4,6 +4,7 @@ import { AbstractPage } from '../utils/component-utils';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PreferencesService } from '../services/preferences/preferences.service';
 import { AvailableLocales, LocaleKey } from '../services/i18n/available-locales';
+import { Console } from '../utils/console';
 
 @Component({
   template: `<ion-router-outlet></ion-router-outlet>`,
@@ -47,6 +48,7 @@ export class PublicPageWithoutLang {
   ) {}
 
   ionViewWillEnter(): void {
+    Console.debug('Public page without language => redirecting to path with language');
     this.navController.navigateRoot('/' + this.prefs.preferences.lang + this.router.url);
   }
 

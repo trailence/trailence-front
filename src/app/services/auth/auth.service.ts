@@ -87,6 +87,7 @@ export class AuthService {
         const url = globalThis.location.pathname;
         if (!url.includes('/login') && !url.includes('/link') && url !== '/search-route' && !url.startsWith('/trail/trailence/') && !url.startsWith('/live-group/')) {
           if (!publicRoutes.some(r => '/' + r.path === url || '/fr/' + r.path === url || '/en/' + r.path === url)) {
+            Console.debug('[AUTH] No auth, route not public => routing to /home or /login');
             if (url === '/')
               navController.navigateRoot(['/home']);
             else
@@ -95,7 +96,7 @@ export class AuthService {
         }
       } else if (auth) {
         Console.info(
-          'Using ' + auth.email +
+          '[AUTH] Using ' + auth.email +
           ', token expires at ' + new Date(auth.expires).toISOString() +
           ', complete = ' + auth.complete +
           ', admin = ' + auth.admin +
@@ -132,9 +133,9 @@ export class AuthService {
     });
     router.events.subscribe(e => {
       if (e instanceof NavigationStart) {
-        Console.debug('Navigate to ' + e.url);
+        Console.debug('[AUTH] Navigate to ' + e.url, e.navigationTrigger);
       } else if (e instanceof NavigationEnd) {
-        Console.debug('Navigation done to ' + e.url);
+        Console.debug('[AUTH] Navigation done to ' + e.url);
       }
     });
     router.events.pipe(
@@ -155,7 +156,7 @@ export class AuthService {
           if (!auth.expires) throw new Error('No expires');
           if (!auth.email) throw new Error('No email');
           if (!auth.keyId) throw new Error('No keyId');
-          Console.info('Found stored authentication for user', auth.email);
+          Console.info('[AUTH] Found stored authentication for user', auth.email);
           this.openDB(auth.email);
           this._auth$.next(auth);
         }
@@ -163,7 +164,7 @@ export class AuthService {
         Console.error(error);
       }
       if (this._auth$.value === undefined) {
-        Console.info('Not authenticated');
+        Console.info('[AUTH] Not authenticated');
         this._auth$.next(null);
       }
     });
@@ -208,6 +209,7 @@ export class AuthService {
       filter(auth => auth !== undefined),
       map(auth => {
         if (auth) return true;
+        Console.debug('[AUTH GUARD] No auth, routing to login page');
         return this.router.createUrlTree(['/login'], {queryParams: {returnUrl: state.url}});
       })
     );
@@ -218,6 +220,7 @@ export class AuthService {
       filter(auth => auth !== undefined),
       map(auth => {
         if (auth?.admin) return true;
+        Console.debug('[AUTH ADMIN GUARD] Not admin, routing to /');
         return this.router.createUrlTree(['/']);
       })
     );
@@ -430,7 +433,7 @@ export class AuthService {
   private doRenewAuth(): Observable<AuthResponse | null> {
     const current = this._auth$.value;
     if (!current || current.isAnonymous) return of(null);
-    Console.info('Authenticating ' + current.email);
+    Console.info('[AUTH] Authenticating ' + current.email);
     return from(this.db!.transaction<StoredSecurity | undefined>('r', DB_SECURITY_TABLE, tx => tx.table<StoredSecurity, string>(DB_SECURITY_TABLE).get(current.email)))
     .pipe(
       switchMap(security => {
@@ -448,7 +451,7 @@ export class AuthService {
           catchError(error => {
             if (error instanceof ApiError) {
               if (error.httpCode === 403) {
-                Console.warn('The server refused our authentication key id ' + security.keyId);
+                Console.warn('[AUTH] The server refused our authentication key id ' + security.keyId);
                 this.db?.table<StoredSecurity, string>(DB_SECURITY_TABLE).delete(current.email);
                 this._auth$.next(null);
                 return of(null);
@@ -473,7 +476,7 @@ export class AuthService {
         if (current.keyCreatedAt + (this.platform.is('capacitor') ? RENEW_KEY_AFTER_NATIVE : RENEW_KEY_AFTER_WEB) > Date.now())
           return this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/renew', request).pipe(timeout(30000));
         // renew the key
-        Console.info("Renew token with new key pair");
+        Console.info("[AUTH] Renew token with new key pair");
         return this.generateKeys().pipe(
           switchMap(keys => {
             request.newPublicKey = keys.publicKeyBase64;
@@ -537,7 +540,7 @@ export class AuthService {
       filter(auth => {
         if (auth || optional) return true;
         if (optionalNoRobot && !isRobot()) return true;
-        Console.warn('Request cancelled because no authentication', request.url);
+        Console.warn('[AUTH] Request cancelled because no authentication', request.url);
         return false; // cancel request if not authenticated
       }),
       map(auth => {

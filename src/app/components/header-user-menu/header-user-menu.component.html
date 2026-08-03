@@ -169,16 +169,18 @@
     </ion-header>
     <div class="ion-padding modal-content">
       <div>{{i18n.texts.logout.text}}</div>
-      @if (hasLocalChanges) {
-        <div class="logout-message danger">
-          <ion-icon name="warning"></ion-icon>
-          <div>{{i18n.texts.logout.text_warning}}</div>
-        </div>
-      } @else {
-        <div class="logout-message info">
-          <ion-icon name="info"></ion-icon>
-          <div>{{i18n.texts.logout.text_info}}</div>
-        </div>
+      @if (!isAnonymous) {
+        @if (hasLocalChanges) {
+          <div class="logout-message danger">
+            <ion-icon name="warning"></ion-icon>
+            <div>{{i18n.texts.logout.text_warning}}</div>
+          </div>
+        } @else {
+          <div class="logout-message info">
+            <ion-icon name="info"></ion-icon>
+            <div>{{i18n.texts.logout.text_info}}</div>
+          </div>
+        }
       }
     </div>
     <ion-footer>

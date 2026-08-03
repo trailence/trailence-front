@@ -120,7 +120,6 @@ export class HeaderUserMenuComponent extends AbstractComponent {
     this.auth.logout(withDelete).subscribe(() => {
       this.logoutModal!.dismiss();
       this.loggingOut = false;
-      this.router.navigateByUrl('/');
     });
   }
 
