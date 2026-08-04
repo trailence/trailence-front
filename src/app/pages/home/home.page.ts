@@ -101,10 +101,12 @@ export class HomePage extends PublicPage implements AfterContentChecked {
     this.examples = result;
   }
 
-  badgeLang(): string {
-    const l = this.preferences.preferences.lang;
-    if (['en', 'fr'].includes(l)) return l;
-    return 'en';
+  langUpToDown(): string {
+    switch (this.preferences.preferences.lang) {
+      case 'pt': return 'br.';
+      case 'es': return '';
+      default: return this.preferences.preferences.lang + '.';
+    }
   }
 
 }

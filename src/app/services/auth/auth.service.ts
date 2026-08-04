@@ -23,6 +23,7 @@ import { LocalFilesService } from '../local-files/local-files.service';
 import { I18nService } from '../i18n/i18n.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { isRobot } from '../http/robot';
+import { AvailableLocales } from '../i18n/available-locales';
 
 export const ANONYMOUS_USER = 'anonymous@trailence.org';
 
@@ -86,7 +87,12 @@ export class AuthService {
       if (auth === null) {
         const url = globalThis.location.pathname;
         if (!url.includes('/login') && !url.includes('/link') && url !== '/search-route' && !url.startsWith('/trail/trailence/') && !url.startsWith('/live-group/')) {
-          if (!publicRoutes.some(r => '/' + r.path === url || '/fr/' + r.path === url || '/en/' + r.path === url)) {
+          if (!publicRoutes.some(r => {
+            if ('/' + r.path === url) return true;
+            for (const lang of Object.values(AvailableLocales))
+              if ('/' + lang.key + '/' + r.path === url) return true;
+            return false;
+          })) {
             Console.debug('[AUTH] No auth, route not public => routing to /home or /login');
             if (url === '/')
               navController.navigateRoot(['/home']);

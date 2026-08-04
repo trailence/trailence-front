@@ -277,17 +277,17 @@
           <div class="foot-col">
             <h5>{{i18n.texts.pages.home.footer.download}}</h5>
             <div class="badges">
-              @let imgLocale = badgeLang();
+              @let langUptoDown = langUpToDown();
               <a href="https://play.google.com/store/apps/details?id=trailence.org&hl={{lang}}" target="_blank">
-                <img loading="lazy" src="/assets/home-page/google-playstore-{{imgLocale}}.svg" alt="Google Play"/>
+                <img loading="lazy" src="/assets/home-page/google-playstore-{{lang}}.svg" alt="Google Play"/>
               </a>
               <a href="https://appgallery.huawei.com/app/C114938253?locale={{lang}}" target="_blank">
-                <img loading="lazy" src="/assets/home-page/huawei-appgallery-{{imgLocale}}.svg" alt="AppGallery"/>
+                <img loading="lazy" src="/assets/home-page/huawei-appgallery-{{lang}}.svg" alt="AppGallery"/>
               </a>
               <a href="https://f-droid.org/{{lang}}/packages/trailence.org" target="_blank">
-                <img loading="lazy" src="/assets/home-page/fdroid-{{imgLocale}}.svg" alt="F-Droid"/>
+                <img loading="lazy" src="/assets/home-page/fdroid-{{lang}}.svg" alt="F-Droid"/>
               </a>
-              <a href="https://trailence.{{lang}}.uptodown.com/android" target="_blank">
+              <a href="https://trailence.{{langUptoDown}}uptodown.com/android" target="_blank">
                 <img loading="lazy" src="/assets/home-page/uptodown.png" alt="Uptodown"/>
               </a>
             </div>

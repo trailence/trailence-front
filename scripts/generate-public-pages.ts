@@ -39,13 +39,21 @@ function generateIndex(srcIndex: string, dstPath: string, page: PublicPage, lang
   fs.writeFileSync(dstPath, dstIndex);
 }
 
+function langUptoDown(lang: string): string {
+  switch (lang) {
+    case 'pt': return 'br.';
+    case 'es': return '';
+    default: return lang + '.';
+  }
+}
+
 function generateHome(srcIndex: string, dstPath: string, language: string, i18n: any) {
   let dstIndex = fs.readFileSync('../src/app/pages/home/home.page.html', { encoding: 'utf-8' });
   dstIndex = dstIndex.replaceAll('{{lang}}', language);
   dstIndex = dstIndex.replaceAll('{{theme}}', 'DARK');
   dstIndex = dstIndex.replaceAll('{{themeFile}}', 'dark');
   dstIndex = dstIndex.replaceAll('{{ssUrl}}', '/assets/home-ss/ss.3');
-  dstIndex = dstIndex.replaceAll('{{imgLocale}}', 'en');
+  dstIndex = dstIndex.replaceAll('{{langUptoDown}}', langUptoDown(language));
   dstIndex = dstIndex.replaceAll('{{year}}', '' + new Date().getFullYear());
 
   let i: number = 0;

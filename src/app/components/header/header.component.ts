@@ -17,6 +17,7 @@ import { NgClass } from '@angular/common';
 import { LiveGroupDto, LiveGroupService } from 'src/app/services/live-group/live-group.service';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 import { LangPickerComponent } from '../lang-picker/lang-picker.component';
+import { AvailableLocales } from 'src/app/services/i18n/available-locales';
 
 @Component({
     selector: 'app-header',
@@ -63,7 +64,8 @@ export class HeaderComponent extends AbstractComponent {
     super(injector);
     this.size = this.getSize(browser.width);
     this.whenAlive.add(browser.resize$.subscribe(s => this.size = this.getSize(s.width)));
-    if (router.url.startsWith('/fr/') || router.url.startsWith('/en/')) this.publicUrl = this.router.url.substring(4);
+    for (const lang of Object.values(AvailableLocales))
+      if (router.url.startsWith('/' + lang.key + '/')) this.publicUrl = this.router.url.substring(4);
   }
 
   private getSize(width: number): 'small' | 'medium' | 'large' {
