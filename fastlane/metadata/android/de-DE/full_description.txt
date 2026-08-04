@@ -1,0 +1,31 @@
+Ihr Wanderbegleiter und GPS-Track-Manager. Offen für alle Ihre Outdoor-Aktivitäten: Wandern, Trailrunning, Radfahren, Skitouren, Spaziergänge…
+
+Frei und Open Source, ohne Werbung, ohne Tracker — Ihre Daten gehören Ihnen.
+
+Auf Android und im Web.
+
+Ihre Touren planen, aufzeichnen, organisieren, analysieren und teilen:
+
+  • Offline-Karten
+  • Kartengrundlagen IGN, OSM, …
+  • GPX-Import / -Export
+  • Tourenausdruck
+  • Geotaggte Fotos
+  • Höhenprofil
+  • Tags & Sammlungen
+  • Suche & Filter
+  • Live-Gruppen-Tracking
+  • Wegpunkte
+  • Sync Web ↔ Android
+  • Teilen & Links
+  • Geschätzte Gehzeit
+  • Wegmarkierungen
+  • Wegzeichen
+  • Oberflächen und Wegtypen
+  • Distanz und Restzeit
+  • Tourenerstellung
+  • Kartenrotation
+  • Track-Editor
+  • und vieles mehr…
+
+Und eine offene Tourendatenbank, beschrieben und geprüft, die wir gemeinsam aufbauen.

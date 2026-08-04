@@ -1,10 +1,31 @@
-Hiking and GPS Track Management Tool (GPX).<br/>
-- Organize your tracks<br/>
-- Record a track during your hike<br/>
-- Import tracks from GPX files<br/>
-- Add photos on the track<br/>
-- Plan a track with Open Street Map<br/>
-- Edit your tracks<br/>
-- Share with friends<br/>
-- Publish your trails to the communauty<br/>
-- And more !<br/>
+Your hiking companion and GPS track manager. Open to all your outdoor activities: hiking, trail running, cycling, ski touring, walking…
+
+Free and open source, no ads, no trackers — your data stays yours.
+
+On Android and the Web.
+
+Plan, record, organize, analyze and share your trails:
+
+  • Offline maps
+  • IGN, OSM basemaps, …
+  • Import / export GPX
+  • Trail printing
+  • Geotagged photos
+  • Elevation profile
+  • Tags & collections
+  • Search & filters
+  • Live group tracking
+  • Waypoints
+  • Web ↔ Android sync
+  • Sharing & links
+  • Estimated walking time
+  • Path waymarking
+  • Trail markers
+  • Path surfaces & types
+  • Distance & time remaining
+  • Trail creation
+  • Map rotation
+  • Track editor
+  • and much more…
+
+And an open trail database, documented and verified, to build together.

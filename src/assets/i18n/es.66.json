@@ -15,6 +15,7 @@
   },
   "pages": {
     "home": {
+      "menu_label": "Inicio",
       "hero": {
         "h1": "Prepara, graba, organiza y comparte tus rutas.",
         "sub": "Tu compañero de senderismo y gestor de tracks GPS. Abierto a todas tus actividades al aire libre.",
@@ -53,7 +54,7 @@
           "lead": "Una sola app para todo lo que haces — desde el reconocimiento en el mapa hasta el recuerdo de la salida.",
           "features": [
             "Mapas sin conexión",
-            "Mapas base IGN, OSM, ...",
+            "Mapas base IGN, OSM, …",
             "Importar / exportar GPX",
             "Impresión de la ruta",
             "Fotos geolocalizadas",
@@ -1337,7 +1338,7 @@
     "others": "Otros"
   },
   "activity": {
-    "walking": "Marcha",
+    "walking": "Paseo",
     "hiking": "Senderismo",
     "trail": "Trail",
     "moutain-biking": "BTT",

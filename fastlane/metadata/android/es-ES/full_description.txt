@@ -1,0 +1,31 @@
+Tu compañero de senderismo y gestor de tracks GPS. Abierto a todas tus actividades al aire libre: senderismo, trail running, ciclismo, esquí de travesía, paseos…
+
+Libre y de código abierto, sin publicidad, sin rastreadores — tus datos siguen siendo tuyos.
+
+En Android y en la Web.
+
+Prepara, graba, organiza, analiza y comparte tus rutas:
+
+  • Mapas sin conexión
+  • Mapas base IGN, OSM, …
+  • Importar / exportar GPX
+  • Impresión de la ruta
+  • Fotos geolocalizadas
+  • Perfil altimétrico
+  • Etiquetas & colecciones
+  • Búsqueda & filtros
+  • Seguimiento de grupo en tiempo real
+  • Puntos de paso
+  • Sync Web ↔ Android
+  • Compartir & enlaces
+  • Tiempo de marcha estimado
+  • Señalización de caminos
+  • Balizas de sendero
+  • Superficies y tipos de caminos
+  • Distancia y tiempo restante
+  • Creación de rutas
+  • Rotación del mapa
+  • Editor de tracks
+  • y mucho más…
+
+Y una base de rutas abierta, descrita y verificada, por construir juntos.

@@ -45,7 +45,7 @@ export class HeaderComponent extends AbstractComponent {
   @Input() smallTitleNotLogged = false;
 
   id = IdGenerator.generateId();
-  small: boolean;
+  size: 'small' | 'medium' | 'large';
   publicUrl?: string;
   alwaysTightMenu = false;
   liveGroups: LiveGroupDto[] = [];
@@ -61,9 +61,15 @@ export class HeaderComponent extends AbstractComponent {
     public readonly browser: BrowserService,
   ) {
     super(injector);
-    this.small = browser.width < 500;
-    this.whenAlive.add(browser.resize$.subscribe(s => this.small = s.width < 500));
+    this.size = this.getSize(browser.width);
+    this.whenAlive.add(browser.resize$.subscribe(s => this.size = this.getSize(s.width)));
     if (router.url.startsWith('/fr/') || router.url.startsWith('/en/')) this.publicUrl = this.router.url.substring(4);
+  }
+
+  private getSize(width: number): 'small' | 'medium' | 'large' {
+    if (width < 500) return 'small';
+    if (width < 700) return 'medium';
+    return 'large';
   }
 
   back(): void {

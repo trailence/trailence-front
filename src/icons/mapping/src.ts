@@ -66,6 +66,7 @@ export const SRC_ICONS: {[name: string]: string} = {
   'help-circle': 'help-circle.1.svg', // help-circle-outline
   'highest-point': 'highest-point.1.svg',
   'hiking': 'hiking.1.svg',
+  'home': 'home-outline.svg', // home-outline
   'horse-riding': 'horse-riding.1.svg',
   'hourglass': 'hourglass.1.svg', // hourglass-outline
   'i18n': 'language.1.svg', // language-outline

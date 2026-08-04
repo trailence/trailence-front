@@ -117,6 +117,33 @@ function generateHome(srcIndex: string, dstPath: string, language: string, i18n:
   }
   dstIndex = dstIndex.substring(0, i) + newContent + dstIndex.substring(j + 1);
 
+  i = dstIndex.indexOf('<app-header');
+  j = dstIndex.indexOf('</app-header>');
+  dstIndex = dstIndex.substring(0, i) + dstIndex.substring(j + 13);
+
+  i = dstIndex.indexOf('@if');
+  if (i !== -1) throw new Error('Remaining ' + dstIndex.substring(i, i + 10));
+  i = dstIndex.indexOf('@for');
+  if (i !== -1) throw new Error('Remaining ' + dstIndex.substring(i, i + 10));
+  i = dstIndex.indexOf('{{');
+  if (i !== -1) throw new Error('Remaining ' + dstIndex.substring(i, i + 10));
+  i = dstIndex.indexOf('{');
+  if (i !== -1) throw new Error('Remaining ' + dstIndex.substring(i, i + 10));
+  i = dstIndex.indexOf('}');
+  if (i !== -1) throw new Error('Remaining ' + dstIndex.substring(i, i + 10));
+  i = dstIndex.indexOf('@');
+  if (i !== -1) throw new Error('Remaining ' + dstIndex.substring(i, i + 10));
+  i = dstIndex.indexOf('innerHTML');
+  if (i !== -1) throw new Error('Remaining ' + dstIndex.substring(i, i + 20));
+  i = dstIndex.indexOf('i18n');
+  if (i !== -1) throw new Error('Remaining ' + dstIndex.substring(i, i + 50));
+  i = dstIndex.indexOf('<app-');
+  if (i !== -1) throw new Error('Remaining ' + dstIndex.substring(i, i + 50));
+  i = dstIndex.indexOf('<ion-');
+  if (i !== -1) throw new Error('Remaining ' + dstIndex.substring(i, i + 50));
+
+  if (dstIndex.length < 5000) throw new Error('Seems too small: ' + dstIndex.substring(0, 1000));
+
   dstIndex = srcIndex.replace('<!-- content -->', dstIndex);
   fs.writeFileSync(dstPath, dstIndex);
 }

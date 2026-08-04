@@ -15,6 +15,7 @@
   },
   "pages": {
     "home": {
+      "menu_label": "Accueil",
       "hero": {
         "h1": "Préparez, enregistrez, organisez et partagez vos parcours.",
         "sub": "Votre compagnon de randonnée et gestionnaire de traces GPS. Ouvert à toutes vos activités outdoor.",
@@ -53,7 +54,7 @@
           "lead": "Une seule app pour couvrir toute votre pratique — du repérage sur la carte au souvenir de la sortie.",
           "features": [
             "Cartes hors-ligne",
-            "Fonds de carte IGN, OSM, ...",
+            "Fonds de carte IGN, OSM, …",
             "Import / export GPX",
             "Impression du parcours",
             "Photos géolocalisées",

@@ -1,0 +1,31 @@
+O seu companheiro de caminhadas e gestor de traçados GPS. Aberto a todas as suas atividades ao ar livre: pedestrianismo, trail running, ciclismo, esqui de montanha, passeios…
+
+Livre e open source, sem publicidade, sem rastreadores — os seus dados continuam a ser seus.
+
+No Android e na Web.
+
+Prepare, grave, organize, analise e partilhe os seus percursos:
+
+  • Mapas offline
+  • Mapas base IGN, OSM, …
+  • Importar / exportar GPX
+  • Impressão do percurso
+  • Fotografias geolocalizadas
+  • Perfil altimétrico
+  • Etiquetas & coleções
+  • Pesquisa & filtros
+  • Acompanhamento de grupo em direto
+  • Pontos de passagem
+  • Sincronização Web ↔ Android
+  • Partilha & ligações
+  • Tempo de marcha estimado
+  • Marcação dos caminhos
+  • Balizas de trilho
+  • Superfícies e tipos de caminhos
+  • Distância e tempo restante
+  • Criação de percursos
+  • Rotação do mapa
+  • Editor de traçado
+  • e muito mais…
+
+E uma base de percursos aberta, descrita e verificada, por construir juntos.

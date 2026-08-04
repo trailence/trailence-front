@@ -15,6 +15,7 @@
   },
   "pages": {
     "home": {
+      "menu_label": "Home",
       "hero": {
         "h1": "Prepara, registra, organizza e condividi i tuoi percorsi.",
         "sub": "Il tuo compagno di escursioni e gestore di tracce GPS. Aperto a tutte le tue attività outdoor.",
@@ -53,7 +54,7 @@
           "lead": "Una sola app per tutto ciò che fai — dalla ricognizione sulla mappa al ricordo dell'uscita.",
           "features": [
             "Mappe offline",
-            "Mappe di base IGN, OSM, ...",
+            "Mappe di base IGN, OSM, …",
             "Import / export GPX",
             "Stampa del percorso",
             "Foto geolocalizzate",
@@ -1337,7 +1338,7 @@
     "others": "Altre"
   },
   "activity": {
-    "walking": "Camminata",
+    "walking": "Passeggiata",
     "hiking": "Escursionismo",
     "trail": "Trail running",
     "moutain-biking": "Mountain bike",

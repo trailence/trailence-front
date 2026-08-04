@@ -15,6 +15,7 @@
   },
   "pages": {
     "home": {
+      "menu_label": "Início",
       "hero": {
         "h1": "Prepare, grave, organize e partilhe os seus percursos.",
         "sub": "O seu companheiro de caminhadas e gestor de traçados GPS. Aberto a todas as suas atividades ao ar livre.",
@@ -53,7 +54,7 @@
           "lead": "Uma única aplicação para abranger toda a sua prática — do reconhecimento no mapa à recordação da saída.",
           "features": [
             "Mapas offline",
-            "Mapas base IGN, OSM, ...",
+            "Mapas base IGN, OSM, …",
             "Importar / exportar GPX",
             "Impressão do percurso",
             "Fotografias geolocalizadas",
@@ -1337,7 +1338,7 @@
     "others": "Outros"
   },
   "activity": {
-    "walking": "Caminhada",
+    "walking": "Passeio",
     "hiking": "Pedestrianismo",
     "trail": "Trail running",
     "moutain-biking": "BTT",

@@ -15,6 +15,7 @@
   },
   "pages": {
     "home": {
+      "menu_label": "Home",
       "hero": {
         "h1": "Plan, record, organize and share your trails.",
         "sub": "Your hiking companion and GPS track manager. Open to all your outdoor activities.",
@@ -53,7 +54,7 @@
           "lead": "One app for everything you do outdoors — from scouting the map to reliving the outing.",
           "features": [
             "Offline maps",
-            "IGN, OSM basemaps, ...",
+            "IGN, OSM basemaps, …",
             "Import / export GPX",
             "Trail printing",
             "Geotagged photos",

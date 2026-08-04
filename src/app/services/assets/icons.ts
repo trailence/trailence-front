@@ -71,6 +71,7 @@ export const ICONS: string[] = [
   'help-circle',
   'highest-point',
   'hiking',
+  'home',
   'horse-riding',
   'hourglass',
   'i18n',

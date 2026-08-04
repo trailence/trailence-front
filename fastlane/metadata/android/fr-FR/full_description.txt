@@ -1,9 +1,31 @@
-Outil pour la randonnée et la gestion de vos traces GPS (GPX).<br/>
-- Organisez vos parcours<br/>
-- Enregitrez une trace pendant votre randonnée<br/>
-- Importez des traces depuis des fichiers GPX<br/>
-- Ajoutez des photos sur vos parcours<br/>
-- Plannifiez un parcours avec Open Street Map<br/>
-- Modifier vos traces<br/>
-- Partagez<br/>
-- Et bien plus !
+Votre compagnon de randonnée et gestionnaire de traces GPS. Ouvert à toutes vos activités outdoor : randonnée, trail, vélo, ski de rando, marche…
+
+Libre et open source, sans publicité, sans tracker — vos données restent les vôtres.
+
+Sur Android et sur le Web.
+
+Préparez, enregistrez, organisez, analysez et partagez vos parcours :
+
+  • Cartes hors-ligne
+  • Fonds de carte IGN, OSM, …
+  • Import / export GPX
+  • Impression du parcours
+  • Photos géolocalisées
+  • Profil altimétrique
+  • Tags & collections
+  • Recherche & filtres
+  • Suivi de groupe en direct
+  • Points de passage
+  • Sync Web ↔ Android
+  • Partage & liens
+  • Temps de marche estimé
+  • Balisage des chemins
+  • Balises de sentier
+  • Surfaces et types de chemins
+  • Distance et temps restant
+  • Création de parcours
+  • Rotation de la carte
+  • Éditeur de trace
+  • et bien plus…
+
+Et une base de parcours ouverte, décrite et vérifiée, à bâtir ensemble.

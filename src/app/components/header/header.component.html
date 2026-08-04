@@ -15,15 +15,18 @@
     } @else {
       <div class="trailence-title {{neverShowTrailenceTitle ? 'no-trailence-title' : ''}}" slot="start" (click)="home()">
         <ion-icon name="logo" size="large"></ion-icon>
-        @if (!neverShowTrailenceTitle) {<ion-label class="{{title.length === 0 ? 'no-title' : ''}}">Trailence</ion-label>}
+        @if (!neverShowTrailenceTitle && (title.length === 0 || size === 'large')) {<ion-label class="{{title.length === 0 ? 'no-title' : ''}}">Trailence</ion-label>}
       </div>
       <ion-buttons slot="end" class="public-buttons">
         <app-lang-picker [showText]="false" [link]="publicUrl" data-nosnippet></app-lang-picker>
         @if (prefs.getResolvedTheme(); as theme) {
           <ion-button (click)="prefs.setTheme(theme === 'DARK' ? 'LIGHT' : 'DARK')"><ion-icon slot="icon-only" [name]="theme === 'DARK' ? 'theme-light' : 'theme-dark'"></ion-icon></ion-button>
         }
-        @if (!small) {
+        @if (size !== 'small') {
           <div class="separator"></div>
+          <a href="/{{prefs.preferences.lang}}/home" (click)="$event.preventDefault()" data-nosnippet>
+            <ion-button (click)="goTo('/' + prefs.preferences.lang + '/home')"><ion-icon slot="icon-only" name="home"></ion-icon></ion-button>
+          </a>
           <a href="/search-route" (click)="$event.preventDefault()" data-nosnippet>
             <ion-button (click)="goTo('/search-route')"><ion-icon slot="icon-only" name="search"></ion-icon></ion-button>
           </a>
@@ -75,16 +78,22 @@
           <ion-popover trigger="header-small-device-menu-button-{{id}}" [dismissOnSelect]="true">
             <ng-template>
               <ion-content>
-                <ion-list>
+                <ion-list style="padding: 0">
+                  <a href="/{{prefs.preferences.lang}}/home" (click)="$event.preventDefault()">
+                    <ion-item (click)="goTo('/' + prefs.preferences.lang + '/home')" lines="full" button>
+                      <ion-icon slot="start" name="home" color="dark"></ion-icon>
+                      <ion-label>{{i18n.texts.pages.home.menu_label}}</ion-label>
+                    </ion-item>
+                  </a>
                   <a href="/search-route" (click)="$event.preventDefault()">
-                    <ion-item (click)="goTo('/search-route')">
-                      <ion-icon slot="start" name="search"></ion-icon>
+                    <ion-item (click)="goTo('/search-route')" lines="full" button>
+                      <ion-icon slot="start" name="search" color="dark"></ion-icon>
                       <ion-label>{{i18n.texts.menu.search_trail}}</ion-label>
                     </ion-item>
                   </a>
                   @if (liveGroups.length > 0) {
-                    <ion-item id="header-no-auth-live-group-menu-{{id}}" [detail]="true" button>
-                      <ion-icon slot="start" name="live-group"></ion-icon>
+                    <ion-item id="header-no-auth-live-group-menu-{{id}}" [detail]="true" lines="full" button>
+                      <ion-icon slot="start" name="live-group" color="dark"></ion-icon>
                       <ion-label>{{i18n.texts.pages.live_group.title}}</ion-label>
                     </ion-item>
                     <ion-popover trigger="header-no-auth-live-group-menu-{{id}}" [dismissOnSelect]="true">
@@ -118,20 +127,20 @@
                     </ion-popover>
                   }
                   <a href="/{{prefs.preferences.lang}}/contact" (click)="$event.preventDefault()">
-                    <ion-item (click)="goTo('/' + prefs.preferences.lang + '/contact')">
-                      <ion-icon slot="start" name="mail"></ion-icon>
+                    <ion-item (click)="goTo('/' + prefs.preferences.lang + '/contact')" lines="full" button>
+                      <ion-icon slot="start" name="mail" color="dark"></ion-icon>
                       <ion-label>{{i18n.texts.pages.contact.title}}</ion-label>
                     </ion-item>
                   </a>
                   <a href="/{{prefs.preferences.lang}}/donation" (click)="$event.preventDefault()">
-                    <ion-item (click)="goTo('/' + prefs.preferences.lang + '/donation')">
+                    <ion-item (click)="goTo('/' + prefs.preferences.lang + '/donation')" lines="full" button>
                       <ion-icon slot="start" class="donation-color" name="heart-outline"></ion-icon>
                       <ion-label>{{i18n.texts.pages.donation.title}}</ion-label>
                     </ion-item>
                   </a>
                   <a href="/{{prefs.preferences.lang}}/login" (click)="$event.preventDefault()">
-                    <ion-item (click)="goTo('/' + prefs.preferences.lang + '/login')">
-                      <ion-icon slot="start" name="key"></ion-icon>
+                    <ion-item (click)="goTo('/' + prefs.preferences.lang + '/login')" lines="none" button>
+                      <ion-icon slot="start" name="key" color="dark"></ion-icon>
                       <ion-label>{{i18n.texts.pages.login.title}}</ion-label>
                     </ion-item>
                   </a>
@@ -151,7 +160,7 @@
         </div>
       }
       <div class="title-text {{auth.email || smallTitleNotLogged ? '' : 'not-logged'}} {{!useH1 && title2 && title2.length ? 'with-sub-title' : ''}}" long-press (longPressEvent)="titlePress()">
-        @if (!auth.email && title.length > 0 && !small && !neverShowTrailenceTitle) {<span class="separator">-</span>}
+        @if (!auth.email && title.length > 0 && !neverShowTrailenceTitle && size === 'large') {<span class="separator">-</span>}
         @if (useH1) {
           <h1>{{title}}</h1>
           <h2>{{description}}</h2>

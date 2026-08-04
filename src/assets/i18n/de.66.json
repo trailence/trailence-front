@@ -15,6 +15,7 @@
   },
   "pages": {
     "home": {
+      "menu_label": "Startseite",
       "hero": {
         "h1": "Ihre Touren planen, aufzeichnen, organisieren und teilen.",
         "sub": "Ihr Wanderbegleiter und GPS-Track-Manager. Offen für alle Ihre Outdoor-Aktivitäten.",
@@ -53,7 +54,7 @@
           "lead": "Eine einzige App für alles, was dazugehört — vom Erkunden auf der Karte bis zur Erinnerung an die Tour.",
           "features": [
             "Offline-Karten",
-            "Kartengrundlagen IGN, OSM, ...",
+            "Kartengrundlagen IGN, OSM, …",
             "GPX-Import / -Export",
             "Tourenausdruck",
             "Geotaggte Fotos",
@@ -1337,7 +1338,7 @@
     "others": "Sonstige"
   },
   "activity": {
-    "walking": "Gehen",
+    "walking": "Spaziergang",
     "hiking": "Wandern",
     "trail": "Trailrunning",
     "moutain-biking": "Mountainbike",

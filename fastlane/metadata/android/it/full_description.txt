@@ -1,0 +1,31 @@
+Il tuo compagno di escursioni e gestore di tracce GPS. Aperto a tutte le tue attività outdoor: escursionismo, trail running, ciclismo, scialpinismo, passeggiate…
+
+Libero e open source, senza pubblicità, senza tracker — i tuoi dati restano tuoi.
+
+Su Android e sul Web.
+
+Prepara, registra, organizza, analizza e condividi i tuoi percorsi:
+
+  • Mappe offline
+  • Mappe di base IGN, OSM, …
+  • Import / export GPX
+  • Stampa del percorso
+  • Foto geolocalizzate
+  • Profilo altimetrico
+  • Etichette & raccolte
+  • Ricerca & filtri
+  • Monitoraggio del gruppo in tempo reale
+  • Punti di passaggio
+  • Sync Web ↔ Android
+  • Condivisione & link
+  • Tempo di percorrenza stimato
+  • Segnaletica dei sentieri
+  • Segnavia
+  • Superfici e tipi di sentieri
+  • Distanza e tempo rimanente
+  • Creazione di percorsi
+  • Rotazione della mappa
+  • Editor di tracce
+  • e molto altro ancora…
+
+E una base di percorsi aperta, descritta e verificata, da costruire insieme.

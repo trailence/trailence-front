@@ -1,4 +1,5 @@
 <hr/>
+{{notReadyReason}}
 <div class="page-section-title">
   {{ i18n.texts.translations.trail_moderation.title }}
   <ion-button size="small" fill="clear" color="dark" style="margin-top: -8px" (click)="toggleCollapse()">
@@ -29,9 +30,9 @@
       <div class="page-section-sub-title">{{ i18n.texts.translations.trail_moderation.needed_translations }}</div>
       <select [ngModel]="displayTarget" (ngModelChange)="setDisplayTarget($event)">
         <option value=""></option>
-        @for (tl of targetLanguages; track tl.code) {
-          @if (srcLang !== tl.code) {
-            <option [value]="tl.code">{{ tl.name }}</option>
+        @for (tl of targetLanguages; track tl.key) {
+          @if (srcLang !== tl.key) {
+            <option [value]="tl.key">{{ tl.displayName }}</option>
           }
         }
       </select>

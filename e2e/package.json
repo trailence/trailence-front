@@ -23,7 +23,7 @@
     "list_parallel": "cd scripts && node --import=tsx ./list_parallel.js",
     "tests_to_filename": "node ./scripts/tests_to_filename.js",
     "demo": "wdio run ./config/wdio.conf.ts --trailence-username=demo@trailence.org --trailence-password=thisisdemo --browser=chrome --demo",
-    "deploy_demo": "cd deploy_demo && npm run deploy_demo --ssversion=$npm_config_ssversion",
+    "deploy_demo": "cd scripts/deploy_demo && npm run deploy_demo --ssversion=$npm_config_ssversion",
     "appium": "appium driver doctor uiautomator2"
   },
   "dependencies": {

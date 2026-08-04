@@ -66,7 +66,7 @@ describe('Demo', () => {
           async () => {
             const mytrails = await openMyTrails();
             const map = await mytrails.trailsAndMap.openMap();
-            await map.goTo(43.69, 6.9, 11);
+            await map.goTo(43.69, 6.9, 10);
           }
         ],
       }

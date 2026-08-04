@@ -8,6 +8,8 @@ import { Console } from 'src/app/utils/console';
 import { Track } from 'src/app/model/track';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { ErrorService } from 'src/app/services/progress/error.service';
+import { AvailableLocales } from 'src/app/services/i18n/available-locales';
+import { WayPoint } from 'src/app/model/way-point';
 
 @Component({
   selector: 'app-moderation-translations',
@@ -26,16 +28,13 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges {
   @Output() translationsReady = new EventEmitter<boolean>();
 
   sourceLanguages?: {code: string, name: string}[];
-  targetLanguages = [
-    { code: 'fr', name: 'Français' },
-    { code: 'en', name: 'English' },
-  ];
+  readonly targetLanguages = Object.values(AvailableLocales);
 
   displayTarget?: string;
   detecting = false;
   translating = 0;
   collapsed = true;
-  ready?: boolean;
+  notReadyReason?: string;
 
   srcLang?: string = undefined;
   nameTranslation?: string = undefined;
@@ -67,30 +66,47 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges {
   }
 
   private checkReady(): void {
-    const r = this.isReady();
-    if (this.ready !== r) {
-      this.ready = r;
-      this.translationsReady.emit(r);
+    const reason = this.isReady();
+    if (this.notReadyReason !== reason) {
+      this.notReadyReason = reason;
+      this.translationsReady.emit(!reason);
     }
   }
 
-  private isReady(): boolean {
-    if (!this.trail || !this.track) return false;
-    if (!this.sourceLanguages) return false;
+  private isReady(): string | undefined {
+    if (!this.trail || !this.track) return 'Data is loading';
+    if (!this.sourceLanguages) return 'Loading languages';
     const source = this.trail.publicationData?.['lang'];
-    if (!source) return false;
+    if (!source) return 'Missing source language';
     const names = this.trail.publicationData?.['nameTranslations'];
-    if (!names) return false;
+    if (!names && source !== 'en') return 'Missing name translations';
     const descriptions = this.trail.publicationData?.['descriptionTranslations'];
-    if (!descriptions) return false;
+    if (!descriptions && source !== 'en') return 'Missing description translations';
     for (const tl of this.targetLanguages) {
-      if (tl.code === source) continue;
-      if (!names[tl.code] || names[tl.code].trim().length === 0) return false;
-      if (!descriptions[tl.code] || descriptions[tl.code].trim().length === 0) return false;
-      for (const wp of this.track.wayPoints) {
-        if (wp.name.trim().length > 0 && (wp.nameTranslations?.[tl.code] ?? '').trim().length === 0) return false;
-        if (wp.description.trim().length > 0 && (wp.descriptionTranslations?.[tl.code] ?? '').trim().length === 0) return false;
-      }
+      if (tl.key === source) continue;
+      const has = this.hasLang(tl.key, names, descriptions, this.track.wayPoints);
+      if (!has && tl.key === 'en') return 'Missing traduction to ' + tl.key;
+      if (has && !this.isLangFullyTranslated(tl.key, names, descriptions, this.track.wayPoints)) return 'Traduction in ' + tl.key + ' is partial';
+    }
+    return undefined;
+  }
+
+  private hasLang(lang: string, names: any, descriptions: any, wayPoints: WayPoint[]): boolean {
+    if (names && names[lang] && names[lang].trim().length > 0) return true;
+    if (descriptions && descriptions[lang] && descriptions[lang].trim().length > 0) return true;
+    for (const wp of wayPoints) {
+      if (wp.name.trim().length > 0 && (wp.nameTranslations?.[lang] ?? '').trim().length > 0) return true;
+      if (wp.description.trim().length > 0 && (wp.descriptionTranslations?.[lang] ?? '').trim().length > 0) return true;
+    }
+    return false;
+  }
+
+  private isLangFullyTranslated(lang: string, names: any, descriptions: any, wayPoints: WayPoint[]): boolean {
+    if (!names || !names[lang] || names[lang].trim().length === 0) return false;
+    if (!descriptions || !descriptions[lang] || descriptions[lang].trim().length === 0) return false;
+    for (const wp of wayPoints) {
+      if (wp.name.trim().length > 0 && (wp.nameTranslations?.[lang] ?? '').trim().length === 0) return false;
+      if (wp.description.trim().length > 0 && (wp.descriptionTranslations?.[lang] ?? '').trim().length === 0) return false;
     }
     return true;
   }
@@ -134,9 +150,8 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges {
 
   private checkDisplayTarget(): void {
     if (!this.srcLang) return;
-    const neededLanguages = this.targetLanguages.filter(tl => tl.code !== this.srcLang);
-    if (this.displayTarget && !neededLanguages.some(tl => tl.code === this.displayTarget)) this.displayTarget = undefined;
-    if (neededLanguages.length === 1) this.displayTarget = neededLanguages[0].code;
+    if (this.srcLang === 'en') this.displayTarget = undefined;
+    else this.displayTarget = 'en';
   }
 
   detectLanguage(): void {
@@ -160,7 +175,7 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges {
     if (target?.length === 0) target = undefined;
     if (target === this.displayTarget) return;
     if (target === this.srcLang) return;
-    if (!this.targetLanguages.some(tl => tl.code === target)) return;
+    if (!this.targetLanguages.some(tl => tl.key === target)) return;
     this.displayTarget = target;
     this.populate();
     this.changesDetector.detectChanges();

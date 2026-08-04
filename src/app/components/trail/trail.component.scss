@@ -48,18 +48,33 @@
     height: var(--tabs-height);
     ion-segment-button {
       min-height: var(--tabs-height);
+      max-height: var(--tabs-height);
       min-width: 60px;
       --padding-start: 8px;
       --padding-end: 8px;
+      div.tab-segment-content{
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100%;
+      }
 
       ion-icon {
-        width: 18px;
-        height: 18px;
+        min-width: 18px;
+        max-height: 24px;
+        flex: 1 1 100%;
       }
       div.text {
         font-size: 11px;
         margin-top: -3px;
         text-transform: none;
+        width: calc(100% + 12px);
+        margin-left: -6px;
+        overflow: hidden;
+        white-space: break-spaces;
+        flex: none;
+        line-height: 0.9;
       }
     }
   }
@@ -206,21 +221,35 @@
       right: 0;
       left: var(--details-width);
 
-      div.tab-segment-content {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        div.text {
-          font-size: 14px;
-          margin-left: 6px;
-        }
-        ion-badge {
-          font-size: 11px;
-          --padding-top: 2px;
-          --padding-bottom: 2px;
-          border-radius: 6px;
-          margin-left: 2px;
-          margin-bottom: 10px;
+      ion-segment-button {
+        div.tab-segment-content {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          ion-icon {
+            width: 18px;
+            height: 18px;
+          }
+          div.text {
+            font-size: 14px;
+            margin-left: 6px;
+            margin-top: 0;
+            overflow: visible;
+            flex: auto;
+            width: auto;
+            line-height: 1;
+            white-space: nowrap;
+          }
+          ion-badge {
+            position: static;
+            font-size: 11px;
+            --padding-top: 2px;
+            --padding-bottom: 2px;
+            border-radius: 6px;
+            margin-left: 2px;
+            max-height: 14px;
+            flex: none;
+          }
         }
       }
     }
@@ -270,7 +299,7 @@
         ion-badge {
           position: absolute;
           top: 7px;
-          right: 2px;
+          left: calc(50% + 10px);
           font-size: 11px;
           --padding-top: 2px;
           --padding-bottom: 2px;
