@@ -1,8 +1,10 @@
 import { App } from '../../app/app';
 import { LoginPage } from '../../app/pages/login-page';
 import { MyAccountPage } from '../../app/pages/my-account-page';
+import { Page } from '../../app/pages/page';
 import { TrailsPage } from '../../app/pages/trails-page';
 import { ChangePasswordModal } from '../../components/change-password.modal';
+import { HeaderComponent } from '../../components/header.component';
 import { MailHog } from '../../utils/mailhog';
 
 describe('Reset password', () => {
@@ -77,7 +79,8 @@ describe('Reset password', () => {
     await logoutPopup.clickKeepData();
     const loginPage = new LoginPage();
     await loginPage.waitDisplayed();
-    await loginPage.loginAndWaitMyTrailsCollection();
+    await loginPage.login();
+    await (await new HeaderComponent(await Page.getActivePageElement()).openAppMenu()).openCollection('My Trails');
   });
 
   it('End', async () => {

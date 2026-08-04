@@ -20,7 +20,7 @@ export class StoredFilesService {
     injector: Injector,
   ) {
     this.table = new DbTableWithBlob<StoredFileDto>(injector, 'files', 'key', 'key', 'blob', () => 'image/jpeg');
-    this.db = new Db(injector, 'trailence_files', true, [this.table]);
+    this.db = new Db(injector, 'trailence_files', true, false, [this.table]);
     this.db.start();
   }
 

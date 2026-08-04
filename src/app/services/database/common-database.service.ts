@@ -54,7 +54,7 @@ export class CommonDatabaseService {
     this.publicLinksTable = new DbTable<any>(injector, TRAIL_LINKS_TABLE_NAME, 'key', 'key');
     this.extensionsTable = new DbTable<any>(injector, EXTENSIONS_TABLE_NAME, 'extension', 'extension');
     this.dependenciesTable = new DbTable<any>(injector, DEPENDENCIES_TABLE_NAME, 'key', 'key');
-    this.db = new Db(injector, DB_PREFIX, true, [
+    this.db = new Db(injector, DB_PREFIX, true, false, [
       this.collectionTable,
       this.trailTable,
       this.tagTable,

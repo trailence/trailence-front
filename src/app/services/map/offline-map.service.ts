@@ -55,7 +55,7 @@ export class OfflineMapService implements OnDestroy {
     tables.push(this.pois.table);
     this.ways = new Ways(injector);
     tables.push(this.ways.table);
-    this.db = new Db(injector, 'trailence_offline_map', false, tables);
+    this.db = new Db(injector, 'trailence_offline_map', false, false, tables);
     this.db.onClosed$.subscribe(() => this.unregisterCleaning())
     this.db.dbReady$.subscribe(ready => {
       if (ready) this.registerCleaning();

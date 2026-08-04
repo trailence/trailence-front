@@ -152,14 +152,15 @@ export class TrailPage extends AbstractPage {
     this.menu = [];
     if (newState.owner && newState.uuid) {
       this.byStateAndVisible.subscribe(
-        combineLatest([
-          this.trailType === 'moderation' ?
-            this.injector.get(ModerationService).getTrail$(newState.uuid, newState.owner) :
-            this.trailService.getTrail$(newState.uuid, newState.owner),
-          newState.owner2 && newState.uuid2 ?
-            this.trailService.getTrail$(newState.uuid2, newState.owner2) :
-            of(null)
-        ]).pipe(
+        this.injector.get(AuthService).userChanged$.pipe(
+          switchMap(() => combineLatest([
+            this.trailType === 'moderation' ?
+              this.injector.get(ModerationService).getTrail$(newState.uuid, newState.owner) :
+              this.trailService.getTrail$(newState.uuid, newState.owner),
+            newState.owner2 && newState.uuid2 ?
+              this.trailService.getTrail$(newState.uuid2, newState.owner2) :
+              of(null)
+          ])),
           switchMap(([t1, t2]) => {
             if (t1) return of([t1, t2]);
             return combineLatest([

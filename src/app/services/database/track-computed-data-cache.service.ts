@@ -60,7 +60,7 @@ export class TrackComputedDataCacheService implements OnDestroy {
     this.tableGuideposts = new DbTable<GuidepostsItem>(injector, 'osm_guideposts', 'key, ownerUuid', 'key');
     this.tableOsmWaysMatch = new DbTable<OsmWaysMatchItem>(injector, 'osm_ways_match', 'key, ownerUuid', 'key');
     this.tableOsmStats = new DbTable<OsmStatsItem>(injector, 'osm_stats', 'key, ownerUuid', 'key');
-    this.db = new Db(injector, 'trailence_track_data_cache', true, [
+    this.db = new Db(injector, 'trailence_track_data_cache', true, true, [
       this.tableAllWays,
       this.tableGuideposts,
       this.tableOsmWaysMatch,

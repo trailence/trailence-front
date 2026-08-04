@@ -31,6 +31,7 @@ export class Db {
     protected readonly injector: Injector,
     protected readonly dbName: string,
     protected readonly dbByUser: boolean,
+    protected readonly noUserHasPublicDb: boolean,
     protected readonly tables: DbTable<any>[],
   ) {}
 
@@ -59,6 +60,7 @@ export class Db {
         this.injector.get(AuthService).userChanged$.subscribe(
           auth => {
             if (auth) this.open(auth.email);
+            else if (this.noUserHasPublicDb) this.open();
             else this.close();
           }
         )
