@@ -1,0 +1,5 @@
+Die App ist jetzt auf Deutsch, Spanisch, Italienisch und Portugiesisch verfügbar
+Import von GPX-Dateien mit mehreren Touren
+Anzeige der Farben des Höhenprofils auf der Karte
+Neue Karten: IGN Spanien + Satellit, Satellit Schweden und Satellit Belgien
+Einige weitere Verbesserungen und Fehlerbehebungen

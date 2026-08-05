@@ -262,5 +262,61 @@
     "en": {
       "items": ["Bug fixes"]
     }
+  },
+  "020200": {
+    "fr": {
+      "items": [
+        "Traduction de l'application en allemand, espagnol, italien et portugais",
+        "Import des fichiers GPX contenant plusieurs parcours",
+        "Affichage des couleurs du profil altimétrique sur la carte",
+        "Nouvelles cartes : IGN Espagne + Satellite, Satellite Suède et Satellite Belgique",
+        "Quelques autres améliorations et corrections de bugs"
+      ]
+    },
+    "de": {
+      "items": [
+        "Die App ist jetzt auf Deutsch, Spanisch, Italienisch und Portugiesisch verfügbar",
+        "Import von GPX-Dateien mit mehreren Touren",
+        "Anzeige der Farben des Höhenprofils auf der Karte",
+        "Neue Karten: IGN Spanien + Satellit, Satellit Schweden und Satellit Belgien",
+        "Einige weitere Verbesserungen und Fehlerbehebungen"
+      ]
+    },
+    "en": {
+      "items": [
+        "The app is now available in German, Spanish, Italian and Portuguese",
+        "Import GPX files containing multiple routes",
+        "Display elevation profile colors on the map",
+        "New maps: IGN Spain + Satellite, Sweden Satellite and Belgium Satellite",
+        "Various other improvements and bug fixes"
+      ]
+    },
+    "es": {
+      "items": [
+        "La aplicación ya está disponible en alemán, español, italiano y portugués",
+        "Importación de archivos GPX con varias rutas",
+        "Visualización de los colores del perfil de elevación en el mapa",
+        "Nuevos mapas: IGN España + Satélite, Satélite Suecia y Satélite Bélgica",
+        "Otras mejoras y correcciones de errores"
+      ]
+    },
+    "it": {
+      "items": [
+        "L'app è ora disponibile in tedesco, spagnolo, italiano e portoghese",
+        "Importazione di file GPX contenenti più percorsi",
+        "Visualizzazione dei colori del profilo altimetrico sulla mappa",
+        "Nuove mappe: IGN Spagna + Satellite, Satellite Svezia e Satellite Belgio",
+        "Altri miglioramenti e correzioni di bug"
+      ]
+    },
+    "pt": {
+      "items": [
+        "A aplicação está agora disponível em alemão, espanhol, italiano e português",
+        "Importação de ficheiros GPX com vários percursos",
+        "Visualização das cores do perfil altimétrico no mapa",
+        "Novos mapas: IGN Espanha + Satélite, Satélite Suécia e Satélite Bélgica",
+        "Outras melhorias e correções de erros"
+      ]
+    }
   }
 }

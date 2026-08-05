@@ -4,7 +4,7 @@ import { AvailableLocales, LocaleKey } from '../src/app/services/i18n/available-
 
 const knownLanguages = Object.keys(AvailableLocales);
 
-function readI18nDir(path: string, withFlagsIcons: boolean, checkJsonVersion: (version: number) => void) {
+function readI18nDir(path: string, withFlagsIcons: boolean, checkJsonVersion: (version: number) => void, knownLanguages: string[]) {
   const languages = new Map();
   const dir = fs.opendirSync(path);
   try {
@@ -33,7 +33,7 @@ function readI18nDir(path: string, withFlagsIcons: boolean, checkJsonVersion: (v
     dir.closeSync();
   }
 
-  for (const l of knownLanguages) if (!languages.get(l)) throw 'Language not found: ' + l;
+  for (const l of knownLanguages) if (!languages.get(l)) throw 'Language not found: ' + l + ' in ' + path;
   let jsonVersion: number | undefined;
   for (const l of languages.values()) {
     if (!l.files['json']) throw 'Missing json file for language ' + l.language;
@@ -63,8 +63,8 @@ function checkKeys(object1: any, object2: any, lang1: string, lang2: string, pat
   }
 }
 
-function checkDir(dir: string, withFlagsIcons: boolean, checkJsonVersion: (version: number) => void) {
-  const languages = readI18nDir(dir, withFlagsIcons, checkJsonVersion);
+function checkDir(dir: string, withFlagsIcons: boolean, checkJsonVersion: (version: number) => void, knownLanguages: string[]) {
+  const languages = readI18nDir(dir, withFlagsIcons, checkJsonVersion, knownLanguages);
   for (const l of languages.values()) {
     const json = JSON.parse(fs.readFileSync(dir + '/' + l.language + '.' + l.versions['json'] + '.json', { encoding: 'utf-8'}));
     l['jsonContent'] = json;
@@ -153,5 +153,5 @@ checkNginxLocales('./docker/default.conf.template', true);
 checkNginxLocales('./docker/local/context/default.conf.template', true);
 checkNginxLocales('./server_pages/test/default.conf.template', false);
 checkSitemap();
-checkDir('./src/assets/i18n', true, checkJsonVersionI18n);
-checkDir('./src/assets/admin/i18n', false, checkJsonVersionI18nAdmin);
+checkDir('./src/assets/i18n', true, checkJsonVersionI18n, knownLanguages);
+checkDir('./src/assets/admin/i18n', false, checkJsonVersionI18nAdmin, ['en', 'fr']);

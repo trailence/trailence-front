@@ -1806,5 +1806,6 @@
   "alertNoElevation": {
     "title": "¿Añadir las altitudes?",
     "message": "Algunas rutas importadas no contienen ninguna altitud. ¿Quieres añadirlas automáticamente descargándolas desde un proveedor de datos de altitud?"
-  }
+  },
+  "mapNotAvailable": "Zona no cubierta por"
 }

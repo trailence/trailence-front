@@ -1,0 +1,5 @@
+Traduction de l'application en allemand, espagnol, italien et portugais
+Import des fichiers GPX contenant plusieurs parcours
+Affichage des couleurs du profil altimétrique sur la carte
+Nouvelles cartes : IGN Espagne + Satellite, Satellite Suède et Satellite Belgique
+Quelques autres améliorations et corrections de bugs

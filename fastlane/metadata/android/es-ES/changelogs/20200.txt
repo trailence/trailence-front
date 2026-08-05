@@ -1,0 +1,5 @@
+La aplicación ya está disponible en alemán, español, italiano y portugués
+Importación de archivos GPX con varias rutas
+Visualización de los colores del perfil de elevación en el mapa
+Nuevos mapas: IGN España + Satélite, Satélite Suecia y Satélite Bélgica
+Otras mejoras y correcciones de errores

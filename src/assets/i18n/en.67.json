@@ -1806,5 +1806,6 @@
   "alertNoElevation": {
     "title": "Add elevation data?",
     "message": "Some imported routes have no elevation data. Would you like to automatically download and add it using an elevation data provider?"
-  }
+  },
+  "mapNotAvailable": "Area not covered by"
 }

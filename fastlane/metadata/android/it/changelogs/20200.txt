@@ -1,0 +1,5 @@
+L'app è ora disponibile in tedesco, spagnolo, italiano e portoghese
+Importazione di file GPX contenenti più percorsi
+Visualizzazione dei colori del profilo altimetrico sulla mappa
+Nuove mappe: IGN Spagna + Satellite, Satellite Svezia e Satellite Belgio
+Altri miglioramenti e correzioni di bug

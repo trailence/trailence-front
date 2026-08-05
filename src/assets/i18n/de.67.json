@@ -1806,5 +1806,6 @@
   "alertNoElevation": {
     "title": "Höhendaten hinzufügen?",
     "message": "Einige importierte Touren enthalten keine Höhendaten. Möchten Sie diese automatisch hinzufügen, indem sie von einem Höhendaten-Anbieter heruntergeladen werden?"
-  }
+  },
+  "mapNotAvailable": "Gebiet nicht abgedeckt von"
 }

@@ -1,0 +1,5 @@
+The app is now available in German, Spanish, Italian and Portuguese
+Import GPX files containing multiple routes
+Display elevation profile colors on the map
+New maps: IGN Spain + Satellite, Sweden Satellite and Belgium Satellite
+Various other improvements and bug fixes

@@ -9,7 +9,7 @@ import { Console } from 'src/app/utils/console';
 import { DomSanitizer } from '@angular/platform-browser';
 import { LocaleKey } from './available-locales';
 
-const TEXTS_VERSION = '66';
+const TEXTS_VERSION = '67';
 
 interface TextToLoad {
   filePath: string;
