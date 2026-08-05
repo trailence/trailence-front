@@ -3,6 +3,16 @@ app-map, div.map-full-screen {
   div.leaflet-container {
     background: var(--ion-background-color);
 
+    div.leaflet-tile-pane .leaflet-tile {
+      background: repeating-linear-gradient(-45deg,rgba(0, 0, 0, 0.2),rgba(0, 0, 0, 0.2) 10px,rgba(0, 0, 0, 0.3) 10px,rgba(0, 0, 0, 0.3) 20px);
+      &.map-tile-loading {
+        background: transparent;
+      }
+      &.map-tile-error {
+        background: repeating-linear-gradient(-45deg,rgba(255, 128, 0, 0.2),rgba(255, 128, 0, 0.2) 10px,rgba(255, 128, 0, 0.3) 10px,rgba(255, 128, 0, 0.3) 20px);
+      }
+    }
+
     div.leaflet-control-container {
 
       div.leaflet-control.leaflet-control-button {

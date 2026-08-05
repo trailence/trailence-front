@@ -48,7 +48,7 @@ function runTests(withFiles: boolean) {
     it('CRUD on fresh DB', async () => {
       await DbTestsUtils.deleteDatabase('test_db_with_blob');
       const table = new DbTableWithBlob<MyDto>(injector, 'test_with_blob', 'key', 'key', 'blob', undefined);
-      const db = new Db(injector, 'test_db_with_blob', false, [table]);
+      const db = new Db(injector, 'test_db_with_blob', false, false, [table]);
       db.start();
       await firstValueFrom(db.dbReady$.pipe(filter(ready => !!ready)));
       // empty
@@ -195,7 +195,7 @@ function runTests(withFiles: boolean) {
       dexie.close();
 
       const table = new DbTableWithBlob<MyDto>(injector, 'test_with_blob', 'key', 'key', 'blob', undefined);
-      const db = new Db(injector, 'test_db_with_blob', false, [table]);
+      const db = new Db(injector, 'test_db_with_blob', false, false, [table]);
       db.start();
       await firstValueFrom(db.dbReady$.pipe(filter(ready => !!ready)));
 
@@ -211,7 +211,7 @@ function runTests(withFiles: boolean) {
       it('Restore database', async () => {
         await DbTestsUtils.deleteDatabase('test_db_with_blob_restore_test@trailence.org');
         const table = new DbTableWithBlob<MyDto>(injector, 'test_with_blob', 'key', 'key', 'blob', undefined);
-        const db = new Db(injector, 'test_db_with_blob_restore', true, [table]);
+        const db = new Db(injector, 'test_db_with_blob_restore', true, false, [table]);
         db.start();
         // empty
         expect(await firstValueFrom(table.getByKey$('key1'))).toBeUndefined();

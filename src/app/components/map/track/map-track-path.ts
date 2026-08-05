@@ -6,6 +6,7 @@ import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
 import { EventEmitter } from '@angular/core';
 import { getGradeRange, gradeColors } from '../../trail-graph/grade-values';
 import { distance } from 'src/app/utils/latlng';
+import { Color } from 'src/app/utils/color';
 
 export class MapTrackPath {
 
@@ -113,9 +114,10 @@ export class MapTrackPath {
     }
 
     const result: L.Polyline[] = [];
+    const bgColor = '#80808080';
     for (const pl of polylines) {
       result.push(L.polyline(pl.points, {
-        color: this._color,
+        color: bgColor,
         smoothFactor: this._smoothFactor,
         interactive: true,
         className: 'track-path',

@@ -1674,6 +1674,8 @@
   "regions": {
     "be": "Belgique",
     "ch": "Suisse",
+    "es": "Espagne",
+    "fi": "Finlande",
     "fr": "France",
     "no": "Norvège",
     "se": "Suède",
@@ -1804,5 +1806,6 @@
   "alertNoElevation": {
     "title": "Ajouter les altitudes ?",
     "message": "Des parcours importés ne comportent aucune altitude. Souhaitez-vous en ajouter automatiquement en les téléchargeant depuis un fournisseur d'altitude ?"
-  }
+  },
+  "mapNotAvailable": "Zone non couverte par"
 }

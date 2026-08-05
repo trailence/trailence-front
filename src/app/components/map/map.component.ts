@@ -49,6 +49,8 @@ const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 const FOLLOW_LOCATION_DEFAULT_ZOOM = 16;
 const FOLLOW_LOCATION_MIN_ZOOM = 13;
 
+const DEFAULT_FIT_PADDING = 0.00;
+
 @Component({
     selector: 'app-map',
     templateUrl: './map.component.html',
@@ -306,10 +308,10 @@ export class MapComponent extends AbstractComponent {
     });
   }
 
-  public fitBounds(elements: MapElement[] | undefined): void {
+  public fitBounds(elements: MapElement[] | undefined, padding: number = DEFAULT_FIT_PADDING): void {
     this.ngZone.runOutsideAngular(() => {
       if (!this._map$.value) return;
-      this.fitElementsBounds(this._map$.value, elements || this._currentElements);
+      this.fitElementsBounds(this._map$.value, elements || this._currentElements, padding);
       this._initZoomTimestamp = 1;
     });
   }
@@ -322,7 +324,7 @@ export class MapComponent extends AbstractComponent {
     this._initZoomTimestamp = 1;
   }
 
-  private fitElementsBounds(map: L.Map, elements: MapElement[], padding: number = 0.05): void {
+  private fitElementsBounds(map: L.Map, elements: MapElement[], padding: number = DEFAULT_FIT_PADDING): void {
     const boundsBuilder = new BoundsBuilder();
     for (const e of elements) boundsBuilder.extend(e.bounds);
     boundsBuilder.pad(padding);
@@ -352,14 +354,14 @@ export class MapComponent extends AbstractComponent {
     this.refreshTools();
   }
 
-  fitMapBounds(map: L.Map): void {
+  fitMapBounds(map: L.Map, padding: number = DEFAULT_FIT_PADDING): void {
     const boundsBuilder = new BoundsBuilder();
     for (const e of this._currentElements) {
       const b = e.bounds;
       if (b) boundsBuilder.extend(L.latLngBounds(b.getSouthWest(), b.getNorthEast()));
     }
     for (const provider of this._fitBoundsProviders) boundsBuilder.extend(provider());
-    boundsBuilder.pad(0.05);
+    boundsBuilder.pad(padding);
     this.fit(map, boundsBuilder);
   }
 

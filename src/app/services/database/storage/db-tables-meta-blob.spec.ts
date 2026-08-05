@@ -35,7 +35,7 @@ function runTests(withFiles: boolean) {
     it('CRUD on fresh database', async () => {
       await DbTestsUtils.deleteDatabase('test_db_meta_blob');
       const table = new DbTablesMetaBlob<MyDto>(injector, 'test', 'meta', 'blob', 'key', 'key');
-      const db = new Db(injector, 'test_db_meta_blob', false, table.getTables());
+      const db = new Db(injector, 'test_db_meta_blob', false, false, table.getTables());
       db.start();
 
       // empty
@@ -161,7 +161,7 @@ function runTests(withFiles: boolean) {
       }
 
       const table = new DbTablesMetaBlob<MyDto>(injector, 'test', 'meta', 'blob', 'key', 'key');
-      const db = new Db(injector, 'test_db_meta_blob', false, table.getTables());
+      const db = new Db(injector, 'test_db_meta_blob', false, false, table.getTables());
       db.start();
 
       dtos = await firstValueFrom(table.metadata.getAll$());
@@ -183,7 +183,7 @@ function runTests(withFiles: boolean) {
       it('Restore database', async () => {
         await DbTestsUtils.deleteDatabase('test_db_meta_blob_restore_test@trailence.org');
         const table = new DbTablesMetaBlob<MyDto>(injector, 'test', 'meta', 'blob', 'key', 'key');
-        const db = new Db(injector, 'test_db_meta_blob_restore', true, table.getTables());
+        const db = new Db(injector, 'test_db_meta_blob_restore', true, false, table.getTables());
         db.start();
         // empty
         expect(await firstValueFrom(table.metadata.getAll$())).toHaveSize(0);

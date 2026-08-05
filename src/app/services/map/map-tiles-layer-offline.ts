@@ -2,14 +2,16 @@ import * as L from 'leaflet';
 import { first } from 'rxjs';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { NetworkService } from 'src/app/services/network/network.service';
+import { BinaryContent } from 'src/app/utils/binary-content';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { I18nService } from '../i18n/i18n.service';
+import { Console } from 'src/app/utils/console';
 
-export function handleMapOffline(name: string, tiles: L.TileLayer, getTileUrl: (layer: L.TileLayer, coords: L.Coords, crs?: L.CRS) => string, network: NetworkService, offlineMap: OfflineMapService): L.TileLayer {
+export function handleMapOffline(name: string, displayName: string, tiles: L.TileLayer, getTileUrl: (layer: L.TileLayer, coords: L.Coords, crs?: L.CRS) => string, network: NetworkService, offlineMap: OfflineMapService, i18n: I18nService): L.TileLayer {
   const originalCreateTile = (tiles as any)['createTile'];
   (tiles as any)['createTile'] = function(coords: L.Coords, done: L.DoneCallback) {
-    const loadOffline = (img: any, trial: number) => {
-      const originalSrc = img.src;
-      img.src = '';
+    const loadOffline = (img: any, trial: number, originalSrc: string) => {
+      if (img.src) img.src = '';
       img._offlineLoaded = true;
       img._loaded = false;
       offlineMap.getTile(name, coords).subscribe({
@@ -38,9 +40,9 @@ export function handleMapOffline(name: string, tiles: L.TileLayer, getTileUrl: (
               setTimeout(() => {
                 img.onerror = function() {
                   if (!network.internet)
-                    loadOffline(img, 1);
+                    loadOffline(img, 1, originalSrc);
                   else if (trial < 3)
-                    loadOffline(img, trial + 1);
+                    loadOffline(img, trial + 1, originalSrc);
                   else {
                     img.classList.add('map-tile-error');
                     img.classList.remove('map-tile-loading');
@@ -65,6 +67,7 @@ export function handleMapOffline(name: string, tiles: L.TileLayer, getTileUrl: (
         },
       });
     };
+    /*
     const img = originalCreateTile.call(tiles, coords, function(error: Error | undefined, tile: HTMLElement | undefined) {
       if (!error) {
         tile?.classList.remove('map-tile-loading');
@@ -74,9 +77,57 @@ export function handleMapOffline(name: string, tiles: L.TileLayer, getTileUrl: (
       if (!img?._offlineLoaded) {
         loadOffline(img ?? tile, 1);
       }
-    });
+    });*/
+    const img = document.createElement('IMG') as HTMLImageElement;
     img.classList.add('map-tile-loading');
-    img.crossOrigin = 'anonymous';
+    //img.crossOrigin = 'anonymous';
+    //const url = img.src;
+    //img.src = '';
+    const url = getTileUrl(tiles, coords, this._map ? this._map.options.crs : undefined);
+    fetch(url)
+    .then(r => {
+      if (r.ok) {
+        return r.blob()
+        .then(blob => new BinaryContent(blob).toBase64().then(b64 => 'data:' + blob.type + ';base64,' + b64))
+        .then(u => {
+          img.src = u;
+          img.classList.remove('map-tile-loading');
+          done(undefined, img);
+        });
+      }
+      if (r.status === 404) {
+        const svg = '<svg width="800px" height="800px" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">'
+          + '<text x="960" y="650" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="100px">'
+          + i18n.texts.mapNotAvailable
+          + '</text>'
+          + '<text x="960" y="800" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="100px">'
+          + displayName
+          + '</text>'
+          + '</svg>';
+        img.src = 'data:image/svg+xml;base64,' + btoa(svg);
+        img.classList.remove('map-tile-loading');
+        done(undefined, img);
+        return;
+      }
+      if (!(img as any)._offlineLoaded) {
+        loadOffline(img, 1, url);
+      }
+      return undefined;
+    })
+    .catch(e => {
+      Console.error('Cannot fetch tile', url, e);
+      img.onload = () => {
+        img.classList.remove('map-tile-loading');
+        done(undefined, img);
+      };
+      img.onerror = e => {
+        if (!(img as any)._offlineLoaded) {
+          loadOffline(img, 1, url);
+        }
+      };
+      img.crossOrigin = 'anonymous';
+      img.src = url;
+    });
     return img;
   };
   (tiles as any)['getTileUrl'] = function(coords: L.Coords) { return getTileUrl(this, coords, this._map ? this._map.options.crs : undefined); }
