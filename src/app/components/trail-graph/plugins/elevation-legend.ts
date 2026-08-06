@@ -3,7 +3,7 @@ import { Color } from 'src/app/utils/color';
 import { gradeColors, gradeLegend } from '../grade-values';
 
 const width = 20;
-const height = 15;
+const height = 12;
 const space = 1;
 
 export class ElevationLegendPlugin implements C.Plugin<"line"> {
@@ -24,9 +24,9 @@ export class ElevationLegendPlugin implements C.Plugin<"line"> {
         ctx.fillStyle = '#FFFFFF';
       else
         ctx.fillStyle = '#000000';
-      ctx.font = '100 6pt Roboto,sans-serif';
+      ctx.font = '500 7pt Roboto,sans-serif';
       const txtSize = ctx.measureText(gradeLegend[i]);
-      ctx.fillText(gradeLegend[i], x - width + (width / 2 - txtSize.width / 2), xAxis.bottom - height + height / 2 + 2);
+      ctx.fillText(gradeLegend[i], x - width + (width / 2 - txtSize.width / 2), xAxis.bottom - 3);
       x -= width + space;
     }
     ctx.restore();

@@ -14,7 +14,6 @@ div.disconnected-message {
   flex-direction: column;
   align-items: center;
   position: absolute;
-  top: 0;
   top: var(--header-height);
   width: 100%;
   z-index: 10000;
