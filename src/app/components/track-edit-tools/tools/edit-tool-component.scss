@@ -14,9 +14,15 @@ div.edit-tool {
     background-color: var(--ion-toolbar-background);
     color: var(--ion-toolbar-color, var(--ion-text-color));
 
+    ion-button {
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+
     div.edit-tool-title {
       flex: 1 1 100%;
       color: var(--ion-color-tertiary);
+      font-size: 14px;
     }
   }
 
@@ -70,9 +76,6 @@ div.edit-tool {
       color: var(--ion-color-danger);
     }
   }
-  ion-item-divider.empty {
-    min-height: 8px;
-  }
   .message {
     padding: 10px;
     color: var(--ion-color-tertiary);
@@ -81,7 +84,9 @@ div.edit-tool {
 
   &.collpased {
     div.edit-tool-content {
-      display: none;
+      .metadata-container {
+        display: none;
+      }
     }
   }
 

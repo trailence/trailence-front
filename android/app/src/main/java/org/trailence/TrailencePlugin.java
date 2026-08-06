@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
+import android.view.WindowManager;
 
 import androidx.activity.result.ActivityResult;
 import androidx.appcompat.app.AppCompatActivity;
@@ -322,7 +323,15 @@ public class TrailencePlugin extends Plugin {
       this.getActivity().setShowWhenLocked(this.keepOnScreenLock);
       call.resolve(new JSObject().put("success", true));
     } else {
-      call.resolve(new JSObject().put("success", false));
+      try {
+        if (this.keepOnScreenLock)
+          this.getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+        else
+          this.getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+        call.resolve(new JSObject().put("success", true));
+      } catch (Exception e) {
+        call.resolve(new JSObject().put("success", false));
+      }
     }
   }
 
