@@ -2,7 +2,7 @@ import { Component, Injector, Input, ViewChild } from '@angular/core';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { BehaviorSubject, EMPTY, map, of, switchMap, combineLatest, Observable, debounceTime, from, concat } from 'rxjs';
+import { BehaviorSubject, EMPTY, map, of, switchMap, combineLatest, Observable, debounceTime, from, concat, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { HeaderComponent } from 'src/app/components/header/header.component';
@@ -180,23 +180,30 @@ export class TrailsPage extends AbstractPage {
           filterDefined(),
         ),
         this.injector.get(TrailService).getAllWhenLoaded$().pipe(
-          collection$items$(trail => trail.collectionUuid === collectionUuid)
+          collection$items$(trail => trail.collectionUuid === collectionUuid),
+          map(trails => trails.map(trail => ({...trail, editable$: this.injector.get(TrailService).isEditable$(trail.item$)})))
         ),
-      ]),
-      ([collection, trails]) => {
-        const newList = List(trails.map(t => t.item$));
-        if (first || !newList.equals(this.trails$.value)) {
-          first = false;
-          this.loading = false;
-          const index = this.actions.findIndex(a => a.isSeparator());
-          if (index > 0) this.actions.splice(index, this.actions.length - index);
-          const actions = this.injector.get(TrailMenuService).getTrailsMenu(trails.map(t => t.item), false, collection, true);
-          if (actions.length > 0)
-            actions.splice(0, 0, new MenuItem());
-          trailsActions = actions;
-          this.actions = [...collectionActions, ...trailsActions];
-          this.ngZone.run(() => this.trails$.next(newList));
-        }
+      ]).pipe(
+        switchMap(([collection, trails]) => {
+          const newList = List(trails.map(t => t.item$));
+          if (first || !newList.equals(this.trails$.value)) {
+            first = false;
+            this.loading = false;
+            this.ngZone.run(() => this.trails$.next(newList));
+            return (trails.length === 0 ? of([]) : combineLatest(trails.map(t => t.editable$))).pipe(map(editables => ({collection, trails: trails.map(t => t.item), allEditable: editables.every(Boolean)})))
+          }
+          return EMPTY;
+        }),
+      ),
+      result => {
+        const index = this.actions.findIndex(a => a.isSeparator());
+        if (index > 0) this.actions.splice(index, this.actions.length - index);
+        const actions = this.injector.get(TrailMenuService).getTrailsMenu(result.trails, false, result.collection, result.allEditable, true);
+        if (actions.length > 0)
+          actions.splice(0, 0, new MenuItem());
+        trailsActions = actions;
+        this.actions = [...collectionActions, ...trailsActions];
+        this.changesDetection.detectChanges();
       }
     );
   }

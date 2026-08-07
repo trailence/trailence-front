@@ -194,8 +194,10 @@ export class TrailPage extends AbstractPage {
                   return combineLatest([
                     this.injector.get(TrailCollectionService).getCollection$(t1.collectionUuid, t1.owner),
                     this.injector.get(TrailLinkService).getLinkForTrail$(t1.uuid)
-                  ]).pipe(map(([col, link]) => ({t1, t2, col, auth})));
-                return of({t1, t2, col: undefined, auth});
+                  ]).pipe(map(([col, link]) => ({t1, t2, col, auth, t1Editable: true})));
+                return this.trailService.isEditable$(of(t1)).pipe(
+                  map(t1Editable => ({t1, t2, col: undefined, auth, t1Editable}))
+                );
               })
             )
           )
@@ -204,7 +206,7 @@ export class TrailPage extends AbstractPage {
           const t1 = result.t1;
           const t2 = result.t2;
           const collection = result.col;
-          this.menu = t2 ? [] : this.trailMenuService.getTrailsMenu(t1 ? [t1] : [], true, collection ?? undefined);
+          this.menu = t2 ? [] : this.trailMenuService.getTrailsMenu(t1 ? [t1] : [], true, collection ?? undefined, result.t1Editable);
           if (t1 && !t2 && t1.owner === 'trailence' && result.auth?.admin) {
             this.menu.push(
               new MenuItem(),

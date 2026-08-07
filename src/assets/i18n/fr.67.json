@@ -550,7 +550,8 @@
         "COLLECTION": "Partage de toute la collection {{1}}",
         "TRAIL": "Partage de {{1}} parcours",
         "TAGS": "Partage des tags suivants: {{1}}"
-      }
+      },
+      "editable_question": "Est-ce que les autres ont le droit de modifier le contenu de la collection ?"
     },
     "trail_link": {
       "title": "Lien public",

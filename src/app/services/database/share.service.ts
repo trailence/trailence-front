@@ -47,7 +47,7 @@ export class ShareService {
     );
   }
 
-  public create(type: ShareElementType, elements: string[], name: string, recipients: string[], mailLanguage: string, includePhotos: boolean): Observable<Share | null> {
+  public create(type: ShareElementType, elements: string[], name: string, recipients: string[], mailLanguage: string, includePhotos: boolean, editable: boolean): Observable<Share | null> {
     const from = this.injector.get(AuthService).email;
     if (!from) return of(null);
     const trails: string[] = [];
@@ -62,6 +62,7 @@ export class ShareService {
       type,
       name,
       includePhotos,
+      editable,
       elements,
       trails,
       mailLanguage,
@@ -228,6 +229,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
           elements: item.elements,
           mailLanguage: item.mailLanguage,
           includePhotos: item.includePhotos,
+          editable: item.editable,
         }).pipe(
           map(result => {
             result.trails = item.trails;
@@ -274,6 +276,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
         return this.injector.get(HttpService).put<ShareDto>(environment.apiBaseUrl + '/share/v2/' + item.uuid, {
           name: item.name,
           includePhotos: item.includePhotos,
+          editable: item.editable,
           recipients: item.recipients,
           mailLanguage: item.mailLanguage,
         }).pipe(

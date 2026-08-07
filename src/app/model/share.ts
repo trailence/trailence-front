@@ -13,10 +13,14 @@ export class Share {
     public type: ShareElementType,
     public name: string,
     public includePhotos: boolean,
+    public editable: boolean,
     public elements: string[],
     public trails: string[],
     public mailLanguage: string | null | undefined,
-  ) {}
+  ) {
+    if (type !== ShareElementType.COLLECTION) this.editable = false;
+    if (this.editable) this.includePhotos = true;
+  }
 
   public toDto(): ShareDto {
     return {
@@ -29,6 +33,7 @@ export class Share {
       type: this.type,
       name: this.name,
       includePhotos: this.includePhotos,
+      editable: this.editable,
       elements: [...this.elements],
       trails: [...this.trails],
       mailLanguage: this.mailLanguage,
@@ -46,6 +51,7 @@ export class Share {
       dto.type,
       dto.name,
       dto.includePhotos ?? false,
+      dto.editable ?? false,
       dto.elements ? [...dto.elements] : [],
       dto.trails ? [...dto.trails] : [],
       dto.mailLanguage,
@@ -62,6 +68,7 @@ export class Share {
       this.type === other.type &&
       this.name === other.name &&
       this.includePhotos === other.includePhotos &&
+      this.editable === other.editable &&
       Arrays.sameContent(this.elements, other.elements) &&
       Arrays.sameContent(this.trails, other.trails) &&
       this.mailLanguage === other.mailLanguage;

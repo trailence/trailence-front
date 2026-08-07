@@ -461,7 +461,9 @@ export class TrailOverviewComponent extends AbstractComponent {
       await firstValueFrom(
         this.injector.get(TrailCollectionService).getCollection$(this.trail!.collectionUuid, this.auth.email ?? '').pipe(filterDefined())
       ) : undefined;
-    const menu = this.trailMenuService.getTrailsMenu([this.trail!], false, collection, false, this.isAllCollections, this.isModeration);
+    const trail = this.trail!;
+    const editable = await firstValueFrom(this.trailService.isEditable$(of(trail)));
+    const menu = this.trailMenuService.getTrailsMenu([trail], false, collection, editable, false, this.isAllCollections, this.isModeration);
     let estimatedHeight = 16;
     for (const item of menu) {
       if (item.isSeparator()) estimatedHeight += 2;

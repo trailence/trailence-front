@@ -20,6 +20,7 @@ import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { TagService } from 'src/app/services/database/tag.service';
 import { AsyncPipe } from '@angular/common';
 import { AvailableLocales, LocaleKey } from 'src/app/services/i18n/available-locales';
+import { ToggleChoiceComponent } from "../toggle-choice/toggle-choice.component";
 
 export function openSharePopup(injector: Injector, collectionUuid: string, trails: Trail[]) {
   injector.get(ModalController).create({
@@ -49,11 +50,12 @@ interface Recipient {
     templateUrl: './share-popup.component.html',
     styleUrls: ['./share-popup.component.scss'],
     imports: [
-      IonCheckbox, IonRadioGroup, IonRadio, IonButtons, IonFooter, IonButton, IonInput, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader,
-      FormsModule,
-      TagsComponent,
-      AsyncPipe,
-    ]
+    IonCheckbox, IonRadioGroup, IonRadio, IonButtons, IonFooter, IonButton, IonInput, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader,
+    FormsModule,
+    TagsComponent,
+    AsyncPipe,
+    ToggleChoiceComponent
+]
 })
 export class SharePopupComponent implements OnInit {
 
@@ -67,6 +69,7 @@ export class SharePopupComponent implements OnInit {
   recipients: Recipient[] = [{email: '', error: false, id: IdGenerator.generateId()}];
   mailLanguage: LocaleKey = 'en';
   includePhotos = false;
+  editable = false;
 
   pages: SharePage[] = [SharePage.TYPE, SharePage.ELEMENTS, SharePage.NAME_WHO];
   pageIndex = 0;
@@ -90,6 +93,7 @@ export class SharePopupComponent implements OnInit {
       this.recipients = this.share.recipients.map(r => ({email: r, error: false, id: IdGenerator.generateId()}));
       this.recipients.push({email: '', error: false, id: IdGenerator.generateId()});
       this.includePhotos = this.share.includePhotos;
+      this.editable = this.share.editable;
       let sharing: TranslatedString;
       switch (this.share.type) {
         case ShareElementType.COLLECTION:
@@ -132,6 +136,7 @@ export class SharePopupComponent implements OnInit {
       this.elements = [];
       this.pages = [SharePage.TYPE, SharePage.ELEMENTS, SharePage.NAME_WHO];
       this.shareDescription = of('');
+      this.editable = false;
     }
   }
 
@@ -142,6 +147,11 @@ export class SharePopupComponent implements OnInit {
     } else {
       this.shareDescription = of('');
     }
+  }
+
+  setEditable(editable: boolean): void {
+    this.editable = editable;
+    if (editable) this.includePhotos = true;
   }
 
   previous(): void {
@@ -170,20 +180,23 @@ export class SharePopupComponent implements OnInit {
     if (this.share) {
       const newName = this.name;
       const newIncludePhotos = this.includePhotos;
+      const newEditable = this.editable;
       const newRecipients = this.checkRecipients();
       const newMailLanguage = this.mailLanguage;
       this.share.name = newName;
       this.share.includePhotos = newIncludePhotos;
+      this.share.editable = newEditable;
       this.share.recipients = newRecipients;
       this.share.mailLanguage = newMailLanguage;
       service.update(this.share, s => {
         s.name = newName;
         s.includePhotos = newIncludePhotos;
+        s.editable = newEditable;
         s.recipients = newRecipients;
         s.mailLanguage = newMailLanguage;
       });
     } else {
-      service.create(this.elementType!, this.elements, this.name, this.checkRecipients(), this.mailLanguage, this.includePhotos).subscribe();
+      service.create(this.elementType!, this.elements, this.name, this.checkRecipients(), this.mailLanguage, this.includePhotos, this.editable).subscribe();
     }
     this.close('ok');
   }

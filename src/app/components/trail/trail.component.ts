@@ -1482,8 +1482,9 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             );
           }),
         ),
+        this.trailService.isEditable$(trailWithInfo$.pipe(map(t => t?.trail ?? null))),
       ]),
-      ([auth, result]) => {
+      ([auth, result, editable]) => {
         if (result.trailWithInfo) {
           result.trailWithInfo.collection = result.col?.collection;
           result.trailWithInfo.collectionName = result.col?.name;
@@ -1495,10 +1496,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             this.publicationChecklist = undefined;
           }
           if (isTrail1)
-            this.editable = !this.trail2 && !!auth &&
-              (result.trailWithInfo.trail.fromModeration ||
-               (result.trailWithInfo.trail.owner === auth.email && result.col?.collection.type !== TrailCollectionType.PUB_SUBMIT)
-              );
+            this.editable = !this.trail2 && !!auth && editable;
         } else if (isTrail1) {
           this.isPublication = false;
           this.publicationChecklist = undefined;

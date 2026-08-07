@@ -30,7 +30,7 @@ import { estimateSimilarity } from '../track-edition/path-analysis/similarity';
 import { MyPublicTrailsService } from './my-public-trails.service';
 import { boundingBoxAround } from 'src/app/utils/leaflet-utils';
 import { NetworkService } from '../network/network.service';
-import { isPublicationCollection } from 'src/app/model/dto/trail-collection';
+import { isPublicationCollection, TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { CommonDatabaseService } from './common-database.service';
 import { StoreService, StoreWithCleaning } from './store/store.service';
 
@@ -69,6 +69,27 @@ export class TrailService {
 
   public getTrail(uuid: string, owner: string): Trail | null {
     return this._store.getItem(uuid, owner);
+  }
+
+  public isEditable$(trail$: Observable<Trail | null>): Observable<boolean> {
+    return combineLatest([
+      trail$,
+      this.injector.get(AuthService).userChanged$,
+    ]).pipe(
+      switchMap(([trail, auth]) => {
+        if (!trail) return of(false);
+        if (!auth) return of(false);
+        if (trail.owner === auth.email)
+          return this.collectionService.getCollection$(trail.collectionUuid, trail.owner).pipe(
+            map(col => !!col && col.type !== TrailCollectionType.PUB_SUBMIT)
+          );
+        if (trail.fromModeration) return of(true);
+        if (!trail.owner.includes('@')) return of(false);
+        return this.injector.get(ShareService).getSharesFromTrailSharedWithMe(trail.uuid, trail.owner).pipe(
+          map(shares => shares.some(share => share.editable)),
+        );
+      })
+    );
   }
 
   public create(trail: Trail, ondone?: () => void): Observable<Trail | null> {
@@ -341,7 +362,8 @@ class TrailStore extends OwnedStore<TrailDto, Trail> implements StoreWithCleanin
   }
 
   protected override readyToSave(entity: Trail): boolean {
-    if (!this.collectionService.getCollection(entity.collectionUuid, entity.owner)?.isSavedOnServerAndNotDeletedLocally()) return false;
+    const email = this.injector.get(AuthService).email;
+    if (entity.owner === email && !this.collectionService.getCollection(entity.collectionUuid, entity.owner)?.isSavedOnServerAndNotDeletedLocally()) return false;
     if (!this.trackService.isSavedOnServerAndNotDeletedLocally(entity.originalTrackUuid, entity.owner)) return false;
     if (entity.currentTrackUuid !== entity.originalTrackUuid &&
       !this.trackService.isSavedOnServerAndNotDeletedLocally(entity.currentTrackUuid, entity.owner)) return false;
@@ -351,7 +373,9 @@ class TrailStore extends OwnedStore<TrailDto, Trail> implements StoreWithCleanin
   protected override readyToSave$(entity: Trail): Observable<boolean> {
     const originalTrackReady$ = this.trackService.isSavedOnServerAndNotDeletedLocally$(entity.originalTrackUuid, entity.owner);
     const currentrackReady$ = this.trackService.isSavedOnServerAndNotDeletedLocally$(entity.currentTrackUuid, entity.owner);
-    const collectionReady$ = this.collectionService.getCollection$(entity.collectionUuid, entity.owner).pipe(map(col => !!col?.isSavedOnServerAndNotDeletedLocally()));
+    const collectionReady$ = this.injector.get(AuthService).auth$.pipe(
+      switchMap(auth => auth?.email === entity.owner ? this.collectionService.getCollection$(entity.collectionUuid, entity.owner).pipe(map(col => !!col?.isSavedOnServerAndNotDeletedLocally())) : of(true))
+    );
     return combineLatest([originalTrackReady$, currentrackReady$, collectionReady$]).pipe(
       map(readiness => !readiness.includes(false))
     );

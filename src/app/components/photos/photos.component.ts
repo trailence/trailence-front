@@ -24,6 +24,7 @@ import { NgClass, NgStyle } from '@angular/common';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { WorkerService } from 'src/app/worker/web-app';
 import { ConcurrentPromises } from 'src/app/utils/concurrency';
+import { TrailService } from 'src/app/services/database/trail.service';
 
 interface PhotoWithInfo {
   photo: Photo;
@@ -117,13 +118,14 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
             });
             return this.activeTrail$;
           }),
-          switchMap(t => {
+          switchMap(t => this.injector.get(TrailService).isEditable$(of(t)).pipe(map(editable => ([t, editable] as [Trail | null, boolean])))),
+          switchMap(([t, editable]) => {
             this.tabIndex = t ? this.trails.indexOf(t) : 0;
             if (!t) return of([[] as Photo[], {track: null, canEdit: false, canAdd: false}] as [Photo[], {track: Track | null, canEdit: boolean, canAdd: boolean}]);
             const photos = t === this.traceRecorder.current?.trail ? this.traceRecorder.current.photos$ : this.photoService.getTrailPhotos$(t);
-            const track = auth?.email === t.owner ?
-              this.trackService.getFullTrack$(t.currentTrackUuid, t.owner).pipe(map(track => ({track, canEdit: true, canAdd: true}))) :
-              of({track: null, canEdit: t.fromModeration, canAdd: false});
+            const track = editable ?
+              this.trackService.getFullTrack$(t.currentTrackUuid, t.owner).pipe(map(track => ({track, canEdit: true, canAdd: !t.fromModeration}))) :
+              of({track: null, canEdit: false, canAdd: false});
             return combineLatest([photos, track]);
           }),
         )),

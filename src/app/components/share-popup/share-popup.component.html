@@ -57,12 +57,19 @@
       <div class="separator"></div>
 
       <div>
-        <ion-checkbox name="photos" [checked]="includePhotos" (ionChange)="includePhotos = $event.detail.checked" labelPlacement="end">{{i18n.texts.pages.share_popup.includePhotos}}</ion-checkbox>
+        <ion-checkbox name="photos" [checked]="includePhotos" (ionChange)="includePhotos = $event.detail.checked" [disabled]="editable" labelPlacement="end">{{i18n.texts.pages.share_popup.includePhotos}}</ion-checkbox>
       </div>
       <div class="info">
         <ion-icon name="info"></ion-icon>
         <div>{{i18n.texts.pages.share_popup.photos_info}}</div>
       </div>
+
+      @if (elementType === 'COLLECTION' || share?.type === 'COLLECTION') {
+        <div class="question">{{i18n.texts.pages.share_popup.editable_question}}</div>
+        <div>
+          <app-toggle-choice [value1]="false" [value2]="true" [value]="editable" (valueChanged)="setEditable($event)" [label1]="i18n.texts.buttons.no" [label2]="i18n.texts.buttons.yes"></app-toggle-choice>
+        </div>
+      }
 
       <div class="separator"></div>
 

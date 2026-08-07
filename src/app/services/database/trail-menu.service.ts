@@ -32,7 +32,7 @@ export class TrailMenuService {
 
   public trailToCompare: Trail | undefined;
 
-  public getTrailsMenu(trails: Trail[], fromTrail: boolean = false, fromCollection: TrailCollection | undefined = undefined, onlyGlobal: boolean = false, isAll: boolean = false, isModeration: boolean = false): MenuItem[] { // NOSONAR
+  public getTrailsMenu(trails: Trail[], fromTrail: boolean = false, fromCollection: TrailCollection | undefined = undefined, allEditable: boolean, onlyGlobal: boolean = false, isAll: boolean = false, isModeration: boolean = false): MenuItem[] { // NOSONAR
     const menu: MenuItem[] = [];
     const email = this.injector.get(AuthService).email;
     if (trails.length === 1 && trails[0].fromModeration) isModeration = true;
@@ -74,22 +74,22 @@ export class TrailMenuService {
 
     // --- modify ---
 
-    if (((allOwned && fromCollection && !isPublicationLockedCollection(fromCollection.type)) || isModeration) && !onlyGlobal) {
+    if (((allOwned && fromCollection && !isPublicationLockedCollection(fromCollection.type)) || isModeration || allEditable) && !onlyGlobal) {
       const collectionUuid = this.getUniqueCollectionUuid(trails);
-      if (collectionUuid) {
-        menu.push(new MenuItem().setSectionTitle(true).setI18nLabel('pages.trails.actions.modify').setTextColor('medium'));
-        if (trails.length === 1) {
-          menu.push(
-            new MenuItem().setIcon('edit-text').setI18nLabel('pages.trails.actions.rename')
-              .setAction(() => import('../functions/trail-rename').then(m => m.openRenameTrailDialog(this.injector, trails[0]))),
-            new MenuItem().setIcon('date').setI18nLabel('pages.trails.actions.edit_date')
-              .setAction(() => this.openTrailDatePopup(trails[0], undefined)),
-            new MenuItem().setIcon('location').setI18nLabel('pages.trails.actions.edit_location')
-              .setAction(() => import('../../components/location-popup/location-popup.component').then(m => m.openLocationDialog(this.injector, trails[0]))),
-          );
-        }
-        menu.push(new MenuItem().setIcon('hiking').setI18nLabel('pages.trails.actions.edit_activity')
-          .setAction(() => import('../../components/activity-popup/activity-popup.component').then(m => m.openActivityDialog(this.injector, trails))));
+      menu.push(new MenuItem().setSectionTitle(true).setI18nLabel('pages.trails.actions.modify').setTextColor('medium'));
+      if (trails.length === 1) {
+        menu.push(
+          new MenuItem().setIcon('edit-text').setI18nLabel('pages.trails.actions.rename')
+            .setAction(() => import('../functions/trail-rename').then(m => m.openRenameTrailDialog(this.injector, trails[0]))),
+          new MenuItem().setIcon('date').setI18nLabel('pages.trails.actions.edit_date')
+            .setAction(() => this.openTrailDatePopup(trails[0], undefined)),
+          new MenuItem().setIcon('location').setI18nLabel('pages.trails.actions.edit_location')
+            .setAction(() => import('../../components/location-popup/location-popup.component').then(m => m.openLocationDialog(this.injector, trails[0]))),
+        );
+      }
+      menu.push(new MenuItem().setIcon('hiking').setI18nLabel('pages.trails.actions.edit_activity')
+        .setAction(() => import('../../components/activity-popup/activity-popup.component').then(m => m.openActivityDialog(this.injector, trails))));
+      if (collectionUuid && allOwned) {
         if (!isPublicationCollection(fromCollection?.type) && !isModeration) {
           menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item')
             .setAction(() => import('../../components/tags/tags.component').then(m => m.openTagsDialog(this.injector, trails, collectionUuid))));

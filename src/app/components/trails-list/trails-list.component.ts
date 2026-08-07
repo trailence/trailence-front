@@ -6,7 +6,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup,
   IonItem, IonCheckbox, IonList, IonSelectOption, IonSelect, IonInput, IonSpinner, PopoverController, AlertController } from "@ionic/angular/standalone";
-import { BehaviorSubject, catchError, combineLatest, debounceTime, distinctUntilChanged, filter, first, map, Observable, of, skip, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, debounceTime, distinctUntilChanged, filter, first, firstValueFrom, map, Observable, of, skip, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
 import { Router } from '@angular/router';
@@ -46,6 +46,7 @@ import { FilterNumericCustomComponent } from '../filters/filter-numeric-custom/f
 import { Arrays } from 'src/app/utils/arrays';
 import { NgTemplateOutlet } from '@angular/common';
 import { PhotoService } from 'src/app/services/database/photo.service';
+import { TrailService } from 'src/app/services/database/trail.service';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
@@ -1071,19 +1072,22 @@ export class TrailsListComponent extends AbstractComponent {
     this.highlightService.addSearchText(range);
   }
 
-  openSelectionMenu(event: MouseEvent): void {
-    import('../menus/menu-content/menu-content.component')
-    .then(module => this.injector.get(PopoverController).create({
+  async openSelectionMenu(event: MouseEvent) {
+    const module = await import('../menus/menu-content/menu-content.component');
+    const trails = this.getSelectedTrails();
+    const allEditables = (await Promise.all(trails.map(trail => firstValueFrom(this.injector.get(TrailService).isEditable$(of(trail)))))).every(Boolean);
+    const popover = await this.injector.get(PopoverController).create({
       component: module.MenuContentComponent,
       componentProps: {
-       menu: this.trailMenuService.getTrailsMenu(this.getSelectedTrails(), false, this.collection, false, this.listType === 'all-collections', this.listType === 'moderation'),
+       menu: this.trailMenuService.getTrailsMenu(trails, false, this.collection, allEditables, false, this.listType === 'all-collections', this.listType === 'moderation'),
        enableToolbarsForSections: 2
       },
       event: event,
       side: 'bottom',
       dismissOnSelect: true,
       cssClass: 'always-tight-menu',
-    })).then(p => p.present());
+    });
+    await popover.present();
   }
 
   enlargeSearchArea(event: Event): void {

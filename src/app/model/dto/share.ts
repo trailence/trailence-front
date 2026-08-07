@@ -10,6 +10,7 @@ export interface ShareDto {
   type: ShareElementType;
   name: string;
   includePhotos: boolean | null | undefined;
+  editable: boolean | null | undefined;
 
   elements: string[] | null | undefined;
   trails: string[] | null | undefined;
