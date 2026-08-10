@@ -212,6 +212,8 @@
       "collection": "Coleção",
       "share_from": "Partilha de",
       "your_share": "A sua partilha",
+      "shared_collection": "Coleção partilhada",
+      "shared_collection_by": "Coleção partilhada por {{1}}",
       "edit_filters_popup_title": "Filtrar os percursos",
       "edit_sort_popup_title": "Ordenar os percursos",
       "missing_trails_because_offline": "Alguns percursos não podem ser apresentados porque está offline",
@@ -485,7 +487,13 @@
     },
     "collection_form": {
       "title": "Coleção",
-      "collection_name": "Nome"
+      "collection_name": "Nome",
+      "shared": {
+        "toggle_label": "Coleção partilhada",
+        "explanation": "Os utilizadores com quem esta coleção é partilhada podem editar, adicionar ou eliminar itens, mas não podem eliminar a própria coleção.",
+        "explanation_anonymous": "As coleções partilhadas não estão disponíveis sem uma conta.",
+        "by": "Partilhada por"
+      }
     },
     "location_popup": {
       "title": "Localização do percurso",
@@ -542,10 +550,8 @@
       "who_question": "Com quem? (até 20 pessoas)",
       "includePhotos": "Partilhar as fotografias com os percursos",
       "photos_info": "As fotografias associadas aos percursos partilhados serão visíveis para a pessoa com quem partilha",
-      "email": "Email",
       "email_info": "Será enviado um email à pessoa para a informar da partilha",
       "language": "Em que idioma devemos enviar o email?",
-      "recipient_error": "Introduza um endereço de email válido",
       "share_description": {
         "COLLECTION": "Partilha de toda a coleção {{1}}",
         "TRAIL": "Partilha de {{1}} percurso(s)",
@@ -1583,7 +1589,9 @@
     },
     "load_more": "Ver mais",
     "error_loading": "Erro ao carregar as notificações",
+    "none": "Não tem nenhuma notificação de momento",
     "items": {
+      "unknown": "Esta notificação é desconhecida nesta versão do Trailence",
       "publications": {
         "accepted": {
           "text": "O seu percurso :*:/trail/trailence/{{2}}:*:{{1}}:*: foi publicado! Obrigado pela sua contribuição para a comunidade 🎉"
@@ -1598,6 +1606,9 @@
         },
         "new_trails_in_share": {
           "text": "{{1}} adicionou {{2}} percursos à partilha :*:/trails/share/{{3}}/{{1}}:*:{{4}}:*:"
+        },
+        "shared_collection": {
+          "text": "{{1}} criou uma nova coleção partilhada consigo: :*:/trails/collection/{{3}}:*:{{2}}:*:"
         }
       },
       "comments": {
@@ -1807,5 +1818,15 @@
     "title": "Adicionar as altitudes?",
     "message": "Alguns percursos importados não contêm qualquer altitude. Pretende adicioná-las automaticamente, transferindo-as de um fornecedor de altitude?"
   },
-  "mapNotAvailable": "Área não coberta por"
+  "mapNotAvailable": "Área não coberta por",
+  "inputEmail": {
+    "defaultLabel": "Email",
+    "errors": {
+      "required": "Introduza um endereço de email",
+      "invalidEmail": "Introduza um endereço de email válido",
+      "duplicate": "Este endereço de email já está presente",
+      "atLeastOneEmailIsRequired": "Introduza pelo menos um endereço de email",
+      "cannotAddYourself": "Não pode adicionar-se a si próprio"
+    }
+  }
 }

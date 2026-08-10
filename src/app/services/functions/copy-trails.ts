@@ -2,7 +2,7 @@ import { Injector } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { I18nService } from '../i18n/i18n.service';
-import { ProgressService } from '../progress/progress.service';
+import { Progress, ProgressService } from '../progress/progress.service';
 import { TrackService } from '../database/track.service';
 import { TagService } from '../database/tag.service';
 import { PhotoService } from '../database/photo.service';
@@ -19,26 +19,29 @@ import { AlertController, ModalController } from '@ionic/angular/standalone';
 import { TrailDto } from 'src/app/model/dto/trail';
 import { ModerationService } from '../moderation/moderation.service';
 import { StoreService } from '../database/store/store.service';
+import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 
 export function copyTrailsTo( // NOSONAR
-  injector: Injector, trails: Trail[], toCollection: TrailCollection, email: string,
+  injector: Injector, trails: Trail[], toCollection: TrailCollection,
   fromTrail: boolean, autoImportPhotos?: boolean, skipTags?: boolean,
   trailDtoProvider?: (trail: Trail) => Partial<TrailDto>,
-  onDone?: (newTrails: Trail[]) => void
+  onDone?: (newTrails: Trail[]) => void,
+  useProgress?: Progress,
 ): void {
-  const progress = injector.get(ProgressService).create(injector.get(I18nService).texts.pages.trails.actions.copying, 1);
+  const progress = useProgress || injector.get(ProgressService).create(injector.get(I18nService).texts.pages.trails.actions.copying, 1);
   const trackService = injector.get(TrackService);
   const tagService = injector.get(TagService);
   const photoService = injector.get(PhotoService);
   const trailsCopy$: Observable<{originalTrail: Trail, newTrail: Trail}>[] = [];
   const originalTags$: Observable<{originalTrail: Trail, tags: string[][]}>[] = [];
   const originalPhotos$: Observable<{originalTrail: Trail, photos: Photo[]}>[] = [];
+  const newOwner = toCollection.getContentOwner();
   for (const trail of trails) {
-    progress.addWorkToDo(1);
+    progress.addWorkToDo(1); // create trail
     const originalTrack$ =
       trail.fromModeration ? injector.get(ModerationService).getFullTrack$(trail.uuid, trail.owner, trail.originalTrackUuid) :
       trackService.getFullTrackReady$(trail.originalTrackUuid, trail.owner);
-    progress.addWorkToDo(1);
+    progress.addWorkToDo(1); // create originalTrack
     let currentTrack$;
     if (trail.originalTrackUuid === trail.currentTrackUuid) {
       currentTrack$ = of(null);
@@ -46,18 +49,18 @@ export function copyTrailsTo( // NOSONAR
       currentTrack$ =
         trail.fromModeration ? injector.get(ModerationService).getFullTrack$(trail.uuid, trail.owner, trail.currentTrackUuid) :
         trackService.getFullTrackReady$(trail.currentTrackUuid, trail.owner);
-      progress.addWorkToDo(1);
+      progress.addWorkToDo(1); // create currentTrack
     }
     trailsCopy$.push(zip([originalTrack$, currentTrack$]).pipe(
       switchMap(
         tracks => {
-          const originalTrack = tracks[0].copy(email);
-          const currentTrack = tracks[1] ? tracks[1].copy(email) : undefined;
+          const originalTrack = tracks[0].copy(newOwner);
+          const currentTrack = tracks[1] ? tracks[1].copy(newOwner) : undefined;
           const copy = new Trail({
             ...trail.toDto(),
             ...(trailDtoProvider ? trailDtoProvider(trail) : {}),
             uuid: undefined,
-            owner: email,
+            owner: newOwner,
             version: undefined,
             createdAt: undefined,
             updatedAt: undefined,
@@ -94,16 +97,12 @@ export function copyTrailsTo( // NOSONAR
         }
       )
     ));
-    if (trail.owner === email) {
+    if (!skipTags) {
       progress.addWorkToDo(1);
-      if (skipTags)
-        progress.addWorkToDo(1);
-      else
-        originalTags$.push(tagService.getTrailTagsNames$(trail.uuid, true).pipe(map(tags => {
-          progress.addWorkDone(1);
-          return {originalTrail: trail, tags};
-        })));
-
+      originalTags$.push(tagService.getTrailTagsNames$(trail.owner, trail.uuid, true).pipe(map(tags => {
+        progress.addWorkDone(1);
+        return {originalTrail: trail, tags};
+      })));
     }
     progress.addWorkToDo(1);
     originalPhotos$.push(photoService.getPhotosForTrailReady$(trail).pipe(map(photos => {
@@ -120,10 +119,10 @@ export function copyTrailsTo( // NOSONAR
     ([trails, tags, photos]) => {
       tags = tags.filter(t => t.tags.length > 0);
       photos = photos.filter(t => t.photos.length > 0);
-      handleImportTags(injector, trails, tags, toCollection.uuid)
+      handleImportTags(injector, trails, tags, toCollection)
       .then(() => handleImportPhotos(injector, trails, photos, autoImportPhotos))
       .then(() => {
-        if (fromTrail) injector.get(Router).navigateByUrl('/trail/' + email + '/' + trails[0].newTrail.uuid);
+        if (fromTrail) injector.get(Router).navigateByUrl('/trail/' + trails[0].newTrail.owner + '/' + trails[0].newTrail.uuid);
         if (onDone) onDone(trails.map(t => t.newTrail));
       });
       progress.done();
@@ -135,7 +134,7 @@ function handleImportTags(
   injector: Injector,
   trails: {originalTrail: Trail, newTrail: Trail}[],
   tags: {originalTrail: Trail, tags: string[][]}[],
-  collectionUuid: string
+  collection: TrailCollection
 ): Promise<any> {
   if (tags.length === 0) return Promise.resolve();
   const allTags: string[][] = [];
@@ -149,7 +148,7 @@ function handleImportTags(
     component: module.ImportTagsPopupComponent,
     backdropDismiss: false,
     componentProps: {
-      collectionUuid,
+      collection,
       tags: allTags,
       toImport: tags.map(t => ({trailUuid: trails.find(trail => trail.originalTrail === t.originalTrail)!.newTrail.uuid, tags: t.tags})),
       type: 'copy'
@@ -251,8 +250,17 @@ function doImportPhotos(
   copyNext();
 }
 
-export function moveTrailsTo(injector: Injector, trails: Trail[], toCollection: TrailCollection, email: string, additionalUpdate: ((trail: Trail) => void) | undefined = undefined, isPublishing: boolean = false): void {
+export function moveTrailsTo(injector: Injector, trails: Trail[], fromCollection: TrailCollection, toCollection: TrailCollection, additionalUpdate: ((trail: Trail) => void) | undefined = undefined, isPublishing: boolean = false): void {
   const i18n = injector.get(I18nService);
+  if (fromCollection.type === TrailCollectionType.SHARED || toCollection.type === TrailCollectionType.SHARED) {
+    // we need a copy then delete
+    const progress = injector.get(ProgressService).create(i18n.texts.pages.trails.actions.moving, 1 + trails.length);
+    copyTrailsTo(injector, trails, toCollection, false, true, false, undefined, () => {
+      injector.get(TrailService).deleteMany(trails, progress, trails.length);
+    }, progress);
+    return;
+  }
+
   const progress = injector.get(ProgressService).create(isPublishing ? i18n.texts.publications.publish : i18n.texts.pages.trails.actions.moving, trails.length);
   const originalTags$: Observable<{originalTrail: Trail, tags: string[][]}>[] = [];
   const moves$: Observable<any>[] = [];
@@ -262,16 +270,13 @@ export function moveTrailsTo(injector: Injector, trails: Trail[], toCollection: 
   const eventId = IdGenerator.generateId();
   injector.get(TrailCollectionService).doNotDeleteCollectionUntilEvent(trails[0].collectionUuid, trails[0].owner, eventId);
   for (const trail of trails) {
-    if (trail.owner === email) {
-      progress.addWorkToDo(1);
-      originalTags$.push(tagService.getTrailTagsNames$(trail.uuid, true).pipe(map(tags => {
-        progress.addWorkDone(1);
-        return {originalTrail: trail, tags};
-      })));
-    }
-    const originalCollection = trail.collectionUuid;
+    progress.addWorkToDo(1);
+    originalTags$.push(tagService.getTrailTagsNames$(trail.owner, trail.uuid, true).pipe(map(tags => {
+      progress.addWorkDone(1);
+      return {originalTrail: trail, tags};
+    })));
     moves$.push(from(new Promise(resolve => {
-      tagService.deleteTrailTagsForTrail(trail.uuid, () => {
+      tagService.deleteTrailTagsForTrail(trail.owner, trail.uuid, () => {
         injector.get(TrailService).doUpdate(
           trail,
           t => {
@@ -279,7 +284,7 @@ export function moveTrailsTo(injector: Injector, trails: Trail[], toCollection: 
             if (additionalUpdate) additionalUpdate(t);
           },
           t => {
-            (t.version > 0 ? injector.get(TrailCollectionService).doNotDeleteCollectionWhileTrailNotSync(originalCollection, t) : Promise.resolve())
+            (t.version > 0 ? injector.get(TrailCollectionService).doNotDeleteCollectionWhileTrailNotSync(fromCollection.uuid, t) : Promise.resolve())
             .then(() => {
               progress.addWorkDone(1);
               progress.subTitle = (++done) + '/' + trails.length;
@@ -300,7 +305,7 @@ export function moveTrailsTo(injector: Injector, trails: Trail[], toCollection: 
   ).subscribe(tags => {
     const trailTags = tags.filter(t => t.tags.length > 0);
     const trails = trailTags.map(t => ({originalTrail: t.originalTrail, newTrail: t.originalTrail}));
-    handleImportTags(injector, trails, trailTags, toCollection.uuid);
+    handleImportTags(injector, trails, trailTags, toCollection);
     progress.done();
   });
 }

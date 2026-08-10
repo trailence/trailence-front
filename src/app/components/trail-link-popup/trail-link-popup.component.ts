@@ -10,10 +10,11 @@ import { AsyncPipe } from '@angular/common';
 import Trailence from 'src/app/services/trailence.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 
-export function openTrailLink(injector: Injector, trailUuid: string) {
+export function openTrailLink(injector: Injector, trailOwner: string, trailUuid: string) {
   injector.get(ModalController).create({
     component: TrailLinkPopup,
     componentProps: {
+      trailOwner,
       trailUuid,
     },
     cssClass: 'auto-height'
@@ -33,6 +34,7 @@ export function openTrailLink(injector: Injector, trailUuid: string) {
 })
 export class TrailLinkPopup implements OnInit, OnDestroy {
 
+  @Input() trailOwner!: string;
   @Input() trailUuid!: string;
 
   trailLink?: TrailLink;
@@ -60,10 +62,10 @@ export class TrailLinkPopup implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.isAnonymous) return;
-    this.subscription = this.linkService.getLinkForTrailReady$(this.trailUuid).pipe(
+    this.subscription = this.linkService.getLinkForTrailReady$(this.trailOwner, this.trailUuid).pipe(
       switchMap(link => {
         if (link) return of(link);
-        return this.linkService.create(this.trailUuid);
+        return this.linkService.create(this.trailOwner, this.trailUuid);
       })
     ).subscribe(link => {
       this.trailLink = link || undefined;

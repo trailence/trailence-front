@@ -6,6 +6,7 @@ import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { RouterLink } from '@angular/router';
 import { RelativeDateComponent } from '../../relative-date/relative-date.component';
 import { skip, Subscription } from 'rxjs';
+import { ObjectUtils } from 'src/app/utils/object-utils';
 
 @Component({
   selector: 'app-notification-item',
@@ -29,12 +30,19 @@ export class NotificationItemComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.text = this.i18n.textToHtml(new TranslatedString('notifications.items.' + this.notification.text + '.text', this.notification.textElements ?? []).translate(this.i18n));
+    this.text = this.i18n.textToHtml(this.getText().translate(this.i18n));
     if (!this.notification.read) this.readTimeout = setTimeout(() => this.markAsRead(), 5000);
     this.i18nSubscription = this.i18n.texts$.pipe(skip(1)).subscribe(() => {
-      this.text = this.i18n.textToHtml(new TranslatedString('notifications.items.' + this.notification.text + '.text', this.notification.textElements ?? []).translate(this.i18n));
+      this.text = this.i18n.textToHtml(this.getText().translate(this.i18n));
       this.changeDetector.detectChanges();
     });
+  }
+
+  private getText(): TranslatedString {
+    const key = ObjectUtils.extractField(this.i18n.texts.notifications.items, this.notification.text);
+    if (key)
+      return new TranslatedString('notifications.items.' + this.notification.text + '.text', this.notification.textElements ?? []);
+    return new TranslatedString('notifications.items.unknown');
   }
 
   ngOnDestroy(): void {

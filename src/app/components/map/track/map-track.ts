@@ -15,6 +15,8 @@ export class MapTrack implements MapElement {
   public highlighted = false;
   public ignoreCursorHover = false;
 
+  public onWayPointClick?: (wp: TrackWayPoint) => void;
+
   constructor(
     private readonly _trail: Trail | undefined,
     private readonly _track: Track | SimplifiedTrackSnapshot,
@@ -25,7 +27,7 @@ export class MapTrack implements MapElement {
     weight: number = 3,
   ) {
     this._path = new MapTrackPath(_track, color, smoothFactor, weight, this);
-    this._wayPoints = new MapTrackWayPoints(_track, isRecording, () => this.color, i18n);
+    this._wayPoints = new MapTrackWayPoints(_track, isRecording, () => this.color, i18n, wp => this.onWayPointClick?.(wp));
     this._arrowPath = new MapTrackArrowPath(_track, isRecording ? this._path.pathUpdated$ : undefined);
   }
 

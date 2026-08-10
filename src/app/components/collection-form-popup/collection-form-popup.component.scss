@@ -1,0 +1,18 @@
+div.shared-section {
+  margin-top: 10px;
+  max-width: 400px;
+}
+div.explanation {
+  font-size: 14px;
+  color: rgba(var(--ion-text-color-rgb), 0.75);
+  background-color: rgba(96, 96, 200, 0.25);
+  padding: 4px 8px;
+  border-radius: 5px;
+  margin: 5px 0 10px 0;
+}
+div.shared-by {
+  margin-top: 10px;
+  font-size: 14px;
+  font-style: italic;
+  color: rgba(var(--ion-text-color-rgb), 0.75);
+}

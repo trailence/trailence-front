@@ -27,6 +27,7 @@ import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
 import { CommonDatabaseService } from './common-database.service';
 import { StoreWithCleaning } from './store/store.service';
 import { WorkerService } from 'src/app/worker/web-app';
+import { SHARED_OWNER_PREFIX } from 'src/app/model/dto/trail-collection';
 
 @Injectable({providedIn: 'root'})
 export class PhotoService {
@@ -240,7 +241,7 @@ export class PhotoService {
       if (ondone) ondone();
       return;
     }
-    this.store.deleteIf('deleted photos', item => photos.some(p => p.uuid === item.uuid), ondone);
+    this.store.deleteIf('deleted photos', item => photos.some(p => p.uuid === item.uuid && p.owner === item.owner), ondone);
   }
 
   public deleteForTrail(trail: Trail, ondone?: () => void): void {
@@ -323,8 +324,8 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> implements StoreWithCleanin
     return this.http.put<PhotoDto[]>(environment.apiBaseUrl + '/photo/v1/_bulkUpdate', items);
   }
 
-  protected override deleteFromServer(uuids: string[]): Observable<void> {
-    return this.http.post<number>(environment.apiBaseUrl + '/photo/v1/_bulkDelete', uuids).pipe(
+  protected override deleteFromServer(owner: string, uuids: string[]): Observable<void> {
+    return this.http.post<number>(environment.apiBaseUrl + '/photo/v1/_bulkDelete' + (owner.startsWith(SHARED_OWNER_PREFIX) ? '/' + encodeURIComponent(owner) : ''), uuids).pipe(
       map(sizeRemoved => {
         this.quotaService.updateQuotas(q => {
           q.photosUsed -= uuids.length;
@@ -355,10 +356,12 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> implements StoreWithCleanin
             if (dto.dateTaken) headers['X-DateTaken'] = dto.dateTaken;
             if (dto.latitude) headers['X-Latitude'] = dto.latitude;
             if (dto.longitude) headers['X-Longitude'] = dto.longitude;
-            return this.http.post<PhotoDto>(environment.apiBaseUrl + '/photo/v1/' + dto.trailUuid + '/' + dto.uuid, blob, headers).pipe(
-              tap(dto => this.quotaService.updateQuotas(q => {
-                q.photosUsed++;
-                q.photosSizeUsed += blob.size;
+            return this.http.post<PhotoDto>(environment.apiBaseUrl + '/photo/v1/' + dto.trailUuid + '/' + dto.uuid + '/' + encodeURIComponent(dto.owner), blob, headers).pipe(
+              tap(() => this.quotaService.updateQuotas(q => {
+                if (!dto.owner.startsWith(SHARED_OWNER_PREFIX)) {
+                  q.photosUsed++;
+                  q.photosSizeUsed += blob.size;
+                }
               })),
               catchError(e => {
                 Console.error('error saving photo on server', dto, e);

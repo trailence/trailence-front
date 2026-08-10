@@ -31,7 +31,7 @@
       @switch (elementType) {
         @case ('TAG') {
           <div class="question">{{i18n.texts.pages.share_popup.tags.question}}</div>
-          <app-tags [collectionUuid]="collectionUuid" [inPopup]="false" [editable]="false" [selectable]="true" (selectionChange)="tagsSelected($event)" [selection]="elements"></app-tags>
+          <app-tags [collection]="collection" [inPopup]="false" [editable]="false" [selectable]="true" (selectionChange)="tagsSelected($event)" [selection]="elements"></app-tags>
         }
       }
     }

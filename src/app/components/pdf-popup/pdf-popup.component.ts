@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, EnvironmentInjector, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
 import { ModalController, IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonRadioGroup, IonRadio, IonCheckbox } from '@ionic/angular/standalone';
-import { PdfGenerator, PdfModel, PdfOptions } from './generation/pdf-generator';
+import { PdfModel, PdfOptions } from './generation/pdf-generator';
 import { environment } from 'src/environments/environment';
 import { IdGenerator } from 'src/app/utils/component-utils';
 import { FileService } from 'src/app/services/file/file.service';
@@ -123,8 +123,8 @@ export class PdfPopup implements OnInit, OnDestroy {
     this.avatarService.getOneOfMyAvatarBlobReady$().pipe(first()).subscribe(a => this.avatar = a);
     if (this.trail.owner === 'trailence' && this.trail.source) {
       this.link = this.trail.source;
-    } else if (this.trail.owner === this.auth.email) {
-      const trailLink = this.injector.get(TrailLinkService).getLinkForTrail(this.trail.uuid);
+    } else {
+      const trailLink = this.injector.get(TrailLinkService).getLinkForTrail(this.trail.owner, this.trail.uuid);
       if (trailLink) this.link = environment.baseUrl + '/trail/link/' + trailLink.link;
     }
     if (this.link && this.qrCodeActivated) this.options.qrCode = this.link;

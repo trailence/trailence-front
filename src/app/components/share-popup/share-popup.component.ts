@@ -6,11 +6,10 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { FormsModule } from '@angular/forms';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { first, Observable, of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { TagsComponent } from '../tags/tags.component';
 import { Tag } from 'src/app/model/tag';
 import { ShareService } from 'src/app/services/database/share.service';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { Share } from 'src/app/model/share';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
@@ -19,12 +18,13 @@ import { TagService } from 'src/app/services/database/tag.service';
 import { AsyncPipe } from '@angular/common';
 import { AvailableLocales, LocaleKey } from 'src/app/services/i18n/available-locales';
 import { EmailsValue, MultipleInputEmailComponent } from '../input-email/multiple-input-email.component';
+import { TrailCollection } from 'src/app/model/trail-collection';
 
-export function openSharePopup(injector: Injector, collectionUuid: string, trails: Trail[]) {
+export function openSharePopup(injector: Injector, collection: TrailCollection, trails: Trail[]) {
   injector.get(ModalController).create({
     component: SharePopupComponent,
     componentProps: {
-      collectionUuid,
+      collection,
       trails
     }
   }).then(modal => modal.present());
@@ -51,7 +51,7 @@ enum SharePage {
 })
 export class SharePopupComponent implements OnInit {
 
-  @Input() collectionUuid?: string;
+  @Input() collection?: TrailCollection;
   @Input() trails?: Trail[];
   @Input() share?: Share;
 
@@ -70,6 +70,7 @@ export class SharePopupComponent implements OnInit {
 
   languages = Object.values(AvailableLocales);
 
+  email: string;
   forbiddenEmails: {[email: string]: string};
 
   constructor(
@@ -79,8 +80,9 @@ export class SharePopupComponent implements OnInit {
     private readonly prefService: PreferencesService,
     auth: AuthService,
   ) {
+    this.email = auth.email!;
     this.forbiddenEmails = {};
-    this.forbiddenEmails[auth.email!] = i18n.texts.inputEmail.errors.cannotAddYourself;
+    this.forbiddenEmails[this.email] = i18n.texts.inputEmail.errors.cannotAddYourself;
   }
 
   ngOnInit(): void {
@@ -98,7 +100,7 @@ export class SharePopupComponent implements OnInit {
           sharing = new TranslatedString('pages.share_popup.share_description.TRAIL', [this.share.elements.length]);
           break;
         case ShareElementType.TAG:
-          sharing = new TranslatedString('pages.share_popup.share_description.TAGS', [this.injector.get(TagService).getTagsFullnames$(this.share.elements)]);
+          sharing = new TranslatedString('pages.share_popup.share_description.TAGS', [this.injector.get(TagService).getTagsFullnames$(this.email, this.share.elements)]);
       }
       this.shareDescription = sharing.translate$(this.i18n);
     } else if (this.trails!.length > 0) {
@@ -107,16 +109,10 @@ export class SharePopupComponent implements OnInit {
       this.pages = [SharePage.NAME_WHO];
       this.shareDescription = new TranslatedString('pages.share_popup.share_description.TRAIL', [this.elements.length]).translate$(this.i18n);
     } else {
-      const email = this.injector.get(AuthService).email!;
-      this.injector.get(TrailCollectionService).getCollection$(this.collectionUuid!, email).pipe(
-        filterDefined(),
-        first()
-      ).subscribe(col => {
-        if (col.name.length === 0 && col.type === TrailCollectionType.MY_TRAILS)
-          this.collectionName = this.i18n.texts.my_trails;
-        else
-          this.collectionName = col.name;
-      });
+      if (this.collection!.name.length === 0 && this.collection!.type === TrailCollectionType.MY_TRAILS)
+        this.collectionName = this.i18n.texts.my_trails;
+      else
+        this.collectionName = this.collection!.name;
     }
     this.mailLanguage = this.prefService.preferences.lang;
   }
@@ -124,9 +120,9 @@ export class SharePopupComponent implements OnInit {
   setElementType(type: string) {
     this.elementType = type as ShareElementType;
     if (this.elementType === ShareElementType.COLLECTION) {
-      this.elements = [this.collectionUuid!];
+      this.elements = [this.collection!.uuid];
       this.pages = [SharePage.TYPE, SharePage.NAME_WHO];
-      this.shareDescription = new TranslatedString('pages.share_popup.share_description.COLLECTION', [this.injector.get(TrailCollectionService).getCollectionName$(this.collectionUuid!)]).translate$(this.i18n);
+      this.shareDescription = new TranslatedString('pages.share_popup.share_description.COLLECTION', [this.injector.get(TrailCollectionService).getCollectionName$(this.collection!.uuid)]).translate$(this.i18n);
     } else {
       this.elements = [];
       this.pages = [SharePage.TYPE, SharePage.ELEMENTS, SharePage.NAME_WHO];
@@ -137,7 +133,7 @@ export class SharePopupComponent implements OnInit {
   tagsSelected(tags: Tag[]): void {
     this.elements = tags.map(tag => tag.uuid);
     if (this.elements.length > 0) {
-      this.shareDescription = new TranslatedString('pages.share_popup.share_description.TAGS', [this.injector.get(TagService).getTagsFullnames$(this.elements)]).translate$(this.i18n);
+      this.shareDescription = new TranslatedString('pages.share_popup.share_description.TAGS', [this.injector.get(TagService).getTagsFullnames$(this.email, this.elements)]).translate$(this.i18n);
     } else {
       this.shareDescription = of('');
     }

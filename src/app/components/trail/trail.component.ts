@@ -34,7 +34,7 @@ import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.s
 import { estimateSimilarity } from 'src/app/services/track-edition/path-analysis/similarity';
 import { CompositeI18nString, DateTimeI18nString, I18nPipe, I18nString, TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { isPublicationCollection, TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { isPublicationCollection, SHARED_OWNER_PREFIX, TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { TrackEditToolsComponent } from '../track-edit-tools/track-edit-tools.component';
 import { TrackEditToolComponent, TrackEditToolsStack } from '../track-edit-tools/tools/track-edit-tools-stack';
 import { TrailSelection } from './trail-selection';
@@ -712,6 +712,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             toolsBaseMapTrack = new MapTrack(undefined, toolsBaseTrack, 'red', 1, false, this.i18n);
             toolsBaseMapTrack.showArrowPath();
             if (!toolsModifiedTrack) {
+              toolsBaseMapTrack.onWayPointClick = wp => this.highlightWayPoint(wp, true);
               toolsBaseMapTrack.showDepartureAndArrivalAnchors();
               toolsBaseMapTrack.showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
             }
@@ -726,6 +727,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           if (trail1.mapTrack && (!toolsModifiedTrack || !hideBaseTrack)) {
             mapElements.push(mapTrack);
             if (!toolsModifiedTrack) {
+              mapTrack.onWayPointClick = wp => this.highlightWayPoint(wp, true);
               mapTrack.showDepartureAndArrivalAnchors();
               mapTrack.showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
             }
@@ -737,6 +739,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             if (trail2.mapTrack) {
               trail2.mapTrack.color = 'blue';
               mapElements.push(trail2.mapTrack);
+              trail2.mapTrack.onWayPointClick = wp => this.highlightWayPoint(wp, true);
               trail2.mapTrack.showDepartureAndArrivalAnchors();
               trail2.mapTrack.showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
             }
@@ -754,6 +757,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           recordingMapTrack.showDepartureAndArrivalAnchors();
           recordingMapTrack.showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
           recordingMapTrack.showArrowPath();
+          recordingMapTrack.onWayPointClick = wp => this.highlightWayPoint(wp, true);
           mapElements.push(recordingMapTrack);
         }
 
@@ -770,6 +774,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             toolsModifiedMapTrack = new MapTrack(undefined, toolsModifiedTrack, 'blue', 1, false, this.i18n, hideBaseTrack ? 3 : 2);
             toolsModifiedMapTrack.showDepartureAndArrivalAnchors();
             toolsModifiedMapTrack.showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
+            toolsModifiedMapTrack.onWayPointClick = wp => this.highlightWayPoint(wp, true);
             mapElements.push(toolsModifiedMapTrack);
           }
         }
@@ -1121,8 +1126,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this.whenVisible.subscribe(
       trailWithInfo$.pipe(
         switchMap(trailWithInfo => {
-          if (trailWithInfo && trailWithInfo.trail.owner === this.auth.email)
-            return this.tagService.getTrailTagsFullNames$(trailWithInfo.trail.uuid).pipe(map(tagsNames => ({trailWithInfo, tagsNames})));
+          if (trailWithInfo && (trailWithInfo.trail.owner === this.auth.email || trailWithInfo.trail.owner.startsWith(SHARED_OWNER_PREFIX)))
+            return this.tagService.getTrailTagsFullNames$(trailWithInfo.trail.owner, trailWithInfo.trail.uuid).pipe(map(tagsNames => ({trailWithInfo, tagsNames})));
           return of({trailWithInfo, tagsNames: undefined});
         }),
         debounceTimeExtended(0, 100)
@@ -1467,23 +1472,22 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   }
   private _listenForCollections(trailWithInfo$: Observable<TrailWithInfo | null>, isTrail1: boolean): void {
     this.whenVisible.subscribe(
-      combineLatest([
-        this.auth.userChanged$,
-        trailWithInfo$.pipe(
+      this.auth.userChanged$.pipe(
+        switchMap(auth => trailWithInfo$.pipe(
           switchMap(trailWithInfo => {
-            if (!trailWithInfo) return of({col: null, trailWithInfo: null, track: null});
+            if (!trailWithInfo) return of({auth, col: null, trailWithInfo: null, track: null});
             if (!trailWithInfo.trail.owner.includes('@') || trailWithInfo.trail.fromModeration)
-              return of({col: null, trailWithInfo, track: null});
+              return of({auth, col: null, trailWithInfo, track: null});
             return combineLatest([
-              this.injector.get(TrailCollectionService).getCollectionWithName$(trailWithInfo.trail.collectionUuid, trailWithInfo.trail.owner),
+              auth ? this.injector.get(TrailCollectionService).getCollectionWithName$(trailWithInfo.trail.collectionUuid, auth.email) : of(null),
               isTrail1 ? this.trackService.getFullTrackReady$(trailWithInfo.trail.currentTrackUuid, trailWithInfo.trail.owner) : of(null),
             ]).pipe(
-              map(([col, track]) => ({col, trailWithInfo, track}))
+              map(([col, track]) => ({auth, col, trailWithInfo, track}))
             );
           }),
-        ),
-      ]),
-      ([auth, result]) => {
+        )),
+      ),
+      result => {
         if (result.trailWithInfo) {
           result.trailWithInfo.collection = result.col?.collection;
           result.trailWithInfo.collectionName = result.col?.name;
@@ -1495,9 +1499,10 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             this.publicationChecklist = undefined;
           }
           if (isTrail1)
-            this.editable = !this.trail2 && !!auth &&
+            this.editable = !this.trail2 && !!result.auth &&
               (result.trailWithInfo.trail.fromModeration ||
-               (result.trailWithInfo.trail.owner === auth.email && result.col?.collection.type !== TrailCollectionType.PUB_SUBMIT)
+               (result.trailWithInfo.trail.owner === result.auth.email && result.col?.collection.type !== TrailCollectionType.PUB_SUBMIT) ||
+               result.trailWithInfo.trail.owner.startsWith(SHARED_OWNER_PREFIX)
               );
         } else if (isTrail1) {
           this.isPublication = false;
@@ -1713,8 +1718,17 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     }
   }
 
-  openTags(trail: Trail): void {
-    import('../tags/tags.component').then(m => m.openTagsDialog(this.injector, [trail], trail.collectionUuid));
+  async openTags(trail: Trail) {
+    const r = await Promise.all([
+      firstValueFrom(
+        this.auth.userChanged$.pipe(
+          switchMap(auth => auth && !auth.isAnonymous ? this.injector.get(TrailCollectionService).getCollection$(trail.collectionUuid, auth.email) : of(undefined)),
+          filterDefined(),
+        )
+      ),
+      import('../tags/tags.component')
+    ]);
+    r[1].openTagsDialog(this.injector, [trail], r[0]);
   }
 
   editTrailName(trail: Trail): void {
@@ -1908,7 +1922,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     if (!this.editable) return false;
     if (this.toolsEnabled) return false;
     if (this.trail2) return false;
-    if (this.trail1?.owner !== this.auth.email && !this.trail1?.fromModeration) return false;
+    if (this.trail1?.owner !== this.auth.email && !this.trail1?.fromModeration && !this.trail1?.owner?.startsWith(SHARED_OWNER_PREFIX)) return false;
     if (this.recording) return false;
     if (this.showOsmTrack$.value) return false;
     return true;
@@ -2100,9 +2114,11 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       });
     } else {
       this.publicationChecklist?.delete();
-      const collection = await firstValueFrom(this.injector.get(TrailCollectionService).getOrCreatePublicationSubmit());
+      const trail = this.trail1!
+      const fromCollection = this.injector.get(TrailCollectionService).getCollection(trail.collectionUuid, trail.owner)!;
+      const toCollection = await firstValueFrom(this.injector.get(TrailCollectionService).getOrCreatePublicationSubmit());
       const copyModule = await import('../../services/functions/copy-trails');
-      copyModule.moveTrailsTo(this.injector, [this.trail1!], collection, this.trail1!.owner, t => t.publicationMessageFromAuthor = result.data, true);
+      copyModule.moveTrailsTo(this.injector, [trail], fromCollection, toCollection, t => t.publicationMessageFromAuthor = result.data, true);
       this.injector.get(Router).navigateByUrl('/trails/collection/' + this.trail1WithInfo!.collection!.uuid + '/' + this.trail1WithInfo!.collection!.owner);
     }
   }
@@ -2148,9 +2164,11 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   }
 
   private async rejectToDraft() {
-    const collection = await firstValueFrom(this.injector.get(TrailCollectionService).getOrCreatePublicationDraft());
+    const trail = this.trail1!
+    const fromCollection = this.injector.get(TrailCollectionService).getCollection(trail.collectionUuid, trail.owner)!;
+    const toCollection = await firstValueFrom(this.injector.get(TrailCollectionService).getOrCreatePublicationDraft());
     const copyModule = await import('../../services/functions/copy-trails');
-    copyModule.moveTrailsTo(this.injector, [this.trail1!], collection, this.trail1!.owner);
+    copyModule.moveTrailsTo(this.injector, [trail], fromCollection, toCollection);
   }
 
   private async editPublication() {
@@ -2173,7 +2191,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         .getOrCreatePublicationDraft()
         .subscribe(col => {
           import('../../services/functions/copy-trails')
-          .then(m => m.copyTrailsTo(this.injector, [this.trail1!], col, col.owner, true, true, true, (newTrail) => ({
+          .then(m => m.copyTrailsTo(this.injector, [this.trail1!], col, true, true, true, (newTrail) => ({
             publishedFromUuid: this.trail1WithInfo?.source?.info?.myUuid,
             sourceType: this.trail1WithInfo?.source?.info?.externalUrl ? TrailSourceType.EXTERNAL : undefined,
             source: this.trail1WithInfo?.source?.info?.externalUrl

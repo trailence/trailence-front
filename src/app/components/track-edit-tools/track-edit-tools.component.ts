@@ -413,7 +413,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
   public modify<T>(modification: (track: Track) => Observable<T>, mayNotChange: boolean, doNotNotifyIfNotChange: boolean): Observable<T | undefined> {
     return this.getCurrentTrack().pipe(
       switchMap(originalTrack => {
-        const email = this.trail.fromModeration ? originalTrack.owner : this.auth.email!;
+        const email = originalTrack.owner;
         const copy = originalTrack.copy(email);
         const before = mayNotChange ? copy.copy(email) : undefined;
         const originalSelection = this.selection.getSelectionForTrack(originalTrack);
@@ -460,7 +460,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
       switchMap(fullTrack => {
         const sel = this.selection.getSubTrackOf(fullTrack);
         if (!sel) return this.modify(modification, mayNotChange, doNotNotifyIfNotChange);
-        const email = this.trail.fromModeration ? fullTrack.owner : this.auth.email!;
+        const email = fullTrack.owner;
         const subTrack = sel.subTrack;
         const range = sel.range;
         const before = mayNotChange ? subTrack.copy(email) : undefined;
@@ -538,7 +538,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         });
         return;
       }
-      track = track.copy(this.auth.email!);
+      track = track.copy(this.trail.owner);
       progress.addWorkDone(1);
       this.injector.get(TrackService).create(track, () => progress.addWorkDone(1));
       this.trail.currentTrackUuid = track.uuid;

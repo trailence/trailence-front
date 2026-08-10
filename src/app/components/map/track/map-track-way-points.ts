@@ -53,6 +53,7 @@ export class MapTrackWayPoints {
     private readonly _isRecording: boolean,
     private readonly getColor: () => string,
     private readonly i18n: I18nService,
+    private readonly onClick: (wp: TrackWayPoint) => void,
   ) {}
 
   private i18nSubscription?: Subscription;
@@ -169,23 +170,33 @@ export class MapTrackWayPoints {
         }
         if (isArrival && !this._isRecording) {
           this._departureAndArrival = this.createDepartureAndArrival(twp.wayPoint.point.pos);
+          this._departureAndArrival.onClick = () => this.onClick(wp);
         } else {
           this._departure = this.createDeparture(twp.wayPoint.point.pos);
+          this._departure.onClick = () => this.onClick(wp);
         }
       } else if (twp.isArrival && (!this._isRecording || twp.isComputedOnly)) {
         if (!this._isRecording) {
           const departure = WayPointFromTrack.search(list, e => e.isDeparture)?.wayPoint?.point;
-          if (!departure || L.latLng(departure.pos).distanceTo(twp.wayPoint.point.pos) > MAX_DEPARTURE_ARRIVAL_DISTANCE)
+          if (!departure || L.latLng(departure.pos).distanceTo(twp.wayPoint.point.pos) > MAX_DEPARTURE_ARRIVAL_DISTANCE) {
             this._arrival = this.createArrival(twp.wayPoint.point.pos);
+            this._arrival.onClick = () => this.onClick(wp);
+          }
         }
       } else {
-        this._wayPointsAnchors!.push(this.createWayPoint(twp));
+        const anchor = this.createWayPoint(twp);
+        anchor.onClick = () => this.onClick(wp);
+        this._wayPointsAnchors!.push(anchor);
       }
     }
     const bp = BreakPoint.from(wp);
     if (bp) {
-      this._breaks!.push(this.createBreakPoint(bp, false));
-      this._breaksColored!.push(this.createBreakPoint(bp, true))
+      const anchor = this.createBreakPoint(bp, false);
+      anchor.onClick = () => this.onClick(wp);
+      this._breaks!.push(anchor);
+      const anchorColored = this.createBreakPoint(bp, true);
+      anchorColored.onClick = () => this.onClick(wp);
+      this._breaksColored!.push(anchorColored);
     }
     const gp = GuidepostWayPoint.from(wp);
     if (gp) {

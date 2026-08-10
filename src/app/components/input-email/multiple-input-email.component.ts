@@ -19,6 +19,7 @@ export interface EmailsValue {
         [required]="false"
         [label]="label"
         [inputClass]="inputClass"
+        [disabled]="disabled"
       ></app-input-email>
     }
   `,
@@ -39,6 +40,7 @@ export class MultipleInputEmailComponent implements OnInit, OnChanges {
   @Input() allowSameEmail = false;
   @Input() allowEmpty = false;
   @Input() maxEmails = -1;
+  @Input() disabled = false;
   @Output() emailsUpdated = new EventEmitter<EmailsValue>();
 
   @Input() label?: string;
@@ -78,7 +80,8 @@ export class MultipleInputEmailComponent implements OnInit, OnChanges {
 
   private validateList(): void {
     this.emailsValues = this.emailsValues.filter(e => e.email.trim().length > 0);
-    this.emailsValues.push({email: '', error: undefined});
+    if (!this.disabled)
+      this.emailsValues.push({email: '', error: undefined});
     if (this.maxEmails > 0 && this.emailsValues.length > this.maxEmails) this.emailsValues.splice(this.maxEmails, this.emailsValues.length - this.maxEmails);
     let hasOne = false;
     for (let i = 0; i < this.emailsValues.length; ++i) {

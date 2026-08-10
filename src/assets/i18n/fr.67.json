@@ -212,6 +212,8 @@
       "collection": "Collection",
       "share_from": "Partage de",
       "your_share": "Votre partage",
+      "shared_collection": "Collection partagée",
+      "shared_collection_by": "Collection partagée par {{1}}",
       "edit_filters_popup_title": "Filtrer les Parcours",
       "edit_sort_popup_title": "Trier les Parcours",
       "missing_trails_because_offline": "Certains parcours ne peuvent pas être affichés car vous êtes hors-ligne",
@@ -485,7 +487,13 @@
     },
     "collection_form": {
       "title": "Collection",
-      "collection_name": "Nom"
+      "collection_name": "Nom",
+      "shared": {
+        "toggle_label": "Collection partagée",
+        "explanation": "Les utilisateurs avec qui cette collection est partagée peuvent modifier, ajouter ou supprimer des éléments, mais ils ne peuvent pas supprimer la collection elle-même.",
+        "explanation_anonymous": "Les collections partagées ne sont pas disponibles sans compte.",
+        "by": "Partagée par"
+      }
     },
     "location_popup": {
       "title": "Lieu du parcours",
@@ -1581,7 +1589,9 @@
     },
     "load_more": "Voir plus",
     "error_loading": "Erreur lors du chargement des notifications",
+    "none": "Vous n'avez aucune notification pour l'instant",
     "items": {
+      "unknown": "Cette notification est inconnue dans cette version de Trailence",
       "publications": {
         "accepted": {
           "text": "Votre parcours :*:/trail/trailence/{{2}}:*:{{1}}:*: a été publié ! Merci pour votre contribution à la communauté 🎉"
@@ -1596,6 +1606,9 @@
         },
         "new_trails_in_share": {
           "text": "{{1}} a ajouté {{2}} parcours dans le partage :*:/trails/share/{{3}}/{{1}}:*:{{4}}:*:"
+        },
+        "shared_collection": {
+          "text": "{{1}} a créé une nouvelle collection partagée avec vous : :*:/trails/collection/{{3}}:*:{{2}}:*:"
         }
       },
       "comments": {

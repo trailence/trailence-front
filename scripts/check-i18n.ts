@@ -1,8 +1,9 @@
-const fs = require('fs');
+const fs = require('node:fs');
 const jsdom = require('jsdom');
 import { AvailableLocales, LocaleKey } from '../src/app/services/i18n/available-locales';
 
 const knownLanguages = Object.keys(AvailableLocales);
+const errors: string[] = [];
 
 function readI18nDir(path: string, withFlagsIcons: boolean, checkJsonVersion: (version: number) => void, knownLanguages: string[]) {
   const languages = new Map();
@@ -13,17 +14,32 @@ function readI18nDir(path: string, withFlagsIcons: boolean, checkJsonVersion: (v
       if (entry.name.startsWith('languages.') && entry.name.endsWith('.json')) continue;
       const i = entry.name.indexOf('.');
       const j = entry.name.lastIndexOf('.');
-      if (i < 0 || j < 0) throw 'Unexpected file: ' + entry.name;
+      if (i < 0 || j < 0) {
+        errors.push('Unexpected file: ' + path + '/' + entry.name);
+        continue;
+      }
       const lang = entry.name.substring(0, i);
       const extension = entry.name.substring(j + 1);
-      const version = parseInt(entry.name.substring(i + 1, j));
-      if (knownLanguages.indexOf(lang) < 0) throw 'Unknown language file: ' + entry.name;
-      if (extension !== 'json' && extension !== 'svg') throw 'Unexpected file: ' + entry.name;
-      if (isNaN(version) || ('' + version) !== entry.name.substring(i + 1, j) || version < 1) throw 'Unexpected file: ' + entry.name;
+      const version = Number.parseInt(entry.name.substring(i + 1, j));
+      if (!knownLanguages.includes(lang)) {
+        errors.push('Unknown language file: ' + path + '/' + entry.name);
+        continue;
+      }
+      if (extension !== 'json' && extension !== 'svg') {
+        errors.push('Unexpected file: ' + path + '/' + entry.name);
+        continue;
+      }
+      if (Number.isNaN(version) || ('' + version) !== entry.name.substring(i + 1, j) || version < 1) {
+        errors.push('Unexpected file: ' + path + '/' + entry.name);
+        continue;
+      }
       let l = languages.get(lang);
       if (!l) l = {'language': lang};
       if (!l.files) l.files = new Object();
-      if (l.files[extension]) throw 'Several files with extension ' + extension + ' for language ' + lang;
+      if (l.files[extension]) {
+        errors.push('Several files with extension ' + extension + ' for language ' + lang);
+        continue;
+      }
       l.files[extension] = entry.name;
       if (!l.versions) l.versions = new Object();
       l.versions[extension] = version;
@@ -33,18 +49,20 @@ function readI18nDir(path: string, withFlagsIcons: boolean, checkJsonVersion: (v
     dir.closeSync();
   }
 
-  for (const l of knownLanguages) if (!languages.get(l)) throw 'Language not found: ' + l + ' in ' + path;
+  for (const l of knownLanguages) if (!languages.get(l)) errors.push('Language not found: ' + l + ' in ' + path);
   let jsonVersion: number | undefined;
   for (const l of languages.values()) {
-    if (!l.files['json']) throw 'Missing json file for language ' + l.language;
-    if (!l.files['svg'] && withFlagsIcons) throw 'Missing svg file for language ' + l.language;
-    if (!l.versions['json']) throw 'No version for json file ' + l.language;
+    if (!l.files['json']) errors.push('Missing json file for language ' + l.language);
+    else if (!l.versions['json']) errors.push('No version for json file ' + l.language);
     if (withFlagsIcons) {
-      if (!l.versions['svg']) throw 'No version for svg file ' + l.language;
-      if (l.versions['svg'] != AvailableLocales[l.language as LocaleKey].iconVersion) throw 'Flag for language ' + l.language + ' is declared with version ' + AvailableLocales[l.language as LocaleKey].iconVersion + ' but found is ' + l.versions['svg'];
+      if (!l.files['svg']) errors.push('Missing svg file for language ' + l.language);
+      else if (!l.versions['svg']) errors.push('No version for svg file ' + l.language);
+      else if (l.versions['svg'] != AvailableLocales[l.language as LocaleKey].iconVersion) errors.push('Flag for language ' + l.language + ' is declared with version ' + AvailableLocales[l.language as LocaleKey].iconVersion + ' but found is ' + l.versions['svg']);
     }
-    if (jsonVersion === undefined) jsonVersion = l.versions['json'];
-    else if (jsonVersion !== l.versions['json']) throw 'JSON files have different versions: ' + jsonVersion + ', ' + l.versions['json'];
+    if (l.versions['json']) {
+      if (jsonVersion === undefined) jsonVersion = l.versions['json'];
+      else if (jsonVersion !== l.versions['json']) errors.push('JSON files have different versions: ' + jsonVersion + ', ' + l.versions['json']);
+    }
   }
   if (checkJsonVersion) checkJsonVersion(jsonVersion!);
 
@@ -55,9 +73,15 @@ function checkKeys(object1: any, object2: any, lang1: string, lang2: string, pat
   for (const k of Object.keys(object1)) {
     if (k === lang2) continue;
     const v = object1[k];
-    if (object2[k] === undefined) throw 'Directory' + dirname + ': Key ' + path + '/' + k + ' present in ' + lang1 + ' is missing in ' + lang2;
+    if (object2[k] === undefined) {
+      errors.push('Directory' + dirname + ': Key ' + path + '/' + k + ' present in ' + lang1 + ' is missing in ' + lang2);
+      continue;
+    }
     const v2 = object2[k];
-    if (typeof v !== typeof v2) throw 'Directory' + dirname + ': Key ' + path + '/' + k + ' in lang1 is a ' + (typeof v) + ' but is a ' + (typeof v2) + ' in ' + lang2;
+    if (typeof v !== typeof v2) {
+      errors.push('Directory' + dirname + ': Key ' + path + '/' + k + ' in lang1 is a ' + (typeof v) + ' but is a ' + (typeof v2) + ' in ' + lang2);
+      continue;
+    }
     if (typeof v === 'string') continue;
     checkKeys(v, v2, lang1, lang2, path + '/' + k, dirname);
   }
@@ -94,11 +118,11 @@ function checkJsonVersionI18nAdmin(version: number) {
 function checkNginxLocales(file: string, includePublicPages: boolean) {
   let content = fs.readFileSync(file, 'utf-8');
   let i = content.indexOf(')/trail/');
-  if (i < 0) throw Error('Cannot find path for ^<locale>/trail/ in ' + file);
+  if (i < 0) throw new Error('Cannot find path for ^<locale>/trail/ in ' + file);
   let j = content.lastIndexOf('(', i);
   let langs = content.substring(j + 1, i).split('|');
   for (const lang of langs) {
-    if (!knownLanguages.includes(lang)) throw Error('Unknown language ' + lang + ' in ' + file);
+    if (!knownLanguages.includes(lang)) throw new Error('Unknown language ' + lang + ' in ' + file);
   }
   for (const lang of knownLanguages) {
     if (!langs.includes(lang)) throw new Error('Missing language ' + lang + ' in ' + file);
@@ -106,11 +130,11 @@ function checkNginxLocales(file: string, includePublicPages: boolean) {
 
   if (includePublicPages) {
     i = content.indexOf(')/([a-z\\-]+)$');
-    if (i < 0) throw Error('Cannot find path for ^<locale>/([a-z\\-]+)$ in ' + file);
+    if (i < 0) throw new Error('Cannot find path for ^<locale>/([a-z\\-]+)$ in ' + file);
     j = content.lastIndexOf('(', i);
     langs = content.substring(j + 1, i).split('|');
     for (const lang of langs) {
-      if (!knownLanguages.includes(lang)) throw Error('Unknown language ' + lang + ' in ' + file);
+      if (!knownLanguages.includes(lang)) throw new Error('Unknown language ' + lang + ' in ' + file);
     }
     for (const lang of knownLanguages) {
       if (!langs.includes(lang)) throw new Error('Missing language ' + lang + ' in ' + file);
@@ -139,14 +163,14 @@ function checkSitemap() {
       }
     }
     for (const lang of langs) {
-      if (!knownLanguages.includes(lang)) throw Error('Unknown language ' + lang + ' in sitemap-base.xml for url ' + locValue);
+      if (!knownLanguages.includes(lang)) throw new Error('Unknown language ' + lang + ' in sitemap-base.xml for url ' + locValue);
     }
     for (const lang of knownLanguages) {
       if (!langs.includes(lang)) throw new Error('Missing language ' + lang + ' in sitemap-base.xml for url ' + locValue);
     }
   }
   for (const e of expected)
-    if (!found.includes(e)) throw Error('Expected URL ' + e + ' not found in staemap-base.xml');
+    if (!found.includes(e)) throw new Error('Expected URL ' + e + ' not found in staemap-base.xml');
 }
 
 checkNginxLocales('./docker/default.conf.template', true);
@@ -155,3 +179,9 @@ checkNginxLocales('./server_pages/test/default.conf.template', false);
 checkSitemap();
 checkDir('./src/assets/i18n', true, checkJsonVersionI18n, knownLanguages);
 checkDir('./src/assets/admin/i18n', false, checkJsonVersionI18nAdmin, ['en', 'fr']);
+
+if (errors.length > 0) {
+  for (const error of errors)
+    console.error(error);
+  process.exit(1);
+}

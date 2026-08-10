@@ -30,9 +30,10 @@ import { estimateSimilarity } from '../track-edition/path-analysis/similarity';
 import { MyPublicTrailsService } from './my-public-trails.service';
 import { boundingBoxAround } from 'src/app/utils/leaflet-utils';
 import { NetworkService } from '../network/network.service';
-import { isPublicationCollection } from 'src/app/model/dto/trail-collection';
+import { isPublicationCollection, SHARED_OWNER_PREFIX, TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { CommonDatabaseService } from './common-database.service';
 import { StoreService, StoreWithCleaning } from './store/store.service';
+import { TrailCollection } from 'src/app/model/trail-collection';
 
 @Injectable({
   providedIn: 'root'
@@ -142,7 +143,7 @@ export class TrailService {
     this.trackService.deleteByUuidAndOwner(trail.originalTrackUuid, trail.owner, doneHandler.add());
     if (trail.currentTrackUuid !== trail.originalTrackUuid)
       this.trackService.deleteByUuidAndOwner(trail.currentTrackUuid, trail.owner, doneHandler.add());
-    this.injector.get(TagService).deleteTrailTagsForTrail(trail.uuid, doneHandler.add());
+    this.injector.get(TagService).deleteTrailTagsForTrail(trail.owner, trail.uuid, doneHandler.add());
     this.injector.get(PhotoService).deleteForTrail(trail, doneHandler.add());
     this._store.delete(trail, doneHandler.add());
     doneHandler.start();
@@ -168,7 +169,7 @@ export class TrailService {
     this.trackService.deleteMany(tracks, progress, progressWork * 2 / 3, doneHandler.add());
     const remainingProgress = progressWork - (progressWork * 2 / 3);
     let tagsWork = remainingProgress / 10;
-    this.injector.get(TagService).deleteTrailTagsForTrails(trails.map(t => t.uuid), doneHandler.add(() => progress?.addWorkDone(tagsWork)));
+    this.injector.get(TagService).deleteTrailTagsForTrails(trails, doneHandler.add(() => progress?.addWorkDone(tagsWork)));
     let photosWork = remainingProgress / 2;
     this.injector.get(PhotoService).deleteForTrails(trails, doneHandler.add(() => progress?.addWorkDone(photosWork)));
     const trailWork = remainingProgress - tagsWork - photosWork;
@@ -188,19 +189,16 @@ export class TrailService {
         tracksIds.push({uuid: trail.currentTrackUuid, owner: trail.owner});
     }
     this.trackService.deleteMany(tracksIds, undefined, 100);
-    const email = this.injector.get(AuthService).email;
-    const ownedTrails = trails.filter(t => t.owner === email).map(t => t.uuid);
-    if (ownedTrails.length > 0)
-      this.injector.get(TagService).deleteTrailTagsForTrails(ownedTrails);
+    this.injector.get(TagService).deleteTrailTagsForTrails(trails);
     this.injector.get(PhotoService).deleteForTrails(trails);
   }
 
-  public deleteAllTrailsFromCollections(collections: {owner: string, uuid: string}[], progress: Progress | undefined, progressWork: number): Observable<any> {
+  public deleteAllTrailsFromCollections(collections: TrailCollection[], progress: Progress | undefined, progressWork: number): Observable<any> {
     return this._store.getAll$().pipe(
       first(),
       switchMap(trails$ => trails$.length === 0 ? of([]) : zip(trails$.map(trail$ => trail$.pipe(firstTimeout(t => !!t, 1000, () => null as Trail | null))))),
       switchMap(trail => {
-        const toRemove = trail.filter(trail => !!trail && collections.some(c =>trail.collectionUuid === c.uuid && trail.owner === c.owner)) as Trail[];
+        const toRemove = trail.filter(trail => !!trail && collections.some(c =>trail.collectionUuid === c.uuid && trail.owner === c.getContentOwner())) as Trail[];
         if (toRemove.length === 0) {
           progress?.addWorkDone(progressWork);
           return of(true);
@@ -341,7 +339,9 @@ class TrailStore extends OwnedStore<TrailDto, Trail> implements StoreWithCleanin
   }
 
   protected override readyToSave(entity: Trail): boolean {
-    if (!this.collectionService.getCollection(entity.collectionUuid, entity.owner)?.isSavedOnServerAndNotDeletedLocally()) return false;
+    const collectionOwner = entity.owner.startsWith(SHARED_OWNER_PREFIX) ? this.injector.get(AuthService).email : entity.owner;
+    if (!collectionOwner) return false;
+    if (!this.collectionService.getCollection(entity.collectionUuid, collectionOwner)?.isSavedOnServerAndNotDeletedLocally()) return false;
     if (!this.trackService.isSavedOnServerAndNotDeletedLocally(entity.originalTrackUuid, entity.owner)) return false;
     if (entity.currentTrackUuid !== entity.originalTrackUuid &&
       !this.trackService.isSavedOnServerAndNotDeletedLocally(entity.currentTrackUuid, entity.owner)) return false;
@@ -351,21 +351,25 @@ class TrailStore extends OwnedStore<TrailDto, Trail> implements StoreWithCleanin
   protected override readyToSave$(entity: Trail): Observable<boolean> {
     const originalTrackReady$ = this.trackService.isSavedOnServerAndNotDeletedLocally$(entity.originalTrackUuid, entity.owner);
     const currentrackReady$ = this.trackService.isSavedOnServerAndNotDeletedLocally$(entity.currentTrackUuid, entity.owner);
-    const collectionReady$ = this.collectionService.getCollection$(entity.collectionUuid, entity.owner).pipe(map(col => !!col?.isSavedOnServerAndNotDeletedLocally()));
+    const collectionOwner$ = entity.owner.startsWith(SHARED_OWNER_PREFIX) ? this.injector.get(AuthService).userChanged$.pipe(map(auth => auth?.email)) : of(entity.owner);
+    const collectionReady$ = collectionOwner$.pipe(
+      switchMap(owner => owner ? this.collectionService.getCollection$(entity.collectionUuid, owner).pipe(map(col => !!col?.isSavedOnServerAndNotDeletedLocally())) : of(false)),
+    );
     return combineLatest([originalTrackReady$, currentrackReady$, collectionReady$]).pipe(
       map(readiness => !readiness.includes(false))
     );
   }
 
   protected override createdLocallyCanBeRemoved(entity: Trail): Observable<boolean> {
-    return this.collectionService.getCollection$(entity.collectionUuid, entity.owner).pipe(
-      map(col => !col),
-      switchMap(colRemoved => {
-        if (colRemoved) return of(true);
+    const collectionOwner$ = entity.owner.startsWith(SHARED_OWNER_PREFIX) ? this.injector.get(AuthService).userChanged$.pipe(map(auth => auth && !auth.isAnonymous ? auth.email : null)) : of(entity.owner);
+    const collection$ = collectionOwner$.pipe(switchMap(owner => owner ? this.collectionService.getCollection$(entity.collectionUuid, owner) : of(null)))
+    return collection$.pipe(
+      switchMap(col => {
+        if (!col) return of(true); // removed
         if (entity.updatedAt > Date.now() - 120000) return of(false);
         return combineLatest([
-          this.trackService.getFullTrackReady$(entity.originalTrackUuid, entity.owner).pipe(defaultIfEmpty(undefined)),
-          this.trackService.getFullTrackReady$(entity.currentTrackUuid, entity.owner).pipe(defaultIfEmpty(undefined))
+          this.trackService.getFullTrackReady$(entity.originalTrackUuid, col.getContentOwner()).pipe(defaultIfEmpty(undefined)),
+          this.trackService.getFullTrackReady$(entity.currentTrackUuid, col.getContentOwner()).pipe(defaultIfEmpty(undefined))
         ]).pipe(
           map(([t1, t2]) => {
             if (!t1 && !t2) return true;
@@ -390,8 +394,8 @@ class TrailStore extends OwnedStore<TrailDto, Trail> implements StoreWithCleanin
     return this.http.put<TrailDto[]>(environment.apiBaseUrl + '/trail/v1/_bulkUpdate', items);
   }
 
-  protected override deleteFromServer(uuids: string[]): Observable<void> {
-    return this.http.post<void>(environment.apiBaseUrl + '/trail/v1/_bulkDelete', uuids).pipe(
+  protected override deleteFromServer(owner: string, uuids: string[]): Observable<void> {
+    return this.http.post<void>(environment.apiBaseUrl + '/trail/v1/_bulkDelete' + (owner.startsWith(SHARED_OWNER_PREFIX) ? '/' + encodeURIComponent(owner) : ''), uuids).pipe(
       tap({
         complete: () => this.quotaService.updateQuotas(q => q.trailsUsed -= uuids.length)
       })
@@ -435,8 +439,11 @@ class TrailStore extends OwnedStore<TrailDto, Trail> implements StoreWithCleanin
             if (trail.createdAt > maxDate || trail.updatedAt > maxDate) continue;
             if (trail.owner === status.email) {
               if (collections.some(c => c.uuid === trail.collectionUuid && c.owner === status.email)) continue;
+            } else if (trail.owner.startsWith(SHARED_OWNER_PREFIX)) {
+              if (collections.some(c => c.type === TrailCollectionType.SHARED && c.getContentOwner() === trail.owner)) continue;
+            } else {
+              if (shares.some(s => s.owner === trail.owner && s.trails.includes(trail.uuid))) continue; // NOSONAR
             }
-            if (shares.some(s => s.owner === trail.owner && s.trails.includes(trail.uuid))) continue;
             const d = ondone.add();
             this.getLocalUpdate(trail).then(date => {
               if (!this.isStillValid(status)) {

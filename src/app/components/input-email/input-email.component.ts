@@ -20,6 +20,7 @@ export interface EmailValue {
       type="email"
       class="{{inputClass}}"
       [required]="required"
+      [disabled]="disabled"
     >
       @if (value?.length) {<ion-icon slot="end" name="trash" (click)="setValue('')"></ion-icon>}
     </ion-input>
@@ -43,6 +44,7 @@ export class InputEmailComponent {
   @Input() required = false;
   @Input() label?: string;
   @Input() inputClass?: string;
+  @Input() disabled = false;
 
   constructor(
     public readonly i18n: I18nService,

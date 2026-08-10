@@ -90,11 +90,12 @@
     </div>
     @if (collectionsOpen) {
       @for (collectionWithInfo of collections; track collectionWithInfo.collection.uuid) {
-        <div class="menu-item item-collection" (click)="goTo('/trails/collection/' + collectionWithInfo.collection.uuid); close();">
+        @let url = '/trails/collection/' + collectionWithInfo.collection.uuid + (collectionWithInfo.collection.owner !== email ? '/' + collectionWithInfo.collection.owner : '');
+        <div class="menu-item item-collection" (click)="goTo(url); close();">
           <div class="item-title-container">
             <div class="item-title with-actions">
               <div class="name-and-count">
-                <a href="/trails/collection/{{collectionWithInfo.collection.uuid}}" target="_blank" class="inherit name" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
+                <a href="{{url}}" target="_blank" class="inherit name" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
                   {{ collectionWithInfo.collection.name.length === 0 && collectionWithInfo.collection.type === 'MY_TRAILS' ? i18n.texts.my_trails : collectionWithInfo.collection.name }}
                 </a>
                 @if (collectionWithInfo.nbTrails !== undefined) {
@@ -106,6 +107,11 @@
               </ion-button>
             </div>
           </div>
+          @if (collectionWithInfo.collection.type === 'SHARED') {
+            <div class="shared-collection-icon">
+              <ion-icon name="share"></ion-icon>
+            </div>
+          }
         </div>
       }
       <div class="menu-item all-collections" (click)="goTo('/trails/all-collections'); close();">

@@ -8,17 +8,48 @@
   </ion-toolbar>
 </ion-header>
 <div class="modal-content ion-padding">
-  <ion-input
-    #input
-    name="name"
-    fill="outline"
-    label="{{i18n.texts.pages.collection_form.collection_name}}"
-    label-placement="floating"
-    [(ngModel)]="name"
-    [maxlength]="50"
-    [counter]="true"
-    [disabled]="applying"
-  ></ion-input>
+  <div>
+    <ion-input
+      #input
+      name="name"
+      fill="outline"
+      label="{{i18n.texts.pages.collection_form.collection_name}}"
+      label-placement="floating"
+      [(ngModel)]="name"
+      [maxlength]="50"
+      [counter]="true"
+      [disabled]="applying"
+    ></ion-input>
+  </div>
+  @if (!collection || shared) {
+    <div class="shared-section">
+      @let anonymous = authService.auth?.isAnonymous;
+      <ion-toggle [checked]="shared" [disabled]="!!collection || anonymous" (ionChange)="setShared($event.detail.checked)">{{ i18n.texts.pages.collection_form.shared.toggle_label }}</ion-toggle>
+      @if (anonymous) {
+        <div class="explanation">
+          {{ i18n.texts.pages.collection_form.shared.explanation_anonymous }}
+        </div>
+      } @else {
+        @if (shared && (!collection || collection.sharedWith !== undefined)) {
+          <div class="explanation">
+            {{ i18n.texts.pages.collection_form.shared.explanation }}
+          </div>
+          <app-multiple-input-email
+            [emails]="sharedWith"
+            [forbiddenEmails]="forbiddenEmails"
+            [maxEmails]="20"
+            [allowEmpty]="true"
+            inputClass="small"
+            (emailsUpdated)="setEmails($event)"
+          ></app-multiple-input-email>
+        } @else if (collection?.sharedBy) {
+          <div class="shared-by">
+            {{ i18n.texts.pages.collection_form.shared.by }} {{ collection!.sharedBy }}
+          </div>
+        }
+      }
+    </div>
+  }
 </div>
 <ion-footer>
   <ion-toolbar color="footer">

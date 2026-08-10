@@ -24,6 +24,7 @@ import { NgClass, NgStyle } from '@angular/common';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { WorkerService } from 'src/app/worker/web-app';
 import { ConcurrentPromises } from 'src/app/utils/concurrency';
+import { SHARED_OWNER_PREFIX } from 'src/app/model/dto/trail-collection';
 
 interface PhotoWithInfo {
   photo: Photo;
@@ -121,9 +122,13 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
             this.tabIndex = t ? this.trails.indexOf(t) : 0;
             if (!t) return of([[] as Photo[], {track: null, canEdit: false, canAdd: false}] as [Photo[], {track: Track | null, canEdit: boolean, canAdd: boolean}]);
             const photos = t === this.traceRecorder.current?.trail ? this.traceRecorder.current.photos$ : this.photoService.getTrailPhotos$(t);
-            const track = auth?.email === t.owner ?
-              this.trackService.getFullTrack$(t.currentTrackUuid, t.owner).pipe(map(track => ({track, canEdit: true, canAdd: true}))) :
-              of({track: null, canEdit: t.fromModeration, canAdd: false});
+            const track = this.trackService.getFullTrack$(t.currentTrackUuid, t.owner).pipe(
+              map(track => ({
+                track,
+                canEdit: t.fromModeration || auth?.email === t.owner || t.owner.startsWith(SHARED_OWNER_PREFIX),
+                canAdd: auth?.email === t.owner || t.owner.startsWith(SHARED_OWNER_PREFIX)
+              })),
+            );
             return combineLatest([photos, track]);
           }),
         )),
@@ -167,8 +172,9 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
 
   private readonly _dateToPosCache = new Map<number, L.LatLngLiteral | null>();
   private getPhotoPosition(photo: Photo, track: Track | null): L.LatLngLiteral | undefined {
+    let pos: L.LatLngLiteral | undefined = undefined;
     if (photo.latitude !== undefined && photo.longitude !== undefined) {
-      const pos = {lat: photo.latitude, lng: photo.longitude};
+      pos = {lat: photo.latitude, lng: photo.longitude};
       if (!track) return pos;
       const ref = TrackUtils.findClosestPointInTrack(pos, track, 100);
       if (ref) return track.segments[ref.segmentIndex].points[ref.pointIndex].pos;
@@ -180,9 +186,9 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
         point = closest ? {lat: closest.pos.lat, lng: closest.pos.lng} : null;
         this._dateToPosCache.set(photo.dateTaken, point);
       }
-      return point ?? undefined;
+      return point ?? pos;
     }
-    return undefined;
+    return pos;
   }
 
   ngOnDestroy(): void {

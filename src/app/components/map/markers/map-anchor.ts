@@ -5,6 +5,7 @@ export class MapAnchor {
   public marker: L.Marker;
   public tooltipContent?: string;
   public saveState: any = {};
+  public onClick?: () => void;
 
   constructor(
     public point: L.LatLngLiteral,
@@ -24,7 +25,11 @@ export class MapAnchor {
         iconAnchor: [20, 40],
         className: 'anchor text-' + text.replace('/', '_'),
       }),
+      interactive: true,
       title
+    });
+    this.marker.on('click', e => {
+      if (this.onClick) this.onClick();
     });
     if (rotateOnMouseHover) {
       let rotate = false;

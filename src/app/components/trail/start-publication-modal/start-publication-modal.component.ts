@@ -31,9 +31,9 @@ export class StartPublicationModal {
     .getOrCreatePublicationDraft()
     .subscribe(col => {
       import('../../../services/functions/copy-trails')
-      .then(m => m.copyTrailsTo(this.injector, [this.trail], col, col.owner, true, true, true,
-        newTrail => ({publishedFromUuid: this.trail.uuid}),
-        (newTrails) => this.modalController.dismiss()
+      .then(m => m.copyTrailsTo(this.injector, [this.trail], col, true, true, true,
+        () => ({publishedFromUuid: this.trail.uuid}),
+        () => this.modalController.dismiss()
       ))
     });
   }

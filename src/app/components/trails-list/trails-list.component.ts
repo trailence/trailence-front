@@ -36,7 +36,7 @@ import { TrackMetadataConfig } from '../track-metadata/track-metadata.component'
 import { Filters, FiltersUtils } from './filters';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
-import { isPublicationCollection } from 'src/app/model/dto/trail-collection';
+import { isPublicationCollection, SHARED_OWNER_PREFIX, TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { Tag } from 'src/app/model/tag';
 import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
@@ -369,8 +369,11 @@ export class TrailsListComponent extends AbstractComponent {
             this.mapFilteredTrails.emit(trails);
           if (trails.length === 0) return of([]);
           const email = this.authService.email;
-          const hasOwner = trails.some(t => t.owner === email);
-          const trailTags$ = hasOwner ? this.tagService.getAllTrailTagsWhenLoaded$() : of([]);
+          const owners = new Set<string>();
+          for (const t of trails)
+            if (t.owner === email || t.owner.startsWith(SHARED_OWNER_PREFIX))
+              owners.add(t.owner);
+          const trailTags$ = owners.size > 0 ? this.tagService.getAllTrailTagsWhenLoaded$().pipe(map(tags => tags.filter(tag => owners.has(tag.owner)))) : of([]);
           const photoIds = trails.map(t => t.owner.includes('@') ? {owner: t.owner, uuid: t.uuid} : null).filter(i => !!i);
           const photos$ = photoIds.length === 0 ? of([]) : this.injector.get(PhotoService).getPhotosForTrailsReady$(photoIds);
           const infoIds: {owner: string, uuid: string}[] = [];
@@ -392,13 +395,12 @@ export class TrailsListComponent extends AbstractComponent {
           ));
           return combineLatest([trailsTracks$, trailTags$, photos$, infos$]).pipe(
             map(([tracks, tags, photos, infos]) => {
-              const email = this.authService.email;
               return trails.map(trail => {
                 const info = trail.owner.includes('@') ? null : infos.find(i => i.owner === trail.owner && i.uuid === trail.uuid)?.info || null;
                 return {
                   trail,
                   track: tracks.find(t => t.trail === trail)?.track,
-                  trailTags: trail.owner === email ? tags.filter(t => t.trailUuid === trail.uuid) : [],
+                  trailTags: tags.filter(t => t.trailUuid === trail.uuid && t.owner === trail.owner),
                   info: info,
                   selected: false,
                   nbPhotos: photos.filter(p => p.owner === trail.owner && p.trailUuid === trail.uuid).length || (info?.photos?.length ?? 0),
@@ -530,10 +532,10 @@ export class TrailsListComponent extends AbstractComponent {
     );
 
     // import
-    if (this.collection && !isPublicationCollection(this.collection.type) && this.collection.owner === this.authService.email) {
+    if (this.collection && !isPublicationCollection(this.collection.type) && (this.collection.type === TrailCollectionType.SHARED || this.collection.owner === this.authService.email)) {
       this.toolbar.push(
         new MenuItem().setIcon('add-circle').setI18nLabel('tools.import')
-          .setAction(() => import('../../services/functions/import').then(m => m.openImportTrailsDialog(this.injector, this.collectionUuid!)))
+          .setAction(() => import('../../services/functions/import').then(m => m.openImportTrailsDialog(this.injector, this.collection!)))
       );
     }
 
@@ -926,7 +928,7 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   import(): void {
-    import('../../services/functions/import').then(m => m.openImportTrailsDialog(this.injector, this.collectionUuid!));
+    import('../../services/functions/import').then(m => m.openImportTrailsDialog(this.injector, this.collection!));
   }
 
   openTrail(trail: Trail): void {
@@ -934,7 +936,7 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   share(): void {
-    import('../share-popup/share-popup.component').then(m => m.openSharePopup(this.injector, this.collectionUuid!, []));
+    import('../share-popup/share-popup.component').then(m => m.openSharePopup(this.injector, this.collection!, []));
   }
 
   removeFromList(trailWithInfo: TrailWithInfo): void {

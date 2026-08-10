@@ -134,8 +134,7 @@ export class PlatformService {
     this.injector.get(AuthService).auth$.pipe(
       filterDefined(),
       first(),
-    ).subscribe(auth => {
-      const owner = auth.email;
+    ).subscribe(() => {
       const binaryChunks = chunks.map(c => atob(c));
       let size = 0;
       for (const c of binaryChunks) size += c.length;
@@ -153,17 +152,17 @@ export class PlatformService {
         backdropDismiss: false,
         componentProps: {
           filename,
-          onDone: (collectionUuid: string) => {
+          onDone: (collection: TrailCollection) => {
             const i18n = this.injector.get(I18nService);
             const progress = this.injector.get(ProgressService).create(i18n.texts.tools.importing, 1);
             import('src/app/services/functions/import')
             .then(importer => {
-              Promise.all(importer.importGpx(this.injector, buffer, owner, collectionUuid, undefined, TrailSourceType.FILE_IMPORT, filename, Date.now()).map(i => i.allDone))
+              Promise.all(importer.importGpx(this.injector, buffer, collection.getContentOwner(), collection.uuid, undefined, TrailSourceType.FILE_IMPORT, filename, Date.now()).map(i => i.allDone))
               .then(imported => {
                 progress.done();
-                importer.finishImport(this.injector, imported, collectionUuid, owner).then(
-                  () => imported.length === 1 ? this.injector.get(Router).navigateByUrl('/trail/' + encodeURIComponent(owner) + '/' + imported[0].trailUuid) :
-                                                this.injector.get(Router).navigateByUrl('/collection/' + collectionUuid)
+                importer.finishImport(this.injector, imported, collection).then(
+                  () => imported.length === 1 ? this.injector.get(Router).navigateByUrl('/trail/' + collection.owner + '/' + imported[0].trailUuid) :
+                                                this.injector.get(Router).navigateByUrl('/collection/' + collection.uuid)
                 );
               })
               .catch(error => {
@@ -194,9 +193,9 @@ export class PlatformService {
     {{getMessage()}}
   </div>
 
-  <ion-radio-group (ionChange)="collectionUuid = $event.detail.value" [value]="collectionUuid">
+  <ion-radio-group (ionChange)="setCollectionByKey($event.detail.value)" [value]="collection ? collection.uuid + '#' + collection.owner : undefined">
     @for (collection of collections; track collection.uuid) {
-      <div><ion-radio labelPlacement="end" value="{{collection.uuid}}">{{ collectionName(collection) }}</ion-radio></div>
+      <div><ion-radio labelPlacement="end" value="{{collection.uuid + '#' + collection.owner}}">{{ collectionName(collection) }}</ion-radio></div>
     }
   </ion-radio-group>
 
@@ -208,7 +207,7 @@ export class PlatformService {
 <ion-footer>
   <ion-toolbar color="footer">
     <ion-buttons slot="end">
-      <ion-button color="success" [disabled]="!collectionUuid" (click)="ok()">{{i18n.texts.buttons.confirm}}</ion-button>
+      <ion-button color="success" [disabled]="!collection" (click)="ok()">{{i18n.texts.buttons.confirm}}</ion-button>
       <ion-button (click)="cancel()">{{i18n.texts.buttons.cancel}}</ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -220,9 +219,9 @@ export class PlatformService {
 class ImportGpxPopupComponent {
 
   @Input() filename?: string;
-  @Input() onDone!: (collectionUuid: string) => void;
+  @Input() onDone!: (collection: TrailCollection) => void;
 
-  collectionUuid?: string;
+  collection?: TrailCollection;
 
   collections: TrailCollection[] = [];
 
@@ -247,18 +246,25 @@ class ImportGpxPopupComponent {
     return this.i18n.texts.my_trails;
   }
 
+  setCollectionByKey(key: string): void {
+    const i = key.indexOf('#');
+    const uuid = key.substring(0, i);
+    const owner = key.substring(i + 1);
+    this.collection = this.collections.find(c => c.uuid === uuid && c.owner === owner);
+  }
+
   newCollection(): void {
     this.collectionService.collectionPopup(undefined, false)
     .then(result => {
       if (result.role !== 'apply' || !result.data) return;
       const col = result.data as TrailCollection;
-      this.collectionUuid = col.uuid;
+      this.collection = col;
       this.changeDetector.detectChanges();
     });
   }
 
   ok(): void {
-    this.onDone(this.collectionUuid!);
+    this.onDone(this.collection!);
     this.modalController.dismiss(null, 'ok');
   }
 

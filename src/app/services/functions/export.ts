@@ -100,7 +100,7 @@ function doExport(injector: Injector, trails: Trail[], what: 'original' | 'curre
       map(tracks => ({trail, tracks: filterItemsDefined(tracks)})),
       switchMap(t => {
         if (t.tracks.length === 0) return of(null);
-        const tags$ = t.trail.owner === email ? injector.get(TagService).getTrailTagsNames$(t.trail.uuid, true) : of([]);
+        const tags$ = t.trail.owner === email ? injector.get(TagService).getTrailTagsNames$(t.trail.owner, t.trail.uuid, true) : of([]);
         return tags$.pipe(
           map(tags => ({
             name: t.trail.name,

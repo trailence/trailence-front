@@ -40,6 +40,7 @@ import { TrailSmallElevationProfileComponent } from '../trail-small-elevation-pr
 import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
 import { ObserverHelper } from 'src/app/utils/observer-helper';
 import { TrailPublicationInfoService } from 'src/app/services/database/trail-publication-info.service';
+import { SHARED_OWNER_PREFIX } from 'src/app/model/dto/trail-collection';
 
 class Meta {
   name?: string;
@@ -273,7 +274,7 @@ export class TrailOverviewComponent extends AbstractComponent {
       },
       true
     );
-    if (owner === this.auth.email)
+    if (owner === this.auth.email || owner.startsWith(SHARED_OWNER_PREFIX))
       this.listenToTags();
     if (this.photoEnabled || this.enableTabs)
       this.listenToPhotos();
@@ -296,8 +297,8 @@ export class TrailOverviewComponent extends AbstractComponent {
         filterDefined(),
         switchMap(() => {
           if (this.trailTags !== undefined)
-            return this.tagService.getTagsFullnames$(this.trailTags.map(t => t.tagUuid));
-          return this.tagService.getTrailTagsFullNames$(this.trail!.uuid);
+            return this.tagService.getTagsFullnames$(this.trail!.owner, this.trailTags.map(t => t.tagUuid));
+          return this.tagService.getTrailTagsFullNames$(this.trail!.owner, this.trail!.uuid);
         }),
         debounceTimeExtended(0, 100)
       ),
@@ -457,7 +458,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     const y = event.pageY;
     const h = this.browser.height;
     const remaining = h - y - 15;
-    const collection = this.fromCollection ?
+    const collection = this.fromCollection || this.isAllCollections ?
       await firstValueFrom(
         this.injector.get(TrailCollectionService).getCollection$(this.trail!.collectionUuid, this.auth.email ?? '').pipe(filterDefined())
       ) : undefined;
@@ -522,7 +523,7 @@ export class TrailOverviewComponent extends AbstractComponent {
   openTrailLink(): void {
     import('../trail-link-popup/trail-link-popup.component')
     .then(m => {
-      if (this.trailLink) m.openTrailLink(this.injector, this.trailLink.trailUuid);
+      if (this.trailLink) m.openTrailLink(this.injector, this.trailLink.trailOwner, this.trailLink.trailUuid);
     });
   }
 
