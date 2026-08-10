@@ -68,20 +68,15 @@
 
       <div class="question">{{i18n.texts.pages.share_popup.who_question}}</div>
       <div class="recipients">
-        @for (recipient of recipients; track recipient.id) {
-          <ion-input
-            fill="outline"
-            label="{{i18n.texts.pages.share_popup.email}}"
-            label-placement="floating"
-            [value]="recipient.email"
-            (ionInput)="setRecipient($index, $event.detail.value)"
-            type="email"
-            class="small"
-          >
-            @if (recipient.email.length > 0) {<ion-icon slot="end" name="trash" (click)="setRecipient($index, '')"></ion-icon>}
-          </ion-input>
-          @if (recipient.error) {<div class="error">{{ i18n.texts.pages.share_popup.recipient_error }}</div>}
-        }
+        <app-multiple-input-email
+          [emails]="recipients.emails"
+          (emailsUpdated)="setRecipients($event)"
+          [allowEmpty]="false"
+          [allowSameEmail]="false"
+          [forbiddenEmails]="forbiddenEmails"
+          [maxEmails]="20"
+          inputClass="small"
+        ></app-multiple-input-email>
       </div>
       <div class="info">
         <ion-icon name="info"></ion-icon>

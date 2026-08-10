@@ -12,14 +12,13 @@ import { Tag } from 'src/app/model/tag';
 import { ShareService } from 'src/app/services/database/share.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { EMAIL_REGEX } from 'src/app/utils/string-utils';
 import { Share } from 'src/app/model/share';
-import { IdGenerator } from 'src/app/utils/component-utils';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { TagService } from 'src/app/services/database/tag.service';
 import { AsyncPipe } from '@angular/common';
 import { AvailableLocales, LocaleKey } from 'src/app/services/i18n/available-locales';
+import { EmailsValue, MultipleInputEmailComponent } from '../input-email/multiple-input-email.component';
 
 export function openSharePopup(injector: Injector, collectionUuid: string, trails: Trail[]) {
   injector.get(ModalController).create({
@@ -38,12 +37,6 @@ enum SharePage {
   NAME_WHO = 'name_who',
 }
 
-interface Recipient {
-  email: string;
-  error: boolean;
-  id: string;
-}
-
 @Component({
     selector: 'app-share-popup',
     templateUrl: './share-popup.component.html',
@@ -53,6 +46,7 @@ interface Recipient {
       FormsModule,
       TagsComponent,
       AsyncPipe,
+      MultipleInputEmailComponent,
     ]
 })
 export class SharePopupComponent implements OnInit {
@@ -64,7 +58,7 @@ export class SharePopupComponent implements OnInit {
   elementType?: ShareElementType;
   elements: string[] = [];
   name: string = '';
-  recipients: Recipient[] = [{email: '', error: false, id: IdGenerator.generateId()}];
+  recipients: EmailsValue = {emails: [], valid: true};
   mailLanguage: LocaleKey = 'en';
   includePhotos = false;
 
@@ -76,19 +70,24 @@ export class SharePopupComponent implements OnInit {
 
   languages = Object.values(AvailableLocales);
 
+  forbiddenEmails: {[email: string]: string};
+
   constructor(
     public i18n: I18nService,
     private readonly modalController: ModalController,
     private readonly injector: Injector,
     private readonly prefService: PreferencesService,
-  ) { }
+    auth: AuthService,
+  ) {
+    this.forbiddenEmails = {};
+    this.forbiddenEmails[auth.email!] = i18n.texts.inputEmail.errors.cannotAddYourself;
+  }
 
   ngOnInit(): void {
     if (this.share) {
       this.pages = [SharePage.NAME_WHO];
       this.name = this.share.name;
-      this.recipients = this.share.recipients.map(r => ({email: r, error: false, id: IdGenerator.generateId()}));
-      this.recipients.push({email: '', error: false, id: IdGenerator.generateId()});
+      this.recipients = {emails: this.share.recipients, valid: true};
       this.includePhotos = this.share.includePhotos;
       let sharing: TranslatedString;
       switch (this.share.type) {
@@ -161,7 +160,7 @@ export class SharePopupComponent implements OnInit {
   }
 
   canSave(): boolean {
-    return this.name.length > 0 && this.checkRecipients().length > 0;
+    return this.name.length > 0 && this.recipients.valid;
   }
 
   save(): void {
@@ -170,7 +169,7 @@ export class SharePopupComponent implements OnInit {
     if (this.share) {
       const newName = this.name;
       const newIncludePhotos = this.includePhotos;
-      const newRecipients = this.checkRecipients();
+      const newRecipients = this.recipients.emails;
       const newMailLanguage = this.mailLanguage;
       this.share.name = newName;
       this.share.includePhotos = newIncludePhotos;
@@ -183,44 +182,13 @@ export class SharePopupComponent implements OnInit {
         s.mailLanguage = newMailLanguage;
       });
     } else {
-      service.create(this.elementType!, this.elements, this.name, this.checkRecipients(), this.mailLanguage, this.includePhotos).subscribe();
+      service.create(this.elementType!, this.elements, this.name, this.recipients.emails, this.mailLanguage, this.includePhotos).subscribe();
     }
     this.close('ok');
   }
 
-  checkRecipients(): string[] {
-    return this.recipients.filter(email => {
-      const s = email.email.trim();
-      if (s.length === 0) return false;
-      if (!EMAIL_REGEX.test(s)) return false;
-      return true;
-    }).map(r => r.email);
-  }
-
-  setRecipient(index: number, value: string | null | undefined): void {
-    this.recipients[index].email = value ?? '';
-    this.recipients[index].error = false;
-    const owner = this.injector.get(AuthService).email!;
-    const remove = (email: string, index: number) => {
-      const s = email.trim().toLowerCase();
-      if (s.length === 0) return true;
-      if (s === owner.toLowerCase()) return true;
-      for (let j = 0; j < index; ++j) {
-        if (this.recipients[j].email.trim().toLowerCase() === s) return true;
-      }
-      return false;
-    };
-    for (let i = 0; i < this.recipients.length; ++i) {
-      if (remove(this.recipients[i].email, i)) {
-        this.recipients.splice(i, 1);
-        i--;
-      } else {
-        this.recipients[i].error = !EMAIL_REGEX.test(this.recipients[i].email);
-      }
-    }
-    if (this.recipients.length < 20 && (this.recipients.length === 0 || this.recipients.at(-1)!.email.trim().length > 0))
-      this.recipients.push({email:'', error: false, id: IdGenerator.generateId()});
-    this.recipients = [...this.recipients];
+  setRecipients(value: EmailsValue): void {
+    this.recipients = value;
   }
 
   close(role: string): void {

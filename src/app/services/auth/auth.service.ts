@@ -24,6 +24,7 @@ import { I18nService } from '../i18n/i18n.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { isRobot } from '../http/robot';
 import { AvailableLocales } from '../i18n/available-locales';
+import { trailenceAppVersionCode } from 'src/app/trailence-version';
 
 export const ANONYMOUS_USER = 'anonymous@trailence.org';
 
@@ -75,6 +76,7 @@ export class AuthService {
     private readonly platform: Platform,
   ) {
     http.addRequestInterceptor(r => this.addBearerToken(r));
+    http.addRequestInterceptor(r => this.addTrailenceVersionHeader(r));
     let previous: AuthResponse | undefined = undefined;
     this._auth$.subscribe(auth => {
       if (auth?.email !== previous?.email) this._userChanged$.next(auth || undefined);
@@ -556,6 +558,11 @@ export class AuthService {
         return request;
       })
     );
+  }
+
+  private addTrailenceVersionHeader(request: TrailenceHttpRequest): Observable<TrailenceHttpRequest> | TrailenceHttpRequest {
+    request.headers['X-Trailence-Version'] = '' + trailenceAppVersionCode;
+    return request;
   }
 
 }

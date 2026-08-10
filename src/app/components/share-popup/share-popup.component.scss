@@ -26,17 +26,6 @@
   border-bottom: 1px solid rgba(var(--ion-color-tertiary-rgb), 0.25);
 }
 
-.recipients {
-  ion-input:not(:first-child) {
-    margin-top: 10px;
-  }
-  .error {
-    color: var(--ion-color-danger);
-    font-size: 12px;
-    margin-top: 2px;
-  }
-}
-
 .explanation {
   font-size: 14px;
   color: rgba(var(--ion-text-color-rgb), 0.75);

@@ -542,10 +542,8 @@
       "who_question": "Avec qui ? (jusqu'à 20 personnes)",
       "includePhotos": "Partager les photos avec les parcours",
       "photos_info": "Les photos associées aux parcours partagés seront visibles par la personne avec qui vous partagez",
-      "email": "Email",
       "email_info": "Un e-mail sera envoyé à la personne pour l'informer du partage",
       "language": "Dans quelle langue devons-nous envoyer le mail ?",
-      "recipient_error": "Veuillez entrer une adresse mail valide",
       "share_description": {
         "COLLECTION": "Partage de toute la collection {{1}}",
         "TRAIL": "Partage de {{1}} parcours",
@@ -1807,5 +1805,15 @@
     "title": "Ajouter les altitudes ?",
     "message": "Des parcours importés ne comportent aucune altitude. Souhaitez-vous en ajouter automatiquement en les téléchargeant depuis un fournisseur d'altitude ?"
   },
-  "mapNotAvailable": "Zone non couverte par"
+  "mapNotAvailable": "Zone non couverte par",
+  "inputEmail": {
+    "defaultLabel": "Email",
+    "errors": {
+      "required": "Veuillez entrer un email",
+      "invalidEmail": "Veuillez entrer un email valide",
+      "duplicate": "Cet email est déjà présent",
+      "atLeastOneEmailIsRequired": "Veuillez entrer au moins un email",
+      "cannotAddYourself": "Vous ne pouvez pas vous ajouter vous même"
+    }
+  }
 }
