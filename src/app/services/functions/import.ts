@@ -1,6 +1,5 @@
 import { Injector } from '@angular/core';
 import { I18nService } from '../i18n/i18n.service';
-import { AuthService } from '../auth/auth.service';
 import { FileService } from '../file/file.service';
 import { Progress, ProgressService } from '../progress/progress.service';
 import { I18nError } from '../i18n/i18n-string';
@@ -28,28 +27,28 @@ import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { Trail } from 'src/app/model/trail';
 import { Track } from 'src/app/model/track';
 import { GeoService } from '../geolocation/geo.service';
+import { TrailCollection } from 'src/app/model/trail-collection';
 
 const CP437 = "\0☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ ".split("");
 
-export async function openImportTrailsDialog(injector: Injector, collectionUuid: string) {
+export async function openImportTrailsDialog(injector: Injector, collection: TrailCollection) {
   if (!injector.get(FetchSourceService).canImportFromUrl) {
-    openImportTrailsFileDialog(injector, collectionUuid);
+    openImportTrailsFileDialog(injector, collection);
     return;
   }
   const module = await import('../../components/import-popup/import-popup.component');
   const modal = await injector.get(ModalController).create({
     component: module.ImportPopupComponent,
     componentProps: {
-      collectionUuid,
+      collection,
     },
     backdropDismiss: true,
   });
   modal.present();
 }
 
-export function openImportTrailsFileDialog(injector: Injector, collectionUuid: string): void {
+export function openImportTrailsFileDialog(injector: Injector, collection: TrailCollection): void {
   const i18n = injector.get(I18nService);
-  const email = injector.get(AuthService).email!;
   let zipEntries = 0;
   let zipErrors: any[] = [];
   const allDone: Promise<any>[] = [];
@@ -108,7 +107,7 @@ export function openImportTrailsFileDialog(injector: Injector, collectionUuid: s
                 const gpxFile = gpxFiles[entryIndex];
                 return gpxFile.async('arraybuffer')
                 .then(arraybuffer => {
-                  const r = importGpx(injector, arraybuffer, email, collectionUuid, zip, TrailSourceType.FILE_IMPORT, filename + '/' + gpxFile.name, Date.now());
+                  const r = importGpx(injector, arraybuffer, collection.getContentOwner(), collection.uuid, zip, TrailSourceType.FILE_IMPORT, filename + '/' + gpxFile.name, Date.now());
                   for (const rt of r) allDone.push(rt.allDone.catch(() => null));
                   Promise.all(r.map(rt => rt.allDone)).then(() => {
                     progress.subTitle = '' + (index + 1 + previousZipEntries + entryIndex + 1) + '/' + (nbFiles + zipEntries);
@@ -143,7 +142,7 @@ export function openImportTrailsFileDialog(injector: Injector, collectionUuid: s
           });
         }
       }
-      return Promise.all(importGpx(injector, file, email, collectionUuid, undefined, TrailSourceType.FILE_IMPORT, filename, Date.now()).map(i => i.allDone))
+      return Promise.all(importGpx(injector, file, collection.getContentOwner(), collection.uuid, undefined, TrailSourceType.FILE_IMPORT, filename, Date.now()).map(i => i.allDone))
       .then(result => {
         allDone.push(Promise.resolve(result));
         progress.subTitle = '' + (index + 1 + zipEntries) + '/' + (nbFiles + zipEntries);
@@ -167,7 +166,7 @@ export function openImportTrailsFileDialog(injector: Injector, collectionUuid: s
           injector.get(ErrorService).addErrors(zipErrors);
         }
         const importedTrails = imported.flat();
-        finishImport(injector, importedTrails, collectionUuid, email);
+        finishImport(injector, importedTrails, collection);
       });
     }
   });
@@ -176,7 +175,8 @@ export function openImportTrailsFileDialog(injector: Injector, collectionUuid: s
 export function importGpx( // NOSONAR
   injector: Injector,
   file: ArrayBuffer,
-  owner: string, collectionUuid: string,
+  owner: string,
+  collectionUuid: string,
   zip: any,
   sourceType: TrailSourceType | undefined, source: string | undefined, sourceDate: number | undefined
 ): {
@@ -252,14 +252,14 @@ function importGpxTrail(
   }
 }
 
-export function finishImport(injector: Injector, imported: {trailUuid: string, tags: string[][], source?: string}[], collectionUuid: string, email: string): Promise<any> {
+export function finishImport(injector: Injector, imported: {trailUuid: string, tags: string[][], source?: string}[], collection: TrailCollection): Promise<any> {
   if (imported.length === 0) return Promise.resolve(true);
-  return importTags(injector, imported, collectionUuid)
+  return importTags(injector, imported, collection)
   .then(() => importFromSources(injector, imported))
-  .then(() => proposeElevationDownload(injector, imported, email));
+  .then(() => proposeElevationDownload(injector, imported, collection));
 }
 
-function importTags(injector: Injector, imported: ({trailUuid: string, tags: string[][]} | undefined)[], collectionUuid: string): Promise<any> {
+function importTags(injector: Injector, imported: ({trailUuid: string, tags: string[][]} | undefined)[], collection: TrailCollection): Promise<any> {
   const allTags: string[][] = [];
   for (const trail of imported) {
     if (trail && trail.tags.length > 0) {
@@ -274,7 +274,7 @@ function importTags(injector: Injector, imported: ({trailUuid: string, tags: str
     component: module.ImportTagsPopupComponent,
     backdropDismiss: false,
     componentProps: {
-      collectionUuid,
+      collection,
       tags: allTags,
       toImport: filterItemsDefined(imported),
     }
@@ -317,12 +317,13 @@ function importFromSources(injector: Injector, imported: {trailUuid: string, tag
   });
 }
 
-async function proposeElevationDownload(injector: Injector, imported: {trailUuid: string, tags: string[][], source?: string}[], email: string) {
+async function proposeElevationDownload(injector: Injector, imported: {trailUuid: string, tags: string[][], source?: string}[], collection: TrailCollection) {
   if (imported.length === 0) return true;
+  const owner = collection.getContentOwner();
   const tracks = await firstValueFrom(combineLatest(imported.map(t =>
-    injector.get(TrailService).getTrail$(t.trailUuid, email).pipe(
+    injector.get(TrailService).getTrail$(t.trailUuid, owner).pipe(
       firstTimeout(t => !!t, 5000, () => null as Trail | null),
-      switchMap(t => t ? injector.get(TrackService).getFullTrack$(t.currentTrackUuid, email) : of(undefined)),
+      switchMap(t => t ? injector.get(TrackService).getFullTrack$(t.currentTrackUuid, owner) : of(undefined)),
       firstTimeout(t => t !== null, 5000, () => undefined as Track | null | undefined),
     )
   )));

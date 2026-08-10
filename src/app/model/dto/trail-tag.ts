@@ -1,5 +1,6 @@
 export interface TrailTagDto {
-    tagUuid: string;
-    trailUuid: string;
-    createdAt: number;
+  owner: string;
+  tagUuid: string;
+  trailUuid: string;
+  createdAt: number;
 }

@@ -14,6 +14,7 @@ import { TrailLinkService } from 'src/app/services/database/link.service';
 import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
 import { CollapsableSectionComponent } from '../collapsable-section/collapsable-section.component';
 import { TooltipDirective } from '../tooltip/tooltip.directive';
+import { SHARED_OWNER_PREFIX } from 'src/app/model/dto/trail-collection';
 
 export function openCreateLiveGroupPopup(injector: Injector, trailOwner?: string, trailUuid?: string): Promise<LiveGroupDto | null> {
   return injector.get(ModalController).create({
@@ -91,9 +92,9 @@ export class LiveGroupPopup implements OnInit, OnDestroy {
       if (this.group?.trailOwner && this.group.trailUuid)
         this.subscriptions.add(this.trailService.getTrail$(this.group.trailUuid, this.group.trailOwner).subscribe(t => this.previousTrail = t || undefined));
       this.trailNeedsPublicLink = this.trailOwner.includes('@');
-      this.trailOwned = this.trailOwner === this.authService.email;
+      this.trailOwned = this.trailOwner === this.authService.email || this.trailOwner?.startsWith(SHARED_OWNER_PREFIX);
       if (this.trailNeedsPublicLink && this.trailOwned)
-        this.subscriptions.add(this.linkService.getLinkForTrail$(this.trailUuid).subscribe(l => this.trailHasPublicLink = !!l));
+        this.subscriptions.add(this.linkService.getLinkForTrail$(this.trailOwner, this.trailUuid).subscribe(l => this.trailHasPublicLink = !!l));
     }
   }
 
@@ -126,7 +127,7 @@ export class LiveGroupPopup implements OnInit, OnDestroy {
 
   createPublicLink(): void {
     import('../trail-link-popup/trail-link-popup.component')
-    .then(m => m.openTrailLink(this.injector, this.group?.trailUuid || this.trailUuid!));
+    .then(m => m.openTrailLink(this.injector, this.group?.trailOwner || this.trailOwner!, this.group?.trailUuid || this.trailUuid!));
   }
 
   removeTrail(): void {

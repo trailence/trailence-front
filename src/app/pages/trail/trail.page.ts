@@ -22,6 +22,7 @@ import { ToastController, NavController, AlertController } from '@ionic/angular/
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { TrailLinkService } from 'src/app/services/database/link.service';
+import { SHARED_OWNER_PREFIX } from 'src/app/model/dto/trail-collection';
 
 @Component({
   selector: 'app-trail-page',
@@ -190,10 +191,10 @@ export class TrailPage extends AbstractPage {
           switchMap(([t1, t2]) =>
             this.injector.get(AuthService).permissionsChanged$.pipe(
               switchMap(auth => {
-                if (t1 && auth && t1.owner === auth.email)
+                if (t1 && auth && (t1.owner === auth.email || t1.owner.startsWith(SHARED_OWNER_PREFIX)))
                   return combineLatest([
-                    this.injector.get(TrailCollectionService).getCollection$(t1.collectionUuid, t1.owner),
-                    this.injector.get(TrailLinkService).getLinkForTrail$(t1.uuid)
+                    this.injector.get(TrailCollectionService).getCollection$(t1.collectionUuid, auth.email),
+                    this.injector.get(TrailLinkService).getLinkForTrail$(t1.owner, t1.uuid)
                   ]).pipe(map(([col, link]) => ({t1, t2, col, auth})));
                 return of({t1, t2, col: undefined, auth});
               })

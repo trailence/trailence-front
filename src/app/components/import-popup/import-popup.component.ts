@@ -3,11 +3,10 @@ import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.s
 import { IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonInput, ModalController, Platform } from '@ionic/angular/standalone';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { AuthService } from 'src/app/services/auth/auth.service';
 import { Console } from 'src/app/utils/console';
 import { firstValueFrom } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
+import { TrailCollection } from 'src/app/model/trail-collection';
 
 @Component({
   templateUrl: './import-popup.component.html',
@@ -16,7 +15,7 @@ import { Trail } from 'src/app/model/trail';
 })
 export class ImportPopupComponent {
 
-  @Input() collectionUuid!: string;
+  @Input() collection!: TrailCollection;
 
   url = '';
   urlMessage?: string;
@@ -33,15 +32,13 @@ export class ImportPopupComponent {
     public readonly i18n: I18nService,
     private readonly fetchSourceService: FetchSourceService,
     private readonly modalController: ModalController,
-    private readonly trailCollectionService: TrailCollectionService,
-    private readonly authService: AuthService,
     readonly platform: Platform,
   ) {
     this.clipboardEnabled = !platform.is('capacitor');
   }
 
   fromFile(): void {
-    import('../../services/functions/import').then(m => m.openImportTrailsFileDialog(this.injector, this.collectionUuid));
+    import('../../services/functions/import').then(m => m.openImportTrailsFileDialog(this.injector, this.collection));
     this.modalController.dismiss();
   }
 
@@ -122,10 +119,8 @@ export class ImportPopupComponent {
       this.inProgress = false;
       return;
     }
-    const email = this.authService.email!;
-    const collection = this.trailCollectionService.getCollection(this.collectionUuid, email)!;
     const copy = await import('../../services/functions/copy-trails');
-    copy.copyTrailsTo(this.injector, trails, collection, email, false, true);
+    copy.copyTrailsTo(this.injector, trails, this.collection, false, true);
     this.close();
   }
 

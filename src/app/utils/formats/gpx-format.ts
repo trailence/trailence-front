@@ -26,14 +26,14 @@ export interface ImportedTrail {
 
 export class GpxFormat {
 
-  public static importGpx(file: ArrayBuffer, user: string, collectionUuid: string, preferencesService: PreferencesService, mapService: OfflineMapService, workerService: WorkerService, trackCacheService: TrackComputedDataCacheService, networkService: NetworkService, trailSourceType: TrailSourceType | undefined, trailSource: string | undefined, trailSourceDate: number | undefined): ImportedTrail[] { // NOSONAR
-    const raw = GpxFormatRaw.importGpxRaw(file, user, collectionUuid, trailSourceType, trailSource, trailSourceDate, new DOMParser());
+  public static importGpx(file: ArrayBuffer, owner: string, collectionUuid: string, preferencesService: PreferencesService, mapService: OfflineMapService, workerService: WorkerService, trackCacheService: TrackComputedDataCacheService, networkService: NetworkService, trailSourceType: TrailSourceType | undefined, trailSource: string | undefined, trailSourceDate: number | undefined): ImportedTrail[] { // NOSONAR
+    const raw = GpxFormatRaw.importGpxRaw(file, owner, collectionUuid, trailSourceType, trailSource, trailSourceDate, new DOMParser());
     if (raw.creator === 'Trailence' || raw.tracks.length === 1) {
       // single trail case
       const tracks = raw.tracks.map(trackRaw => {
         if (!raw.trail.name?.length && trackRaw.name?.length) raw.trail.name = trackRaw.name;
         if (!raw.trail.description?.length && trackRaw.description?.length) raw.trail.description = trackRaw.description;
-        const track = new Track({owner: user}, false, preferencesService, mapService, workerService, trackCacheService, networkService);
+        const track = new Track({owner}, false, preferencesService, mapService, workerService, trackCacheService, networkService);
         for (const segmentRaw of trackRaw.segments) {
           const segment = track.newSegment();
           segment.appendMany(segmentRaw);
@@ -88,7 +88,7 @@ export class GpxFormat {
       }
     }
     return raw.tracks.map(trackRaw => {
-      const track = new Track({owner: user}, false, preferencesService, mapService, workerService, trackCacheService, networkService);
+      const track = new Track({owner}, false, preferencesService, mapService, workerService, trackCacheService, networkService);
       for (const segmentRaw of trackRaw.segments) {
         const segment = track.newSegment();
         segment.appendMany(segmentRaw);

@@ -82,7 +82,7 @@ export class TrailOverviewCondensedComponent implements OnChanges, OnInit, OnDes
   ngOnInit(): void {
     this.subscriptions.add(
       this.auth.userChanged$.pipe(
-        switchMap(a => a?.email === this.trail.owner ? this.tagService.getTrailTagsFullNames$(this.trail.uuid) : of([]))
+        switchMap(a => a?.email === this.trail.owner ? this.tagService.getTrailTagsFullNames$(this.trail.owner, this.trail.uuid) : of([]))
       ).subscribe(tagsNames => {
         this.tags = tagsNames;
         this.changesDetection.detectChanges();
@@ -128,7 +128,7 @@ export class TrailOverviewCondensedComponent implements OnChanges, OnInit, OnDes
     const h = this.browser.height;
     const remaining = h - y - 15;
 
-    const collection = this.fromCollection ?
+    const collection = this.fromCollection || this.isAllCollections ?
       await firstValueFrom(
         this.injector.get(TrailCollectionService).getCollection$(this.trail.collectionUuid, this.auth.email ?? '').pipe(filterDefined())
       ) : undefined;

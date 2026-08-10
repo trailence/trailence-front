@@ -6,7 +6,7 @@ import { AuthService } from '../auth/auth.service';
 import { BehaviorSubject, combineLatest, map, Observable, of, switchMap } from 'rxjs';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { TrailCollectionService } from './trail-collection.service';
-import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { SHARED_OWNER_PREFIX, TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { TrailLink } from 'src/app/model/dto/trail-link';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { Trail } from 'src/app/model/trail';
@@ -72,13 +72,13 @@ export class TrailPublicationInfoService {
   public getTrailPublicationInfo(trail: Trail): Observable<TrailPublicationInfo> {
     return this._data$.pipe(
       map((data): TrailPublicationInfo => {
-        if (!data.email || trail.owner !== data.email) return EMPTY_TRAIL_INFO;
+        if (!data.email || (trail.owner !== data.email && !trail.owner.startsWith(SHARED_OWNER_PREFIX))) return EMPTY_TRAIL_INFO;
         return {
-          draft: data.draftCol ? data.publicationTrails.find(t => t.publishedFromUuid === trail.uuid && t.collectionUuid === data.draftCol!.uuid) : undefined,
-          submitted: data.submitCol ? data.publicationTrails.find(t => t.publishedFromUuid === trail.uuid && t.collectionUuid === data.submitCol!.uuid) : undefined,
-          rejected: data.rejectCol ? data.publicationTrails.find(t => t.publishedFromUuid === trail.uuid && t.collectionUuid === data.rejectCol!.uuid) : undefined,
-          link: data.links.find(l => l.trailUuid === trail.uuid),
-          published: data.publicTrails.find(p => p.privateUuid === trail.uuid)
+          draft: data.draftCol && trail.owner === data.email ? data.publicationTrails.find(t => t.publishedFromUuid === trail.uuid && t.collectionUuid === data.draftCol!.uuid) : undefined,
+          submitted: data.submitCol && trail.owner === data.email ? data.publicationTrails.find(t => t.publishedFromUuid === trail.uuid && t.collectionUuid === data.submitCol!.uuid) : undefined,
+          rejected: data.rejectCol && trail.owner === data.email ? data.publicationTrails.find(t => t.publishedFromUuid === trail.uuid && t.collectionUuid === data.rejectCol!.uuid) : undefined,
+          link: data.links.find(l => l.trailUuid === trail.uuid && l.trailOwner === trail.owner),
+          published: trail.owner === data.email ? data.publicTrails.find(p => p.privateUuid === trail.uuid) : undefined,
         }
       }),
     );

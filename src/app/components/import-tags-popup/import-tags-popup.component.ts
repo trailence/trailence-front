@@ -5,9 +5,9 @@ import { TagService } from 'src/app/services/database/tag.service';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonButton, ModalController } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { AuthService } from 'src/app/services/auth/auth.service';
 import { Arrays } from 'src/app/utils/arrays';
 import { Progress, ProgressService } from 'src/app/services/progress/progress.service';
+import { TrailCollection } from 'src/app/model/trail-collection';
 
 class ResolvedTag {
   constructor(
@@ -25,7 +25,7 @@ class ResolvedTag {
 })
 export class ImportTagsPopupComponent  implements OnInit {
 
-  @Input() collectionUuid!: string;
+  @Input() collection!: TrailCollection;
   @Input() tags!: string[][];
   @Input() toImport!: {trailUuid: string, tags: string[][]}[];
   @Input() type = 'import';
@@ -38,7 +38,6 @@ export class ImportTagsPopupComponent  implements OnInit {
     public i18n: I18nService,
     private readonly tagService: TagService,
     private readonly modalController: ModalController,
-    private readonly auth: AuthService,
     private readonly progressService: ProgressService,
   ) { }
 
@@ -49,7 +48,7 @@ export class ImportTagsPopupComponent  implements OnInit {
         return zip(tags.map(tag => tag.pipe(firstTimeout(t => !!t, 5000, () => null as (Tag | null)))));
       }),
       first(),
-      map(tags => tags.filter(tag => !!tag && tag.collectionUuid === this.collectionUuid) as Tag[])
+      map(tags => tags.filter(tag => !!tag && tag.collectionUuid === this.collection.uuid && tag.owner === this.collection.getContentOwner()) as Tag[])
     ).subscribe(
       existingTags => {
         this.resolvedTags = this.tags.map(
@@ -92,8 +91,8 @@ export class ImportTagsPopupComponent  implements OnInit {
     for (const resolved of this.resolvedTags!) {
       if (resolved.tree[level].uuid) continue;
       const tag = new Tag({
-        collectionUuid: this.collectionUuid,
-        owner: this.auth.email,
+        collectionUuid: this.collection.uuid,
+        owner: this.collection.getContentOwner(),
         name: resolved.tree[level].name,
         parentUuid: level > 0 ? resolved.tree[level - 1].uuid! : undefined,
       });
@@ -119,7 +118,7 @@ export class ImportTagsPopupComponent  implements OnInit {
       }
     }
     if (toCreate.length > 0)
-      this.tagService.addTrailTags(toCreate, () => progress.addWorkDone(1));
+      this.tagService.addTrailTags(tag.owner, toCreate, () => progress.addWorkDone(1));
   }
 
   private importExisting(progress: Progress): void { // NOSONAR
@@ -139,7 +138,7 @@ export class ImportTagsPopupComponent  implements OnInit {
       }
     }
     if (toCreate.length > 0)
-      this.tagService.addTrailTags(toCreate, () => progress.addWorkDone(1));
+      this.tagService.addTrailTags(this.collection.owner, toCreate, () => progress.addWorkDone(1));
   }
 
   close(role: string): void {

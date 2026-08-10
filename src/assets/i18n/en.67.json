@@ -212,6 +212,8 @@
       "collection": "Collection",
       "share_from": "Share from",
       "your_share": "Your share",
+      "shared_collection": "Shared collection",
+      "shared_collection_by": "Collection shared by {{1}}",
       "edit_filters_popup_title": "Filter Tracks",
       "edit_sort_popup_title": "Sort Tracks",
       "missing_trails_because_offline": "Some trails cannot be displayed because you are offline",
@@ -485,7 +487,13 @@
     },
     "collection_form": {
       "title": "Collection",
-      "collection_name": "Name"
+      "collection_name": "Name",
+      "shared": {
+        "toggle_label": "Shared collection",
+        "explanation": "Users with whom this collection is shared can edit, add or delete items, but they cannot delete the collection itself.",
+        "explanation_anonymous": "Shared collections are not available without an account.",
+        "by": "Shared by"
+      }
     },
     "location_popup": {
       "title": "Track location",
@@ -542,10 +550,8 @@
       "who_question": "With who? (up to 20 persons)",
       "includePhotos": "Share photos with tracks",
       "photos_info": "Photos associated with shared tracks will be visible to the person you are sharing with",
-      "email": "Email",
       "email_info": "A mail will be sent to inform about this share",
       "language": "In which language should we send the mail?",
-      "recipient_error": "Please enter a valid email address",
       "share_description": {
         "COLLECTION": "Share the whole collection {{1}}",
         "TRAIL": "Share {{1}} trail(s)",
@@ -1583,7 +1589,9 @@
     },
     "load_more": "See more",
     "error_loading": "Error loading notifications",
+    "none": "You don't have any notifications at the moment",
     "items": {
+      "unknown": "This notification is unknown in this version of Trailence",
       "publications": {
         "accepted": {
           "text": "Your trail :*:/trail/trailence/{{2}}:*:{{1}}:*: has been published! Thank you for contributing to the community 🎉"
@@ -1598,6 +1606,9 @@
         },
         "new_trails_in_share": {
           "text": "{{1}} added {{2}} track(s) to the share :*:/trails/share/{{3}}/{{1}}:*:{{4}}:*:"
+        },
+        "shared_collection": {
+          "text": "{{1}} created a new shared collection with you: :*:/trails/collection/{{3}}:*:{{2}}:*:"
         }
       },
       "comments": {
@@ -1807,5 +1818,15 @@
     "title": "Add elevation data?",
     "message": "Some imported routes have no elevation data. Would you like to automatically download and add it using an elevation data provider?"
   },
-  "mapNotAvailable": "Area not covered by"
+  "mapNotAvailable": "Area not covered by",
+  "inputEmail": {
+    "defaultLabel": "Email",
+    "errors": {
+      "required": "Please enter an email",
+      "invalidEmail": "Please enter a valid email",
+      "duplicate": "This email is already present",
+      "atLeastOneEmailIsRequired": "Please enter at least one email",
+      "cannotAddYourself": "You cannot add yourself"
+    }
+  }
 }

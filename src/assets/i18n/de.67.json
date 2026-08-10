@@ -212,6 +212,8 @@
       "collection": "Sammlung",
       "share_from": "Freigabe von",
       "your_share": "Ihre Freigabe",
+      "shared_collection": "Geteilte Sammlung",
+      "shared_collection_by": "Von {{1}} geteilte Sammlung",
       "edit_filters_popup_title": "Touren filtern",
       "edit_sort_popup_title": "Touren sortieren",
       "missing_trails_because_offline": "Einige Touren können nicht angezeigt werden, da Sie offline sind",
@@ -485,7 +487,13 @@
     },
     "collection_form": {
       "title": "Sammlung",
-      "collection_name": "Name"
+      "collection_name": "Name",
+      "shared": {
+        "toggle_label": "Geteilte Sammlung",
+        "explanation": "Benutzer, mit denen diese Sammlung geteilt wird, können Elemente bearbeiten, hinzufügen oder löschen, aber die Sammlung selbst nicht löschen.",
+        "explanation_anonymous": "Geteilte Sammlungen sind ohne Konto nicht verfügbar.",
+        "by": "Geteilt von"
+      }
     },
     "location_popup": {
       "title": "Ort der Tour",
@@ -542,10 +550,8 @@
       "who_question": "Mit wem? (bis zu 20 Personen)",
       "includePhotos": "Die Fotos zusammen mit den Touren teilen",
       "photos_info": "Die mit den geteilten Touren verknüpften Fotos sind für die Person sichtbar, mit der Sie teilen",
-      "email": "E-Mail",
       "email_info": "Der Person wird eine E-Mail gesendet, um sie über die Freigabe zu informieren",
       "language": "In welcher Sprache sollen wir die E-Mail senden?",
-      "recipient_error": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
       "share_description": {
         "COLLECTION": "Freigabe der gesamten Sammlung {{1}}",
         "TRAIL": "Freigabe von {{1}} Tour(en)",
@@ -1583,7 +1589,9 @@
     },
     "load_more": "Mehr anzeigen",
     "error_loading": "Fehler beim Laden der Benachrichtigungen",
+    "none": "Sie haben derzeit keine Benachrichtigungen",
     "items": {
+      "unknown": "Diese Benachrichtigung ist in dieser Version von Trailence unbekannt",
       "publications": {
         "accepted": {
           "text": "Ihre Tour :*:/trail/trailence/{{2}}:*:{{1}}:*: wurde veröffentlicht! Danke für Ihren Beitrag zur Community 🎉"
@@ -1598,6 +1606,9 @@
         },
         "new_trails_in_share": {
           "text": "{{1}} hat {{2}} Tour(en) zur Freigabe :*:/trails/share/{{3}}/{{1}}:*:{{4}}:*: hinzugefügt"
+        },
+        "shared_collection": {
+          "text": "{{1}} hat eine neue gemeinsame Sammlung mit Ihnen erstellt: :*:/trails/collection/{{3}}:*:{{2}}:*:"
         }
       },
       "comments": {
@@ -1807,5 +1818,15 @@
     "title": "Höhendaten hinzufügen?",
     "message": "Einige importierte Touren enthalten keine Höhendaten. Möchten Sie diese automatisch hinzufügen, indem sie von einem Höhendaten-Anbieter heruntergeladen werden?"
   },
-  "mapNotAvailable": "Gebiet nicht abgedeckt von"
+  "mapNotAvailable": "Gebiet nicht abgedeckt von",
+  "inputEmail": {
+    "defaultLabel": "E-Mail",
+    "errors": {
+      "required": "Bitte geben Sie eine E-Mail-Adresse ein",
+      "invalidEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
+      "duplicate": "Diese E-Mail-Adresse ist bereits vorhanden",
+      "atLeastOneEmailIsRequired": "Bitte geben Sie mindestens eine E-Mail-Adresse ein",
+      "cannotAddYourself": "Sie können sich nicht selbst hinzufügen"
+    }
+  }
 }

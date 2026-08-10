@@ -1,4 +1,4 @@
-import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, concat, defaultIfEmpty, first, firstValueFrom, from, map, of, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, concat, defaultIfEmpty, first, firstValueFrom, from, map, of, switchMap, tap, toArray } from 'rxjs';
 import { Owned } from 'src/app/model/owned';
 import { OwnedDto } from 'src/app/model/dto/owned';
 import { Store, StoreSyncStatus } from './store';
@@ -7,6 +7,7 @@ import { ErrorService } from '../../progress/error.service';
 import { Console } from 'src/app/utils/console';
 import { DependenciesService } from '../dependencies.service';
 import { DbTable } from '../storage/db-table';
+import { Maps } from 'src/app/utils/maps';
 
 export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> extends Store<ENTITY, StoredItem<DTO>, OwnedStoreSyncStatus> {
 
@@ -24,7 +25,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   protected abstract createOnServer(items: DTO[]): Observable<DTO[]>;
   protected abstract getUpdatesFromServer(knownItems: OwnedDto[]): Observable<UpdatesResponse<DTO>>;
   protected abstract sendUpdatesToServer(items: DTO[]): Observable<DTO[]>;
-  protected abstract deleteFromServer(uuids: string[]): Observable<void>;
+  protected abstract deleteFromServer(owner: string, uuids: string[]): Observable<void>;
 
   protected override getKey(item: ENTITY): string {
     return item.uuid + '#' + item.owner;
@@ -466,20 +467,32 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           return of(false);
         }
         Console.info(canDelete.length + ' element(s) of ' + this.table.name + ' ready to be deleted on server');
-        const uuids = canDelete.map(key => key.substring(0, key.indexOf('#')));
-        return this.deleteFromServer(uuids).pipe(
-          defaultIfEmpty(true),
-          switchMap(() => {
-            if (!stillValid()) return of(false);
-            Console.info('' + canDelete.length + ' element(s) of ' + this.table.name + ' deleted on server');
-            return this.updatedDtosFromServer([], canDelete.map(e => ({uuid: e.substring(0, e.indexOf('#')), owner: e.substring(e.indexOf('#') + 1)})));
-          }),
-          catchError(error => {
-            Console.error('Error deleting element(s) of ' + this.table.name + ' on server', error);
-            this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_items', [this.table.name]);
-            this._errors.itemsError(canDelete, error);
-            return of(false);
-          })
+        const uuidsByOwner = new Map<string, string[]>();
+        for (const key of canDelete) {
+          const i = key.indexOf('#');
+          const uuid = key.substring(0, i);
+          const owner = key.substring(i + 1);
+          Maps.computeIfAbsent(uuidsByOwner, owner, () => []).push(uuid);
+        }
+        return of(...uuidsByOwner.entries()).pipe(
+          switchMap(entry =>
+            this.deleteFromServer(entry[0], entry[1]).pipe(
+              defaultIfEmpty(true),
+              switchMap(() => {
+                if (!stillValid()) return of(false);
+                Console.info('' + entry[1].length + ' element(s) of ' + this.table.name + ' deleted on server with owner ' + entry[0]);
+                return this.updatedDtosFromServer([], entry[1].map(uuid => ({uuid, owner: entry[0]})));
+              }),
+              catchError(error => {
+                Console.error('Error deleting element(s) of ' + this.table.name + ' on server', error);
+                this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_items', [this.table.name]);
+                this._errors.itemsError(entry[1].map(uuid => uuid + '#' + entry[0]), error);
+                return of(false);
+              })
+            ),
+          ),
+          toArray(),
+          map(all => all.every(Boolean)),
         );
       }),
     );

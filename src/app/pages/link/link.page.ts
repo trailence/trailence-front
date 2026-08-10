@@ -12,6 +12,8 @@ import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { map } from 'rxjs';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { Console } from 'src/app/utils/console';
+import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
+import { SHARED_OWNER_PREFIX } from 'src/app/model/dto/trail-collection';
 
 @Component({
     selector: 'app-link',
@@ -88,12 +90,22 @@ export class LinkPage {
               this.injector.get(PreferencesService).setLanguageIfKnown(lang);
             }
             let i = payload.data.indexOf('/');
-            Console.info('Opening share id', payload.data.substring(0, i), 'from', payload.data.substring(i + 1));
-            this.injector.get(ShareService).getAll$().pipe(
-              collection$items(),
-              map(shares => shares.find(share => share.uuid === payload.data.substring(0, i) && share.owner === payload.data.substring(i + 1))),
-              firstTimeout(share => !!share, 10000, () => null as any)
-            ).subscribe(() => this.router.navigateByUrl('/trails/share/' + payload.data));
+            const uuid = payload.data.substring(0, i);
+            const owner = payload.data.substring(i + 1);
+            if (owner.startsWith(SHARED_OWNER_PREFIX)) {
+              Console.info('Opening shared collection id', uuid, 'from', owner);
+              this.injector.get(TrailCollectionService).getAllCollectionsReady$().pipe(
+                map(collections => collections.find(col => col.uuid === uuid)),
+                firstTimeout(col => !!col, 10000, () => null as any)
+              ).subscribe(() => this.router.navigateByUrl('/trails/collection/' + uuid));
+            } else {
+              Console.info('Opening share id', uuid, 'from', owner);
+              this.injector.get(ShareService).getAll$().pipe(
+                collection$items(),
+                map(shares => shares.find(share => share.uuid === uuid && share.owner === owner)),
+                firstTimeout(share => !!share, 10000, () => null as any)
+              ).subscribe(() => this.router.navigateByUrl('/trails/share/' + payload.data));
+            }
           },
           error: error => {
             Console.error(error);

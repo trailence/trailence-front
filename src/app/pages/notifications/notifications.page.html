@@ -8,8 +8,13 @@
     }
     @if (loaded) {
       <ion-list>
-        @for (notif of notifications.notifications$ | async; track notif.uuid) {
-          <app-notification-item [notification]="notif"></app-notification-item>
+        @let list = notifications.notifications$ | async;
+        @if (!list?.length) {
+          <ion-item>{{i18n.texts.notifications.none}}</ion-item>
+        } @else {
+          @for (notif of list; track notif.uuid) {
+            <app-notification-item [notification]="notif"></app-notification-item>
+          }
         }
       </ion-list>
       @if (notifications.mayHaveMore) {

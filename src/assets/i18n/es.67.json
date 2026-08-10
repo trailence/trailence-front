@@ -212,6 +212,8 @@
       "collection": "Colección",
       "share_from": "Elemento compartido de",
       "your_share": "Tu elemento compartido",
+      "shared_collection": "Colección compartida",
+      "shared_collection_by": "Colección compartida por {{1}}",
       "edit_filters_popup_title": "Filtrar las rutas",
       "edit_sort_popup_title": "Ordenar las rutas",
       "missing_trails_because_offline": "Algunas rutas no se pueden mostrar porque estás sin conexión",
@@ -485,7 +487,13 @@
     },
     "collection_form": {
       "title": "Colección",
-      "collection_name": "Nombre"
+      "collection_name": "Nombre",
+      "shared": {
+        "toggle_label": "Colección compartida",
+        "explanation": "Los usuarios con los que se comparte esta colección pueden editar, añadir o eliminar elementos, pero no pueden eliminar la propia colección.",
+        "explanation_anonymous": "Las colecciones compartidas no están disponibles sin una cuenta.",
+        "by": "Compartida por"
+      }
     },
     "location_popup": {
       "title": "Lugar de la ruta",
@@ -542,10 +550,8 @@
       "who_question": "¿Con quién? (hasta 20 personas)",
       "includePhotos": "Compartir las fotos con las rutas",
       "photos_info": "Las fotos asociadas a las rutas compartidas serán visibles para la persona con quien compartes",
-      "email": "Email",
       "email_info": "Se enviará un correo electrónico a la persona para informarle del elemento compartido",
       "language": "¿En qué idioma debemos enviar el correo?",
-      "recipient_error": "Introduce una dirección de correo electrónico válida",
       "share_description": {
         "COLLECTION": "Compartir toda la colección {{1}}",
         "TRAIL": "Compartir {{1}} ruta(s)",
@@ -1583,7 +1589,9 @@
     },
     "load_more": "Ver más",
     "error_loading": "Error al cargar las notificaciones",
+    "none": "No tienes ninguna notificación por el momento",
     "items": {
+      "unknown": "Esta notificación es desconocida en esta versión de Trailence",
       "publications": {
         "accepted": {
           "text": "¡Tu ruta :*:/trail/trailence/{{2}}:*:{{1}}:*: se ha publicado! Gracias por tu contribución a la comunidad 🎉"
@@ -1598,6 +1606,9 @@
         },
         "new_trails_in_share": {
           "text": "{{1}} ha añadido {{2}} rutas al elemento compartido :*:/trails/share/{{3}}/{{1}}:*:{{4}}:*:"
+        },
+        "shared_collection": {
+          "text": "{{1}} ha creado una nueva colección compartida contigo: :*:/trails/collection/{{3}}:*:{{2}}:*:"
         }
       },
       "comments": {
@@ -1807,5 +1818,15 @@
     "title": "¿Añadir las altitudes?",
     "message": "Algunas rutas importadas no contienen ninguna altitud. ¿Quieres añadirlas automáticamente descargándolas desde un proveedor de datos de altitud?"
   },
-  "mapNotAvailable": "Zona no cubierta por"
+  "mapNotAvailable": "Zona no cubierta por",
+  "inputEmail": {
+    "defaultLabel": "Email",
+    "errors": {
+      "required": "Introduce una dirección de correo electrónico",
+      "invalidEmail": "Introduce una dirección de correo electrónico válida",
+      "duplicate": "Esta dirección de correo electrónico ya está presente",
+      "atLeastOneEmailIsRequired": "Introduce al menos una dirección de correo electrónico",
+      "cannotAddYourself": "No puedes añadirte a ti mismo"
+    }
+  }
 }

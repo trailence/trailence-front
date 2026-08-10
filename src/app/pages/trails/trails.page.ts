@@ -25,7 +25,7 @@ import { MySelectionService } from 'src/app/services/database/my-selection.servi
 import { Filters } from 'src/app/components/trails-list/filters';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
-import { isPublicationCollection } from 'src/app/model/dto/trail-collection';
+import { isPublicationCollection, TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { AsyncPipe } from '@angular/common';
 import { HttpService } from 'src/app/services/http/http.service';
@@ -40,6 +40,7 @@ import { MapBubble } from 'src/app/components/map/bubble/map-bubble';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
+import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 
 @Component({
   selector: 'app-trails-page',
@@ -166,6 +167,12 @@ export class TrailsPage extends AbstractPage {
         this.title = result.title;
         if (isPublicationCollection(result.collection.type))
           this.title2 = texts.menu.my_publications;
+        else if (result.collection.type === TrailCollectionType.SHARED)
+          this.title2 = result.collection.sharedWith !== undefined ?
+            texts.pages.trails.shared_collection :
+            (result.collection.sharedBy ?
+              new TranslatedString('pages.trails.shared_collection_by', [result.collection.sharedBy]).translate(this.i18n) :
+              texts.pages.trails.collection);
         else
           this.title2 = texts.pages.trails.collection;
         this.changesDetection.detectChanges();
@@ -174,16 +181,17 @@ export class TrailsPage extends AbstractPage {
     // trails from collection
     let first = true;
     this.byStateAndVisible.subscribe(
-      combineLatest([
-        this.injector.get(AuthService).userChanged$.pipe(
-          switchMap(auth => auth ? this.injector.get(TrailCollectionService).getCollection$(collectionUuid, auth.email) : of(undefined)),
-          filterDefined(),
-        ),
-        this.injector.get(TrailService).getAllWhenLoaded$().pipe(
-          collection$items$(trail => trail.collectionUuid === collectionUuid)
-        ),
-      ]),
-      ([collection, trails]) => {
+      this.injector.get(AuthService).userChanged$.pipe(
+        switchMap(auth => {
+          if (!auth) return EMPTY;
+          return combineLatest([
+            this.injector.get(TrailCollectionService).getCollection$(collectionUuid, auth.email).pipe(filterDefined()),
+            this.injector.get(TrailService).getAllWhenLoaded$().pipe(collection$items$()),
+          ]);
+        }),
+      ),
+      ([collection, allTrails]) => {
+        const trails = allTrails.filter(t => t.item.collectionUuid === collection.uuid && t.item.owner === collection.getContentOwner());
         const newList = List(trails.map(t => t.item$));
         if (first || !newList.equals(this.trails$.value)) {
           first = false;
@@ -217,9 +225,14 @@ export class TrailsPage extends AbstractPage {
         this.injector.get(TrailCollectionService).getAllCollectionsReady$(),
       ]),
       ([allTrails, collections]) => {
-        const owner = this.injector.get(AuthService).email;
-        const collectionsWithoutPub = collections.filter(c => !isPublicationCollection(c.type));
-        const newList = List(allTrails.filter(t => t.item.owner === owner && collectionsWithoutPub.some(col => col.uuid === t.item.collectionUuid)).map(t => t.item$));
+        const owner = this.injector.get(AuthService).email!;
+        const ownedCollectionsWithoutPub = collections.filter(c => !isPublicationCollection(c.type) && c.type !== TrailCollectionType.SHARED);
+        const sharedCollectionsOwners = collections.filter(c => c.type === TrailCollectionType.SHARED).map(c => c.getContentOwner());
+        const newList = List(
+          allTrails
+          .filter(t => (t.item.owner === owner && ownedCollectionsWithoutPub.some(col => col.uuid === t.item.collectionUuid)) || sharedCollectionsOwners.includes(t.item.owner))
+          .map(t => t.item$)
+        );
         if (first || !newList.equals(this.trails$.value)) {
           first = false;
           this.loading = false;

@@ -16,7 +16,18 @@ export class QuotaService {
     private readonly injector: Injector,
   ) {
     auth.auth$.subscribe(a => this._quotas$.next(a?.quotas));
-    this._quotas$.subscribe(q => Console.info('New quotas', q));
+    this._quotas$.subscribe(q => Console.info('New quotas', this.quotaToString(q)));
+  }
+
+  private quotaToString(q: UserQuotas | undefined): string {
+    if (!q) return '';
+    return 'collections: ' + q.collectionsUsed + '/' + q.collectionsMax +
+      ',trails: ' + q.trailsUsed + '/' + q.trailsMax +
+      ',tracks: ' + q.tracksUsed + '/' + q.tracksMax + ' (' + q.tracksSizeUsed + '/' + q.tracksSizeMax + ')' +
+      ',tags: ' + q.tagsUsed + '/' + q.tagsMax +
+      ',trailtags: ' + q.trailTagsUsed + '/' + q.trailTagsMax +
+      ',photos: ' + q.photosUsed + '/' + q.photosMax + ' (' + q.photosSizeUsed + '/' + q.photosSizeMax + ')' +
+      ',shares: ' + q.sharesUsed + '/' + q.sharesMax;
   }
 
   public get quotas(): UserQuotas | undefined { return this._quotas$.value; }

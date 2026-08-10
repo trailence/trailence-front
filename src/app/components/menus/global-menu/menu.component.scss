@@ -96,6 +96,7 @@
 }
 
 .menu-item {
+  position: relative;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -179,6 +180,13 @@
       text-wrap: nowrap;
       padding: 2px 0;
     }
+  }
+
+  div.shared-collection-icon {
+    position: absolute;
+    left: 18px;
+    top: 9px;
+    opacity: 0.4;
   }
 }
 

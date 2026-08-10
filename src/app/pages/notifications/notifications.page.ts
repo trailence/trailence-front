@@ -3,7 +3,7 @@ import { HeaderComponent } from 'src/app/components/header/header.component';
 import { NotificationItemComponent } from 'src/app/components/notifications/notification-item/notification-item.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { Notification, NotificationsService } from 'src/app/services/notifications/notifications.service';
-import { IonList, IonButton, IonSpinner } from "@ionic/angular/standalone";
+import { IonList, IonButton, IonSpinner, IonItem } from "@ionic/angular/standalone";
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { combineLatest, Subscription } from 'rxjs';
 import { NetworkService } from 'src/app/services/network/network.service';
@@ -14,7 +14,7 @@ import { AsyncPipe } from '@angular/common';
   templateUrl: './notifications.page.html',
   styleUrl: './notifications.page.scss',
   imports: [
-    IonButton, IonList, IonSpinner,
+    IonButton, IonList, IonSpinner, IonItem,
     HeaderComponent,
     NotificationItemComponent,
     AsyncPipe,

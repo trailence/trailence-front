@@ -1,4 +1,4 @@
-import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, first, firstValueFrom, forkJoin, from, map, of, switchMap, tap, throwError, zip } from "rxjs";
+import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, first, firstValueFrom, forkJoin, from, map, of, switchMap, tap, throwError, toArray, zip } from "rxjs";
 import { TrackDto } from "src/app/model/dto/track";
 import { Track } from "src/app/model/track";
 import { StoreLoadStatus, StoreSyncStatus } from "./store/store";
@@ -29,6 +29,8 @@ import { WorkerService } from 'src/app/worker/web-app';
 import { TrackComputedDataCacheService } from './track-computed-data-cache.service';
 import { NetworkService } from '../network/network.service';
 import { OwnerUuid } from 'src/app/model/dto/owned';
+import { SHARED_OWNER_PREFIX } from 'src/app/model/dto/trail-collection';
+import { Maps } from 'src/app/utils/maps';
 
 interface MetadataItem extends TrackMetadataSnapshot {
   key: string;
@@ -769,24 +771,36 @@ export class TrackDatabase implements StoreWithCleaning {
         if (status.counter !== this.loaded$.value?.counter) return EMPTY;
         if (items.length === 0) return of(true);
         Console.info('' + items.length + ' tracks deleted locally');
-        const keys = items.map(item => item.uuid + '#' + item.owner);
-        const uuids = items.filter(item => item.owner === status.email).map(item => item.uuid);
-        Console.info('' + uuids.length + ' tracks to be deleted on server');
-        return (uuids.length > 0 ? this.injector.get(HttpService).post<void>(environment.apiBaseUrl + '/track/v1/_bulkDelete', uuids) : EMPTY).pipe(
-          defaultIfEmpty(true),
-          switchMap(() => {
-            if (status.counter !== this.loaded$.value?.counter) return EMPTY;
-            this.quotaService.updateQuotas(q => {
-              q.tracksUsed -= uuids.length;
-              q.tracksSizeUsed -= items.filter(item => item.owner === status.email).reduce((p,n) => p + (n.track?.sizeUsed ?? 0), 0);
-            });
-            return this.tableFullTrack.deleteMany$(keys).pipe(map(() => uuids.length < 50));
+        const uuidsByOwner = new Map<string, string[]>();
+        for (const item of items) {
+          Maps.computeIfAbsent(uuidsByOwner, item.owner, () => []).push(item.uuid);
+        }
+        return of(...uuidsByOwner.entries()).pipe(
+          switchMap(entry => {
+            const owner = entry[0];
+            const uuids = entry[1];
+            const keys = uuids.map(uuid => uuid + '#' + owner);
+            Console.info('' + uuids.length + ' tracks to be deleted on server for ' + owner);
+            return (uuids.length > 0 ? this.injector.get(HttpService).post<void>(environment.apiBaseUrl + '/track/v1/_bulkDelete' + (owner.startsWith(SHARED_OWNER_PREFIX) ? '/' + encodeURIComponent(owner) : ''), uuids) : EMPTY).pipe(
+              defaultIfEmpty(true),
+              switchMap(() => {
+                if (status.counter !== this.loaded$.value?.counter) return EMPTY;
+                if (!owner.startsWith(SHARED_OWNER_PREFIX)) // TODO if user is owner of the shared collection, his quotas are used
+                  this.quotaService.updateQuotas(q => {
+                    q.tracksUsed -= uuids.length;
+                    q.tracksSizeUsed -= items.filter(item => item.owner === status.email).reduce((p,n) => p + (n.track?.sizeUsed ?? 0), 0);
+                  });
+                return this.tableFullTrack.deleteMany$(keys).pipe(map(() => uuids.length < 50));
+              }),
+              catchError(error => {
+                this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_tracks', []);
+                Console.error('Error deleting tracks from the server', error);
+                return of(true);
+              })
+            );
           }),
-          catchError(error => {
-            this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_tracks', []);
-            Console.error('Error deleting tracks from the server', error);
-            return of(true);
-          })
+          toArray(),
+          map(all => all.every(Boolean)),
         );
       })
     );

@@ -63,6 +63,7 @@ export class MenuComponent implements OnInit {
   isAdmin = false;
   isAnonymous = false;
   isModerator = false;
+  email?: string;
   isNative: boolean;
 
   isInit = false;
@@ -100,18 +101,19 @@ export class MenuComponent implements OnInit {
       )
     ]).pipe(
       switchMap(([auth, collections]) => {
+        this.email = auth?.email;
         const withInfo: CollectionWithInfo[] = collections.map(c => new CollectionWithInfo(c));
         if (collections.length === 0) return of([]);
         return concat(
           of(withInfo),
           trailService.getAllWhenLoaded$().pipe(
-            collection$items(t => t.owner === auth?.email),
+            collection$items(),
             map(trails => {
               for (const c of withInfo) c.nbTrails = 0;
               const allCollectionsWithoutPub = collections.filter(c => !isPublicationCollection(c.type));
-              this.allCollectionsTrails = trails.filter(t => allCollectionsWithoutPub.some(c => c.uuid === t.collectionUuid)).length;
+              this.allCollectionsTrails = trails.filter(t => allCollectionsWithoutPub.some(c => c.uuid === t.collectionUuid && c.getContentOwner() == t.owner)).length;
               for (const t of trails) {
-                const c = withInfo.find(i => i.collection.uuid === t.collectionUuid && t.owner === i.collection.owner);
+                const c = withInfo.find(i => i.collection.uuid === t.collectionUuid && t.owner === i.collection.getContentOwner());
                 if (c) c.nbTrails!++;
               }
               return withInfo;

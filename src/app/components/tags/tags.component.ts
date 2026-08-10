@@ -5,20 +5,20 @@ import { IonHeader, IonContent, IonFooter, IonToolbar, IonTitle, IonIcon, IonLab
 import { Subscription, combineLatest, debounceTime } from 'rxjs';
 import { Tag } from 'src/app/model/tag';
 import { Trail } from 'src/app/model/trail';
+import { TrailCollection } from 'src/app/model/trail-collection';
 import { TrailTag } from 'src/app/model/trail-tag';
-import { AuthService } from 'src/app/services/auth/auth.service';
 import { TagService } from 'src/app/services/database/tag.service';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 
-export async function openTagsDialog(injector: Injector, trails: Trail[] | null, collectionUuid: string) {
+export async function openTagsDialog(injector: Injector, trails: Trail[] | null, collection: TrailCollection) {
   const modal = await injector.get(ModalController).create({
     component: TagsComponent,
     backdropDismiss: false,
     componentProps: {
       trails,
-      collectionUuid,
+      collection,
       selectable: !!trails,
     }
   });
@@ -59,7 +59,7 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
 
   @Input() inPopup = true;
   @Input() editable = true;
-  @Input() collectionUuid?: string;
+  @Input() collection?: TrailCollection;
   @Input() trails?: Trail[];
 
   @Input() selectable = true;
@@ -78,7 +78,6 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
     private readonly modalController: ModalController,
     private readonly alertController: AlertController,
     private readonly tagService: TagService,
-    private readonly auth: AuthService,
     private readonly changeDetector: ChangeDetectorRef,
   ) { }
 
@@ -87,7 +86,7 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['editable'] || changes['selectable'] || changes['trails'] || changes['collectionUuid'])
+    if (changes['editable'] || changes['selectable'] || changes['trails'] || changes['collection'])
       this.update();
     else if (changes['selection'])
       this.updateSelection(this.tree);
@@ -103,12 +102,14 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
     this.tree = [];
     if (this.editable && !this.selectable) this.editing = true;
 
-    if (!this.collectionUuid) return;
+    if (!this.collection) return;
 
     const tags$ = this.tagService.getAllTags$().pipe(
-      collection$items(tag => tag.collectionUuid === this.collectionUuid)
+      collection$items(tag => tag.collectionUuid === this.collection!.uuid && tag.owner === this.collection!.getContentOwner())
     );
-    const trailsTags$ = this.tagService.getAllTrailsTags$().pipe(collection$items());
+    const trailsTags$ = this.tagService.getAllTrailsTags$().pipe(
+      collection$items(tt => tt.owner === this.collection!.getContentOwner())
+    );
 
     this.subscription = combineLatest([tags$, trailsTags$]).pipe(
       debounceTime(100)
@@ -122,16 +123,16 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
 
   private buildTree(tags: Tag[], nodes: TagNode[], trailsTags: TrailTag[]): TagNode[] {
     const toRemove = this.flatten(nodes);
-    const newTree =  this.buildTreeNodes(toRemove, tags, trailsTags, null);
+    const newTree =  this.buildTreeNodes(toRemove, tags, trailsTags, undefined);
     this.sort(newTree);
     if (toRemove.length > 0) this.removeNodes(this.tree, toRemove);
     return newTree;
   }
 
-  private buildTreeNodes(toRemove: TagNode[], tags: Tag[], trailsTags: TrailTag[], parentUuid: string | null, parentNode?: TagNode): TagNode[] { // NOSONAR
+  private buildTreeNodes(toRemove: TagNode[], tags: Tag[], trailsTags: TrailTag[], parentNode: TagNode | undefined): TagNode[] { // NOSONAR
     const nodes: TagNode[] = [];
     for (let i = 0; i < tags.length; ++i) {
-      if (tags[i].parentUuid !== parentUuid) continue;
+      if ((tags[i].parentUuid ?? null) !== (parentNode?.tag.uuid ?? null)) continue;
       const tag = tags[i];
       tags.splice(i, 1);
       i--;
@@ -140,9 +141,9 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
       let allTaggedTrails = 0;
       let inputTaggedTrails = 0;
       for (const trailTag of trailsTags) {
-        if (trailTag.tagUuid !== tag.uuid) continue;
+        if (trailTag.tagUuid !== tag.uuid || trailTag.owner !== tag.owner) continue;
         allTaggedTrails++;
-        if (this.trails?.some(t => t.uuid === trailTag.trailUuid)) inputTaggedTrails++;
+        if (this.trails?.some(t => t.uuid === trailTag.trailUuid && t.owner === trailTag.owner)) inputTaggedTrails++;
       }
       if (index >= 0) {
         const node = toRemove[index];
@@ -160,7 +161,7 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
       }
     }
     for (const node of nodes)
-      node.children = this.buildTreeNodes(toRemove, tags, trailsTags, node.tag.uuid, node);
+      node.children = this.buildTreeNodes(toRemove, tags, trailsTags, node);
     return nodes;
   }
 
@@ -199,9 +200,9 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
     const name = this.newTagName.trim();
     if (name.length === 0) return;
     const tag = new Tag({
-      owner: this.auth.email!,
+      owner: this.collection!.getContentOwner(),
       name: name,
-      collectionUuid: this.collectionUuid,
+      collectionUuid: this.collection!.uuid,
     });
     if (this.trails) {
       this.tree.push(new TagNode(tag, 0, 0, true, [], undefined));
@@ -319,9 +320,9 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
     const remove: {trailUuid: string, tagUuid: string}[] = [];
     this.applyNodes(this.tree, add, remove);
     if (remove.length > 0)
-      this.tagService.deleteManyTrailTag(remove);
+      this.tagService.deleteManyTrailTag(this.collection!.getContentOwner(), remove);
     if (add.length > 0)
-      this.tagService.addTrailTags(add);
+      this.tagService.addTrailTags(this.collection!.getContentOwner(), add);
     this.modalController.dismiss(null, 'apply');
   }
 

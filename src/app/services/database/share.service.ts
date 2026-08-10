@@ -301,7 +301,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
     }
     if (entity.type === ShareElementType.TAG) {
       const tagService = this.injector.get(TagService);
-      return entity.elements.every(tagUuid => tagService.getTag(tagUuid)?.isSavedOnServerAndNotDeletedLocally());
+      return entity.elements.every(tagUuid => tagService.getTag(entity.owner, tagUuid)?.isSavedOnServerAndNotDeletedLocally());
     }
     if (entity.type === ShareElementType.TRAIL) {
       const trailService = this.injector.get(TrailService);
@@ -323,7 +323,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
     if (entity.type === ShareElementType.TAG) {
       const tagService = this.injector.get(TagService);
       return combineLatest(
-        entity.elements.map(tagUuid => tagService.getTag$(tagUuid).pipe(map(tag => !!tag?.isSavedOnServerAndNotDeletedLocally())))
+        entity.elements.map(tagUuid => tagService.getTag$(entity.owner, tagUuid).pipe(map(tag => !!tag?.isSavedOnServerAndNotDeletedLocally())))
       ).pipe(
         map(readiness => !readiness.includes(false))
       );
