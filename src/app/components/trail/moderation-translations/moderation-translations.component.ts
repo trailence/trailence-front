@@ -150,8 +150,8 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges {
 
   private checkDisplayTarget(): void {
     if (!this.srcLang) return;
-    if (this.srcLang === 'en') this.displayTarget = undefined;
-    else this.displayTarget = 'en';
+    if (this.displayTarget === this.srcLang) this.displayTarget = undefined;
+    if (this.srcLang !== 'en' && this.displayTarget === undefined) this.displayTarget = 'en';
   }
 
   detectLanguage(): void {

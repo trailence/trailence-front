@@ -234,7 +234,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     const mapZoom$ = this.map$.pipe(switchMap(map => map ? map.getState().zoomInt$ : of(undefined)));
     const tracks$ = combineLatest(
       trailsAndTracks.map(t => this.trackService.getMetadata$(t.trackUuid, t.trail.owner).pipe(
-        debounceTimeExtended(1000, 1000, undefined, (p,n) => !!n),
+        debounceTimeExtended(0, 1000, undefined, (p,n) => !!n),
         map(meta => {
           if (!meta) Console.warn('Track not found after 1s for trail', t.trail.owner, t.trail.uuid, t.trail.name);
           return {trail: t.trail, meta};

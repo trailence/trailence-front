@@ -433,8 +433,8 @@ export class TrailsPage extends AbstractPage {
     });
     this.byState.add(this.visible$.subscribe(visible => {
       if (!visible) service.setFilters(undefined);
+      else service.setFilters(this.filters$);
     }));
-    service.setFilters(this.filters$);
   }
 
 

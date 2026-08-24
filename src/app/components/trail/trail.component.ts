@@ -379,6 +379,9 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     new MenuItem().setIcon('stop-circle').setI18nLabel('trace_recorder.stop').setTextColor('danger')
       .setVisible(() => !!this.recording && !this.recording.paused)
       .setAction(() => this.stopRecordingWithConfirmation()),
+    new MenuItem().setIcon('play-circle').setI18nLabel('buttons.start')
+      .setVisible(() => this.isSmall && !!this.trail1 && !this.recording && !this.toolsEnabled && !isPublicationCollection(this.trail1WithInfo?.collection?.type) && this.trail1?.fromModeration !== true && !!this.auth.email)
+      .setAction(() => this.startTrail()),
     new MenuItem(),
     new MenuItem().setIcon('camera').setI18nLabel('pages.trail.take_photo')
       .setVisible(() => !!this.recording && this.canTakePhoto)

@@ -18,7 +18,7 @@ async function generate(request) {
     request.return(307, '/');
     return;
   }
-  const slug = encodeURIComponent(path.substring(6)).replace('/', '%2F');
+  const slug = encodeURIComponent(path.substring(6));
   const data$ = retrieveData(request, slug);
   const template$ = fs.promises.readFile('/usr/share/nginx/njs/trail_page_template.html', {encoding: 'utf-8'});
   const i18n$ = retrieveTranslations(request, lang);
@@ -40,7 +40,7 @@ function retrieveTranslations(request, lang) {
 }
 
 function retrieveData(request, slug) {
-  return request.subrequest('/api/public/trails/v1/trailBySlug/' + slug).then(r => JSON.parse(r.responseText));
+  return request.subrequest('/api/public/trails/v1/trailBySlug/' + encodeURIComponent(slug)).then(r => JSON.parse(r.responseText));
 }
 
 function translateData(data, i18n, lang) {

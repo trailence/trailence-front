@@ -112,10 +112,19 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
     );
   }
 
+  private _normalizeUuidOrSlug(uuid: string): string {
+    if (TypeUtils.isUuid(uuid)) return uuid;
+    return this._normalizeSlug(uuid);
+  }
+
+  private _normalizeSlug(slug: string): string {
+    return encodeURIComponent(slug);
+  }
+
   private _fetchByIdsByBunch(uuids: string[]): Observable<Trail[]> {
     if (uuids.length === 0) return of([]);
     if (uuids.length > 100) return this._fetchByIdsByBunchSplit(uuids);
-    return this.injector.get(HttpService).post<PublicTrail[]>(environment.apiBaseUrl + '/public/trails/v1/trailsByIds', uuids)
+    return this.injector.get(HttpService).post<PublicTrail[]>(environment.apiBaseUrl + '/public/trails/v1/trailsByIds', uuids.map(uuid => this._normalizeUuidOrSlug(uuid)))
     .pipe(
       map(result => {
         if (result.length === 0) return [];
@@ -253,6 +262,7 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
   protected override fetchTrailById(uuid: string): Promise<Trail | null> {
     if (!TypeUtils.isUuid(uuid)) {
       // we may have the slug locally
+      uuid = this._normalizeSlug(uuid);
       return this.tableInfos.getBy('slug', uuid).then(info => {
         if (info) return this.getTrail(info.uuid);
         return this._pending.requestSingle(uuid, () => firstValueFrom(
