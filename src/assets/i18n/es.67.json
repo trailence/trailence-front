@@ -429,7 +429,7 @@
                 ],
                 "footer": "🙏 ¡Gracias por tu contribución!"
               },
-              "send_error": "Error al enviar tu comentario"
+              "send_error": "Error al enviar tu reseña"
             }
           },
           "delete_comment_confirmation": {
@@ -1246,7 +1246,7 @@
     "max_zoom_reco": "Se recomienda un valor entre 15 y 17. Por debajo de 15, el nivel de detalle suele ser demasiado bajo para ver bien los caminos pequeños. Por encima de 17, el tamaño de la descarga es grande y, por lo general, no es necesario para seguir perfectamente un itinerario.",
     "padding": "Ampliar la zona a descargar (%)",
     "padding_explaination_for_trail": "Porcentaje de la zona a descargar alrededor de la zona de la ruta (100 % significa no más que la ruta). Permite ver más alrededor de la ruta en modo sin conexión.",
-    "padding_explaination_for_map": "Porcentaje de la zona a descargar alrededor de la zona mostrada actualmente (100 % significa no más que la ruta). Permite ver una zona un poco más amplia en modo sin conexión.",
+    "padding_explaination_for_map": "Porcentaje de la zona a descargar alrededor de la zona mostrada actualmente (100 % significa no más que la zona mostrada). Permite ver una zona un poco más amplia en modo sin conexión.",
     "percent_done": "descargado",
     "remaining": "elemento(s) restante(s)",
     "todo": "elemento(s) por descargar",
@@ -1557,7 +1557,7 @@
         "manual_value": "Introduciendo una altitud fija manualmente",
         "manual_diff": "Introduciendo una diferencia a aplicar"
       },
-      "apply_default_improvements": "Aplicar las mejoras predeterminadas (las que se usan al crear un track)",
+      "apply_default_improvements": "Aplicar las mejoras predeterminadas (las que se usan al grabar un track)",
       "merge_segments": "Conectar los puntos de pausa y reanudación",
       "add_points": {
         "free": {

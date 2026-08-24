@@ -136,7 +136,7 @@
           "afterImg": "Confirmez le téléchargement, puis ouvrez le fichier"
         }, {
           "beforeImg": "Si c'est la première fois que vous essayez d'installer une application de cette manière, une alerte similaire à celle ci-dessous peut s'afficher",
-          "afterImg": "Allez dans la paramètres pour autoriser l'installation"
+          "afterImg": "Allez dans les paramètres pour autoriser l'installation"
         }, {
           "beforeImg": "Une fenêtre s'affiche alors",
           "afterImg": "Cliquez sur Autoriser depuis cette source"
@@ -160,7 +160,7 @@
       "title": "Connexion",
       "email": "Email",
       "password": "Mot de passe",
-      "signin_button": "Se Connecter",
+      "signin_button": "Se connecter",
       "offline": "Veuillez vous connecter à Internet pour vous connecter sur Trailence",
       "incorrect_message": "Identifiants incorrects",
       "error_message": "Erreur d'authentification, veuillez réessayer",
@@ -196,7 +196,7 @@
       "email": "Email",
       "password1": "Mot de passe",
       "password2": "Confirmez votre mot de passe",
-      "step2": "Confirmez votre Email",
+      "step2": "Confirmez votre email",
       "code_text": "Un mail vous a été envoyé avec un code de confirmation à 6 chiffres, veuillez le rentrer ci-dessous",
       "step3": "Compte créé",
       "connection": "Connexion...",
@@ -214,8 +214,8 @@
       "your_share": "Votre partage",
       "shared_collection": "Collection partagée",
       "shared_collection_by": "Collection partagée par {{1}}",
-      "edit_filters_popup_title": "Filtrer les Parcours",
-      "edit_sort_popup_title": "Trier les Parcours",
+      "edit_filters_popup_title": "Filtrer les parcours",
+      "edit_sort_popup_title": "Trier les parcours",
       "missing_trails_because_offline": "Certains parcours ne peuvent pas être affichés car vous êtes hors-ligne",
       "sorts": {
         "trail_date": "Date du parcours",
@@ -251,8 +251,8 @@
         "remove": "Supprimer",
         "save_new": "Nouveau filtre...",
         "no_saved_filter": "Aucun filtre enregistré",
-        "save_title": "Enregistrer le filter",
-        "save_name": "Nom du filter",
+        "save_title": "Enregistrer le filtre",
+        "save_name": "Nom du filtre",
         "enum_or": "ou"
       },
       "tabs": {
@@ -326,15 +326,15 @@
       },
       "tags": {
         "menu_item": "Tags",
-        "collection_menu_item": "Editer les tags",
+        "collection_menu_item": "Éditer les tags",
         "popup": {
           "title_trail": "Tags du parcours",
           "title_trails": "Tags des parcours",
           "title_collection": "Tags de la collection",
           "add_tag_label": "Nouveau tag",
           "confirm_delete": {
-            "title": "Supprimer le Tag",
-            "message": "Etes-vous sûr de vouloir supprimer ce tag ? Il est actuellement utilisé sur {{1}} parcours",
+            "title": "Supprimer le tag",
+            "message": "Êtes-vous sûr de vouloir supprimer ce tag ? Il est actuellement utilisé sur {{1}} parcours",
             "yes": "Oui, supprimer",
             "no": "Annuler, garder"
           }
@@ -344,7 +344,7 @@
         "sources": "Sources",
         "searching": "Recherche en cours",
         "error": "Erreur lors de la recherche",
-        "needs_zoom": "Carte trop large, zoomez d'avantage",
+        "needs_zoom": "Carte trop large, zoomez davantage",
         "too_much_results": "Trop de résultats",
         "search_in_this_area": "Lancer la recherche",
         "clear_search_results": "Effacer les résultats"
@@ -429,7 +429,7 @@
                 ],
                 "footer": "🙏 Merci pour votre contribution !"
               },
-              "send_error": "Erreur lors de l'envoi de votre commentaire"
+              "send_error": "Erreur lors de l'envoi de votre avis"
             }
           },
           "delete_comment_confirmation": {
@@ -447,7 +447,7 @@
           "has_done_this_trail": "a suivi ce parcours ✅",
           "filter_has_done_this_trail": "Inclure les personnes ayant suivi ce parcours",
           "show_reviews_with_rate": "Filtre actif : notes de {{1}}/5",
-          "not_authenticated": "Connectez-vous pour voir les commentaires",
+          "not_authenticated": "Connectez-vous pour voir les avis",
           "not_connected": "Connexion internet requise pour récupérer les avis"
         }
       },
@@ -470,7 +470,7 @@
         "external": "Trouvé dans {{1}}",
         "following": " en suivant :*:{{1}}:*:{{2}}:*:",
         "following_a_deleted_track": " en suivant un parcours (supprimé à présent)",
-        "initially_found_on": " initiallement trouvé dans :*:{{1}}:*:{{2}}:*:",
+        "initially_found_on": " initialement trouvé sur :*:{{1}}:*:{{2}}:*:",
         "following_found_on": " en suivant un parcours trouvé sur :*:{{1}}:*:{{2}}:*:",
         "source_url": "Source :",
         "source_advise": "💡 Il est conseillé de consulter la source avant de suivre le parcours, afin de disposer des informations les plus récentes.",
@@ -527,7 +527,7 @@
     },
     "import_from_sources": {
       "title": "Import de données",
-      "message1": "Nous avons trouvé les sources suivantes:",
+      "message1": "Nous avons trouvé les sources suivantes :",
       "message2": "Souhaitez-vous tenter d'importer des données supplémentaires depuis ces sources ?",
       "message_internet": "Vous devez vous connecter à Internet afin de pouvoir importer depuis ces sources"
     },
@@ -555,7 +555,7 @@
       "share_description": {
         "COLLECTION": "Partage de toute la collection {{1}}",
         "TRAIL": "Partage de {{1}} parcours",
-        "TAGS": "Partage des tags suivants: {{1}}"
+        "TAGS": "Partage des tags suivants : {{1}}"
       }
     },
     "trail_link": {
@@ -565,7 +565,7 @@
       "anonymous": "Cette fonctionnalité n'est pas disponible sans compte.",
       "waiting": "Création du lien...",
       "copy": "Copier",
-      "copied": "Lien copié dans le presse-papier",
+      "copied": "Lien copié dans le presse-papiers",
       "share": "Partager",
       "share_title": "Lien public Trailence",
       "delete": {
@@ -576,7 +576,7 @@
     "find_duplicates": {
       "title": "Rechercher les parcours similaires",
       "menu_label": "Rechercher les parcours similaires",
-      "option_inside_collection": "A l'intérieur de la collection {{1}}",
+      "option_inside_collection": "À l'intérieur de la collection {{1}}",
       "option_between_collections": "Entre les parcours de la collection {{1}} et ceux de la collection",
       "option_all": "Entre tous les parcours de toutes les collections",
       "threshold": "Avec une similarité d'au moins",
@@ -618,9 +618,9 @@
       "avatar_private": "Photo privée, uniquement visible pour vous",
       "trace_recorder": "Enregistrement de trace",
       "traceMinMeters": "Distance minimum entre chaque point enregistré",
-      "traceMinMeters_explaination": "Une valeur trop faible risque de donner une trace de mauvaise qualité dû à l'imprécision des GPS.<br/>Une valeur trop élevée risque également de donner une trace de mauvaise qualité avec de grands traits.<br/>Il faut également prendre en compte que plus la distance est faible, plus le nombre de points enregistrés sera élevé, ce qui peut avoir un impact sur la consommation de la batterie pendant l'enregistrement.<br/>Pour un bon compromis, nous recommendons un valeur entre 5 et 15 mètres (soit environ 16 à 50 pieds).",
+      "traceMinMeters_explaination": "Une valeur trop faible risque de donner une trace de mauvaise qualité due à l'imprécision des GPS.<br/>Une valeur trop élevée risque également de donner une trace de mauvaise qualité avec de grands traits.<br/>Il faut également prendre en compte que plus la distance est faible, plus le nombre de points enregistrés sera élevé, ce qui peut avoir un impact sur la consommation de la batterie pendant l'enregistrement.<br/>Pour un bon compromis, nous recommandons une valeur entre 5 et 15 mètres (soit environ 16 à 50 pieds).",
       "traceMinMillis": "Temps minimum entre chaque point enregistré",
-      "traceMinMillis_explaination": "Si vous souhaitez limiter le nombre de points enregistrés, afin de réduire la consommation de la batterie, vous pouvez utiliser un temps minimum plus long entre chaque point.<br/>La distance minimum entre chaque point est également prise en compte, il faudra alors que la distance minimum soit atteinte ET que le temps minimum soit atteint avant d'enregistrer un nouveau point.<br/>Nous recommendons une valeur entre 2 et 5 secondes.",
+      "traceMinMillis_explaination": "Si vous souhaitez limiter le nombre de points enregistrés, afin de réduire la consommation de la batterie, vous pouvez utiliser un temps minimum plus long entre chaque point.<br/>La distance minimum entre chaque point est également prise en compte, il faudra alors que la distance minimum soit atteinte ET que le temps minimum soit atteint avant d'enregistrer un nouveau point.<br/>Nous recommandons une valeur entre 2 et 5 secondes.",
       "elevation_calibration": "Altitude",
       "elevation_calibration_explaination": "L'altitude enregistrée par le GPS présente souvent un décalage par rapport à la réalité.<br/>Vous pouvez ici l'ajuster en précisant une différence à appliquer.<br/>Par exemple si votre GPS indique toujours environ {{1}} {{2}} de plus que l'altitude réelle, vous pouvez saisir <b>-{{1}}</b>.<br/>Chaque appareil étant différent, la configuration se fait par appareil.",
       "elevation_calibration_this_device": "cet appareil",
@@ -629,7 +629,7 @@
       "offlineMapMaxKeepDays_explaination": "Lorsque vous téléchargez une carte pour la rendre disponible hors-ligne, ce paramètre indique combien de jours elle sera conservée. Cela permet également de ne pas télécharger un élément de carte s'il a déjà été téléchargé récemment, faisant ainsi gagner du temps lors du téléchargement.",
       "offline_maps": {
         "title": "Cartes téléchargées",
-        "items": "Eléments",
+        "items": "Éléments",
         "size": "Taille",
         "remove_all": "Tout supprimer"
       },
@@ -638,13 +638,13 @@
       "photos_max_pixels": "Largeur/Hauteur maximum des photos",
       "photos_max_pixels_explaination": "Lorsque vous ajoutez une photo, si celle-ci est plus grande que la taille maximum, elle sera automatiquement réduite.",
       "photos_max_quality": "Qualité des photos (%)",
-      "photos_max_quality_explaination": "Les photos sont automatiquement converties au format JPEG, ce paramètre indique la qualité pour la compression. 100% indique une qualité maximum, mais donc une compression faible. Nous recommendons 90% qui conserve une très bonne qualité tout en permettant une bonne compression.",
+      "photos_max_quality_explaination": "Les photos sont automatiquement converties au format JPEG, ce paramètre indique la qualité pour la compression. 100% indique une qualité maximum, mais une compression faible. Nous recommandons 90% qui conserve une très bonne qualité tout en permettant une bonne compression.",
       "photos_max_size_kb": "Taille maximum des fichiers de photo (Ko)",
       "photos_max_size_kb_explaination": "Lorsque vous stockez une photo, la taille maximum en pixels ainsi que la qualité maximum sont appliquées. Si le résultat donne un fichier d'une taille supérieure à cette valeur, la taille et la qualité seront légèrement réduites jusqu'à atteindre une taille de fichier en dessous de ce seuil.",
       "photos_cache": "Photos téléchargées",
-      "photos_cache_explaination": "Lorsqu'une photo est affichée, elle est téléchargée, puis conservée en cache sur votre appareil. Cela permet d'éviter de devoir télécharger une photo à chaque fois, et donc un affichage plus rapide. Cela permet également de pouvoir afficher les photos hors-ligne. Ainsi, si vous planifiez de suivre un parcours contenant des photos, et que vous souhaitez pouvoir afficher les photos hors-ligne pendant votre parcours, en affichant les photos avant votre parcours alors que vous avez du réseau, elle seront disponibles hors-ligne.",
+      "photos_cache_explaination": "Lorsqu'une photo est affichée, elle est téléchargée, puis conservée en cache sur votre appareil. Cela permet d'éviter de devoir la télécharger à chaque fois, et donc d'obtenir un affichage plus rapide. Cela permet également d'afficher les photos hors-ligne. Ainsi, si vous prévoyez de suivre un parcours contenant des photos et que vous souhaitez pouvoir les afficher hors-ligne pendant votre sortie, affichez-les au préalable, lorsque vous avez du réseau : elles seront alors disponibles hors-ligne.",
       "photos_cache_total": "Taille totale des fichiers",
-      "photos_cache_expired": "Taille fichiers expirés",
+      "photos_cache_expired": "Taille des fichiers expirés",
       "photos_cache_remove_all": "Tout supprimer",
       "photos_cache_remove_expired": "Supprimer les fichiers expirés",
       "photos_cache_max_days": "Conservation des photos téléchargées (jours)",
@@ -654,7 +654,7 @@
         "base_speed": "Vitesse de base sur un terrain plat",
         "base_speed_explaination": "Cette vitesse est utilisée pour l'estimation des temps de parcours. Elle est pondérée en fonction du dénivelé et du temps de parcours. Par défaut la valeur est de 5 km/h (3.1 mi/h), ce qui correspond à la vitesse moyenne d'un randonneur.",
         "long_breaks_title": "Détection des pauses longues",
-        "long_break_explaination": "Lorsque nous affichons le temps d'un parcours, nous distinguons les pauses courtes (par exemple pour se rafraîchir, admirer la vue, ...) et les pauses longues (par exemple pour pique-niquer).<br/><br/>Les pauses courtes font partie du temps de parcours affiché, car il est normal de les inclure. En revanche, lorsqu'une pause longue est détectée, son temps est déduit du temps de parcours, afin que le temps affiché ne dépende pas de la durée de votre sieste 😉. Le temps ainsi décompté est affiché dans la partie <i>Pauses</i>.<br/><br/>Pour détecter les pauses longues, vous pouvez configurez 2 paramètres: un périmètre et une durée minimum. Une pause sera alors considérée comme longue si vous êtes resté dans ce périmètre pendant au moins la durée minimum configurée.",
+        "long_break_explaination": "Lorsque nous affichons le temps d'un parcours, nous distinguons les pauses courtes (par exemple pour se rafraîchir, admirer la vue…) et les pauses longues (par exemple pour pique-niquer).<br/><br/>Les pauses courtes font partie du temps de parcours affiché, car il est normal de les inclure. En revanche, lorsqu'une pause longue est détectée, son temps est déduit du temps de parcours, afin que le temps affiché ne dépende pas de la durée de votre sieste 😉. Le temps ainsi décompté est affiché dans la partie <i>Pauses</i>.<br/><br/>Pour détecter les pauses longues, vous pouvez configurer 2 paramètres : un périmètre et une durée minimum. Une pause sera alors considérée comme longue si vous êtes resté dans ce périmètre pendant au moins la durée minimum configurée.",
         "long_break_minimum_duration": "Durée minimum d'une pause longue",
         "long_break_maximum_distance": "Périmètre maximum"
       },
@@ -668,7 +668,7 @@
       "error_saving": "Erreur lors de la sauvegarde de la photo de profil"
     },
     "myaccount": {
-      "title": "Mon Compte",
+      "title": "Mon compte",
       "quotas": {
         "title": "Quotas",
         "collections": "Collections",
@@ -782,7 +782,7 @@
       "track_both": "Les deux",
       "track_both_explaination": "Les deux seront exportées dans le même fichier. Cela permettra de ré-importer dans Trailence les 2 traces en un seul parcours, idéal donc pour un backup. En revanche, cela risque de mal s'ouvrir si vous importez le fichier dans une autre application.",
       "include_photos": "Inclure les photos",
-      "include_photos_explaination": "Les photos seront inclues dans un fichier ZIP, qui pourra être importé dans Trailence"
+      "include_photos_explaination": "Les photos seront incluses dans un fichier ZIP, qui pourra être importé dans Trailence"
     },
     "photos_popup": {
       "title": "Photos",
@@ -795,7 +795,7 @@
         "available": "Localisée sur le parcours",
         "not_available": "Non localisée sur le parcours",
         "clear_title": "Supprimer la position de la photo",
-        "clear_message": "Etes-vous sûr de vouloir supprimer la position de cette photo ?"
+        "clear_message": "Êtes-vous sûr de vouloir supprimer la position de cette photo ?"
       },
       "buttons": {
         "edit": "Modifier la photo"
@@ -809,9 +809,9 @@
       "url_placeholder": "URL",
       "unknown_source": "Aucune source supportée ne correspond à cette URL",
       "fetch_error": "Le parcours n'a pas pu être récupéré correctement",
-      "from_clipboard_title": "Depuis le presse-papier",
-      "from_clipboard_button": "Lire le presse-papier",
-      "nothing_found_in_clipboard": "Aucun parcours trouvé dans le presse papier",
+      "from_clipboard_title": "Depuis le presse-papiers",
+      "from_clipboard_button": "Lire le presse-papiers",
+      "nothing_found_in_clipboard": "Aucun parcours trouvé dans le presse-papiers",
       "button_import": "Importer depuis {{1}}",
       "link_source": "un lien Trailence"
     },
@@ -851,7 +851,7 @@
     "live_group": {
       "title": "Suivi de groupe",
       "explaination_title": "Fonctionnement d'un groupe",
-      "explaination": "Un groupe de suivi permet de partager sa position pendant une activité.<br/>N'importe qui peut rejoindre un groupe grâce à un lien ou un QR code, sans avoir forcément besoin d'un compte sur Trailence.<br/>La position de chaque membre est régulièrement enregistrée et partagée avec les autres membres du groupe, afin de pouvoir se retrouver facilement en cas de besoin.<br/>Bien sûr, le partage de position fonctionne uniquement lorsqu'une connexion réseau est disponible. Vous pouvez toutefois désactiver le réseau pendant votre activité et ne l'activer que en cas de besoin.<br/>Un groupe est automatiquement supprimé s'il date de plus d'une semaine.",
+      "explaination": "Un groupe de suivi permet de partager sa position pendant une activité.<br/>N'importe qui peut rejoindre un groupe grâce à un lien ou un QR code, sans avoir forcément besoin d'un compte sur Trailence.<br/>La position de chaque membre est régulièrement enregistrée et partagée avec les autres membres du groupe, afin de pouvoir se retrouver facilement en cas de besoin.<br/>Bien sûr, le partage de position fonctionne uniquement lorsqu'une connexion réseau est disponible. Vous pouvez toutefois désactiver le réseau pendant votre activité et ne l'activer qu'en cas de besoin.<br/>Un groupe est automatiquement supprimé s'il date de plus d'une semaine.",
       "group_name": "Nom du groupe",
       "my_name": "Mon nom / alias",
       "create_error": "Erreur lors de la création du groupe",
@@ -877,15 +877,15 @@
       "confirm": {
         "stop": {
           "title": "Arrêter le groupe",
-          "message": "Une fois arrêté, le groupe est définitivement supprimé.<br/>Tous les members quittent automatiquement le groupe, et le lien ne fonctionne plus.<br/><br/>Etes-vous sûr de vouloir arrêter le groupe ?"
+          "message": "Une fois arrêté, le groupe est définitivement supprimé.<br/>Tous les membres quittent automatiquement le groupe, et le lien ne fonctionne plus.<br/><br/>Êtes-vous sûr de vouloir arrêter le groupe ?"
         },
         "leave": {
           "title": "Quitter le groupe",
-          "message": "Etes-vous sûr de vouloir quitter le groupe ?"
+          "message": "Êtes-vous sûr de vouloir quitter le groupe ?"
         }
       },
       "no_trail": "Le groupe ne sera rattaché à aucun parcours.",
-      "no_trail_explaination": "Cela signifie que la consultation du groupe se fera dans un écran dédié, où vous verrez uniquement les membres du groupe et leur position. En revanche, lorsque le groupe est rattaché à un parcours, vous pouvez consulter le groupe directement depuis l'écran du parcours. Cela est beaucoup plus pratique si vous prévoyez de suivre ce parcours avec le groupe.<br/><br/>Pour créer un groupe rattaché à un parcours, ouvrez le parcours, puis dans son menu, sélectionnez « Créer un groupe de suivi ».<br/>Vous pouvez également rattacher un groupe existant en ouvrant le parcours, puis dans son menu, sélectionnez « Rattacher à un groupe de suivi »",
+      "no_trail_explaination": "Cela signifie que la consultation du groupe se fera dans un écran dédié, où vous verrez uniquement les membres du groupe et leur position. En revanche, lorsque le groupe est rattaché à un parcours, vous pouvez consulter le groupe directement depuis l'écran du parcours. Cela est beaucoup plus pratique si vous prévoyez de suivre ce parcours avec le groupe.<br/><br/>Pour créer un groupe rattaché à un parcours, ouvrez le parcours, puis dans son menu, sélectionnez « Créer un groupe de suivi ».<br/>Vous pouvez également rattacher un groupe existant : ouvrez le parcours, puis dans son menu, sélectionnez « Rattacher à un groupe de suivi ».",
       "share_trail": "Partager le parcours avec les membres du groupe",
       "explaination_trail_restricted_access": "Ce parcours provient d'un partage avec vous. Seuls les membres qui ont également accès à ce parcours pourront le voir.",
       "explaination_trail_needs_public_link": "Seuls les membres avec qui vous avez partagé ce parcours peuvent le voir. Pour que tous les membres puissent le voir, vous pouvez créer un lien public de partage pour ce parcours.",
@@ -899,10 +899,10 @@
       "paused": "Enregistrement en pause"
     },
     "donation": {
-      "meta_description": "Soutenir le project Trailence",
+      "meta_description": "Soutenir le projet Trailence",
       "title": "Contribuer",
-      "header": "Merci de considérer d'aider ce projet !",
-      "text": "Trailence est gratuit, sans publicité, et open-source.<br/><br/>Afin de le rester, nous aimerions solliciter votre aide.<br/><br/>Nous sommes transparent sur nos coûts, et ce à quoi servent vos dons.<br/>&nbsp; - Nous payons actuellement 67 euros par an pour l'hébergement (un serveur de base + le nom de domaine).<br/>&nbsp; - Nous avons un espace de stockage de 100GB pour 20 euros.<br/>&nbsp; - Nous avons payé 25$ à Google pour être présent sur Google Play.<br/>",
+      "header": "Merci d'envisager d'aider ce projet !",
+      "text": "Trailence est gratuit, sans publicité, et open-source.<br/><br/>Afin de le rester, nous aimerions solliciter votre aide.<br/><br/>Nous sommes transparents sur nos coûts, et ce à quoi servent vos dons.<br/>&nbsp; - Nous payons actuellement 67 euros par an pour l'hébergement (un serveur de base + le nom de domaine).<br/>&nbsp; - Nous avons un espace de stockage de 100 Go pour 20 euros.<br/>&nbsp; - Nous avons payé 25 $ à Google pour être présent sur Google Play.<br/>",
       "button": "Faire un don",
       "goals": {
         "goal": "Objectif",
@@ -910,7 +910,7 @@
         "thanks": "Merci !",
         "descriptions": {
           "past_costs": "Couvrir nos dépenses depuis 2025",
-          "future_costs": "Assurer la pérénnité en couvrant les dépenses pour 2 années supplémentaires",
+          "future_costs": "Assurer la pérennité en couvrant les dépenses pour 2 années supplémentaires",
           "increase_capacity": "Augmenter la capacité pour tous les utilisateurs (plus de stockage, serveur pouvant servir plus d'utilisateurs)"
         }
       },
@@ -927,7 +927,7 @@
     "contact": {
       "meta_description": "Formulaire de contact, question, signaler un problème...",
       "title": "Contact",
-      "email": "Votre Email pour vous répondre",
+      "email": "Votre email pour vous répondre",
       "type": "Type de demande",
       "types": {
         "question": "Question",
@@ -946,7 +946,7 @@
       "email_alternative": "Vous pouvez également nous contacter par email :"
     },
     "stats": {
-      "title": "Mes Statistiques",
+      "title": "Mes statistiques",
       "config_title": "Configuration",
       "type_title": "Statistiques sur",
       "time_unit_title": "Par",
@@ -978,7 +978,7 @@
           "title": "Mois"
         },
         "month_of_year": {
-          "title": "Mois toute année confondue"
+          "title": "Mois toutes années confondues"
         }
       },
       "sources": {
@@ -1000,7 +1000,7 @@
       "title": "Politique de confidentialité"
     },
     "photo_editor": {
-      "title": "Edition d'une photo",
+      "title": "Édition d'une photo",
       "rotate_clockwise": "Pivoter à droite",
       "rotate_counterclockwise": "Pivoter à gauche",
       "crop": "Recadrer",
@@ -1033,13 +1033,13 @@
   "collection_menu": {
     "delete_confirm": {
       "title": "Supprimer la collection",
-      "message": "Etes-vous sûr de vouloir supprimer la collection {{}} ?",
+      "message": "Êtes-vous sûr de vouloir supprimer la collection {{}} ?",
       "yes": "Oui, supprimer",
       "no": "Annuler, garder"
     },
-    "deleting": "Supression de la collection"
+    "deleting": "Suppression de la collection"
   },
-  "my_trails": "Mes Parcours",
+  "my_trails": "Mes parcours",
   "all_collections": "Toutes les collections",
   "my_selection": "Ma sélection",
   "publications": {
@@ -1094,7 +1094,7 @@
       "text_after": "Merci pour votre participation et bonne publication !"
     },
     "edit_popup": {
-      "title": "Edition d'un parcours publié",
+      "title": "Édition d'un parcours publié",
       "message": "Le parcours sera copié dans vos brouillons. La modification fonctionne comme pour une première publication : une fois vos modifications effectuées, elles seront revues par un modérateur. Confirmez-vous vouloir modifier cette publication ?"
     },
     "checklist_items": {
@@ -1179,7 +1179,7 @@
       "message_from_author": "Message de l'auteur",
       "previous_moderator_message": "Précédent message du modérateur",
       "moderator_message": "Message du modérateur",
-      "refresh": "Rafraichir",
+      "refresh": "Rafraîchir",
       "comments": {
         "reviewed_button": "Valider"
       }
@@ -1204,7 +1204,7 @@
     "reset": "Réinitialiser",
     "retry": "Réessayer",
     "understood": "Compris",
-    "undo": "Revenir",
+    "undo": "Défaire",
     "redo": "Refaire",
     "yes": "Oui",
     "no": "Non"
@@ -1237,16 +1237,16 @@
     "legend_estimated_speed": "Vitesse estimée"
   },
   "offline_map": {
-    "download_trail": "Les cartes correspondant au parcours vont être téléchargées pour être disponibles hors ligne",
-    "download_map": "Les cartes de la zone affichée actuellement vont être téléchargées pour être disponibles hors ligne",
+    "download_trail": "Les cartes correspondant au parcours vont être téléchargées pour être disponibles hors-ligne",
+    "download_map": "Les cartes de la zone affichée actuellement vont être téléchargées pour être disponibles hors-ligne",
     "select_layers": "Sélectionnez les cartes à télécharger",
     "parameters": "Paramètres",
     "max_zoom": "Niveau de zoom maximum à télécharger",
     "max_zoom_explaination": "Plus vous sélectionnez un niveau de zoom élevé, plus vous pourrez zoomer pendant votre parcours lorsque vous serez hors-ligne, mais en conséquence plus le temps de téléchargement sera long et plus cela nécessitera de la place de stockage sur votre appareil.",
-    "max_zoom_reco": "Une valeur entre 15 et 17 est recommendée. En deça de 15, le niveau de détail est souvent trop faible pour bien voir les petits chemins. Au dessus de 17, la taille du téléchargement est importante, et n'est générallement pas nécessaire pour parfaitement suivre un itinéraire.",
-    "padding": "Etendre la zone à télécharger (%)",
-    "padding_explaination_for_trail": "Pourcentage de la zone à télécharger autour de la zone du parcours (100% veut dire pas plus que le parcours). Permet de voir d'avantage autour du parcours en mode hors-ligne.",
-    "padding_explaination_for_map": "Pourcentage de la zone à télécharger autour de la zone actuellement affichée (100% veut dire pas plus que le parcours). Permet de voir une zone un peu plus large en mode hors-ligne.",
+    "max_zoom_reco": "Une valeur entre 15 et 17 est recommandée. En deçà de 15, le niveau de détail est souvent trop faible pour bien voir les petits chemins. Au-dessus de 17, la taille du téléchargement devient importante, alors qu'un tel niveau de détail n'est généralement pas nécessaire pour bien suivre un itinéraire.",
+    "padding": "Étendre la zone à télécharger (%)",
+    "padding_explaination_for_trail": "Pourcentage de la zone à télécharger autour de la zone du parcours (100% veut dire pas plus que le parcours). Permet de voir davantage autour du parcours en mode hors-ligne.",
+    "padding_explaination_for_map": "Pourcentage de la zone à télécharger autour de la zone actuellement affichée (100% veut dire pas plus que la zone affichée). Permet de voir une zone un peu plus large en mode hors-ligne.",
     "percent_done": "téléchargé",
     "remaining": "élément(s) restant(s)",
     "todo": "élément(s) à télécharger",
@@ -1309,7 +1309,7 @@
   },
   "synchro": {
     "in_progress": "Synchronisation en cours",
-    "offline": "Hors ligne",
+    "offline": "Hors-ligne",
     "last_sync": "Dernière synchronisation",
     "not_yet": "Pas encore",
     "local_changes": "Modifications locales",
@@ -1332,9 +1332,9 @@
   "loopType": {
     "ow": "Aller simple",
     "lp": "Boucle",
-    "hl": "Demi boucle",
+    "hl": "Demi-boucle",
     "sl": "Petite boucle",
-    "ob": "Aller retour"
+    "ob": "Aller-retour"
   },
   "activities_groups": {
     "pedestrian": "À pied",
@@ -1355,7 +1355,7 @@
     "skiing": "Ski",
     "running": "Course",
     "horseback-riding": "Cheval",
-    "via-ferrata": "Via Ferrata",
+    "via-ferrata": "Via ferrata",
     "rock-climbing": "Escalade",
     "canoe": "Canoë-kayak",
     "unspecified": "Non spécifié"
@@ -1421,10 +1421,10 @@
     "modal_title_singular": "Erreur",
     "modal_title_plural": "Erreurs",
     "import": {
-      "file_not_imported": "Le fichier '{{1}}' n'a pas pu être importé: {{2}}",
+      "file_not_imported": "Le fichier '{{1}}' n'a pas pu être importé : {{2}}",
       "not_gpx": "Le fichier n'est pas au format GPX ou est invalide"
     },
-    "download_offline_map": "{{1}} erreur(s) rencontrées lors du téléchargement des cartes",
+    "download_offline_map": "{{1}} erreur(s) rencontrée(s) lors du téléchargement des cartes",
     "stores": {
       "save_photo": "Erreur lors de l'envoi de la photo {{1}} vers le serveur",
       "save_track": "Erreur lors de l'envoi d'une trace vers le serveur",
@@ -1471,8 +1471,8 @@
     "trails_tags": "Vous avez atteint le nombre maximum de parcours taggués",
     "photos": "Vous avez atteint le nombre maximum de photos",
     "shares": "Vous avez atteint le nombre maximum de partages",
-    "photos_max": "Votre quota de photos est {{1}} et vous en avez déjà {{2}}: vous ne pouvez pas en ajouter {{3}} nouvelle(s)",
-    "photos_max_by_trail": "Il y a déjà {{1}}/{{2}} photos sur ce parcours: vous ne pouvez pas en ajouter {{3}} nouvelle(s)"
+    "photos_max": "Votre quota de photos est de {{1}} et vous en avez déjà {{2}} : vous ne pouvez pas en ajouter {{3}} nouvelle(s)",
+    "photos_max_by_trail": "Il y a déjà {{1}}/{{2}} photos sur ce parcours : vous ne pouvez pas en ajouter {{3}} nouvelle(s)"
   },
   "obsolete_message": {
     "title": "Mise à jour nécessaire",
@@ -1480,7 +1480,7 @@
   },
   "downloading_elevation": "Téléchargement des altitudes",
   "track_edit_tools": {
-    "title": "Editer",
+    "title": "Éditer",
     "categories": {
       "track": "Trace",
       "way_point": "Étape",
@@ -1502,12 +1502,12 @@
         "button_label": "Lisser avec un seuil de dénivelé",
         "elevation_threshold": "Seuil de dénivelé",
         "max_distance": "Distance maximum",
-        "explaination": "Le but du lissage est de gommer les imprécisions du GPS.<br/>Du fait de ces imprécisions, il arrive fréquemment que en quelques mètres de distance l'altitude monte et descende également de quelques mètres, alors que la réalité est une pente continue.<br/>Le lissage fonctionne donc comme suit:<ul><li>On recherche les sections dans lesquelles l'altitude a varié dans la limite du seuil configuré, et sur une distance maximum configurée.</li><li>Pour chaque section trouvée, on prend l'altitude de départ et l'altitude d'arrivée, et on lisse en une pente continue.</li><li>Afin d'éviter de perdre les points hauts ou les points bas du parcours, si nous trouvons un tel point au milieu de la section, nous réduisons la section pour conserver ce point.</li></ul>"
+        "explaination": "Le but du lissage est de gommer les imprécisions du GPS.<br/>Du fait de ces imprécisions, il arrive fréquemment qu'en quelques mètres de distance l'altitude monte et descende également de quelques mètres, alors que la réalité est une pente continue.<br/>Le lissage fonctionne donc comme suit :<ul><li>Nous recherchons les sections dans lesquelles l'altitude a varié dans la limite du seuil configuré, et sur une distance maximum configurée.</li><li>Pour chaque section trouvée, nous prenons l'altitude de départ et l'altitude d'arrivée, et nous lissons en une pente continue.</li><li>Afin d'éviter de perdre les points hauts ou les points bas du parcours, si nous trouvons un tel point au milieu de la section, nous réduisons la section pour conserver ce point.</li></ul>"
       },
       "selection": {
         "title": "Sélection",
         "extend_selection": "Étendre la sélection jusqu'à...",
-        "close": "Fermer la Sélection",
+        "close": "Fermer la sélection",
         "select_target_point": "Sélectionnez un point sur la carte ou le graphique d'altimétrie pour étendre la sélection jusqu'à ce point",
         "remove_all_next_points": "Supprimer tous les points après",
         "remove_all_previous_points": "Supprimer tous les points avant"
@@ -1557,21 +1557,21 @@
         "manual_value": "En entrant une altitude fixe manuellement",
         "manual_diff": "En entrant une différence à appliquer"
       },
-      "apply_default_improvements": "Appliquer les améliorations par défaut (celles utilisées lors de la création d'une trace)",
+      "apply_default_improvements": "Appliquer les améliorations par défaut (celles utilisées lors de l'enregistrement d'une trace)",
       "merge_segments": "Relier les points de pause et de reprise",
       "add_points": {
         "free": {
           "title": "Compléter avec des points libres"
         },
         "osm": {
-          "title": "Compléter avec des chemins Open Street Map"
+          "title": "Compléter avec des chemins OpenStreetMap"
         }
       }
     },
     "no_modification": "Aucune modification n'a été apportée par cette fonction",
     "close_confirmation": {
       "title": "Fermer l'éditeur de trace",
-      "message": "Vous n'avez pas enregistré vos modifications. Etes-vous sûr de vouloir fermer l'éditeur de la trace ?"
+      "message": "Vous n'avez pas enregistré vos modifications. Êtes-vous sûr de vouloir fermer l'éditeur de la trace ?"
     }
   },
   "go_to_position": "Aller à cette position",
@@ -1649,7 +1649,7 @@
       "wmth": "Sentiers balisés"
     },
     "errors": {
-      "no_net": "Certains éléments ne peuvent être affichés car vous êtes hors ligne"
+      "no_net": "Certains éléments ne peuvent être affichés car vous êtes hors-ligne"
     }
   },
   "relativeDates": {
@@ -1700,9 +1700,9 @@
   },
   "help": {
     "contextual": {
-      "original_trace": "La trace originale est la trace brute, telle que enregistrée par le GPS ou importée depuis un fichier.<p>Lorsque vous modifiez une trace, la trace d'origine est toujours conservée, ce qui permet de repartir à tout moment de la trace d'origine, qui sert de référence.</p><p>Même si vous n'avez pas modifié la trace manuellement, Trailence applique automatiquement des améliorations afin de gommer les imperfections du GPS.</p>",
+      "original_trace": "La trace d'origine est la trace brute, telle qu'enregistrée par le GPS ou importée depuis un fichier.<p>Lorsque vous modifiez une trace, la trace d'origine est toujours conservée, ce qui permet de repartir à tout moment de celle-ci, qui sert de référence.</p><p>Même si vous n'avez pas modifié la trace manuellement, Trailence applique automatiquement des améliorations afin de gommer les imperfections du GPS.</p>",
       "show_osm": "Nous faisons correspondre la trace aux chemins Open Street Map",
-      "estimated_duration": "La durée estimée est calculée à partir d'une vitesse de base sur du plat, puis pondérée en fonction du dénivelé, de la durée, et en tenant compte de petites pauses régulières (de 2 à 3 minutes toutes les heures environ).<p>Par défaut, la vistesse de base est de 5 km/h, ce qui correspond à la vitesse moyenne d'un randonneur. Vous pouvez modifier cette vitesse dans vos préférences.</p>",
+      "estimated_duration": "La durée estimée est calculée à partir d'une vitesse de base sur du plat, puis pondérée en fonction du dénivelé, de la durée, et en tenant compte de petites pauses régulières (de 2 à 3 minutes toutes les heures environ).<p>Par défaut, la vitesse de base est de 5 km/h, ce qui correspond à la vitesse moyenne d'un randonneur. Vous pouvez modifier cette vitesse dans vos préférences.</p>",
       "breaks": "Le temps de pauses correspond à la somme des pauses <i>longues</i>. Ce temps est décompté de la durée du parcours.<p>Nous distinguons les pauses <i>courtes</i> (par exemple pour se rafraîchir, admirer la vue, ...) et les pauses <i>longues</i> (par exemple pour pique-niquer).</p><p>Les pauses courtes font partie du temps de parcours affiché, car il est normal de les inclure. En revanche, lorsqu'une pause longue est détectée, son temps est déduit du temps de parcours, afin que le temps affiché ne dépende pas de la durée de votre sieste 😉. Le temps ainsi décompté est affiché dans la partie <i>Pauses</i>.</p><p>Les pauses <i>longues</i> sont des pauses d'au moins {{1}} minutes. Ce temps est configurable dans vos préférences.</p>"
     }
   },
@@ -1759,7 +1759,7 @@
           "2": "Chemin",
           "3": "Escalier",
           "4": "Via ferrata",
-          "5": "Echelle"
+          "5": "Échelle"
         }
       },
       "surface": {
@@ -1803,7 +1803,7 @@
     },
     "messages": {
       "no_match": "Aucune information disponible",
-      "partial_data": "Certaines information n'ont pas été téléchargées, les résultats sont incomplets",
+      "partial_data": "Certaines informations n'ont pas été téléchargées, les résultats sont incomplets",
       "no_data": "Pas de données téléchargées"
     }
   },
@@ -1826,7 +1826,7 @@
       "invalidEmail": "Veuillez entrer un email valide",
       "duplicate": "Cet email est déjà présent",
       "atLeastOneEmailIsRequired": "Veuillez entrer au moins un email",
-      "cannotAddYourself": "Vous ne pouvez pas vous ajouter vous même"
+      "cannotAddYourself": "Vous ne pouvez pas vous ajouter vous-même"
     }
   }
 }

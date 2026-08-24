@@ -429,7 +429,7 @@
                 ],
                 "footer": "🙏 Obrigado pela sua contribuição!"
               },
-              "send_error": "Erro ao enviar o seu comentário"
+              "send_error": "Erro ao enviar a sua avaliação"
             }
           },
           "delete_comment_confirmation": {
@@ -447,7 +447,7 @@
           "has_done_this_trail": "seguiu este percurso ✅",
           "filter_has_done_this_trail": "Incluir as pessoas que seguiram este percurso",
           "show_reviews_with_rate": "Filtro ativo: classificações de {{1}}/5",
-          "not_authenticated": "Inicie sessão para ver os comentários",
+          "not_authenticated": "Inicie sessão para ver as avaliações",
           "not_connected": "É necessária ligação à Internet para obter as avaliações"
         }
       },
@@ -1246,7 +1246,7 @@
     "max_zoom_reco": "Recomenda-se um valor entre 15 e 17. Abaixo de 15, o nível de detalhe é frequentemente demasiado baixo para ver bem os pequenos caminhos. Acima de 17, o tamanho da transferência é considerável e, geralmente, não é necessário para seguir perfeitamente um itinerário.",
     "padding": "Estender a área a transferir (%)",
     "padding_explaination_for_trail": "Percentagem da área a transferir em redor da área do percurso (100% significa não mais do que o percurso). Permite ver mais em redor do percurso no modo offline.",
-    "padding_explaination_for_map": "Percentagem da área a transferir em redor da área atualmente apresentada (100% significa não mais do que o percurso). Permite ver uma área um pouco maior no modo offline.",
+    "padding_explaination_for_map": "Percentagem da área a transferir em redor da área atualmente apresentada (100% significa não mais do que a área apresentada). Permite ver uma área um pouco maior no modo offline.",
     "percent_done": "transferido",
     "remaining": "elemento(s) restante(s)",
     "todo": "elemento(s) a transferir",
@@ -1557,7 +1557,7 @@
         "manual_value": "Introduzindo manualmente uma altitude fixa",
         "manual_diff": "Introduzindo uma diferença a aplicar"
       },
-      "apply_default_improvements": "Aplicar as melhorias predefinidas (as utilizadas durante a criação de um traçado)",
+      "apply_default_improvements": "Aplicar as melhorias predefinidas (as utilizadas durante a gravação de um traçado)",
       "merge_segments": "Unir os pontos de pausa e de retoma",
       "add_points": {
         "free": {

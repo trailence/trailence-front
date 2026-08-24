@@ -429,7 +429,7 @@
                 ],
                 "footer": "🙏 Grazie per il tuo contributo!"
               },
-              "send_error": "Errore durante l'invio del tuo commento"
+              "send_error": "Errore durante l'invio della tua recensione"
             }
           },
           "delete_comment_confirmation": {
@@ -447,7 +447,7 @@
           "has_done_this_trail": "ha seguito questo percorso ✅",
           "filter_has_done_this_trail": "Includi le persone che hanno seguito questo percorso",
           "show_reviews_with_rate": "Filtro attivo: valutazioni di {{1}}/5",
-          "not_authenticated": "Accedi per vedere i commenti",
+          "not_authenticated": "Accedi per vedere le recensioni",
           "not_connected": "Connessione a internet necessaria per recuperare le recensioni"
         }
       },
@@ -1246,7 +1246,7 @@
     "max_zoom_reco": "Si raccomanda un valore compreso tra 15 e 17. Al di sotto di 15, il livello di dettaglio è spesso troppo basso per vedere bene i piccoli sentieri. Al di sopra di 17, la dimensione del download è notevole e generalmente non è necessaria per seguire perfettamente un itinerario.",
     "padding": "Estendi l'area da scaricare (%)",
     "padding_explaination_for_trail": "Percentuale dell'area da scaricare attorno all'area del percorso (100% significa non più del percorso). Permette di vedere di più attorno al percorso in modalità offline.",
-    "padding_explaination_for_map": "Percentuale dell'area da scaricare attorno all'area attualmente visualizzata (100% significa non più del percorso). Permette di vedere un'area un po' più ampia in modalità offline.",
+    "padding_explaination_for_map": "Percentuale dell'area da scaricare attorno all'area attualmente visualizzata (100% significa non più dell'area visualizzata). Permette di vedere un'area un po' più ampia in modalità offline.",
     "percent_done": "scaricato",
     "remaining": "elementi rimanenti",
     "todo": "elementi da scaricare",
@@ -1557,7 +1557,7 @@
         "manual_value": "Inserendo manualmente un'altitudine fissa",
         "manual_diff": "Inserendo una differenza da applicare"
       },
-      "apply_default_improvements": "Applica i miglioramenti predefiniti (quelli utilizzati durante la creazione di una traccia)",
+      "apply_default_improvements": "Applica i miglioramenti predefiniti (quelli utilizzati durante la registrazione di una traccia)",
       "merge_segments": "Collega i punti di pausa e di ripresa",
       "add_points": {
         "free": {

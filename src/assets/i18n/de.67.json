@@ -429,7 +429,7 @@
                 ],
                 "footer": "🙏 Vielen Dank für Ihren Beitrag!"
               },
-              "send_error": "Fehler beim Senden Ihres Kommentars"
+              "send_error": "Fehler beim Senden Ihrer Rezension"
             }
           },
           "delete_comment_confirmation": {
@@ -447,7 +447,7 @@
           "has_done_this_trail": "ist dieser Tour gefolgt ✅",
           "filter_has_done_this_trail": "Personen einbeziehen, die dieser Tour gefolgt sind",
           "show_reviews_with_rate": "Aktiver Filter: Bewertungen von {{1}}/5",
-          "not_authenticated": "Melden Sie sich an, um die Kommentare zu sehen",
+          "not_authenticated": "Melden Sie sich an, um die Rezensionen zu sehen",
           "not_connected": "Internetverbindung erforderlich, um die Rezensionen abzurufen"
         }
       },
@@ -1246,7 +1246,7 @@
     "max_zoom_reco": "Ein Wert zwischen 15 und 17 wird empfohlen. Unter 15 ist der Detailgrad oft zu gering, um kleine Wege gut zu erkennen. Über 17 ist die Downloadgröße erheblich und in der Regel nicht nötig, um einer Route genau zu folgen.",
     "padding": "Herunterzuladenden Bereich erweitern (%)",
     "padding_explaination_for_trail": "Prozentsatz des herunterzuladenden Bereichs rund um die Tour (100 % bedeutet nicht mehr als die Tour). Ermöglicht es, im Offline-Modus mehr rund um die Tour zu sehen.",
-    "padding_explaination_for_map": "Prozentsatz des herunterzuladenden Bereichs rund um den aktuell angezeigten Bereich (100 % bedeutet nicht mehr als die Tour). Ermöglicht es, im Offline-Modus einen etwas größeren Bereich zu sehen.",
+    "padding_explaination_for_map": "Prozentsatz des herunterzuladenden Bereichs rund um den aktuell angezeigten Bereich (100 % bedeutet nicht mehr als der angezeigte Bereich). Ermöglicht es, im Offline-Modus einen etwas größeren Bereich zu sehen.",
     "percent_done": "heruntergeladen",
     "remaining": "verbleibende(s) Element(e)",
     "todo": "herunterzuladende(s) Element(e)",
@@ -1551,13 +1551,13 @@
         "remove_waypoint_confirmation": "Möchten Sie den Wegpunkt wirklich löschen?"
       },
       "set_elevation_on_range": {
-        "with_start": "Anhand der des ersten ausgewählten Punktes",
-        "with_end": "Anhand der des letzten ausgewählten Punktes",
+        "with_start": "Anhand der Höhe des ersten ausgewählten Punktes",
+        "with_end": "Anhand der Höhe des letzten ausgewählten Punktes",
         "smoothing": "Durch Glätten vom ersten bis zum letzten ausgewählten Punkt",
         "manual_value": "Durch manuelle Eingabe einer festen Höhe",
         "manual_diff": "Durch Eingabe einer anzuwendenden Differenz"
       },
-      "apply_default_improvements": "Standardverbesserungen anwenden (die bei der Erstellung eines Tracks verwendeten)",
+      "apply_default_improvements": "Standardverbesserungen anwenden (die bei der Aufzeichnung eines Tracks verwendet werden)",
       "merge_segments": "Pausen- und Fortsetzungspunkte verbinden",
       "add_points": {
         "free": {
