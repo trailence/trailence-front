@@ -9,6 +9,8 @@ const wordRe = /[a-z]/i;
 
 export const EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z\-0-9]{2,}))$/; // NOSONAR
 
+export const NULL_UUID = '00000000-0000-0000-0000-000000000000';
+
 export class StringUtils {
 
   public static padLeft(s: string, minLength: number, pad: string): string {

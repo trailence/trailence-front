@@ -256,6 +256,9 @@ body.dark-map {
     path[stroke=black] {
       stroke: white;
     }
+    path.track-arrow-border {
+      stroke: #00000060;
+    }
 
     app-toolbar {
       background-color: #000000;

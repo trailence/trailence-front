@@ -1,13 +1,12 @@
-import * as crypto from 'crypto';
-import { TrailCollectionDto } from 'front/model/dto/trail-collection';
-import { TrailDto } from 'front/app/model/dto/trail';
-import { Config } from 'src/config/config';
-import { TrackDto } from 'front/model/dto/track';
-import { Photo } from 'front/model/photo';
-import { PhotoDto } from 'front/model/dto/photo';
-import { AuthResponse } from 'front/services/auth/auth-response';
-import { Preferences } from 'front/services/preferences/preferences';
-import { PublicTrack, PublicTrail } from 'front/services/fetch-source/trailence.plugin';
+import * as crypto from 'node:crypto';
+import { TrailCollectionDto } from '@front/model/dto/trail-collection';
+import { TrailDto } from '@front/model/dto/trail';
+import { Config } from '@scripts/config/config';
+import { TrackDto } from '@front/model/dto/track';
+import { PhotoDto } from '@front/model/dto/photo';
+import { AuthResponse } from '@front/services/auth/auth-response';
+import { Preferences } from '@front/services/preferences/preferences';
+import { PublicTrack, PublicTrail } from '@front/services/fetch-source/trailence.plugin';
 
 export class TrailenceClient {
 
@@ -299,7 +298,7 @@ export class TrailenceClient {
       'Authorization': 'Bearer ' + await this.getAccessToken(),
       'Content-Type': 'application/octet-stream',
       'X-Description': encodeURIComponent(photo.description),
-      'X-Cover': photo.isCover ? 'true' : 'false',
+      'X-Cover': photo.cover ? 'true' : 'false',
       'X-Index': photo.index,
     };
     if (photo.dateTaken) headers['X-DateTaken'] = photo.dateTaken;

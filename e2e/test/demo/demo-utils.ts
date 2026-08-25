@@ -55,7 +55,7 @@ export async function setTheme(theme: 'dark' | 'light') {
 
 export async function openMyTrails() {
   await setLang('en');
-  return await (await App.openMenu()).openCollection('My Trails');
+  return await (await App.openMenu()).openCollection('My trails');
 }
 
 export async function takeScreenshot(filename: string) {

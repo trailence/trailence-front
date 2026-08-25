@@ -119,8 +119,8 @@ describe('Trails Tools', () => {
     trail = await list.findItemByTrailName('Près de Tourves');
     await trail!.selectTrail();
 
-    await (await list.openSelectionMenu()).clickItemWithText('Merge these tracks');
-    trailPage = await TrailPage.waitForName('Merged track');
+    await (await list.openSelectionMenu()).clickItemWithText('Merge these trails');
+    trailPage = await TrailPage.waitForName('Merged trail');
     await trailPage.trailComponent.openDetails();
     const duration = await trailPage.trailComponent.getMetadataValueByTitle('Duration' ,true);
 

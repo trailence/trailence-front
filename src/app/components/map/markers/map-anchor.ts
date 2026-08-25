@@ -16,6 +16,7 @@ export class MapAnchor {
     public fillColor?: string,
     public fillColor2?: string,
     rotateOnMouseHover: boolean = true,
+    interactive: boolean = true,
     public data: any = undefined,
   ) {
     this.marker = L.marker(point, {
@@ -25,12 +26,14 @@ export class MapAnchor {
         iconAnchor: [20, 40],
         className: 'anchor text-' + text.replace('/', '_'),
       }),
-      interactive: true,
+      interactive: interactive,
       title
     });
-    this.marker.on('click', e => {
-      if (this.onClick) this.onClick();
-    });
+    if (interactive) {
+      this.marker.on('click', e => {
+        if (this.onClick) this.onClick();
+      });
+    }
     if (rotateOnMouseHover) {
       let rotate = false;
       const mousemovelistener = (event: L.LeafletMouseEvent) => {

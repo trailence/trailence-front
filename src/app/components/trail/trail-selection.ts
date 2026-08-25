@@ -41,7 +41,7 @@ export class TrailSelection {
     })
   }
 
-  private readonly selectedPointAnchor = new MapAnchor({lat: 0, lng: 0}, '#6060FFC0', undefined, undefined, undefined, '#6060FF80', undefined);
+  private readonly selectedPointAnchor = new MapAnchor({lat: 0, lng: 0}, '#6060FFC0', undefined, undefined, undefined, '#6060FF80', undefined, true, false);
 
   private readonly _mapClickSubscription: Subscription;
   private readonly _elevationGraphClickSubscription: Subscription;

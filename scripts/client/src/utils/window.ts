@@ -3,16 +3,16 @@ export async function configureWindow() {
   const urlModule = await import('node:url');
   const bufferModule = await import('node:buffer');
   class CustomResourceLoader extends jsdomModule.ResourceLoader {
-    fetch(url: string, options: any) {
+    override fetch(url: string, options: any) {
       if (url.startsWith('blob:nodedata:')) {
-        return bufferModule.resolveObjectURL(url)!.arrayBuffer().then(b => bufferModule.Buffer.from(b));
+        return bufferModule.resolveObjectURL(url)!.arrayBuffer().then(b => bufferModule.Buffer.from(b)) as any;
       }
       return super.fetch(url, options);
     }
   }
   const jsdom = new jsdomModule.JSDOM('',{resources: new CustomResourceLoader()});
   (global as any).jsdom = jsdom;
-  global.window = jsdom.window;
+  global.window = jsdom.window as any;
   global.document = window.document;
   (global as any).window.URL = urlModule.URL;
 }

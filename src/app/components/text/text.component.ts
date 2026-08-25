@@ -29,7 +29,9 @@ import { StringUtils } from 'src/app/utils/string-utils';
       </div>
     } @else if (showOriginal) {
       <div class="translated-from">
-        <span class="view-original" (click)="viewOriginal(false)">{{ i18n.texts.translations.view_translated }}</span>
+        <span class="view-original" (click)="viewOriginal(false)">
+          {{ translations?.[prefs.preferences.lang] ? i18n.texts.translations.view_translated : i18n.texts.translations.view_translated_default }}
+        </span>
       </div>
     }
   </div>`,
@@ -80,7 +82,7 @@ export class TextComponent implements OnChanges, OnInit, OnDestroy {
 
   constructor(
     private readonly sanitizer: DomSanitizer,
-    private readonly prefs: PreferencesService,
+    public readonly prefs: PreferencesService,
     public readonly i18n: I18nService,
     private readonly changeDetector: ChangeDetectorRef,
   ) {}
@@ -112,12 +114,12 @@ export class TextComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   private update(): void {
-    if (this.showOriginal || !this.translations || !this.lang || this.lang === this.prefs.preferences.lang || !this.translations[this.prefs.preferences.lang]) {
+    if (this.showOriginal || !this.translations || !this.lang || this.lang === this.prefs.preferences.lang || (!this.translations[this.prefs.preferences.lang] && !this.translations['en'])) {
       this.html = this.sanitizer.sanitize(SecurityContext.HTML, this.getText(this.text)) ?? '';
       this.translatedFrom = undefined;
     } else {
       this.translatedFrom = this.lang;
-      this.html = this.sanitizer.sanitize(SecurityContext.HTML, this.getText(this.translations[this.prefs.preferences.lang])) ?? '';
+      this.html = this.sanitizer.sanitize(SecurityContext.HTML, this.getText(this.translations[this.prefs.preferences.lang] ?? this.translations['en'])) ?? '';
     }
   }
 

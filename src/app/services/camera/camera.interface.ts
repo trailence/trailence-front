@@ -7,3 +7,5 @@ export interface ICameraService {
   takePhoto(latitude: number | undefined, longitude: number | undefined): Promise<BinaryContent>;
 
 }
+
+export const TAKE_PHOTO_CANCELLED_ERROR = 'User cancelled photos app';

@@ -47,10 +47,10 @@ describe('Copy / Move Trails', () => {
     await expectListContains(await copyPage.trailsAndMap.openTrailsList(), EXPECTED_TRAILS);
     (await copyPage.header.openActionsMenu()).clickItemWithText('Delete')
     const alertDelete = await App.waitAlert();
-    expect(await alertDelete.getTitle()).toBe('Delete Collection');
+    expect(await alertDelete.getTitle()).toBe('Delete collection');
     await alertDelete.clickButtonWithRole('danger');
 
-    await browser.waitUntil(() => browser.getTitle().then(title => title === 'My Trails - Trailence'));
+    await browser.waitUntil(() => browser.getTitle().then(title => title === 'My trails - Trailence'));
     await App.waitNoProgress();
   });
 

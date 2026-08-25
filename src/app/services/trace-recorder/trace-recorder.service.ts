@@ -36,6 +36,7 @@ import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from 'src/app/worker/web-app';
 import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
 import { NetworkService } from '../network/network.service';
+import { TAKE_PHOTO_CANCELLED_ERROR } from '../camera/camera.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -298,7 +299,15 @@ export class TraceRecorderService {
 
   public takePhoto() {
     const location = this.current?.track?.arrivalPoint;
-    this.cameraService.takePhoto(location?.pos?.lat, location?.pos?.lng).then(photo => this.addPhoto(photo));
+    this.cameraService.takePhoto(location?.pos?.lat, location?.pos?.lng)
+      .then(photo => this.addPhoto(photo))
+      .catch(e => {
+        Console.error('Error taking photo', e);
+        try {
+          if (e['message'] === TAKE_PHOTO_CANCELLED_ERROR) return;
+        } catch (_) { /* ignore */ }
+        this.errorService.addError(e);
+      });
   }
 
   public async addPhoto(binary: BinaryContent) {

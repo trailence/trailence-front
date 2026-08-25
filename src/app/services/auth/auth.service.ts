@@ -364,7 +364,7 @@ export class AuthService {
       this.db = undefined;
       logout$ = logout$.then(() => db.delete().then(() => db.close()).catch(_ => true));
     }
-    this._auth$.next(null);
+    logout$ = logout$.then(() => this._auth$.next(null));
     if (withDelete) {
       for (let i = 0; i < localStorage.length; ++i) {
         const key = localStorage.key(i);

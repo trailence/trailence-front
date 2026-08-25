@@ -1,14 +1,14 @@
 import { Importer, ImportLimits, ImportOutput } from '../importer';
-import { TrailenceClient } from '../../trailence/trailence-client';
-import { Config } from 'src/config/config';
+import { TrailenceClient } from '@scripts/trailence/trailence-client';
+import { Config } from '@scripts/config/config';
 import { GeoTrekDto, GeoTrekResponse, GeoTrekTranslations } from './geotrek-dtos';
-import { PointDescriptor } from 'front/model/point-descriptor.js';
-import { TrailDto } from 'front/model/dto/trail.js';
-import { Photo } from 'front/model/photo';
-import { preferences } from 'src/trailence/preferences';
-import { WayPoint } from 'front/model/way-point.js';
-import { fixWayPointsPosition } from 'src/utils/way-points';
-import { distance } from 'src/utils/crs';
+import { PointDescriptor } from '@front/model/point-descriptor.js';
+import { TrailDto } from '@front/model/dto/trail.js';
+import { Photo } from '@front/model/photo';
+import { preferences } from '@scripts/trailence/preferences';
+import { WayPoint } from '@front/model/way-point.js';
+import { fixWayPointsPosition } from '@scripts/utils/way-points';
+import { distance } from '@scripts/utils/crs';
 
 export class GeoTrekImport extends Importer {
 
@@ -254,7 +254,7 @@ export class GeoTrekImport extends Importer {
     });
 
     // waypoints
-    const wayPointModule = await import('front/model/way-point.js');
+    const wayPointModule = await import('@front/model/way-point.js');
     const wayPoints: WayPoint[] = [];
     if (trek.points_reference && trek.points_reference.type === 'MultiPoint') {
       for (const coord of trek.points_reference.coordinates) {
@@ -320,7 +320,7 @@ export class GeoTrekImport extends Importer {
         }
       }
     });
-    const pointDescriptorModule = await import('front/model/point-descriptor.js');
+    const pointDescriptorModule = await import('@front/model/point-descriptor.js');
     if (wayPoints.length === 1 && pointDescriptorModule.pointsAreEqual(wayPoints[0].point, track[0][0])) {
       if (wayPoints[0].description) {
         this.getTranslations(trek.description, lang, trek.published, (defaultValue, translations) => {
@@ -767,10 +767,10 @@ export class GeoTrekImport extends Importer {
       try {
         console.log('Downloading photo ' + info.url);
         const file = await (await fetch(info.url)).arrayBuffer();
-        const module = await import('front/worker/functions/import-photo.js');
+        const module = await import('@front/worker/functions/import-photo.js');
         photos.push(await (
           module.importPhoto(owner, trailUuid, info.description, photos.length + 1, file, preferences, undefined, undefined, undefined, undefined, info.uuid)
-          .then(result => ({blob: result.blob, photo: new Photo(result.photo)}))
+          .then(result => ({blob: new Blob([result.jpeg], {type: 'image/jpeg'}), photo: new Photo(result.photo)}))
         ));
       } catch (e) {
         console.warn('Cannot get trek photo', e);

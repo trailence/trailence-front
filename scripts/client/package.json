@@ -2,14 +2,16 @@
   "name": "import-public-trails",
   "type": "module",
   "devDependencies": {
+    "@types/jsdom": "^27.0.0",
+    "@types/node": "^26.3.0"
   },
   "scripts": {
     "import-public-trails": "node --import=tsx ./src/import-public-trails.ts --mode=%npm_config_mode% --remote=%npm_config_remote%",
     "fix-loop-type": "node --import=tsx ./src/recompute-public-trails-loop-type.ts --mode=%npm_config_mode%"
   },
   "dependencies": {
+    "canvas": "^3.2.0",
     "jsdom": "^26.1.0",
-    "rxjs": "~7.8.2",
-    "canvas": "^3.2.0"
+    "rxjs": "~7.8.2"
   }
 }

@@ -4,13 +4,15 @@ import { handleMapOffline } from './map-tiles-layer-offline';
 import { NetworkService } from '../network/network.service';
 import { OfflineMapService } from './offline-map.service';
 import { ExtensionsService } from '../database/extensions.service';
-import { Observable } from 'rxjs';
+import { from, Observable } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { I18nService } from '../i18n/i18n.service';
 
 const LOCALSTORAGE_KEY_DARKMAP = 'trailence.dark-map';
+
+export type MapDownloadType = 'native' | 'angular' | 'fetch';
 
 export interface MapLayer {
 
@@ -25,9 +27,11 @@ export interface MapLayer {
   getTileUrl(layer: L.TileLayer, coords: L.Coords, crs?: L.CRS): string;
 
   maxConcurrentRequests: number;
-  doNotUseNativeHttp: boolean;
+  downloadType: MapDownloadType;
   tileSize: number;
   tileMimeFormat: string;
+  minZoom: number;
+  maxZoom: number;
 
 }
 
@@ -56,7 +60,7 @@ export class MapLayersService {
         maxZoom: 19,
         copyright: '&copy; <a href="http://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
         maxConcurrentRequests: 2,
-        doNotUseNativeHttp: true,
+        downloadType: 'angular',
         mimeFormat: 'image/png',
         example: 'osm.png',
       }),
@@ -69,6 +73,7 @@ export class MapLayersService {
         maxConcurrentRequests: 2,
         mimeFormat: 'image/png',
         example: 'otm.png',
+        downloadType: 'angular',
       }),
       createDefaultLayer(injector, {
         name: 'cyclosm',
@@ -77,7 +82,7 @@ export class MapLayersService {
         maxZoom: 20,
         copyright: '<a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases" target="_blank">CyclOSM</a> Map data &copy; <a href="http://www.openstreetmap.org" target="_blank">OpenStreetMap</a> contributors',
         maxConcurrentRequests: 2,
-        doNotUseNativeHttp: true,
+        downloadType: 'angular',
         mimeFormat: 'image/png',
         example: 'cyclosm.png',
       }),
@@ -93,6 +98,7 @@ export class MapLayersService {
         example: 'ngi-be-topo.png',
         additionalOptions: {minZoom: 7},
         regional: {code: 'be'},
+        downloadType: 'angular',
       }),
       createWmsLayer(injector, {
         name: 'ngi-be-sat',
@@ -107,6 +113,7 @@ export class MapLayersService {
         copyright: '&copy; <a href="https://ngi.be/" target="_blank">ngi.be</a>',
         example: 'ngi-be-sat.jpg',
         regional: { code: 'be' },
+        downloadType: 'angular',
       }),
       // spain
       createWmtsLayer(injector, {
@@ -122,6 +129,7 @@ export class MapLayersService {
         copyright: '&copy; Instituto Geográfico Nacional',
         example: 'ign-es.png',
         regional: {code: 'es'},
+        downloadType: 'angular',
       }),
       createDefaultLayer(injector, {
         name: 'ign-es-sat',
@@ -162,6 +170,7 @@ export class MapLayersService {
         copyright: '&copy; IGN France',
         example: 'ign.png',
         regional: {code: 'fr'},
+        downloadType: 'angular',
       }),
       createWmtsLayer(injector, {
         name: 'ign-sat',
@@ -176,6 +185,7 @@ export class MapLayersService {
         copyright: '&copy; IGN France',
         example: 'ign-sat.png',
         regional: {code: 'fr'},
+        downloadType: 'angular',
       }),
       createDefaultLayer(injector, {
         name: 'osm-fr',
@@ -184,7 +194,7 @@ export class MapLayersService {
         maxZoom: 20,
         copyright: '<a href="https://www.openstreetmap.fr/mentions-legales/">OSM France</a> Data &copy; <a href="http://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
         maxConcurrentRequests: 2,
-        doNotUseNativeHttp: true,
+        downloadType: 'angular',
         mimeFormat: 'image/png',
         example: 'osmfr.png',
         regional: {code: 'fr'},
@@ -203,6 +213,7 @@ export class MapLayersService {
         copyright: '&copy; Kartverket',
         example: 'kartverket.png',
         regional: {code: 'no'},
+        downloadType: 'angular',
       }),
       // sweden
       createWmtsLayer(injector, {
@@ -218,6 +229,7 @@ export class MapLayersService {
         copyright: '&copy; Lantmäteriet',
         example: 'lantmateriet.png',
         regional: {code: 'se'},
+        downloadType: 'angular',
       }),
       createWmsLayer(injector, {
         name: 'lantmateriet-sat',
@@ -232,6 +244,7 @@ export class MapLayersService {
         copyright: '&copy; Lantmäteriet',
         example: 'lantmateriet-sat.jpg',
         regional: { code: 'se' },
+        downloadType: 'angular',
       }),
       // swiss
       createDefaultLayer(injector, {
@@ -245,6 +258,7 @@ export class MapLayersService {
         example: 'swiss-topo.png',
         additionalOptions: {minZoom: 2, bounds: [[45.398181, 5.140242], [48.230651, 11.47757]]},
         regional: {code: 'ch'},
+        downloadType: 'angular',
       }),
       // us
       createDefaultLayer(injector, {
@@ -257,6 +271,7 @@ export class MapLayersService {
         mimeFormat: 'image/jpeg',
         example: 'usgs-topo.png',
         regional: {code: 'us'},
+        downloadType: 'angular',
       }),
       createDefaultLayer(injector, {
         name: 'usgs-sat',
@@ -268,6 +283,7 @@ export class MapLayersService {
         mimeFormat: 'image/jpeg',
         example: 'usgs-sat.jpg',
         regional: {code: 'us'},
+        downloadType: 'angular',
       }),
 
       //createDefaultLayer('osmch', 'Open Street Map Swiss', 'https://tile.osm.ch/osm-swiss-style/{z}/{x}/{y}.png', 19, '&copy; <a href="https://sosm.ch/" target="_blank">Swiss OpenStreetMap Association</a>', 2, false, 'image/png'),
@@ -314,11 +330,8 @@ export class MapLayersService {
         previousTfoKey = thunderforest?.data['apikey'];
       }
     );
-    this.possibleLayers = [
-      'osm', 'osmfr', 'otm', 'cyclosm', 'ign', 'ign-sat',
-      'kartverket', 'swiss-topo', 'usgs-topo', 'usgs-sat', 'ngi-be-topo', 'lantmateriet',
-      'tfo'
-    ];
+    this.possibleLayers = this.layers.map(l => l.name);
+    this.possibleLayers.push('tfo');
     const darkmap = localStorage.getItem(LOCALSTORAGE_KEY_DARKMAP);
     if (darkmap) this.toggleDarkMap();
   }
@@ -328,10 +341,14 @@ export class MapLayersService {
   }
 
   public getBlob(layer: MapLayer, url: string): Observable<Blob> {
-    if (layer.doNotUseNativeHttp) {
-      return this.injector.get(HttpClient).get(url, {responseType: 'blob'});
+    switch (layer.downloadType) {
+      case 'native':
+        return this.injector.get(HttpService).getBlob(url);
+      case 'angular':
+        return this.injector.get(HttpClient).get(url, {responseType: 'blob'});
+      case 'fetch':
+        return from(fetch(url).then(r => r.blob()));
     }
-    return this.injector.get(HttpService).getBlob(url);
   }
 
   public get darkMapEnabled(): boolean { return this._darkMap; }
@@ -383,11 +400,11 @@ interface BaseLayerConfig {
   example: string,
   regional?: RegionalSettings,
   additionalOptions?: Partial<L.TileLayerOptions>,
+  downloadType?: MapDownloadType,
 }
 
 interface DefaultLayerConfig extends BaseLayerConfig {
   urlTemplate: string,
-  doNotUseNativeHttp?: boolean,
 }
 
 function createDefaultLayer( // NOSONAR
@@ -405,12 +422,26 @@ function createDefaultLayer( // NOSONAR
         y: coords.y,
         z: zoom,
       } as any;
-      if (crs && !crs.infinite && (layer as any)._globalTileRange) {
-        const invertedY = (layer as any)._globalTileRange.max.y - coords.y;
-        if (layer.options.tms) {
-          data['y'] = invertedY;
+      if (crs && !crs.infinite) {
+        let maxY: number | undefined = undefined;
+        if ((layer as any)._globalTileRange) maxY = (layer as any)._globalTileRange.max?.y;
+        if (maxY === undefined) {
+          const bounds = crs.getProjectedBounds(zoom);
+          if (bounds) {
+            const tileSize = layer.getTileSize();
+            maxY = new L.Bounds(
+              bounds.min!.unscaleBy(tileSize).floor(),
+              bounds.max!.unscaleBy(tileSize).ceil().subtract([1, 1])
+            ).max?.y;
+          }
         }
-        data['-y'] = invertedY;
+        if (maxY !== undefined) {
+          const invertedY = maxY - coords.y;
+          if (layer.options.tms) {
+            data['y'] = invertedY;
+          }
+          data['-y'] = invertedY;
+        }
       }
       return L.Util.template((layer as any)._url, L.Util.extend(data, layer.options));
   };
@@ -429,8 +460,10 @@ function createDefaultLayer( // NOSONAR
     }), getTileUrl, injector.get(NetworkService), injector.get(OfflineMapService), injector.get(I18nService)),
     getTileUrl,
     maxConcurrentRequests: config.maxConcurrentRequests,
-    doNotUseNativeHttp: config.doNotUseNativeHttp ?? false,
+    downloadType: config.downloadType ?? 'native',
     tileSize: 256,
+    minZoom: config.additionalOptions?.minZoom ?? 0,
+    maxZoom: config.maxZoom,
   };
 }
 
@@ -475,8 +508,10 @@ function _createIgnLayer( // NOSONAR
     }), getTileUrl, injector.get(NetworkService), injector.get(OfflineMapService), injector.get(I18nService)),
     getTileUrl,
     maxConcurrentRequests: baseConfig.maxConcurrentRequests,
-    doNotUseNativeHttp: false,
+    downloadType: baseConfig.downloadType ?? 'native',
     tileSize: 256,
+    minZoom: baseConfig.additionalOptions?.minZoom ?? 0,
+    maxZoom: baseConfig.maxZoom,
   };
 }
 
@@ -494,8 +529,12 @@ function createWmsLayer(injector: Injector, config: WmsMapLayerConfig): MapLayer
   const getTileUrl = (layer: L.TileLayer, coords: L.Coords, mapCrs?: L.CRS) => {
     const l = layer as L.TileLayer.WMS;
     const la = layer as any;
-    const tileBounds = la._tileCoordsToNwSe(coords);
-    const crs = mapCrs ?? la._crs;
+		const nwPoint = coords.scaleBy(layer.getTileSize());
+		const sePoint = nwPoint.add(layer.getTileSize());
+    const crs: L.CRS = mapCrs ?? la._crs ?? L.CRS.EPSG3857;
+    const nw = crs.pointToLatLng(L.point(nwPoint), coords.z)
+    const se = crs.pointToLatLng(L.point(sePoint), coords.z)
+		const tileBounds = [nw, se];
     const bounds = L.bounds(crs.project(tileBounds[0]), crs.project(tileBounds[1]));
     const min = bounds.min!;
     const max = bounds.max!;
@@ -526,7 +565,9 @@ function createWmsLayer(injector: Injector, config: WmsMapLayerConfig): MapLayer
     }), getTileUrl, injector.get(NetworkService), injector.get(OfflineMapService), injector.get(I18nService)),
     getTileUrl,
     maxConcurrentRequests: config.maxConcurrentRequests,
-    doNotUseNativeHttp: false,
+    downloadType: config.downloadType ?? 'native',
     tileSize: 256,
+    minZoom: config.additionalOptions?.minZoom ?? 0,
+    maxZoom: config.maxZoom,
   };
 }

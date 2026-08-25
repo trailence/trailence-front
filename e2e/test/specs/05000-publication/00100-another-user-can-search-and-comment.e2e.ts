@@ -33,7 +33,7 @@ describe('Publication - Another user can search and comment', () => {
   });
 
   it('End', async () => {
-    await (await trailPage.header.openAppMenu()).openCollection('My Trails');
+    await (await trailPage.header.openAppMenu()).openCollection('My trails');
     await App.logout(false);
     await App.end();
   });

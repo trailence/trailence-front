@@ -1,4 +1,4 @@
-import { ComputedPreferences } from 'front/services/preferences/preferences';
+import { ComputedPreferences } from '@front/services/preferences/preferences';
 import { EMPTY } from 'rxjs';
 
 export const preferences: ComputedPreferences = {

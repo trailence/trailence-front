@@ -317,7 +317,7 @@ export class TrackBuilder {
   }
 
   private createAnchor(pos: L.LatLngLiteral, text: string, canRotate: boolean): MapAnchor {
-    return new MapAnchor(pos, '#d00000', text, undefined, '#ffffff', '#d00000', undefined, canRotate);
+    return new MapAnchor(pos, '#d00000', text, undefined, '#ffffff', '#d00000', undefined, canRotate, false);
   }
 
   private newPoint(pos: L.LatLngLiteral, using: MapTrack | undefined): void {

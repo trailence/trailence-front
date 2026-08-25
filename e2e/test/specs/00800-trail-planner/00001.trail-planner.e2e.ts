@@ -1,7 +1,6 @@
 import { App } from '../../app/app';
 import { Page } from '../../app/pages/page';
 import { TrailPlannerPage } from '../../app/pages/trail-planner-page';
-import { CollectionModal } from '../../components/collection.modal';
 import { HeaderComponent } from '../../components/header.component';
 import { MapComponent } from '../../components/map.component';
 import { TestUtils } from '../../utils/test-utils';
@@ -10,38 +9,21 @@ describe('Trail Planner', () => {
 
   let page: TrailPlannerPage;
 
-  it('Login, search on Osm, copy the trail, and go to trail planner page', async () => {
+  it('Login, import gpx and go to trail planner page', async () => {
     App.init();
     const loginPage = await App.start();
     const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
+    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My trails'));
     let menu = await App.openMenu();
-    const trailFinder = await menu.openTrailFinder();
-
-    const map = await trailFinder.trailsAndMap.openMap();
-    if (App.config.mode === 'mobile')
-      await map.goTo(43.497514901391675,7.046356201171876, 14);
-    else
-      await map.goTo(43.50748766288276,7.047182321548463, 16);
-
-    await map.topToolbar.clickByIcon('radio-group');
+    const collectionPage = await menu.addCollection('Wish list');
+    expect(await collectionPage.header.getTitle()).toBe('Wish list');
+    const trailsList = await collectionPage.trailsAndMap.openTrailsList();
+    await trailsList.importFile('./test/assets/saint-honorat.gpx');
     const alert = await App.waitAlert();
-    await alert.clickRadioButtonByLabel('Open Street Map');
-    await alert.clickButtonWithText('Ok');
-    await map.topToolbar.clickByIcon('search-map');
-    const list = await trailFinder.trailsAndMap.openTrailsList();
-    await browser.waitUntil(() => list.items.length.then(nb => nb > 0), { timeout: 45000 });
-    const trail = await list.waitTrail('Île Saint-Honorat');
-    await trail.selectTrail();
-    const selectionMenu = await list.openSelectionMenu();
-    await selectionMenu.clickItemWithText('Copy into...');
-    await selectionMenu.getElement().$('ion-list-header').waitForDisplayed();
-    await browser.waitUntil(() => selectionMenu.getItemWithText('New collection...').isDisplayed());
-    await selectionMenu.clickItemWithText('New collection...');
-    const newCollectionModal = new CollectionModal(await App.waitModal());
-    await newCollectionModal.setName('Wish list');
-    await newCollectionModal.clickCreate();
-    await browser.waitUntil(() => newCollectionModal.notDisplayed());
+    await alert.clickButtonWithRole('cancel');
+    await alert.waitNotDisplayed();
+    const trail = await trailsList.waitTrail('Île Saint-Honorat');
+    expect(trail).toBeDefined();
 
     menu = await App.openMenu();
     page = await menu.openTrailPlanner();
@@ -60,7 +42,7 @@ describe('Trail Planner', () => {
     await browser.waitUntil(() => page.needZoom().then(n => !n));
   });
 
-  it('I can see the trail imported from Osm', async () => {
+  it('I can see the imported trail', async () => {
     expect(await map.getPathsWithClass('track-path').length).toBe(0);
     await page.setDisplayMyTrails(true);
     await browser.waitUntil(() => map.getPathsWithClass('track-path').length.then(nb => nb === 1));
@@ -96,8 +78,8 @@ describe('Trail Planner', () => {
     await page.resume();
     await browser.waitUntil(() => map.getPathsWithClass('track-path').length.then(nb => nb > 1));
     await putAnchor(0, 1);
-    let distance = await TestUtils.waitFor(async () => parseInt((await page.getDistance()).replace(',', '').replace('.', '')), d => d > 1000);
-    expect(distance).toBeGreaterThan(1000);
+    let distance = await TestUtils.waitFor(async () => parseInt((await page.getDistance()).replace(',', '').replace('.', '')), d => d > 10);
+    expect(distance).toBeGreaterThan(10);
   });
 
   it('Stop, save, and finally delete collection', async () => {

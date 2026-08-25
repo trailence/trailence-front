@@ -45,8 +45,14 @@ function retrieveData(request, slug) {
 
 function translateData(data, i18n, lang) {
   if (data.lang !== lang) {
-    if (data.nameTranslations && data.nameTranslations[lang]) data.name = data.nameTranslations[lang];
-    if (data.descriptionTranslations && data.descriptionTranslations[lang]) data.description = data.descriptionTranslations[lang];
+    if (data.nameTranslations) {
+      if (data.nameTranslations[lang]) data.name = data.nameTranslations[lang];
+      else if (data.nameTranslations['en']) data.name = data.nameTranslations['en'];
+    }
+    if (data.descriptionTranslations) {
+      if (data.descriptionTranslations[lang]) data.description = data.descriptionTranslations[lang];
+      else if (data.descriptionTranslations['en']) data.description = data.descriptionTranslations['en'];
+    }
   }
   data.i18n = i18n;
   data.activity = i18n.activity[data.activity];

@@ -67,7 +67,7 @@ describe('Preferences', () => {
     expect(await (await preferences.getOptionSegmentByTitle('Unité de distance')).getSelected()).toBe('METERS');
     expect(await (await preferences.getOptionSegmentByTitle('Format de date')).getSelected()).toBe('dd/mm/yyyy');
     expect(await (await preferences.getOptionSegmentByTitle('Format d\'heure')).getSelected()).toBe('H24');
-    const collection = await goToCollection('Mes Parcours');
+    const collection = await goToCollection('Mes parcours');
     await checkTrail(await collection.trailsAndMap.openTrailsList(), expectedDateFr, 'Durée', '3h12 (≈ 2h30)', 'Distance', '8,59 km', 'Dénivelé positif', '+ 307 m', 'Dénivelé négatif', '- 282 m');
   });
 
@@ -75,20 +75,20 @@ describe('Preferences', () => {
     const preferences = await goToPreferences('Préférences');
     await preferences.setLanguage('en');
     await browser.waitUntil(() => preferences.header.getTitle().then(title => title === 'Preferences'));
-    await (await preferences.getOptionSegmentByTitle('Distance Unit')).setSelected('IMPERIAL');
+    await (await preferences.getOptionSegmentByTitle('Distance unit')).setSelected('IMPERIAL');
     await (await preferences.getOptionSegmentByTitle('Date format')).setSelected('m/d/yyyy');
     await (await preferences.getOptionSegmentByTitle('Time format')).setSelected('H12');
-    expect(await (await preferences.getOptionSegmentByTitle('Distance Unit')).getSelected()).toBe('IMPERIAL');
+    expect(await (await preferences.getOptionSegmentByTitle('Distance unit')).getSelected()).toBe('IMPERIAL');
     expect(await (await preferences.getOptionSegmentByTitle('Date format')).getSelected()).toBe('m/d/yyyy');
     expect(await (await preferences.getOptionSegmentByTitle('Time format')).getSelected()).toBe('H12');
-    const collection = await goToCollection('My Trails');
+    const collection = await goToCollection('My trails');
     await checkTrail(await collection.trailsAndMap.openTrailsList(), expectedDateEn, 'Duration', '3h12 (≈ 2h30)', 'Distance', '5.335 mi', 'Ascent', '+ 1,007 ft', 'Descent', '- 925 ft');
   });
 
   it('Change speed', async () => {
     const preferences = await goToPreferences('Preferences');
     await (await preferences.getInputByTitle('Speed on flat terrain')).setValue('4.35');
-    const collection = await goToCollection('My Trails');
+    const collection = await goToCollection('My trails');
     await TestUtils.retry(
       async () => await checkTrail(await collection.trailsAndMap.openTrailsList(), expectedDateEn, 'Duration', '3h12 (≈ 1h45)', 'Distance', '5.335 mi', 'Ascent', '+ 1,007 ft', 'Descent', '- 925 ft'),
       20, 1000
@@ -102,13 +102,13 @@ describe('Preferences', () => {
     let preferences = await goToPreferences('Preferences');
     let input = await preferences.getInputByTitle('Thunderforest');
     await input.setValue('1234');
-    collection = await goToCollection('My Trails');
+    collection = await goToCollection('My trails');
     map = await collection.trailsAndMap.openMap();
     expect(await map.isLayerAvailable('tfo')).toBeTrue();
     preferences = await goToPreferences('Preferences');
     input = await preferences.getInputByTitle('Thunderforest');
     await input.setValue('');
-    collection = await goToCollection('My Trails');
+    collection = await goToCollection('My trails');
     map = await collection.trailsAndMap.openMap();
     await browser.waitUntil(() => map.isLayerAvailable('tfo').then(a => !a));
   });
@@ -116,7 +116,7 @@ describe('Preferences', () => {
   it('Reset all, delete trail, and synchronize', async () => {
     const preferences = await goToPreferences('Preferences');
     await preferences.resetAll();
-    const collection = await goToCollection('My Trails');
+    const collection = await goToCollection('My trails');
     const trailsList = await collection.trailsAndMap.openTrailsList();
     await TestUtils.retry(
       async () => await checkTrail(trailsList, expectedDateEn, 'Duration', '3h12 (≈ 2h30)', 'Distance', '8.59 km', 'Ascent', '+ 307 m', 'Descent', '- 282 m'),
@@ -125,7 +125,7 @@ describe('Preferences', () => {
     const trail = await trailsList.findItemByTrailName('Randonnée du 05/06/2023 à 08:58');
     await trail!.clickMenuItem('Delete');
     const alert = await App.waitAlert();
-    expect(await alert.getTitle()).toBe('Delete Track');
+    expect(await alert.getTitle()).toBe('Delete trail');
     await alert.clickButtonWithRole('danger');
     await browser.waitUntil(() => trailsList.items.getElements().then(l => l.length === 0));
     await App.synchronize();

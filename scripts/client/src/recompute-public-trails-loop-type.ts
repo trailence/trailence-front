@@ -1,11 +1,10 @@
-import { TrackDto } from 'front/model/dto/track';
-import { Config } from './config/config';
-import { TrailenceClient } from './trailence/trailence-client';
-import { ConsoleProgress } from './utils/progress';
-import { Track } from 'front/model/track';
-import { FakePreferencesService } from './trailence/preferences';
-import { configureWindow } from './utils/window';
-import { retry } from './utils/retry';
+import { TrackDto } from '@front/model/dto/track';
+import { Config } from '@scripts/config/config';
+import { TrailenceClient } from '@scripts/trailence/trailence-client';
+import { ConsoleProgress } from '@scripts/utils/progress';
+import { FakePreferencesService } from '@scripts/trailence/preferences';
+import { configureWindow } from '@scripts/utils/window';
+import { retry } from '@scripts/utils/retry';
 
 const args: {[key: string]: string} = {};
 for (const arg of process.argv) {
@@ -28,8 +27,8 @@ await configureWindow();
 const config = new Config(mode);
 const trailenceClient = new TrailenceClient(config, 'admin');
 const preferencesService = new FakePreferencesService();
-const loopTypeDetectionModule = await import('front/services/track-edition/path-analysis/loop-type-detection.js');
-const trackModule = await import('front/model/track.js');
+const loopTypeDetectionModule = await import('@front/services/track-edition/path-analysis/loop-type-detection.js');
+const trackModule = await import('@front/model/track.js');
 
 const nbTrails = await trailenceClient.countTotalPublicTrails();
 console.log('Found ' + nbTrails + ' public trails');
@@ -54,7 +53,7 @@ while (offset < nbTrails) {
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
-    const track = new trackModule.Track(dto, preferencesService as any);
+    const track = new trackModule.Track(dto, false, preferencesService as any, undefined as any, undefined as any, undefined as any, undefined as any);
     progress.setSubText('Detect loop type ' + (trailIndex + 1) + '/' + ids.length);
     const loopType = loopTypeDetectionModule.detectLoopType(track);
     if (loopType && loopType != trail.loopType) {

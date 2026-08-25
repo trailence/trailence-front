@@ -10,6 +10,7 @@ export interface AuthResponse {
   keyId: string;
   keyCreatedAt: number;
   keyExpiresAt: number;
+  userCreatedAt?: number;
   preferences: Preferences;
   complete: boolean;
   admin: boolean;

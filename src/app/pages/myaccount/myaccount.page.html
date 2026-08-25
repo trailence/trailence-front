@@ -1,9 +1,13 @@
 <app-header
   [title]="i18n.texts.pages.myaccount.title"
 ></app-header>
-<div class="page-content">
-  <div class="page-section-title">
-    {{email}}
+<div class="page-content"><div class="content">
+  <div class="account-header">
+    <app-avatar style="pointer-events: none;" [me]="true"></app-avatar>
+    <div class="account-title">
+      <div class="email">{{email}}</div>
+      @if (createdAt) { <div class="date">{{ i18n.texts.pages.myaccount.created_at }} {{ i18n.timestampToDateString(createdAt) }}</div> }
+    </div>
   </div>
 
   @if (network.server$ | async) {
@@ -36,4 +40,4 @@
   } @else {
     <div class="no-network">{{i18n.texts.pages.myaccount.not_connected}}</div>
   }
-</div>
+</div></div>

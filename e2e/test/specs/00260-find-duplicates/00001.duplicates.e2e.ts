@@ -103,14 +103,14 @@ describe('Find Duplicates', () => {
     await (await collectionPage.header.openActionsMenu()).clickItemWithText('Delete');
     await (await App.waitAlert()).clickButtonWithRole('danger');
     await App.waitNoProgress();
-    await browser.waitUntil(() => Page.getActivePageElement().then(p => new HeaderComponent(p).getTitle()).catch(_ => '').then(t => t === 'My Trails'));
+    await browser.waitUntil(() => Page.getActivePageElement().then(p => new HeaderComponent(p).getTitle()).catch(_ => '').then(t => t === 'My trails'));
     collectionPage = await (await App.openMenu()).openCollection('Copy');
     list = await collectionPage.trailsAndMap.openTrailsList();
     await list.waitTrail('Randonnée du 05/06/2023 à 08:58');
     expect(await list.items.length).toBe(1);
     await (await collectionPage.header.openActionsMenu()).clickItemWithText('Delete');
     await (await App.waitAlert()).clickButtonWithRole('danger');
-    await browser.waitUntil(() => Page.getActivePageElement().then(p => new HeaderComponent(p).getTitle()).then(title => title === 'My Trails'));
+    await browser.waitUntil(() => Page.getActivePageElement().then(p => new HeaderComponent(p).getTitle()).then(title => title === 'My trails'));
     await App.synchronize(true);
   });
 

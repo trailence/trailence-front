@@ -22,6 +22,7 @@ import { environment } from 'src/environments/environment';
 import Trailence from '../trailence.service';
 import { TrailLinkService } from './link.service';
 import { LiveGroupService } from '../live-group/live-group.service';
+import { NULL_UUID } from 'src/app/utils/string-utils';
 
 @Injectable({providedIn: 'root'})
 export class TrailMenuService {
@@ -36,8 +37,9 @@ export class TrailMenuService {
     const menu: MenuItem[] = [];
     const email = this.injector.get(AuthService).email;
     if (trails.length === 1 && trails[0].fromModeration) isModeration = true;
-    const allOwned = email && trails.every(t => t.owner === email);
-    const allEditable = allOwned || trails.every(t => (email && t.owner === email) || t.owner.startsWith(SHARED_OWNER_PREFIX));
+    const hasFake = trails.some(t => t.collectionUuid === NULL_UUID);
+    const allOwned = email && !hasFake && trails.every(t => t.owner === email);
+    const allEditable = allOwned || (!hasFake && trails.every(t => (email && t.owner === email) || t.owner.startsWith(SHARED_OWNER_PREFIX)));
 
     let inTools = false;
     let addTools = () => {
@@ -48,12 +50,12 @@ export class TrailMenuService {
 
     // --- prepare ---
 
-    if (!onlyGlobal && !fromTrail && trails.length === 1) {
+    if (!onlyGlobal && !fromTrail && trails.length === 1 && !hasFake) {
       menu.push(new MenuItem().setIcon('enter').setI18nLabel('pages.trail.actions.open')
         .setAction(() => this.openTrail(trails[0])))
     }
 
-    if (!onlyGlobal && trails.length > 0 && !isPublicationCollection(fromCollection?.type) && !isModeration) {
+    if (!onlyGlobal && trails.length > 0 && !isPublicationCollection(fromCollection?.type) && !isModeration && !hasFake) {
       if (menu.length > 0 || trails.length === 1)
         menu.splice(0,0, new MenuItem().setSectionTitle(true).setI18nLabel('pages.trails.actions.prepare').setTextColor('medium'));
 
@@ -103,7 +105,7 @@ export class TrailMenuService {
 
     const beforeShare = menu.length;
 
-    if (!onlyGlobal &&
+    if (!onlyGlobal && !hasFake &&
       trails.length === 1 &&
       ((allOwned && fromCollection && !isPublicationLockedCollection(fromCollection.type)) || isModeration) &&
       !this.injector.get(MyPublicTrailsService).myPublicTrails$.value.some(p => p.privateUuid === trails[0].uuid) &&
@@ -116,7 +118,7 @@ export class TrailMenuService {
       );
     }
 
-    if (trails.length > 0 && fromCollection && !isPublicationCollection(fromCollection.type) && email && trails.every(t => t.owner !== ANONYMOUS_USER && t.owner === email) &&
+    if (trails.length > 0 && !hasFake && fromCollection && !isPublicationCollection(fromCollection.type) && email && trails.every(t => t.owner !== ANONYMOUS_USER && t.owner === email) &&
       (onlyGlobal || fromCollection.uuid === uniqueCollection?.uuid && fromCollection.owner === uniqueCollection?.owner && fromCollection.owner === email)) {
       menu.push(new MenuItem().setIcon('share').setI18nLabel('pages.trails.actions.share_' + (onlyGlobal ? 'global' : trails.length === 1 ? 'trail' : 'trails'))
         .setAction(() => import('../../components/share-popup/share-popup.component')
@@ -124,7 +126,7 @@ export class TrailMenuService {
         ));
     }
 
-    if (trails.length === 1 && !onlyGlobal && trails[0].owner === 'trailence' && trails[0].source?.startsWith(environment.baseUrl)) {
+    if (trails.length === 1 && !onlyGlobal && !hasFake && trails[0].owner === 'trailence' && trails[0].source?.startsWith(environment.baseUrl)) {
       // public trail
       const link = trails[0].source;
       if (this.injector.get(Platform).is('capacitor')) {
@@ -152,7 +154,7 @@ export class TrailMenuService {
       );
     }
 
-    if (trails.length === 1 && !onlyGlobal && this.injector.get(Platform).is('capacitor')) {
+    if (trails.length === 1 && !onlyGlobal && !hasFake && this.injector.get(Platform).is('capacitor')) {
       // open in platform app
       menu.push(new MenuItem().setIcon('open-link').setI18nLabel('pages.trails.actions.open_gpx')
         .setAction(() =>
@@ -205,7 +207,7 @@ export class TrailMenuService {
       );
     }
 
-    if (trails.length === 2 && email && !onlyGlobal) {
+    if (trails.length === 2 && email && !onlyGlobal && !hasFake) {
       addTools();
       // compare
       menu.push(new MenuItem().setIcon('compare').setI18nLabel('pages.trail.actions.compare')
@@ -217,7 +219,7 @@ export class TrailMenuService {
       );
     }
 
-    if (trails.length === 1 && !onlyGlobal) {
+    if (trails.length === 1 && !onlyGlobal && !hasFake) {
       // compare
       if (this.trailToCompare) {
         addTools();
@@ -245,7 +247,7 @@ export class TrailMenuService {
     }
 
     // merge
-    if (trails.length > 1 && fromCollection && !isPublicationCollection(fromCollection.type) && !onlyGlobal) {
+    if (trails.length > 1 && fromCollection && !isPublicationCollection(fromCollection.type) && !onlyGlobal && !hasFake) {
       addTools();
       menu.push(new MenuItem().setIcon('merge').setI18nLabel('pages.trail.actions.merge_trails')
         .setAction(() => import('../functions/merge-trails').then(m => m.mergeTrails(this.injector, trails, fromCollection.uuid))));
@@ -259,13 +261,13 @@ export class TrailMenuService {
     }
 
     // export
-    if (trails.length > 0) {
+    if (trails.length > 0 && !hasFake) {
       addTools();
       menu.push(new MenuItem().setIcon('export').setI18nLabel('pages.trails.actions.export' + (onlyGlobal ? '_collection' : ''))
         .setAction(() => import('../functions/export').then(m => m.exportTrails(this.injector, trails))));
     }
 
-    if (trails.length === 1 && !onlyGlobal) {
+    if (trails.length === 1 && !onlyGlobal && !hasFake) {
       // pdf + live group
       menu.push(
         new MenuItem().setIcon('text').setI18nLabel('pages.pdf_popup.menu_label')
@@ -284,7 +286,7 @@ export class TrailMenuService {
     }
 
     // copy to
-    if (trails.length > 0 && !isPublicationCollection(fromCollection?.type) && email && !onlyGlobal) {
+    if (trails.length > 0 && !isPublicationCollection(fromCollection?.type) && email && !onlyGlobal && !hasFake) {
       menu.push(
         new MenuItem(),
         new MenuItem().setIcon('collection-copy').setI18nLabel('pages.trails.actions.copy_to_collection')

@@ -20,7 +20,7 @@ describe('Login and Logout', () => {
 
   it('Login as init user', async () => {
     myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
+    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My trails'));
     const userMenu = await myTrailsPage.header.openUserMenu();
     expect(await userMenu.getUser()).toBe(App.config.username);
     await userMenu.close();
@@ -39,14 +39,14 @@ describe('Login and Logout', () => {
 
   it('Login again, go somewhere else, come back, still logged in', async () => {
     myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    expect(await myTrailsPage.header.getTitle()).toBe('My Trails');
+    expect(await myTrailsPage.header.getTitle()).toBe('My trails');
     await browser.url('https://github.com/trailence');
     await browser.waitUntil(() => browser.getTitle().then(title => title === 'Trailence · GitHub'));
     await browser.pause(2500); // else sometimes the geckodriver crashes
     await browser.url(browser.options.baseUrl!);
     myTrailsPage = new TrailsPage();
     await myTrailsPage.waitDisplayed();
-    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
+    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My trails'));
   });
 
   it('End', async () => {

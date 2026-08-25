@@ -20,7 +20,7 @@ describe('Publication - User can see the comment on its trail and reply', () => 
     expect(await comments.length).toBe(1);
     expect(await rateAndComments.getCommentText(comments[0])).toBe('This seems to be nice there');
     await rateAndComments.replyTo(comments[0], "Indeed, it's nice !");
-    await (await trailPage.header.openAppMenu()).openCollection('My Trails');
+    await (await trailPage.header.openAppMenu()).openCollection('My trails');
   });
 
   it('End', async () => {

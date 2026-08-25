@@ -13,7 +13,7 @@ describe('Replay trail', () => {
     App.init();
     const loginPage = await App.start();
     const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
+    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My trails'));
     const menu = await App.openMenu();
     const page = await menu.addCollection('Replay');
     expect(await page.header.getTitle()).toBe('Replay');
@@ -185,7 +185,7 @@ describe('Replay trail', () => {
     const alert = await App.waitAlert();
     await alert.clickButtonWithRole('danger');
     await App.waitNoProgress();
-    await browser.waitUntil(() => Page.getActivePageElement().then(p => new HeaderComponent(p).getTitle()).then(title => title === 'My Trails'));
+    await browser.waitUntil(() => Page.getActivePageElement().then(p => new HeaderComponent(p).getTitle()).then(title => title === 'My trails'));
   });
 
   it('Remove Replay collection and synchronize', async () => {
@@ -194,7 +194,7 @@ describe('Replay trail', () => {
     const alert = await App.waitAlert();
     await alert.clickButtonWithRole('danger');
     await App.waitNoProgress();
-    await browser.waitUntil(() => Page.getActivePageElement().then(p => new HeaderComponent(p).getTitle()).then(title => title === 'My Trails'));
+    await browser.waitUntil(() => Page.getActivePageElement().then(p => new HeaderComponent(p).getTitle()).then(title => title === 'My trails'));
     await App.synchronize(true);
   });
 

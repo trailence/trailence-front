@@ -5,6 +5,7 @@ import { IonicButton } from './ionic/ion-button';
 import { IonicInput } from './ionic/ion-input';
 import { ModalComponent } from './modal';
 import { ToolbarComponent } from './toolbar.component';
+import { Key } from 'webdriverio';
 
 export class EditTools extends Component {
 
@@ -16,12 +17,12 @@ export class EditTools extends Component {
 
   public async backToOriginalTrack() {
     const menu = await this.toolbar.clickByIconAndGetMenu('distance');
-    await menu.clickItemWithText('Back to original trace without improvements');
+    await menu.clickItemWithText('Back to original track without improvements');
   }
 
   public async removeUnprobableElevations() {
     const menu = await this.toolbar.clickByIconAndGetMenu('elevation');
-    await menu.clickItemWithText('Adjust unprobable elevations');
+    await menu.clickItemWithText('Adjust implausible elevations');
   }
 
   public async canJoinArrivalToDeparture() {
@@ -59,7 +60,7 @@ export class EditTools extends Component {
 
   public async openElevationThreshold() {
     const menu = await this.toolbar.clickByIconAndGetMenu('elevation');
-    await menu.clickItemWithText('Smooth with a slope threshold');
+    await menu.clickItemWithText('Smooth with an elevation threshold');
     return new EditToolElevationThresholdModal(await App.waitModal());
   }
 
@@ -107,6 +108,26 @@ export class EditTools extends Component {
 
 export class EditToolSelection extends Component {
 
+  private _expanded?: boolean = undefined;
+
+  public get expandButton() { return new IonicButton(this.getElement().$('>>>div.edit-tool-expand-button ion-button')); }
+
+  public async isExpanded() {
+    if (this._expanded !== undefined) return this._expanded;
+    const iconName = await this.expandButton.getElement().$('>>>ion-icon').getAttribute('name')
+    this._expanded = iconName === 'chevron-down';
+    return this._expanded!;
+  }
+
+  public async toggleExpand() {
+    await this.expandButton.click();
+    if (this._expanded !== undefined) this._expanded = !this._expanded;
+  }
+
+  public async ensureExpanded() {
+    if (!(await this.isExpanded())) await this.toggleExpand();
+  }
+
   public async extendSelection() {
     await this.getElement().$('>>>ion-item.extend-selection').click();
     await browser.waitUntil(() => this.getElement().$('>>>div.message').isExisting());
@@ -123,11 +144,13 @@ export class EditToolSelection extends Component {
   public get elevationInput() { return new IonicInput(this.getElement().$('>>>div.selection-points').$('ion-icon[name=altitude]').parentElement().$('ion-input')); }
 
   public async getElevation() {
+    await this.ensureExpanded();
     return await this.elevationInput.getValue();
   }
 
   public async setElevation(value: number) {
-    await this.elevationInput.setValue('0');
+    await this.ensureExpanded();
+    await this.elevationInput.getElement().click();
     await this.elevationInput.setValue('' + value);
   }
 

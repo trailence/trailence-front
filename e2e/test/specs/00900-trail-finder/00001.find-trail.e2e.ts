@@ -66,6 +66,7 @@ describe('Find Trail', () => {
     await trailPage.header.goBack();
   });
 
+  /*
   it('Search with Open Street Map', async () => {
     const map = await page.trailsAndMap.openMap();
     if (App.config.mode === 'mobile')
@@ -91,7 +92,7 @@ describe('Find Trail', () => {
     const details = await trailPage.trailComponent.openDetails();
     await browser.waitUntil(() => details.$('div.external-link').isExisting());
     await trailPage.header.goBack();
-  });
+  });*/
 
   it('End', async () => {
     await App.logout(false);

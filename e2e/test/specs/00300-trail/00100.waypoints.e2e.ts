@@ -10,7 +10,7 @@ describe('Trail - Waypoints', () => {
     App.init();
     const loginPage = await App.start();
     const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
+    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My trails'));
     const trailsList = await myTrailsPage.trailsAndMap.openTrailsList();
     await trailsList.importFile('./test/assets/gpx-zip-003.zip');
     await App.waitNoProgress();

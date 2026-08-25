@@ -6,6 +6,7 @@ import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended'
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
 import { CommonDatabaseService } from './common-database.service';
+import { Console } from 'src/app/utils/console';
 
 export interface MyPublicTrail {
   publicUuid: string;
@@ -43,9 +44,14 @@ export class MyPublicTrailsService {
           )
         );
       })
-    ).subscribe(list => {
-      if (list.length === 0 && this.myPublicTrails$.value.length === 0) return;
-      this.myPublicTrails$.next(list);
+    ).subscribe({
+      next: list => {
+        if (list.length === 0 && this.myPublicTrails$.value.length === 0) return;
+        this.myPublicTrails$.next(list);
+      },
+      error: e => {
+        Console.error('Error getting my public trails', e);
+      }
     });
   }
 

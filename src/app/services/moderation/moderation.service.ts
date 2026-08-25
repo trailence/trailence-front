@@ -346,14 +346,6 @@ export class ModerationService {
     );
   }
 
-  public detectLanguage(text: string): Observable<string> {
-    return this.http.postString(environment.apiBaseUrl + '/moderation/v1/detectLanguage', text);
-  }
-
-  public translate(text: string, from: string, to: string): Observable<string> {
-    return this.http.postString(environment.apiBaseUrl + '/moderation/v1/translate?from=' + from + '&to=' + to, text);
-  }
-
   public translateWithAI(text: string): Observable<string> {
     return this.http.postString(environment.apiBaseUrl + '/moderation/v1/translateai', text);
   }

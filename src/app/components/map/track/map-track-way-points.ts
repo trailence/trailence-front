@@ -240,11 +240,11 @@ export class MapTrackWayPoints {
 
   private createWayPoint(wp: WayPointFromTrack): MapAnchor {
     const color = this.getColor();
-    return new MapAnchor(wp.wayPoint.point.pos, color, '' + wp.index, undefined, anchorTextColor, new Color(color).setAlpha(0.8).darker(48).toString(), undefined, true, wp);
+    return new MapAnchor(wp.wayPoint.point.pos, color, '' + wp.index, undefined, anchorTextColor, new Color(color).setAlpha(0.8).darker(48).toString(), undefined, true, true, wp);
   }
 
   private createBreakPoint(wp: BreakPoint, colored: boolean): MapAnchor {
-    return new MapAnchor(wp.getPosition(), anchorBreakBorderColor, MapTrackWayPoints.breakPointText(wp), undefined, anchorBreakTextColor, colored ? new Color(this.getColor()).setAlpha(0.66).toString() : anchorBreakFillColor, undefined, true, wp);
+    return new MapAnchor(wp.getPosition(), anchorBreakBorderColor, MapTrackWayPoints.breakPointText(wp), undefined, anchorBreakTextColor, colored ? new Color(this.getColor()).setAlpha(0.66).toString() : anchorBreakFillColor, undefined, true, true, wp);
   }
 
   public static breakPointText(breakPoint: BreakPoint): string {

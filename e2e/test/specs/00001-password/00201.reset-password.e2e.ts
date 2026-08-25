@@ -80,7 +80,7 @@ describe('Reset password', () => {
     const loginPage = new LoginPage();
     await loginPage.waitDisplayed();
     await loginPage.login();
-    await (await new HeaderComponent(await Page.getActivePageElement()).openAppMenu()).openCollection('My Trails');
+    await (await new HeaderComponent(await Page.getActivePageElement()).openAppMenu()).openCollection('My trails');
   });
 
   it('End', async () => {

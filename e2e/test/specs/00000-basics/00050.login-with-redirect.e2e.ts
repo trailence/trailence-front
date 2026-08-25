@@ -12,27 +12,27 @@ describe('Login with redirects', () => {
     await App.logout();
   });
 
-  it('Login with redirect to an unknown collection, end up to My Trails', async () => {
+  it('Login with redirect to an unknown collection, end up to My trails', async () => {
     App.init();
     const loginPage = await App.start('/trails/collection/00000000-0000-0000-0000-000000000000');
     await loginPage.login();
-    await browser.waitUntil(() => browser.getTitle().then(title => title === 'My Trails - Trailence'));
+    await browser.waitUntil(() => browser.getTitle().then(title => title === 'My trails - Trailence'));
     await App.logout();
   });
 
-  it('Login with redirect to an unknown share, end up to My Trails', async () => {
+  it('Login with redirect to an unknown share, end up to My trails', async () => {
     App.init();
     const loginPage = await App.start('/trails/share/00000000-0000-0000-0000-000000000000/me@trailence.org');
     await loginPage.login();
-    await browser.waitUntil(() => browser.getTitle().then(title => title === 'My Trails - Trailence'));
+    await browser.waitUntil(() => browser.getTitle().then(title => title === 'My trails - Trailence'));
     await App.logout();
   });
 
-  it('Login with redirect to an unknown trail, end up to My Trails', async () => {
+  it('Login with redirect to an unknown trail, end up to My trails', async () => {
     App.init();
     const loginPage = await App.start('/trail/me@trailence.org/00000000-0000-0000-0000-000000000000');
     await loginPage.login();
-    await browser.waitUntil(() => browser.getTitle().then(title => title === 'My Trails - Trailence'));
+    await browser.waitUntil(() => browser.getTitle().then(title => title === 'My trails - Trailence'));
     await App.logout();
   });
 

@@ -1,13 +1,13 @@
-import { PointDescriptor } from 'front/model/point-descriptor';
-import { TrailenceClient } from './../trailence/trailence-client';
-import { TrailDto } from 'front/model/dto/trail';
-import { TrackDto } from 'front/model/dto/track';
-import { WayPoint } from 'front/model/way-point.js';
-import { SegmentDto } from 'front/model/dto/segment';
-import { FakePreferencesService } from 'src/trailence/preferences';
-import { Config } from 'src/config/config';
-import { Photo } from 'front/model/photo';
-import { ConsoleProgress } from 'src/utils/progress';
+import { PointDescriptor } from '@front/model/point-descriptor';
+import { TrailenceClient } from '@scripts/trailence/trailence-client';
+import { TrailDto } from '@front/model/dto/trail';
+import { TrackDto } from '@front/model/dto/track';
+import { WayPoint } from '@front/model/way-point.js';
+import { SegmentDto } from '@front/model/dto/segment';
+import { FakePreferencesService } from '@scripts/trailence/preferences';
+import { Config } from '@scripts/config/config';
+import { Photo } from '@front/model/photo';
+import { ConsoleProgress } from '@scripts/utils/progress';
 
 export abstract class Importer {
 
@@ -35,10 +35,10 @@ export abstract class Importer {
 
     if (!trail.loopType) {
       console.log('Detecting loop type');
-      const loopTypeDetectionModule = await import('front/services/track-edition/path-analysis/loop-type-detection.js');
-      const trackModule = await import('front/model/track.js');
+      const loopTypeDetectionModule = await import('@front/services/track-edition/path-analysis/loop-type-detection.js');
+      const trackModule = await import('@front/model/track.js');
       const fakePreferencesService = new FakePreferencesService();
-      trail.loopType = loopTypeDetectionModule.detectLoopType(new trackModule.Track(trackDto, fakePreferencesService as any));
+      trail.loopType = loopTypeDetectionModule.detectLoopType(new trackModule.Track(trackDto, false, fakePreferencesService as any, undefined as any, undefined as any, undefined as any, undefined as any));
     }
 
     const progress = new ConsoleProgress('Create trail on Trailence' + (progressText ? ' (' + progressText + ')' : ''), 2 + photos.length);
@@ -66,7 +66,7 @@ export abstract class Importer {
   }
 
   protected async segmentToDto(segment: PointDescriptor[]): Promise<SegmentDto> {
-    const mapperModule = await import('front/model/point-dto-mapper');
+    const mapperModule = await import('@front/model/point-dto-mapper');
     const nb = segment.length;
     const dto: SegmentDto = {p: new Array(nb)};
     let previousPoint: PointDescriptor | undefined = undefined;
@@ -79,12 +79,12 @@ export abstract class Importer {
   }
 
   protected async readTrackDto(track: TrackDto): Promise<{segments: PointDescriptor[][], wayPoints: WayPoint[]}> {
-    const mapperModule = await import('front/model/point-dto-mapper');
+    const mapperModule = await import('@front/model/point-dto-mapper');
     const segments: PointDescriptor[][] = [];
     for (const segment of track.s!) {
       segments.push(mapperModule.PointDtoMapper.toPoints(segment.p!));
     }
-    const wayPointModule = await import('front/model/way-point');
+    const wayPointModule = await import('@front/model/way-point');
     const wayPoints: WayPoint[] = [];
     if (track.wp) {
       for (const wp of track.wp) {
@@ -104,13 +104,13 @@ export abstract class Importer {
   protected async publishTrail(trail: TrailDto, track: PointDescriptor[][], wayPoints: WayPoint[], photos: {blob: Blob, photo: Photo}[], message: string) {
     const myTrailsPhoto = this.config.getRequiredBoolean('trailence', 'photos_in_my_trails', false) ? photos :
       photos.map(p => ({photo: p.photo, blob: new Blob([new ArrayBuffer(1)])}));
-    await this.createTrailOnTrailence(trail, track, wayPoints, myTrailsPhoto, 'in My Trails');
+    await this.createTrailOnTrailence(trail, track, wayPoints, myTrailsPhoto, 'in My trails');
     const pubSubmit = await this.trailenceClient.getOrCreatePubSubmit();
     trail.collectionUuid = pubSubmit.uuid;
     trail.publishedFromUuid = trail.uuid;
     trail.uuid = crypto.randomUUID();
     if (photos.length > 0) {
-      const module = await import('front/model/photo.js');
+      const module = await import('@front/model/photo.js');
       for (const p of photos) {
         p.photo = new module.Photo({...p.photo.toDto(), uuid: crypto.randomUUID(), trailUuid: trail.uuid});
       }

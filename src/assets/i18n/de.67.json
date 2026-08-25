@@ -669,6 +669,7 @@
     },
     "myaccount": {
       "title": "Mein Konto",
+      "created_at": "Mitglied seit",
       "quotas": {
         "title": "Kontingente",
         "collections": "Sammlungen",
@@ -1670,10 +1671,10 @@
     },
     "view_original": "Originaltext anzeigen",
     "view_translated": "Ins Deutsche übersetzen",
+    "view_translated_default": "Ins Englische übersetzen",
     "trail_moderation": {
       "title": "Übersetzungen",
       "original_language": "Verwendete Sprache",
-      "detect": "Erkennen",
       "needed_translations": "Erforderliche Übersetzungen",
       "name": "Name der Tour",
       "description": "Beschreibung"

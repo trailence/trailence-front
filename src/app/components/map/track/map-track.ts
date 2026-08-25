@@ -77,6 +77,7 @@ export class MapTrack implements MapElement {
 
   public showPathWithElevationColors(show: boolean): void {
     this._path.eleColors = show;
+    this._arrowPath.weight = show ? 3 : 2;
   }
 
   public showDepartureAndArrivalAnchors(show: boolean = true): void {

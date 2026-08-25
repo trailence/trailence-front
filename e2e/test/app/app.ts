@@ -330,10 +330,12 @@ export class App {
       return new AppMenu($('app-root ion-menu').$('>>>app-menu'));
     }
 
-    const page = await Page.getActivePageElement();
-    const header = new HeaderComponent(page);
-    await header.waitDisplayed();
-    return await header.openAppMenu();
+    return await TestUtils.retry(async () => {
+      const page = await Page.getActivePageElement();
+      const header = new HeaderComponent(page);
+      await header.waitDisplayed();
+      return await header.openAppMenu();
+    }, 2, 100);
   }
 
   public static async synchronize(andLogout: boolean = false, maxSyncTrials: number = 10) {
@@ -344,12 +346,13 @@ export class App {
       return header;
     }, 2, 100);
     const menu = await header.openUserMenu();
-    await menu.synchronizeLocalChanges(maxSyncTrials);
+    const syncSuccess = await menu.synchronizeLocalChanges(maxSyncTrials);
+    if (!syncSuccess) return;
     if (!andLogout) {
       await menu.close();
       return;
     }
-    await this.handleLogout(menu, false);
+    return await this.handleLogout(menu, false);
   }
 
   public static async logout(withDelete: boolean = false) {

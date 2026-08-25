@@ -669,6 +669,7 @@
     },
     "myaccount": {
       "title": "A minha conta",
+      "created_at": "Membro desde",
       "quotas": {
         "title": "Quotas",
         "collections": "Coleções",
@@ -1670,10 +1671,10 @@
     },
     "view_original": "Ver o texto original",
     "view_translated": "Traduzir para português",
+    "view_translated_default": "Traduzir para inglês",
     "trail_moderation": {
       "title": "Traduções",
       "original_language": "Idioma utilizado",
-      "detect": "Detetar",
       "needed_translations": "Traduções necessárias",
       "name": "Nome do percurso",
       "description": "Descrição"

@@ -1,8 +1,6 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./",
-    "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
     "strict": true,
@@ -13,17 +11,19 @@
     "sourceMap": true,
     "declaration": false,
     "experimentalDecorators": true,
-    "moduleResolution": "bundler",
     "importHelpers": true,
-    "target": "esnext",
+    "moduleResolution": "bundler",
     "module": "esnext",
+    "target": "esnext",
     "lib": [
       "esnext",
       "dom"
     ],
+    "types": ["node"],
     "useDefineForClassFields": false,
     "paths": {
-      "front/*": ["../../src/app/*"]
+      "@scripts/*": ["./src/*"],
+      "@front/*": ["../../src/app/*"]
     }
   }
 }

@@ -28,9 +28,11 @@ describe('Shares - Edit', () => {
     await shareMenu.clickItemWithText('Delete');
     const alert = await App.waitAlert();
     await alert.clickButtonWithRole('danger');
-    await browser.waitUntil(() => Page.getActivePageElement().then(p => new HeaderComponent(p).getTitle()).then(t => t === 'My Trails'));
-    await App.synchronize();
-    loginPage = await App.logout();
+    await browser.waitUntil(() => Page.getActivePageElement().then(p => new HeaderComponent(p).getTitle()).then(t => t === 'My trails'));
+    const login = await App.synchronize(true);
+    expect(login).toBeDefined();
+    if (login)
+      loginPage = login;
   });
 
   let appMenu: AppMenu;

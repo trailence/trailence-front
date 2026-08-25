@@ -18,13 +18,6 @@
           <option [value]="sl.code">{{sl.name}}</option>
         }
       </select>
-      <ion-button (click)="detectLanguage()" size="small" [disabled]="detecting">
-        @if (detecting) {
-          <ion-spinner></ion-spinner>
-        } @else {
-          {{ i18n.texts.translations.trail_moderation.detect }}
-        }
-      </ion-button>
     </div>
     @if (srcLang) {
       <div class="page-section-sub-title">{{ i18n.texts.translations.trail_moderation.needed_translations }}</div>

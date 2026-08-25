@@ -9,14 +9,14 @@ describe('Collections', () => {
     App.init();
     const loginPage = await App.start();
     const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
+    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My trails'));
   });
 
   it('Only MyTrails collection exists', async () => {
     const menu = await App.openMenu();
     const collections = await menu.getCollections();
     expect(collections.length).toBe(1);
-    expect(collections).toContain('My Trails');
+    expect(collections).toContain('My trails');
   });
 
   it('Create a collection', async () => {
@@ -29,7 +29,7 @@ describe('Collections', () => {
     const menu = await App.openMenu();
     const collections = await menu.getCollections();
     expect(collections.length).toBe(2);
-    expect(collections).toContain('My Trails');
+    expect(collections).toContain('My trails');
     expect(collections).toContain('Test first Collection');
     menu.close();
   });
@@ -49,7 +49,7 @@ describe('Collections', () => {
     const menu = await App.openMenu();
     const collections = await menu.getCollections();
     expect(collections.length).toBe(2);
-    expect(collections).toContain('My Trails');
+    expect(collections).toContain('My trails');
     expect(collections).toContain('Test first Collection UPDATE 1');
     await menu.close();
   });
@@ -61,7 +61,7 @@ describe('Collections', () => {
     const menu = await App.openMenu();
     const collections = await menu.getCollections();
     expect(collections.length).toBe(2);
-    expect(collections).toContain('My Trails');
+    expect(collections).toContain('My trails');
     expect(collections).toContain('Test first Collection UPDATE 1');
     const page = await menu.openCollection('Test first Collection UPDATE 1');
     expect(await page.header.getTitle()).toBe('Test first Collection UPDATE 1');
@@ -82,7 +82,7 @@ describe('Collections', () => {
     const menu = await App.openMenu();
     const collections = await menu.getCollections();
     expect(collections.length).toBe(2);
-    expect(collections).toContain('My Trails');
+    expect(collections).toContain('My trails');
     expect(collections).toContain('Test first Collection UPDATE 2');
     menu.close();
   });
@@ -96,7 +96,7 @@ describe('Collections', () => {
     const newPage = new TrailsPage();
     await newPage.waitDisplayed();
     await newPage.header.getElement().waitForDisplayed();
-    expect(await newPage.header.getTitle()).toBe('My Trails');
+    expect(await newPage.header.getTitle()).toBe('My trails');
   });
 
   it('Collection is not anymore in the menu', async () => {
@@ -104,7 +104,7 @@ describe('Collections', () => {
     browser.waitUntil(() => menu.getCollections().then(col => col.length === 1));
     const collections = await menu.getCollections();
     expect(collections.length).toBe(1);
-    expect(collections).toContain('My Trails');
+    expect(collections).toContain('My trails');
     await menu.close();
   });
 
@@ -115,7 +115,7 @@ describe('Collections', () => {
     const menu = await App.openMenu();
     const collections = await menu.getCollections();
     expect(collections.length).toBe(1);
-    expect(collections).toContain('My Trails');
+    expect(collections).toContain('My trails');
     await menu.close();
   });
 

@@ -154,23 +154,6 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges {
     if (this.srcLang !== 'en' && this.displayTarget === undefined) this.displayTarget = 'en';
   }
 
-  detectLanguage(): void {
-    if (!this.trail.description || this.trail.description.trim().length === 0) return;
-    this.detecting = true;
-    this.moderationService.detectLanguage(this.trail.description)
-    .subscribe({
-      next: lang => {
-        this.detecting = false;
-        this.setSrcLang(lang);
-      },
-      error: e => {
-        Console.error('Cannot detect language', e);
-        this.detecting = false;
-        this.changesDetector.detectChanges();
-      }
-    });
-  }
-
   setDisplayTarget(target?: string): void {
     if (target?.length === 0) target = undefined;
     if (target === this.displayTarget) return;

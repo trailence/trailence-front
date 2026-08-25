@@ -13,7 +13,7 @@ describe('Trail - Photos', () => {
     App.init();
     const loginPage = await App.start();
     const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
+    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My trails'));
     const menu = await App.openMenu();
     const collectionPage = await menu.openCollection('Test Trail');
     expect(await collectionPage.header.getTitle()).toBe('Test Trail');
@@ -158,7 +158,7 @@ describe('Trail - Photos', () => {
     const newPage = new TrailsPage();
     await newPage.waitDisplayed();
     await newPage.header.getElement().waitForDisplayed();
-    expect(await newPage.header.getTitle()).toBe('My Trails');
+    expect(await newPage.header.getTitle()).toBe('My trails');
     await App.synchronize(true);
   });
 

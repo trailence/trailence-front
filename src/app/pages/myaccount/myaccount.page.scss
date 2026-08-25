@@ -1,10 +1,53 @@
 .page-content {
   flex: 1 1 100%;
-  display: block;
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--centered-outside-background);
+}
+.content {
+  flex: 1 1 100%;
   padding: 10px;
+  max-width: 800px;
+  width: min(800px, 100%);
+  background-color: var(--centered-inside-background);
+  display: block;
   overflow: auto;
 }
 
-.page-section-title:not(:first-child) {
+div.account-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+
+  app-avatar {
+    --size: 48px;
+    margin-right: 3px;
+    background-color: var(--ion-color-secondary);
+    color: var(--ion-color-secondary-contrast);
+  }
+
+  div.account-title {
+    flex: 1 1 100%;
+    display: flex;
+    flex-direction: column;
+    padding-left: 8px;
+
+    div.email {
+      color: var(--ion-color-tertiary);
+      font-size: 16px;
+    }
+    div.date {
+      color: var(--ion-color-medium);
+      font-size: 14px;
+    }
+  }
+}
+
+.page-section-title {
   margin-top: 25px;
 }

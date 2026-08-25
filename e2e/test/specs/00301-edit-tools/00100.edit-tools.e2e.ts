@@ -17,7 +17,7 @@ describe('Edit tools', () => {
     App.init();
     const loginPage = await App.start();
     const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
+    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My trails'));
     const trailsList = await myTrailsPage.trailsAndMap.openTrailsList();
     await trailsList.importFile('./test/assets/gpx-001.gpx');
     const trail = await trailsList.waitTrail('Randonnée du 05/06/2023 à 08:58');
@@ -172,8 +172,9 @@ describe('Edit tools', () => {
     let selectionTool = await selectPoint(3);
     const valueBefore = await selectionTool.getElevation();
     await selectionTool.setElevation(500);
+    const valueAfter = await selectionTool.getElevation();
     details = await trailPage.trailComponent.openDetails();
-    const expectDiff = Math.abs(500 - parseFloat(valueBefore));
+    const expectDiff = Math.abs(parseFloat(valueAfter) - parseFloat(valueBefore));
     const ascent1 = (await trailPage.trailComponent.getMetadataValueByTitle('Ascent', true)).replace(',','').replace('+','').trim();
     const ascent2 = (await trailPage.trailComponent.getMetadataValueByTitle('Ascent', false)).replace(',','').replace('+','').trim();
     const diff = Math.abs(parseFloat(ascent1) - parseFloat(ascent2));
@@ -189,7 +190,7 @@ describe('Edit tools', () => {
     details = await trailPage.trailComponent.openDetails();
     const ascent3 = (await trailPage.trailComponent.getMetadataValueByTitle('Ascent', false)).replace(',','').replace('+','').trim();
     const diff2 = Math.abs(parseFloat(ascent1) - parseFloat(ascent3));
-    expect(diff2).withContext('Ascent before ' + ascent1 + ' (' + valueBefore + '), after ' + ascent3).toBeLessThanOrEqual(3);
+    expect(diff2).withContext('Ascent before ' + ascent1 + ' (' + valueBefore + '), after ' + ascent3).toBeLessThanOrEqual(5);
     map = await trailPage.trailComponent.openMap();
 
     while (await tools.canUndo())

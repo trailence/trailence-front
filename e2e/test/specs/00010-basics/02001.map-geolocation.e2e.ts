@@ -10,7 +10,7 @@ describe('Locate me on map', () => {
     App.init();
     const loginPage = await App.start();
     myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
+    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My trails'));
     await browser.execute(() => {
       window.navigator.geolocation.watchPosition = function() {
         return 1;

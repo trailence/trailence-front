@@ -99,7 +99,7 @@ export class UserMenu extends Component {
   }
 
   public async clickMyAccount() {
-    return await this.clickByLabel('My Account');
+    return await this.clickByLabel('My account');
   }
 
   public async clickByLabel(text: string) {
@@ -130,7 +130,7 @@ export class UserMenu extends Component {
     }, 10, 500);
   }
 
-  public async synchronizeLocalChanges(maxTrials: number = 10, trial: number = 0, alreadyClickOnSynchronizeNow: boolean = false) {
+  public async synchronizeLocalChanges(maxTrials: number = 10, trial: number = 0, alreadyClickOnSynchronizeNow: boolean = false): Promise<boolean> {
     const item = this.getElement().$('>>>ion-item#item-synchro');
     const localChanges = item.$('>>>.synchro>.synchro-info:last-child>.value');
     let result = false;
@@ -147,14 +147,13 @@ export class UserMenu extends Component {
               await browser.waitUntil(() => localChanges.getText().then(text => text === 'No'), { timeout: 10000 });
               result = true;
               break;
-            } catch (e) {
+            } catch (_) {
               await this.close();
               const page = await Page.getActivePageElement();
               const header = new HeaderComponent(page);
               await header.waitDisplayed();
               const menu = await header.openUserMenu();
-              await menu.synchronizeLocalChanges(maxTrials, trial + 1, false);
-              return;
+              return await menu.synchronizeLocalChanges(maxTrials, trial + 1, false);
             }
           }
           await item.click();
@@ -170,14 +169,14 @@ export class UserMenu extends Component {
           const header = new HeaderComponent(page);
           await header.waitDisplayed();
           const menu = await header.openUserMenu();
-          await menu.synchronizeLocalChanges(maxTrials, trial + 1, true);
-          return;
+          return await menu.synchronizeLocalChanges(maxTrials, trial + 1, true);
         }
-      } catch (e) {
+      } catch (_) {
         // continue
       }
     }
     expect(result).withContext('Synchro after ' + trial + ' trials').toBeTrue();
+    return result;
   }
 
 }

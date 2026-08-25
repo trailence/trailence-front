@@ -15,6 +15,7 @@ export class MapTrackArrowPath {
   private _shown = false;
   private _map?: L.Map;
   private _arrowsByZoom: {[key:number]: L.Polyline[]} = {};
+  private _weight = 2;
   private readonly _zoomStartHandler = () => {
     if (!this._shown) return;
     if (this._arrowsByZoom[this._currentZoomShown])
@@ -67,6 +68,12 @@ export class MapTrackArrowPath {
     this._shown = show;
     if (show && this._map)
       this.updateArrowsOnMap();
+  }
+
+  public set weight(value: number) {
+    if (this._weight === value) return;
+    this._weight = value;
+    this.pathUpdated();
   }
 
   private pathUpdated(): void {
@@ -125,8 +132,10 @@ export class MapTrackArrowPath {
         if (!this.isTooClosed(p, arrows, MINIMUM_PIXELS_BETWEEN_ARROWS)) {
           // it's ok !
           result.push(
-            this.drawArrow(points, i, p, 5, map)
-            .setStyle({color: 'black', weight: 2, className: 'track-arrow'})
+            this.drawArrow(points, i, p, this._weight + 3, map)
+            .setStyle({color: '#FFFFFF80', weight: this._weight + 3, className: 'track-arrow-border'}),
+            this.drawArrow(points, i, p, this._weight + 3, map)
+            .setStyle({color: 'black', weight: this._weight, className: 'track-arrow'}),
           );
           arrows.push(p);
           lastArrow = p;

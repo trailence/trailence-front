@@ -669,6 +669,7 @@
     },
     "myaccount": {
       "title": "Mi cuenta",
+      "created_at": "Miembro desde",
       "quotas": {
         "title": "Límites",
         "collections": "Colecciones",
@@ -1670,10 +1671,10 @@
     },
     "view_original": "Ver el texto original",
     "view_translated": "Traducir al español",
+    "view_translated_default": "Traducir al inglés",
     "trail_moderation": {
       "title": "Traducciones",
       "original_language": "Idioma utilizado",
-      "detect": "Detectar",
       "needed_translations": "Traducciones necesarias",
       "name": "Nombre de la ruta",
       "description": "Descripción"

@@ -215,6 +215,7 @@ public class CameraPlugin extends Plugin {
 
     public void openCamera(final PluginCall call) {
         if (checkCameraPermissions(call)) {
+            isSaved = false;
             boolean isKeepOnLockScreen = ((TrailencePlugin) this.getBridge().getPlugin("Trailence").getInstance()).isKeepOnScreenLock();
             Intent takePictureIntent = new Intent(isKeepOnLockScreen ? MediaStore.ACTION_IMAGE_CAPTURE_SECURE : MediaStore.ACTION_IMAGE_CAPTURE);
             if (takePictureIntent.resolveActivity(getContext().getPackageManager()) != null) {
@@ -231,6 +232,7 @@ public class CameraPlugin extends Plugin {
                     // TODO: Verify provider config exists
                     imageFileUri = FileProvider.getUriForFile(getActivity(), appId + ".fileprovider", photoFile);
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageFileUri);
+                    takePictureIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                 } catch (Exception ex) {
                     call.reject(IMAGE_FILE_SAVE_ERROR, ex);
                     return;

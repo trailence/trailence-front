@@ -41,6 +41,7 @@ import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
+import { NULL_UUID } from 'src/app/utils/string-utils';
 
 @Component({
   selector: 'app-trails-page',
@@ -279,6 +280,19 @@ export class TrailsPage extends AbstractPage {
                 })
               );
             }
+            trail$ = trail$.pipe(
+              map(trail => {
+                if (trail) return trail;
+                return new Trail({
+                  owner: selectedTrail.owner,
+                  uuid: selectedTrail.uuid,
+                  originalTrackUuid: NULL_UUID,
+                  currentTrackUuid: NULL_UUID,
+                  collectionUuid: NULL_UUID,
+                  name: '?',
+                });
+              })
+            );
             trails$.push(trail$);
           }
           return trails$;

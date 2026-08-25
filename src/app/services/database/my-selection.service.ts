@@ -1,13 +1,9 @@
 import { Injectable, Injector } from '@angular/core';
 import { SimpleStoreWithoutUpdate } from './store/simple-store-without-update';
-import { catchError, combineLatest, concat, defaultIfEmpty, filter, Observable, of, switchMap, throwError, timeout } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
-import { NetworkService } from '../network/network.service';
-import { TrailService } from './trail.service';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { Console } from 'src/app/utils/console';
 import { CommonDatabaseService } from './common-database.service';
 
 @Injectable({providedIn: 'root'})
@@ -17,35 +13,8 @@ export class MySelectionService {
 
   constructor(
     injector: Injector,
-    network: NetworkService,
   ) {
     this.store = new MySelectionStore(injector);
-    this.store.getAllWhenLoaded$().pipe(
-      switchMap(items => combineLatest(items.map(item$ => item$.pipe(
-        switchMap(item => {
-          if (!item) return of(null);
-          return injector.get(TrailService).getTrail$(item.uuid, item.owner).pipe(
-            switchMap(trail => {
-              if (trail) return of(trail);
-              return concat(of(null), combineLatest([network.internet$, network.server$]).pipe(
-                filter(([c1,c2]) => c1 && !!c2),
-                switchMap(() => injector.get(TrailService).getTrail$(item.uuid, item.owner).pipe(
-                  filterDefined(),
-                  timeout(60000),
-                  defaultIfEmpty(new Error('Trail not found: ' + item.owner + '/' + item.uuid)),
-                  switchMap(e => e instanceof Error ? throwError(() => e) : of(e)),
-                  catchError(e => {
-                    Console.info('Removing trail from my selection because it seems deleted', item.owner, item.uuid, e);
-                    this.deleteSelection(item.owner, item.uuid);
-                    return of(null);
-                  }),
-                )),
-              ));
-            }),
-          );
-        })
-      )))),
-    ).subscribe();
   }
 
   public getMySelection(): Observable<SelectedTrail[]> {

@@ -15,6 +15,7 @@ import { QuotaService } from 'src/app/services/auth/quota.service';
 import { UserQuotasComponent } from 'src/app/components/user-quotas/user-quotas.component';
 import { Router } from '@angular/router';
 import { AsyncPipe } from '@angular/common';
+import { AvatarComponent } from 'src/app/components/avatar/avatar.component';
 
 @Component({
   selector: 'app-myaccount',
@@ -26,11 +27,13 @@ import { AsyncPipe } from '@angular/common';
     UserKeysComponent,
     UserQuotasComponent,
     AsyncPipe,
+    AvatarComponent,
   ]
 })
 export class MyaccountPage implements OnDestroy, OnInit {
 
   email: string;
+  createdAt?: number;
   complete: boolean;
   anonymous: boolean;
   quotas?: UserQuotas;
@@ -57,6 +60,7 @@ export class MyaccountPage implements OnDestroy, OnInit {
     private readonly router: Router,
   ) {
     this.email = auth.email!;
+    this.createdAt = auth.auth?.userCreatedAt;
     this.complete = auth.auth?.complete || false;
     this.anonymous = auth.auth?.complete || false;
     this.subscriptions.add(auth.auth$.subscribe(a => {

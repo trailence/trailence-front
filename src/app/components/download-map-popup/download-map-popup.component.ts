@@ -129,7 +129,7 @@ export class DownloadMapPopupComponent implements OnInit, OnChanges {
     const layerResult = new Map<number, L.Point[]>();
     let layerTotal = 0;
     const crs = L.CRS.EPSG3857;
-    for (let zoom = 1; zoom <= maxZoom; ++zoom) {
+    for (let zoom = Math.max(layer.layer.minZoom, 1); zoom <= Math.min(maxZoom, layer.layer.maxZoom); ++zoom) {
       let zoomCache = layerCache.get(zoom);
       if (zoomCache) {
         layerTotal += zoomCache.points.length;

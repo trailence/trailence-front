@@ -1,5 +1,5 @@
-import { PointDescriptor } from 'front/model/point-descriptor';
-import { WayPoint } from 'front/model/way-point';
+import { PointDescriptor } from '@front/model/point-descriptor';
+import { WayPoint } from '@front/model/way-point';
 import { distance } from './crs';
 
 interface PointReference {
