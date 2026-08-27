@@ -56,7 +56,7 @@ export class EstimatedSpeedDatasetBuilder {
           });
           originalData[index].estimatedSpeed = pointEstimation.speedMetersByHour;
           originalData[index].estimatedDuration = pointEstimation.estimatedDurationFromStart;
-          if (originalData[index].x === 0) {
+          if (originalData[index].x === 0 || originalData[index].timeFromAPreviousPoint) {
             originalData[index].x = pointEstimation.durationFromStartOnTrack / 60000;
           }
           if (pointEstimation.smallBreakDuration > 0)

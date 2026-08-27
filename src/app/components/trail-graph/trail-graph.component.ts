@@ -538,6 +538,17 @@ export class TrailGraphComponent extends AbstractComponent {
       if (currentSegmentStartDate || previousSegmentsTime)
         timeSinceStart = previousSegmentsTime + (currentSegmentStartDate ? point.time - currentSegmentStartDate : 0);
     }
+    let timeFromAPreviousPoint = false;
+    if (timeSinceStart === undefined) {
+      for (let i = trackPointIndex - 1; i > 0; --i) {
+        const p = points[i];
+        timeSinceStart = p.durationFromStart(track);
+        if (timeSinceStart !== undefined) {
+          timeFromAPreviousPoint = true;
+          break;
+        }
+      }
+    }
 
     const isBreak = trackPointIndex > 0 && point.durationFromPreviousPoint && point.durationFromPreviousPoint > 60 * 1000 && (!point.distanceFromPreviousPoint || point.distanceFromPreviousPoint / point.durationFromPreviousPoint < 0.0001);
 
@@ -561,6 +572,7 @@ export class TrailGraphComponent extends AbstractComponent {
       eleAccuracy: point.eleAccuracy,
       posAccuracy: point.posAccuracy,
       speedInMeters: point.computedSpeed ?? 0,
+      timeFromAPreviousPoint: timeFromAPreviousPoint,
     };
     if (isBreak && this.graphType === 'speed') {
       // insert points with speed 0

@@ -18,4 +18,5 @@ export interface DataPoint {
   estimatedSpeed?: number;
   estimatedDuration?: number;
   originalDataIndex?: number;
+  timeFromAPreviousPoint?: boolean;
 }
