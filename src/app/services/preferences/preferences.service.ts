@@ -1,5 +1,5 @@
 import { Injectable, Injector, OnDestroy } from '@angular/core';
-import { ComputedPreferences, DateFormat, DistanceUnit, HourFormat, Preferences, ThemeType } from './preferences';
+import { ComputedPreferences, DateFormat, DistanceUnit, Filters, HourFormat, Preferences, ThemeType } from './preferences';
 import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { HttpService } from '../http/http.service';
@@ -9,8 +9,8 @@ import { StringUtils } from 'src/app/utils/string-utils';
 import { Console } from 'src/app/utils/console';
 import Trailence from '../trailence.service';
 import { I18nService } from '../i18n/i18n.service';
-import { Filters, FiltersUtils } from 'src/app/components/trails-list/filters';
-import { AvailableLocales, DEFAULT_LOCALE_KEY, LocaleKey, toLocaleKey } from '../i18n/available-locales';
+import { FiltersUtils } from 'src/app/components/trails-list/filters';
+import { DEFAULT_LOCALE_KEY, LocaleKey, toLocaleKey } from '../i18n/available-locales';
 
 const defaultPreferences: {[key in LocaleKey]: Preferences} = {
   'de': {

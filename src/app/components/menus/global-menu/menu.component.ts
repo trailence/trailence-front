@@ -3,39 +3,33 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { IonIcon, IonButton, MenuController, IonBadge, Platform, PopoverController } from "@ionic/angular/standalone";
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
-import { combineLatest, concat, map, of, switchMap } from 'rxjs';
+import { combineLatest, concat, EMPTY, from, map, of, switchMap } from 'rxjs';
 import { Router } from '@angular/router';
-import { TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { Share } from 'src/app/model/share';
 import { ShareService } from 'src/app/services/database/share.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { UpdateService } from 'src/app/services/update/update.service';
 import { List } from 'immutable';
 import { trailenceAppVersionName } from 'src/app/trailence-version';
-import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { MenuContentComponent } from '../menu-content/menu-content.component';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { isPublicationCollection, TrailCollectionType } from 'src/app/model/dto/trail-collection';
-import { MyPublicTrail, MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
-import { MySelectionService } from 'src/app/services/database/my-selection.service';
 import { ChangesDetection } from 'src/app/utils/angular-helpers';
-import { AsyncPipe } from '@angular/common';
-import { LiveGroupDto, LiveGroupService } from 'src/app/services/live-group/live-group.service';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 import { MenuItem } from '../menu-item';
-import { DebugService } from 'src/app/services/debug/debug.service';
-import { ModerationCounters, ModerationService } from 'src/app/services/moderation/moderation.service';
-import { AuthResponse } from 'src/app/services/auth/auth-response';
+import { LiveGroupDto } from 'src/app/model/dto/live-group';
+import { MyPublicTrail } from 'src/app/model/dto/my-public-trail';
+import { ModerationCounters } from 'src/app/model/dto/moderation-counters';
+import { AppDownload } from 'src/app/services/update/common';
 
 @Component({
     selector: 'app-menu',
     templateUrl: './menu.component.html',
     styleUrls: ['./menu.component.scss'],
     imports: [
-      IonBadge, IonButton, IonIcon, AsyncPipe, I18nPipe,
+      IonBadge, IonButton, IonIcon, I18nPipe,
     ]
 })
 export class MenuComponent implements OnInit {
@@ -52,7 +46,10 @@ export class MenuComponent implements OnInit {
   pubReject?: CollectionWithInfo;
   myPublicTrails: MyPublicTrail[] = [];
   liveGroups: LiveGroupDto[] = [];
+  liveGroupsPaused = false;
   moderationCounters: ModerationCounters | undefined = undefined;
+  update?: AppDownload;
+  recording = false;
 
   collectionsOpen = true;
   sharedWithMeOpen = true;
@@ -69,24 +66,18 @@ export class MenuComponent implements OnInit {
   isInit = false;
 
   constructor(
+    private readonly injector: Injector,
     public readonly i18n: I18nService,
     public readonly collectionService: TrailCollectionService,
     public readonly shareService: ShareService,
     trailService: TrailService,
     private readonly router: Router,
     public readonly menuController: MenuController,
-    public readonly traceRecorder: TraceRecorderService,
-    authService: AuthService,
-    public readonly update: UpdateService,
-    public readonly fetchSourceService: FetchSourceService,
+    private readonly authService: AuthService,
     platform: Platform,
-    private readonly injector: Injector,
     preferences: PreferencesService,
-    myPublicTrailsService: MyPublicTrailsService,
-    mySelectionService: MySelectionService,
     changeDetector: ChangeDetectorRef,
     ngZone: NgZone,
-    public readonly liveGroupService: LiveGroupService,
   ) {
     const changesDetection = new ChangesDetection(ngZone, changeDetector);
     const refresh = () => {
@@ -131,12 +122,7 @@ export class MenuComponent implements OnInit {
       refresh();
     });
     combineLatest([
-      authService.permissionsChanged$.pipe(
-        switchMap(auth => {
-          if (!auth || (!auth.admin && !auth.roles?.includes('moderator'))) return of([auth, undefined] as [AuthResponse | undefined, ModerationCounters | undefined]);
-          return this.injector.get(ModerationService).counters$.pipe(map(counters => ([auth, counters] as [AuthResponse | undefined, ModerationCounters | undefined])));
-        })
-      ),
+      authService.permissionsChanged$,
       shareService.getAll$().pipe(
         collection$items(),
         map(shares => {
@@ -159,31 +145,62 @@ export class MenuComponent implements OnInit {
         debounceTimeExtended(0, 10),
       )
     ])
-    .subscribe(([[auth, moderationCounters], shares]) => {
+    .subscribe(([auth, shares]) => {
       this.sharedByMe = List(shares.filter(share => share.share.owner === auth?.email));
       this.sharedWithMe = List(shares.filter(share => share.share.owner !== auth?.email));
       this.isAdmin = !!auth?.admin;
       this.isAnonymous = !!auth?.isAnonymous;
       this.isModerator = !!auth?.roles?.find(r => r === 'moderator');
-      this.moderationCounters = moderationCounters;
       refresh();
     });
-    myPublicTrailsService.myPublicTrails$.subscribe(list => {
+    setTimeout(() => this.deferedInit(refresh), 1000);
+  }
+
+  private deferedInit(refresh: () => void): void {
+    import('src/app/services/database/my-public-trails.service')
+    .then(module => this.injector.get(module.MyPublicTrailsService).myPublicTrails$.subscribe(list => {
       this.myPublicTrails = list;
       refresh();
-    });
-    mySelectionService.getMySelection().subscribe(list => {
+    }));
+    import('src/app/services/database/my-selection.service')
+    .then(module => this.injector.get(module.MySelectionService).getMySelection().subscribe(list => {
       this.mySelectionCount = list.length;
       refresh();
+    }));
+    import('src/app/services/live-group/live-group.service')
+    .then(module => {
+      const service = this.injector.get(module.LiveGroupService);
+      service.groups$.pipe(
+        switchMap(groups => groups?.length ? service.paused$.pipe(map(paused => ({groups, paused}))) : of({groups: [], paused: false}))
+      ).subscribe(result => {
+        this.liveGroups = result.groups;
+        this.liveGroupsPaused = result.paused;
+        refresh();
+      });
     });
-    liveGroupService.groups$
-    .pipe(
-      switchMap(groups => groups?.length ? this.liveGroupService.paused$.pipe(map(paused => ({groups, paused}))) : of({groups: [], paused: false}))
-    )
-    .subscribe(result => {
-      this.liveGroups = result.groups;
+    this.authService.permissionsChanged$.pipe(
+      switchMap(auth => {
+        if (!auth || (!auth.admin && !auth.roles?.includes('moderator'))) return EMPTY;
+        return from(import('src/app/services/moderation/moderation.service'));
+      }),
+      switchMap(module => this.injector.get(module.ModerationService).counters$),
+    ).subscribe(counters => {
+      this.moderationCounters = counters;
       refresh();
     });
+    import('src/app/services/update/update.service')
+    .then(module => this.injector.get(module.UpdateService).availableDownload$.subscribe(update => {
+      this.update = update;
+      refresh();
+    }));
+    import('src/app/services/trace-recorder/trace-recorder.service')
+    .then(module => this.injector.get(module.TraceRecorderService).current$.subscribe(recording => {
+      const isRecording = !!recording;
+      if (this.recording !== isRecording) {
+        this.recording = isRecording;
+        refresh();
+      }
+    }));
   }
 
   ngOnInit(): void {
@@ -199,59 +216,69 @@ export class MenuComponent implements OnInit {
   }
 
   goToRecordTrace(): void {
-    const trace = this.traceRecorder.current;
-    if (trace) {
-      if (trace.followingTrailUuid) {
-        this.goTo('/trail/' + trace.followingTrailOwner! + '/' + trace.followingTrailUuid);
+    import('src/app/services/trace-recorder/trace-recorder.service')
+    .then(module => {
+      const service = this.injector.get(module.TraceRecorderService);
+      const trace = service.current;
+      if (trace) {
+        if (trace.followingTrailUuid) {
+          this.goTo('/trail/' + trace.followingTrailOwner! + '/' + trace.followingTrailUuid);
+        } else {
+          this.goTo('/trail');
+        }
       } else {
-        this.goTo('/trail');
+        service.start().then(() => this.goTo('/trail'));
       }
-    } else {
-      this.traceRecorder.start().then(() => this.goTo('/trail'));
-    }
+    });
   }
 
   createLiveGroup(): void {
     import('../../live-group/live-group-popup.component')
     .then(m => m.openCreateLiveGroupPopup(this.injector))
     .then(created => {
-      if (created) this.liveGroupService.openLiveGroup(created);
+      if (created)
+        import('src/app/services/live-group/live-group.service')
+        .then(module => this.injector.get(module.LiveGroupService).openLiveGroup(created));
     });
     this.close();
   }
 
   liveGroupMenu($event: MouseEvent): void {
     $event.stopPropagation();
-    const menu: MenuItem[] = [
-      new MenuItem().setIcon('pause').setI18nLabel('pages.live_group.pause')
-        .setVisible(() => !this.liveGroupService.paused)
-        .setAction(() => this.liveGroupService.pause()),
-      new MenuItem().setIcon('play').setI18nLabel('pages.live_group.resume')
-        .setVisible(() => this.liveGroupService.paused)
-        .setAction(() => this.liveGroupService.resume()),
-      new MenuItem(),
-      ...this.liveGroups.map(
-        group => new MenuItem().setFixedLabel(group.name)
-          .setSubLabel([
-            this.i18n.texts.pages.live_group.date_from + ' ' + this.i18n.timestampToDateString(group.startedAt) + ' ' +
-            this.i18n.texts.pages.live_group.date_to + ' ' + this.i18n.timestampToDateString(group.expiresAt)
-          ])
-          .setAction(() => { this.liveGroupService.openLiveGroup(group); this.close(); })
-      ),
-      new MenuItem().setIcon('add').setI18nLabel('menu.create_live_group').setTextColor('success')
-        .setVisible(() => !this.isAnonymous && this.liveGroups.length < 10)
-        .setAction(() => this.createLiveGroup()),
-    ];
-    this.injector.get(PopoverController).create({
-      component: MenuContentComponent,
-      componentProps: {
-        menu,
-      },
-      event: $event,
-      side: 'right',
-      dismissOnSelect: true,
-      arrow: true,
-    }).then(p => p.present());
+    import('src/app/services/live-group/live-group.service')
+    .then(module => {
+      const liveGroupService = this.injector.get(module.LiveGroupService);
+      const menu: MenuItem[] = [
+        new MenuItem().setIcon('pause').setI18nLabel('pages.live_group.pause')
+          .setVisible(() => !liveGroupService.paused)
+          .setAction(() => liveGroupService.pause()),
+        new MenuItem().setIcon('play').setI18nLabel('pages.live_group.resume')
+          .setVisible(() => liveGroupService.paused)
+          .setAction(() => liveGroupService.resume()),
+        new MenuItem(),
+        ...this.liveGroups.map(
+          group => new MenuItem().setFixedLabel(group.name)
+            .setSubLabel([
+              this.i18n.texts.pages.live_group.date_from + ' ' + this.i18n.timestampToDateString(group.startedAt) + ' ' +
+              this.i18n.texts.pages.live_group.date_to + ' ' + this.i18n.timestampToDateString(group.expiresAt)
+            ])
+            .setAction(() => { liveGroupService.openLiveGroup(group); this.close(); })
+        ),
+        new MenuItem().setIcon('add').setI18nLabel('menu.create_live_group').setTextColor('success')
+          .setVisible(() => !this.isAnonymous && this.liveGroups.length < 10)
+          .setAction(() => this.createLiveGroup()),
+      ];
+      this.injector.get(PopoverController).create({
+        component: MenuContentComponent,
+        componentProps: {
+          menu,
+        },
+        event: $event,
+        side: 'right',
+        dismissOnSelect: true,
+        arrow: true,
+      }).then(p => p.present());
+    });
   }
 
   openHelp(): void {
@@ -332,7 +359,8 @@ export class MenuComponent implements OnInit {
     if (now - this.debugLastClick < 2000) {
       if (++this.debugClickCount >= 10) {
         this.debugClickCount = 0;
-        this.injector.get(DebugService).openPopup();
+        import('src/app/services/debug/debug.service')
+        .then(module => this.injector.get(module.DebugService).openPopup());
       }
     }
     this.debugLastClick = now;

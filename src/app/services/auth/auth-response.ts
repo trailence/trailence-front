@@ -1,4 +1,4 @@
-import { AvatarDto } from '../avatar/avatar.service';
+import { AvatarDto } from 'src/app/model/dto/avatar';
 import { Preferences } from '../preferences/preferences';
 import { UserQuotas } from './user-quotas';
 

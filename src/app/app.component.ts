@@ -1,16 +1,16 @@
 import { ChangeDetectorRef, Component, Injector } from '@angular/core';
 import { IonApp, IonRouterOutlet, IonContent, IonMenu } from '@ionic/angular/standalone';
-import { I18nService } from './services/i18n/i18n.service';
-import { AssetsService } from './services/assets/assets.service';
 import { MenuComponent } from './components/menus/global-menu/menu.component';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { BehaviorSubject, catchError, combineLatest, filter, first, from, map, of, switchMap, tap, timeout } from 'rxjs';
-import { AuthService } from './services/auth/auth.service';
-import { BrowserService } from './services/browser/browser.service';
-import { Console } from './utils/console';
-import { PlatformService } from './services/platform/platform.service';
-import { NetworkService } from './services/network/network.service';
 import { filterDefined } from './utils/rxjs/filter-defined';
+import { Console } from './utils/console';
+import { NetworkService } from './services/network/network.service';
+import { I18nService } from './services/i18n/i18n.service';
+import { BrowserService } from './services/browser/browser.service';
+import { AssetsService } from './services/assets/assets.service';
+import { PlatformService } from './services/platform/platform.service';
+import { AuthService } from './services/auth/auth.service';
 import { QuotaService } from './services/auth/quota.service';
 
 Console.info('App loading: main component loaded ', Date.now() - ((globalThis as any)._trailenceStart || 0));

@@ -12,9 +12,10 @@ import { List } from 'immutable';
 import { Trail } from 'src/app/model/trail';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { MapBubble } from 'src/app/components/map/bubble/map-bubble';
-import { Filters, FiltersUtils } from 'src/app/components/trails-list/filters';
+import { FiltersUtils } from 'src/app/components/trails-list/filters';
 import { ErrorService } from '../progress/error.service';
 import { PreferencesService } from '../preferences/preferences.service';
+import { Filters } from '../preferences/preferences';
 
 @Injectable({providedIn: 'root'})
 export class SearchTrailsService {

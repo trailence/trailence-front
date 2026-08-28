@@ -114,15 +114,17 @@
             <div class="tag">{{tag}}</div>
           }
         </div>
-        @if (external) {
-          @if (external.rating !== undefined) {
-            <app-rate [rate]="external.rating" [nbRates]="external.nbRates"></app-rate>
-          }
-          @if (external.authorPublicId && showAuthor) {
-            <div class="published-by">
-              {{i18n.texts.pages.trail.published__by}}
-              <span> @if(external.itsMine) { {{i18n.texts.pages.trail.sections.comments.you}} }@else { {{external.author || i18n.texts.pages.preferences.anonymous}} }</span>
-            </div>
+        @defer (when external) {
+          @if (external) {
+            @if (external.rating !== undefined) {
+              <app-rate [rate]="external.rating" [nbRates]="external.nbRates"></app-rate>
+            }
+            @if (external.authorPublicId && showAuthor) {
+              <div class="published-by">
+                {{i18n.texts.pages.trail.published__by}}
+                <span> @if(external.itsMine) { {{i18n.texts.pages.trail.sections.comments.you}} }@else { {{external.author || i18n.texts.pages.preferences.anonymous}} }</span>
+              </div>
+            }
           }
         }
 
@@ -234,12 +236,14 @@
         }
       </div>
       @if (enableTabs && fullTrack) {
-        <div class="trail-overview-graph {{selectedTab === 'elevation' ? 'shown' : 'hidden'}}">
-          <app-trail-graph
-            [track1]="fullTrack"
-            [graphType]="'elevation'"
-          ></app-trail-graph>
-        </div>
+        @defer (when enableTabs && fullTrack && selectedTab === 'elevation') {
+          <div class="trail-overview-graph {{selectedTab === 'elevation' ? 'shown' : 'hidden'}}">
+            <app-trail-graph
+              [track1]="fullTrack"
+              [graphType]="'elevation'"
+            ></app-trail-graph>
+          </div>
+        }
       }
       @if (enableTabs && photos.length > 0) {
         <div class="trail-overview-photos {{selectedTab === 'photos' ? 'shown' : 'hidden'}}">

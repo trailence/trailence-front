@@ -14,10 +14,11 @@ import { FilterNumericCustomComponent } from 'src/app/components/filters/filter-
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { IdGenerator } from 'src/app/utils/component-utils';
 import { InputNumberComponent } from 'src/app/components/input-number/input-number.component';
-import { AvatarDto, AvatarService } from 'src/app/services/avatar/avatar.service';
+import { AvatarService } from 'src/app/services/avatar/avatar.service';
 import { AvatarComponent } from 'src/app/components/avatar/avatar.component';
 import { ObserverHelper } from 'src/app/utils/observer-helper';
 import { LangPickerComponent } from 'src/app/components/lang-picker/lang-picker.component';
+import { AvatarDto } from 'src/app/model/dto/avatar';
 
 @Component({
   selector: 'app-preferences',

@@ -22,7 +22,6 @@ import { ModerationService } from 'src/app/services/moderation/moderation.servic
 import { NavController } from '@ionic/angular/standalone';
 import { MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
 import { MySelectionService } from 'src/app/services/database/my-selection.service';
-import { Filters } from 'src/app/components/trails-list/filters';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { isPublicationCollection, TrailCollectionType } from 'src/app/model/dto/trail-collection';
@@ -42,6 +41,7 @@ import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { NULL_UUID } from 'src/app/utils/string-utils';
+import { Filters } from 'src/app/services/preferences/preferences';
 
 @Component({
   selector: 'app-trails-page',

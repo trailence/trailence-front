@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges } from '@angular/core';
 import { Track } from 'src/app/model/track';
 import { getGradeRange, gradeColors } from '../trail-graph/grade-values';
 import { ObserverHelper } from 'src/app/utils/observer-helper';
@@ -17,7 +17,7 @@ export class TrailSmallElevationProfileComponent implements OnChanges {
     private readonly elementRef: ElementRef,
   ) {}
 
-  ngOnChanges(changes: SimpleChanges): void {
+  ngOnChanges(): void {
     this.update();
   }
 

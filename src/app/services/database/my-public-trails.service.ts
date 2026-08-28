@@ -7,11 +7,7 @@ import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
 import { CommonDatabaseService } from './common-database.service';
 import { Console } from 'src/app/utils/console';
-
-export interface MyPublicTrail {
-  publicUuid: string;
-  privateUuid: string;
-}
+import { MyPublicTrail } from 'src/app/model/dto/my-public-trail';
 
 @Injectable({providedIn: 'root'})
 export class MyPublicTrailsService {

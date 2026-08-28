@@ -43,7 +43,6 @@ import { MenuItem } from '../menus/menu-item';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { TrailSourceType } from 'src/app/model/dto/trail';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { PublicationChecklist } from './publication-checklist/checklist';
 import { ModerationService } from 'src/app/services/moderation/moderation.service';
@@ -65,7 +64,7 @@ import { samePositionRound } from 'src/app/model/point';
 import { MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
 import { HttpService } from 'src/app/services/http/http.service';
 import { ErrorService } from 'src/app/services/progress/error.service';
-import { LiveGroupDto, LiveGroupService } from 'src/app/services/live-group/live-group.service';
+import { LiveGroupService } from 'src/app/services/live-group/live-group.service';
 import { LiveGroupComponent } from '../live-group/live-group.component';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { ContributionsBadgesComponent } from '../contributions-badges/contribution-badges.component';
@@ -82,6 +81,7 @@ import { buildMapMarkedTrails, MapMarkedTrail } from '../map/marked-trail/map-ma
 import { MapElement } from '../map/map-element';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { TrackPointReference } from 'src/app/utils/track-computed-data/types';
+import { LiveGroupDto } from 'src/app/model/dto/live-group';
 
 interface TrailSource {
   isExternal: boolean;
@@ -1906,7 +1906,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
 
   openDateDialog(): void {
     if (this.trail2 || !this.trail1 || !this.editable) return;
-    this.injector.get(TrailMenuService).openTrailDatePopup(this.trail1, this.tracks$.value[0]);
+    import('src/app/services/database/trail-menu.service').then(module => this.injector.get(module.TrailMenuService).openTrailDatePopup(this.trail1!, this.tracks$.value[0]));
   }
 
   openActivityDialog(): void {
@@ -1918,7 +1918,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   }
 
   openPublish(): void {
-    this.injector.get(TrailMenuService).startPublication(this.trail1!);
+    import('src/app/services/database/trail-menu.service').then(module => this.injector.get(module.TrailMenuService).startPublication(this.trail1!));
   }
 
   canEdit(): boolean {

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { MyPublicTrail, MyPublicTrailsService } from './my-public-trails.service';
+import { MyPublicTrailsService } from './my-public-trails.service';
 import { TrailLinkService } from './link.service';
 import { TrailService } from './trail.service';
 import { AuthService } from '../auth/auth.service';
@@ -10,6 +10,7 @@ import { SHARED_OWNER_PREFIX, TrailCollectionType } from 'src/app/model/dto/trai
 import { TrailLink } from 'src/app/model/dto/trail-link';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { Trail } from 'src/app/model/trail';
+import { MyPublicTrail } from 'src/app/model/dto/my-public-trail';
 
 interface PublicationsData {
   email: string | undefined,

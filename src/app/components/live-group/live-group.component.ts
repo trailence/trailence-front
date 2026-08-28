@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Injector, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { LiveGroupDto, LiveGroupMemberDto, LiveGroupService } from 'src/app/services/live-group/live-group.service';
+import { LiveGroupService } from 'src/app/services/live-group/live-group.service';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { IonIcon, AlertController, IonButton } from '@ionic/angular/standalone';
 import { RelativeDateComponent } from '../relative-date/relative-date.component';
@@ -17,6 +17,7 @@ import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 import { GeolocationService } from 'src/app/services/geolocation/geolocation.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { BoundsBuilder } from 'src/app/utils/leaflet-utils';
+import { LiveGroupDto, LiveGroupMemberDto } from 'src/app/model/dto/live-group';
 
 @Component({
   selector: 'app-live-group',

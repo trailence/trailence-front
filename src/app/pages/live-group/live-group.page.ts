@@ -8,7 +8,7 @@ import { MapTrack } from 'src/app/components/map/track/map-track';
 import { MenuItem } from 'src/app/components/menus/menu-item';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { LiveGroupDto, LiveGroupService } from 'src/app/services/live-group/live-group.service';
+import { LiveGroupService } from 'src/app/services/live-group/live-group.service';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { IonInput, IonCard, IonCardContent, IonToolbar, IonLabel, IonButton, IonSpinner } from '@ionic/angular/standalone';
@@ -19,6 +19,7 @@ import { Router } from '@angular/router';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { defaultAuthRoute, defaultPublicRoute } from 'src/app/routes/package.routes';
 import { Console } from 'src/app/utils/console';
+import { LiveGroupDto } from 'src/app/model/dto/live-group';
 
 @Component({
   templateUrl: './live-group.page.html',

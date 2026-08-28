@@ -3,9 +3,9 @@
     @if (auth.email) {
       <ion-buttons slot="start">
         <ion-menu-button></ion-menu-button>
-        @if (update.availableDownload?.badge) {
+        @if (update?.badge) {
           <div class="update-app-badge">
-            <ion-badge>{{update.availableDownload!.badge}}</ion-badge>
+            <ion-badge>{{update!.badge}}</ion-badge>
           </div>
         }
       </ion-buttons>
@@ -38,13 +38,13 @@
               <ng-template>
                 <ion-content>
                   <ion-list>
-                    @if (liveGroupService?.paused) {
-                      <ion-item (click)="liveGroupService!.resume()">
+                    @if (liveGroupsPaused) {
+                      <ion-item (click)="resumeLiveGroups()">
                         <ion-icon name="play" slot="start"></ion-icon>
                         <ion-label>{{i18n.texts.pages.live_group.resume}}</ion-label>
                       </ion-item>
                     } @else {
-                      <ion-item (click)="liveGroupService!.pause()">
+                      <ion-item (click)="pauseLiveGroups()">
                         <ion-icon name="pause" slot="start"></ion-icon>
                         <ion-label>{{i18n.texts.pages.live_group.pause}}</ion-label>
                       </ion-item>
@@ -100,13 +100,13 @@
                       <ng-template>
                         <ion-content>
                           <ion-list>
-                            @if (liveGroupService?.paused) {
-                              <ion-item (click)="liveGroupService!.resume()">
+                            @if (liveGroupsPaused) {
+                              <ion-item (click)="resumeLiveGroups()">
                                 <ion-icon name="play" slot="start"></ion-icon>
                                 <ion-label>{{i18n.texts.pages.live_group.resume}}</ion-label>
                               </ion-item>
                             } @else {
-                              <ion-item (click)="liveGroupService!.pause()">
+                              <ion-item (click)="pauseLiveGroups()">
                                 <ion-icon name="pause" slot="start"></ion-icon>
                                 <ion-label>{{i18n.texts.pages.live_group.pause}}</ion-label>
                               </ion-item>

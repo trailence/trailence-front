@@ -11,14 +11,12 @@
 </div>
 <div class="menu-content" data-nosnippet>
 
-  @if (fetchSourceService.canSearch$ | async) {
-    <div class="menu-item" (click)="goTo('/trails/search'); close();">
-      <ion-icon name="search-map" class="left-icon"></ion-icon>
-      <div class="item-title-container">
-        <div class="item-title">{{ i18n.texts.menu.search_trail }}</div>
-      </div>
+  <div class="menu-item" (click)="goTo('/trails/search'); close();">
+    <ion-icon name="search-map" class="left-icon"></ion-icon>
+    <div class="item-title-container">
+      <div class="item-title">{{ i18n.texts.menu.search_trail }}</div>
     </div>
-  }
+  </div>
 
   <div class="menu-item" (click)="goTo('/trail-planner'); close();">
     <ion-icon name="planner" class="left-icon"></ion-icon>
@@ -30,7 +28,7 @@
   <div class="menu-item" (click)="goToRecordTrace(); close();">
     <ion-icon name="play" class="left-icon"></ion-icon>
     <div class="item-title-container">
-      <div class="item-title">{{ i18n.texts.menu[traceRecorder.recording ? 'current_trace' : 'start_trace'] }}</div>
+      <div class="item-title">{{ i18n.texts.menu[recording ? 'current_trace' : 'start_trace'] }}</div>
     </div>
   </div>
   @if (liveGroups.length === 0 && !isAnonymous) {
@@ -54,7 +52,7 @@
           </span>
           <ion-icon name="chevron-right"></ion-icon>
         </div>
-        @if (liveGroupService.paused) {
+        @if (liveGroupsPaused) {
           <div class="item-sub-title">{{i18n.texts.pages.live_group.paused}}</div>
         }
       </div>
@@ -392,18 +390,18 @@
 
 </div>
 <div class="menu-footer">
-  @if (update.availableDownload) {
-    <div class="menu-item" (click)="update.availableDownload.launch(); close();">
-      @if (update.availableDownload.badge) {
+  @if (update) {
+    <div class="menu-item" (click)="update.launch(); close();">
+      @if (update.badge) {
       <div class="icon-badge">
-        <ion-icon class="left-icon" [name]="update.availableDownload.icon"></ion-icon>
-        <ion-badge>{{update.availableDownload.badge}}</ion-badge>
+        <ion-icon class="left-icon" [name]="update.icon"></ion-icon>
+        <ion-badge>{{update.badge}}</ion-badge>
       </div>
       } @else {
-        <ion-icon class="left-icon" [name]="update.availableDownload.icon"></ion-icon>
+        <ion-icon class="left-icon" [name]="update.icon"></ion-icon>
       }
       <div class="item-title-container">
-        <div class="item-title">{{i18n.texts.update[update.availableDownload.i18nText]}}</div>
+        <div class="item-title">{{i18n.texts.update[update.i18nText]}}</div>
       </div>
     </div>
   }

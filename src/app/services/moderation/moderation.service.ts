@@ -30,6 +30,7 @@ import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from 'src/app/worker/web-app';
 import { detectLongBreaksFromTrack } from '../track-edition/time/break-detection';
 import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
+import { ModerationCounters } from 'src/app/model/dto/moderation-counters';
 
 @Injectable({providedIn: 'root'})
 export class ModerationService {
@@ -632,12 +633,4 @@ export interface FeedbackToReview {
   trailName: string;
   trailDescription: string;
   feedbacks: Feedback[];
-}
-
-export interface ModerationCounters {
-  trails: number;
-  comments: number;
-  commentReplies: number;
-  removeRequests: number;
-  avatars: number;
 }

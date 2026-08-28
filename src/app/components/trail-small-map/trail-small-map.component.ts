@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges } from '@angular/core';
 import { Track } from 'src/app/model/track';
 import * as L from 'leaflet';
 import { MapGenerator } from './map-generator';
@@ -18,7 +18,7 @@ export class TrailSmallMapComponent implements OnChanges {
     private readonly element: ElementRef,
   ) {}
 
-  ngOnChanges(changes: SimpleChanges): void {
+  ngOnChanges(): void {
     this.reset();
   }
 

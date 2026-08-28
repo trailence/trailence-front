@@ -5,10 +5,10 @@ import { Injector } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
-import { Filters } from 'src/app/components/trails-list/filters';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { TrailActivity } from 'src/app/model/dto/trail-activity';
 import { computeWayPointsFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
+import { Filters } from '../preferences/preferences';
 
 export abstract class FetchSourcePlugin {
 

@@ -9,6 +9,7 @@ import { NetworkService } from '../network/network.service';
 import { PendingRequests } from 'src/app/utils/pending-requests';
 import { ApiError } from '../http/api-error';
 import { ErrorService } from '../progress/error.service';
+import { AvatarDto } from 'src/app/model/dto/avatar';
 
 export const AVATAR_MIN_SIZE = 48;
 export const AVATAR_MAX_SIZE = 128;
@@ -241,14 +242,6 @@ export class AvatarService {
     });
   }
 
-}
-
-export interface AvatarDto {
-  version: number;
-  hasAvatar: boolean;
-  avatarPublic: boolean;
-  hasPending: boolean;
-  pendingPublic: boolean;
 }
 
 interface AvatarCacheItem {

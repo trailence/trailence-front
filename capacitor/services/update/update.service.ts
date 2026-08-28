@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { APK_PATH, AppDownload } from 'src/app/services/update/common';
 import { Platform, AlertController, ModalController } from '@ionic/angular/standalone';
-import { catchError, first, map, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, first, map, Observable, of, switchMap } from 'rxjs';
 import { HttpService } from 'src/app/services/http/http.service';
 import { environment } from 'src/environments/environment';
 import { trailenceAppVersionCode } from 'src/app/trailence-version';
@@ -17,7 +17,7 @@ import { Console } from 'src/app/utils/console';
 @Injectable({providedIn: 'root'})
 export class UpdateService {
 
-  public availableDownload?: AppDownload;
+  public availableDownload$ = new BehaviorSubject<AppDownload | undefined>(undefined);
 
   constructor(
     private readonly platform: Platform,
@@ -38,12 +38,12 @@ export class UpdateService {
       first(),
     ).subscribe(available => {
       if (available) {
-        this.availableDownload = {
+        this.availableDownload$.next({
           icon: 'android',
           i18nText: 'update_android',
           badge: '⟳',
           launch: () => { this.displayUpdate(); },
-        };
+        });
       }
     });
   }

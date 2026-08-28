@@ -1,5 +1,7 @@
-import { Filters } from 'src/app/components/trails-list/filters';
+import { FilterEnum, FilterNumeric, FilterTags } from 'src/app/components/filters/filter';
 import { LocaleKey } from '../i18n/available-locales';
+import { TrailLoopType } from 'src/app/model/dto/trail-loop-type';
+import { TrailActivity } from 'src/app/model/dto/trail-activity';
 
 export type DistanceUnit = 'IMPERIAL' | 'METERS';
 export type HourFormat = 'H12' | 'H24';
@@ -62,4 +64,19 @@ export interface ComputedPreferences extends Preferences {
 
   elevationCalibrationByDevice?: {[device: string]: number};
   trailFilters?: {[name: string]: Filters};
+}
+
+export interface Filters {
+  duration: FilterNumeric;
+  estimatedDuration: FilterNumeric;
+  distance: FilterNumeric;
+  positiveElevation: FilterNumeric;
+  negativeElevation: FilterNumeric;
+  loopTypes: FilterEnum<TrailLoopType>;
+  activities: FilterEnum<TrailActivity | undefined>;
+  onlyVisibleOnMap: boolean;
+  onlyWithPhotos: boolean;
+  tags: FilterTags;
+  search: string;
+  rate: FilterNumeric;
 }

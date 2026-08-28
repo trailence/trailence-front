@@ -16,12 +16,12 @@ import { TrackDto } from 'src/app/model/dto/track';
 import * as L from 'leaflet';
 import { TypeUtils } from 'src/app/utils/type-utils';
 import { PendingRequests, PendingRequestsMultiple } from 'src/app/utils/pending-requests';
-import { Filters } from 'src/app/components/trails-list/filters';
 import { SimplifiedPoint, SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from 'src/app/worker/web-app';
 import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
 import { NetworkService } from '../network/network.service';
+import { Filters } from '../preferences/preferences';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   uuid: string;

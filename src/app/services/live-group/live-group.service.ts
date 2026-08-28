@@ -13,6 +13,7 @@ import { Router } from '@angular/router';
 import { Console } from 'src/app/utils/console';
 import { GeolocationState } from '../geolocation/geolocation.interface';
 import { AlertController } from '@ionic/angular/standalone';
+import { LiveGroupDto } from 'src/app/model/dto/live-group';
 
 const LATEST_GROUPS_KEY_PREFIX = 'trailence.latest_live_groups.';
 
@@ -286,27 +287,6 @@ export class LiveGroupService {
     }).then(a => a.present());
   }
 
-}
-
-export interface LiveGroupDto {
-  slug: string;
-  name: string;
-  startedAt: number;
-  expiresAt: number;
-  trailOwner: string;
-  trailUuid: string;
-  trailShared: boolean;
-  members: LiveGroupMemberDto[];
-  updatedAt: number;
-}
-
-export interface LiveGroupMemberDto {
-  uuid: string;
-  name: string;
-  lastPosition: {lat: number, lng: number} | null | undefined;
-  lastPositionAt: number | null | undefined;
-  you: boolean;
-  owner: boolean;
 }
 
 export interface LiveGroupRequest {

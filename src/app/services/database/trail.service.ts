@@ -27,7 +27,6 @@ import { ErrorService } from '../progress/error.service';
 import { Track } from 'src/app/model/track';
 import * as L from 'leaflet';
 import { estimateSimilarity } from '../track-edition/path-analysis/similarity';
-import { MyPublicTrailsService } from './my-public-trails.service';
 import { boundingBoxAround } from 'src/app/utils/leaflet-utils';
 import { NetworkService } from '../network/network.service';
 import { isPublicationCollection, SHARED_OWNER_PREFIX, TrailCollectionType } from 'src/app/model/dto/trail-collection';
@@ -270,7 +269,8 @@ export class TrailService {
     if (!trackBounds) return EMPTY;
     const trackCloseArea = L.latLngBounds(trackBounds.getSouthWest(), trackBounds.getNorthEast()).pad(0.5);
     const trackLargeArea = boundingBoxAround(track.departurePoint!.pos, 50000);
-    return this.injector.get(MyPublicTrailsService).myPublicTrails$.pipe(
+    return from(import('./my-public-trails.service').then(module => this.injector.get(module.MyPublicTrailsService))).pipe(
+      switchMap(service => service.myPublicTrails$),
       switchMap(mines => {
         if (mines.some(t => t.privateUuid === trail.uuid)) return EMPTY;
         return this.collectionService.getCollection$(trail.collectionUuid, trail.owner);

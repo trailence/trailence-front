@@ -1,5 +1,5 @@
 import { Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { LiveGroupDto, LiveGroupService } from 'src/app/services/live-group/live-group.service';
+import { LiveGroupService } from 'src/app/services/live-group/live-group.service';
 import { IonHeader, IonToolbar, IonIcon, IonLabel, IonButtons, IonButton, IonContent, IonFooter, IonTitle, IonInput, ModalController, IonCheckbox } from '@ionic/angular/standalone';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { FormsModule } from '@angular/forms';
@@ -15,6 +15,7 @@ import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
 import { CollapsableSectionComponent } from '../collapsable-section/collapsable-section.component';
 import { TooltipDirective } from '../tooltip/tooltip.directive';
 import { SHARED_OWNER_PREFIX } from 'src/app/model/dto/trail-collection';
+import { LiveGroupDto } from 'src/app/model/dto/live-group';
 
 export function openCreateLiveGroupPopup(injector: Injector, trailOwner?: string, trailUuid?: string): Promise<LiveGroupDto | null> {
   return injector.get(ModalController).create({

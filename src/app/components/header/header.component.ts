@@ -6,18 +6,18 @@ import { Router } from '@angular/router';
 import { MenuItem } from 'src/app/components/menus/menu-item';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MenuContentComponent } from '../menus/menu-content/menu-content.component';
-import { UpdateService } from 'src/app/services/update/update.service';
-import { of, switchMap } from 'rxjs';
+import { from, map, of, switchMap } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { publicRoutes } from 'src/app/routes/package.routes';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { LongPressDirective } from 'src/app/utils/long-press.directive';
 import { NgClass } from '@angular/common';
-import { LiveGroupDto, LiveGroupService } from 'src/app/services/live-group/live-group.service';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 import { LangPickerComponent } from '../lang-picker/lang-picker.component';
 import { AvailableLocales } from 'src/app/services/i18n/available-locales';
+import { LiveGroupDto } from 'src/app/model/dto/live-group';
+import { AppDownload } from 'src/app/services/update/common';
 
 @Component({
     selector: 'app-header',
@@ -50,13 +50,13 @@ export class HeaderComponent extends AbstractComponent {
   publicUrl?: string;
   alwaysTightMenu = false;
   liveGroups: LiveGroupDto[] = [];
-  liveGroupService?: LiveGroupService;
+  liveGroupsPaused = false;
+  update?: AppDownload;
 
   constructor(
     injector: Injector,
     public readonly auth: AuthService,
     private readonly router: Router,
-    public readonly update: UpdateService,
     public readonly i18n: I18nService,
     public readonly prefs: PreferencesService,
     public readonly browser: BrowserService,
@@ -94,16 +94,30 @@ export class HeaderComponent extends AbstractComponent {
   }
 
   protected override initComponent(): void {
-    this.whenVisible.subscribe(
-      this.auth.userChanged$.pipe(
-        switchMap(auth => {
-          if (auth) return of([]);
-          this.liveGroupService = this.injector.get(LiveGroupService);
-          return this.liveGroupService.groups$;
-        })
-      ),
-      groups => this.liveGroups = groups || []
-    );
+    setTimeout(() => {
+      this.whenVisible.subscribe(
+        this.auth.userChanged$.pipe(
+          switchMap(auth => {
+            if (auth) return of({groups: [], paused: false});
+            return from(import('src/app/services/live-group/live-group.service').then(module => this.injector.get(module.LiveGroupService))).pipe(
+              switchMap(service => service.groups$.pipe(
+                switchMap(groups => groups?.length ? service.paused$.pipe(map(paused => ({groups, paused}))) : of({groups: [], paused: false}))
+              )),
+            );
+          })
+        ),
+        result => {
+          this.liveGroups = result.groups || [];
+          this.liveGroupsPaused = result.paused;
+        }
+      );
+      this.whenVisible.subscribe(
+        from(import('src/app/services/update/update.service').then(module => this.injector.get(module.UpdateService))).pipe(
+          switchMap(service => service.availableDownload$)
+        ),
+        update => this.update = update
+      );
+    }, 2000);
   }
 
   protected override getComponentState() {
@@ -121,6 +135,13 @@ export class HeaderComponent extends AbstractComponent {
       }
     }, true);
     this.alwaysTightMenu = this.actions ? this.actions.reduce((p, i) => p + (i.isSeparator() ? 0 : 1), 0) > 10 : false;
+  }
+
+  pauseLiveGroups(): void {
+    import('src/app/services/live-group/live-group.service').then(module => this.injector.get(module.LiveGroupService).pause());
+  }
+  resumeLiveGroups(): void {
+    import('src/app/services/live-group/live-group.service').then(module => this.injector.get(module.LiveGroupService).resume());
   }
 
 }

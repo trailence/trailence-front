@@ -1,6 +1,5 @@
 import { Injectable, Injector, NgZone, OnDestroy } from '@angular/core';
 import { Console } from 'src/app/utils/console';
-import { TraceRecorderService } from '../../trace-recorder/trace-recorder.service';
 
 const STARTUP_GRACE_PERIOD = 60000;
 const CLEANUP_DELAY = 10000;
@@ -35,6 +34,7 @@ export class CleanupService implements OnDestroy {
   private lastRun = 0;
   private readonly todo: Cleanup[] = [];
   private _destroyed = false;
+  private isRecording = () => false;
 
   ngOnDestroy(): void {
     this._destroyed = true;
@@ -66,9 +66,14 @@ export class CleanupService implements OnDestroy {
       if (!this.timeout) {
         this.nextTimeout = Date.now() + STARTUP_GRACE_PERIOD;
         this.ngZone.runOutsideAngular(() => this.timeout = setTimeout(() => {
-          this.started = true;
-          this.timeout = undefined;
-          this.sort();
+          import('src/app/services/trace-recorder/trace-recorder.service')
+          .then(module => {
+            const traceService = this.injector.get(module.TraceRecorderService);
+            this.isRecording = () => traceService.recording;
+            this.started = true;
+            this.timeout = undefined;
+            this.sort();
+          });
         }, STARTUP_GRACE_PERIOD));
       }
       return;
@@ -83,7 +88,7 @@ export class CleanupService implements OnDestroy {
       return;
     }
 
-    if (this.injector.get(TraceRecorderService).recording) {
+    if (this.isRecording()) {
       // delay to avoid using battery
       if (this.timeout) this.ngZone.runOutsideAngular(() => clearTimeout(this.timeout));
       this.ngZone.runOutsideAngular(() => this.timeout = setTimeout(() => this.sort(), 10 * 60 * 1000));

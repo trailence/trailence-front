@@ -157,6 +157,8 @@ export class TrailOverviewComponent extends AbstractComponent {
   rejectedTrailUuid?: string;
   trailLink?: TrailLink;
 
+  private static firstRateLoading = true;
+
   constructor(
     injector: Injector,
     private readonly trackService: TrackService,
@@ -250,6 +252,14 @@ export class TrailOverviewComponent extends AbstractComponent {
         if (info !== this.external) {
           this.external = info;
           changed = true;
+          if (this.external && TrailOverviewComponent.firstRateLoading) {
+            // inside a @defer block
+            import('../trail/rate-and-comments/rate/rate.component')
+            .then(() => {
+              TrailOverviewComponent.firstRateLoading = false;
+              this.changesDetection.detectChanges();
+            });
+          }
         }
         let name = trailName;
         if (info?.lang && info.lang !== this.preferencesService.preferences.lang && info.nameTranslations?.[this.preferencesService.preferences.lang])
@@ -563,7 +573,13 @@ export class TrailOverviewComponent extends AbstractComponent {
   setTab(tab: string) {
     if (!this.enableTabs || this.selectedTab === tab) return;
     this.selectedTab = tab;
-    this.changesDetection.detectChanges();
+    this.changesDetection.detectChanges(() => {
+      if (tab === 'elevation') {
+        // loading of component is in a @defer
+        import('src/app/components/trail-graph/trail-graph.component')
+        .then(() => this.changesDetection.detectChanges());
+      }
+    });
   }
 
 }
