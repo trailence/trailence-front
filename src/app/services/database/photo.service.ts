@@ -3,7 +3,7 @@ import { OwnedStore, UpdatesResponse } from './store/owned-store';
 import { PhotoDto } from 'src/app/model/dto/photo';
 import { Photo } from 'src/app/model/photo';
 import { VersionedDto } from 'src/app/model/dto/versioned';
-import { BehaviorSubject, catchError, combineLatest, defaultIfEmpty, EMPTY, first, firstValueFrom, from, map, Observable, of, share, switchMap, tap, zip } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, defaultIfEmpty, EMPTY, first, firstValueFrom, from, map, Observable, of, share, switchMap, tap, timer, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { HttpService } from '../http/http.service';
 import { RequestLimiter } from 'src/app/utils/request-limiter';
@@ -246,10 +246,12 @@ export class PhotoService {
 
   public deleteForTrail(trail: Trail, ondone?: () => void): void {
     this.getPhotosForTrailReady$(trail).subscribe(photos => this.deleteMany(photos, ondone));
+    timer(15000).subscribe(() => this.getPhotosForTrailReady$(trail).subscribe(photos => this.deleteMany(photos)));
   }
 
   public deleteForTrails(trails: Trail[], ondone?: () => void): void {
     this.getPhotosForTrailsReady$(trails.map(t => ({owner: t.owner, uuid: t.uuid}))).subscribe(photos => this.deleteMany(photos, ondone));
+    timer(15000).subscribe(() => this.getPhotosForTrailsReady$(trails.map(t => ({owner: t.owner, uuid: t.uuid}))).subscribe(photos => this.deleteMany(photos)));
   }
 
   public async openSliderPopup(photos: Photo[], index: number) {
@@ -301,6 +303,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> implements StoreWithCleanin
     this.files = injector.get(StoredFilesService);
     this.trails = injector.get(TrailService);
     this.quotaService = injector.get(QuotaService);
+    this.maxItemsToCreateBySync = 25;
   }
 
   protected override fromDTO(dto: PhotoDto): Photo {

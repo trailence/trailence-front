@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v6
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v6
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 #v6.2.0
         with:
           images: |
             trailence/front
@@ -25,26 +25,26 @@ jobs:
             type=ref,prefix=snapshot-,event=branch
             type=ref,event=tag
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f #v3.12.0
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 #v3.7.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Trust store
-        uses: Acohen-work/secret-to-file-action@v1
+        uses: mobiledevops/secret-to-file-action@085a45b601133564d1311589e82b5b136d0839bb #v2.0.0
         with:
           filename: 'trailence.jks'
           working-directory: './docker'
           base64-encoded-secret: ${{ secrets.JKS_BASE64 }}
       - name: Keys
-        uses: Acohen-work/secret-to-file-action@v1
+        uses: mobiledevops/secret-to-file-action@085a45b601133564d1311589e82b5b136d0839bb #v2.0.0
         with:
           filename: 'keys.gradle'
           working-directory: './docker'
           base64-encoded-secret: ${{ secrets.KEYS_GRADLE_BASE64 }}
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 #v6.19.2
         with:
           context: .
           file: ./docker/Dockerfile

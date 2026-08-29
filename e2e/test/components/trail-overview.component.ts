@@ -51,7 +51,13 @@ export class TrailOverview extends Component {
   }
 
   public async expectRatingPresent() {
-    expect(await this.getElement().$('app-rate').isDisplayed()).toBeTrue();
+    // it's in a @defer, so we may need to retry
+    const present = await TestUtils.retry(async (trial) => {
+      const present = await this.getElement(trial > 2).$('app-rate').isDisplayed();
+      if (!present) throw new Error('missing rate');
+      return present;
+    }, 5, 100);
+    expect(present).toBeTrue();
   }
 
   public async expectIsPublished() {

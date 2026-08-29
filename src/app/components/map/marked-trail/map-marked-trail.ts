@@ -188,7 +188,7 @@ function getSymbols(osm: OsmWayMatchResponse, point: OsmWaysTrackPoint): string[
   if (!way) return [];
   const set = new Set<string>(way.routes.map(r => r.symbol).filter(s => s !== undefined));
   if (set.size === 0) return [];
-  return Array.from(set).sort();
+  return Array.from(set).sort(); // NOSONAR
 }
 
 function createIcon(added: string[], removed: string[], service: OsmcSymbolService): {svg: string, height: number} | undefined {

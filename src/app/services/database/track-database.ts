@@ -68,6 +68,7 @@ export class TrackDatabase implements StoreWithCleaning {
       name: 'tracks',
       store: this,
       status$: this.syncStatus$,
+      getStatus: () => this.syncStatus$.value,
       loadStatus$: this.loaded$,
       hasPendingOperations$: this.operations.hasPendingOperations$,
       fireSyncStatus: () => this.syncStatus$.next(this.syncStatus$.value),
@@ -441,7 +442,7 @@ export class TrackDatabase implements StoreWithCleaning {
       const status = this.loaded$.value;
       if (!status) return;
       this.operations.push('Create track', () => simplifiedTrackFromWorker$.then(simplified => {
-        if (status.counter !== this.loaded$.value?.counter) return Promise.reject(new Error('track DB changed'));
+        if (status.counter !== this.loaded$.value?.counter) throw new Error('track DB changed');
         const tx = this.database.transaction$(false, [this.tableMeta.name, this.tableSimplifiedTrack.name, this.tableFullTrack.name], () =>
           firstValueFrom(forkJoin([
             this.tableFullTrack.addOne$({
@@ -495,7 +496,7 @@ export class TrackDatabase implements StoreWithCleaning {
       const status = this.loaded$.value;
       if (!status) return;
       this.operations.push('Update track', () => simplifiedTrackFromWorker$.then(simplified => {
-        if (status.counter !== this.loaded$.value?.counter) return Promise.reject(new Error('track DB changed'));
+        if (status.counter !== this.loaded$.value?.counter) throw new Error('track DB changed');
         const tx = this.database.transaction$(false, [this.tableMeta.name, this.tableSimplifiedTrack.name, this.tableFullTrack.name], () =>
           firstValueFrom(forkJoin([
             this.tableFullTrack.setOne$({
@@ -674,20 +675,29 @@ export class TrackDatabase implements StoreWithCleaning {
 
   private doSync(status: StoreLoadStatus): Observable<boolean> {
     return this.ngZone.runOutsideAngular(() => {
-      if (status.counter !== this.loaded$.value?.counter) return EMPTY;
+      if (status.counter !== this.loaded$.value?.counter) {
+        Console.info('Store tracks was reloaded: cancel sync');
+        return EMPTY;
+      }
       this.syncStatus$.value!.inProgress = true;
       this.syncStatus$.next(this.syncStatus$.value);
       Console.info("Store tracks sync start: ", this.syncStatus$.value, this.operations.pendingOperations);
-      const nextStep = (previousComplete: boolean, nextOp: () => Observable<boolean>) => {
+      const nextStep = (name: string, previousComplete: boolean, nextOp: () => Observable<boolean>) => {
+        Console.info('Store tracks sync: ' + name);
         if (status.counter !== this.loaded$.value?.counter) return EMPTY;
         if (!previousComplete || this.operations.pendingOperations > 0) return of(false);
         return nextOp();
       };
       return this.syncCreatedLocally(status).pipe(
-        switchMap(r => nextStep(r, () => this.syncDeletedLocally(status))),
-        switchMap(r => nextStep(r, () => this.syncUpdatesFromServer(status))),
-        switchMap(r => nextStep(r, () => this.syncUpdatesToServer(status))),
+        switchMap(r => nextStep('delete', r, () => this.syncDeletedLocally(status))),
+        switchMap(r => nextStep('updates from server', r, () => this.syncUpdatesFromServer(status))),
+        switchMap(r => nextStep('updates to server', r, () => this.syncUpdatesToServer(status))),
         switchMap(r => status.counter === this.loaded$.value?.counter ? this.getLocalChanges().pipe(map(l => ([l, r] as [{create: boolean, update: boolean, delete: boolean}, boolean]))) : EMPTY),
+        catchError(error => {
+          // should never happen
+          Console.error('Error synchronizing tracks', error);
+          return EMPTY;
+        }),
         defaultIfEmpty([undefined, false] as [{create: boolean, update: boolean, delete: boolean} | undefined, boolean]),
         map(([hasLocalChanges, syncComplete]) => {
           const sync = this.syncStatus$.value!;

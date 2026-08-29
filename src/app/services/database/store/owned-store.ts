@@ -27,6 +27,8 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   protected abstract sendUpdatesToServer(items: DTO[]): Observable<DTO[]>;
   protected abstract deleteFromServer(owner: string, uuids: string[]): Observable<void>;
 
+  protected maxItemsToCreateBySync = 250;
+
   protected override getKey(item: ENTITY): string {
     return item.uuid + '#' + item.owner;
   }
@@ -307,6 +309,11 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     const canCreate = this._createdLocally.filter($item => !!$item.value && this._errors.canProcess($item.value.uuid + '#' + $item.value.owner, true));
     if (canCreate.length === 0) return of(true);
     this.syncStep('create local new items to server');
+    let partial = 0;
+    if (this.maxItemsToCreateBySync > 0 && canCreate.length > this.maxItemsToCreateBySync) {
+      partial = canCreate.length - this.maxItemsToCreateBySync;
+      canCreate.splice(this.maxItemsToCreateBySync, canCreate.length - this.maxItemsToCreateBySync);
+    }
     const toCreate = canCreate.map(item$ => item$.value!).filter(item => this._locks.startSync(item.uuid + '#' + item.owner));
     const ready = toCreate.filter(entity => this.readyToSave(entity));
     const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toCreate)
@@ -332,9 +339,9 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         }
         return this.createOnServer(readyEntities.map(entity => this.toDTO(entity))).pipe(
           switchMap(result => {
-            Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.table.name + ' element(s) created on server, ' + notReady.length + ' waiting');
+            Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.table.name + ' element(s) created on server, ' + (notReady.length + partial) + ' waiting');
             if (!stillValid()) return of(false);
-            return this.updatedDtosFromServer(result);
+            return this.updatedDtosFromServer(result).pipe(map(result => result && partial === 0));
           }),
           catchError(error => {
             Console.error('Error creating ' + readyEntities.length + ' element(s) of ' + this.table.name + ' on server', error);

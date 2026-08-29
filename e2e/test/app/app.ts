@@ -7,6 +7,7 @@ import { ChainablePromiseElement, WaitUntilOptions } from 'webdriverio';
 import { TrailsPage, TrailsPageType } from './pages/trails-page';
 import { TestUtils } from '../utils/test-utils';
 import { HomePage } from './pages/home-page';
+import { FilesUtils } from '../utils/files-utils';
 
 export class App {
 
@@ -113,25 +114,59 @@ export class App {
     });
     // main thread covergae
     await browser.execute(() => { (window as any).__coverage__str = JSON.stringify((window as any).__coverage__) ?? ''; });
+    /*
     await this.retrieveAndWriteCoverage(
       'main_thread',
       // getSize
       () => browser.execute(() => (window as any).__coverage__str.length),
       // getChunk
       (pos, step) => browser.execute((pos, step) => (window as any).__coverage__str.substring(pos, pos + step), pos, step),
-    );
+    );*/
+    await this.retrieveAndWriteCoverage('main_thread', '__coverage__str');
     console.log('Wait for workers coverage to be ready');
     await browser.waitUntil(() => browser.execute(() => (window as any).__workerCoverageResult !== undefined));
     const nbWorkers = await browser.execute(() => (window as any).__workerCoverageResult.length);
     console.log('Coverage of ' + nbWorkers + ' workers ready');
     for (let i = 1; i <= nbWorkers; ++i)
+      await this.retrieveAndWriteCoverage('worker_' + i, '__workerCoverageResult', i - 1);
+      /*
       await this.retrieveAndWriteCoverage(
         'worker_' + i,
         () => browser.execute((index) => (window as any).__workerCoverageResult[index].length, i - 1),
         (pos, step) => browser.execute((pos, step, index) => (window as any).__workerCoverageResult[index].substring(pos, pos + step), pos, step, i - 1),
-      );
+      );*/
   }
 
+  private static async retrieveAndWriteCoverage(
+    description: string,
+    windowVariableName: string,
+    variableIndex?: number,
+  ) {
+    const start = Date.now();
+    await browser.execute((vName, vIndex, filename) => {
+      let data = (window as any)[vName];
+      if (vIndex !== undefined) data = data[vIndex];
+      const blob = new Blob([data], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+
+      // Cleanup
+      a.remove();
+      URL.revokeObjectURL(url);
+    }, windowVariableName, variableIndex, description + '.txt');
+    await FilesUtils.waitFileDownloaded(description + '.txt');
+    console.log('Coverage for ' + description + ' retrieved in ' + (Date.now() - start) + ' ms.');
+    const fs = await FilesUtils.fs()
+    const name = 'cov_' + App.config.instance + '_' + description + '_' + Date.now() + '.json';
+    fs.renameSync(App.config.downloadPath + '/' + description + '.txt', '../.nyc_output/' + name)
+    console.log('Coverage file written: ' + name);
+  }
+  /*
   private static async retrieveAndWriteCoverage(
     description: string,
     getSize: () => Promise<number>,
@@ -160,7 +195,7 @@ export class App {
     } catch (e) {
       console.error('Error writing coverage file', e);
     }
-  }
+  }*/
 
   private static async startMode() {
     switch (App.config.mode) {
@@ -182,7 +217,7 @@ export class App {
 
   public static async start(redirectUrl?: string) {
     await App.startMode();
-    let url = browser.options.baseUrl! + '/login';
+    let url = browser.options.baseUrl! + '/en/login';
     if (redirectUrl) {
       url += '?returnUrl=' + encodeURIComponent(redirectUrl);
     }
@@ -275,7 +310,6 @@ export class App {
       try { await browser.waitUntil(() => $$('ion-app>ion-modal:not(.overlay-hidden)').getElements().then(elements => elements.length >= index), {timeout}); }
       catch (e) {
         if (timeout) throw e;
-        expect((await $$('ion-app>ion-modal:not(.overlay-hidden)').getElements()).length).toBeGreaterThanOrEqual(index);
       }
       const modal = $$('ion-app>ion-modal:not(.overlay-hidden)')[index - 1];
       await modal.waitForDisplayed();

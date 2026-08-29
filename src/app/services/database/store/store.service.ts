@@ -16,6 +16,7 @@ export interface StoreRegistration {
   name: string;
   store: any,
   status$: Observable<StoreSyncStatus | null>;
+  getStatus: () => StoreSyncStatus | null,
   loadStatus$: Observable<StoreLoadStatus | undefined>;
   hasPendingOperations$: Observable<boolean>;
   syncFromServer: () => void;
@@ -55,6 +56,15 @@ export class StoreService {
           store.syncFromServer();
         }
       }, AUTO_UPDATE_FROM_SERVER_EVERY);
+    });
+
+    // log status every minute
+    injector.get(NgZone).runOutsideAngular(() => {
+      setInterval(() => {
+        const inProgress = this._stores.value.filter(s => s.inProgress$.value);
+        if (inProgress.length === 0) return;
+        Console.info('' + inProgress.length + ' stores in progress: ' + inProgress.map(s => s.name + ' (' + JSON.stringify(s.getStatus()) + ')'));
+      }, 60000);
     });
 
     // database cleaning
@@ -101,7 +111,7 @@ export class StoreService {
   }
 
   public resumeSync(id: number): void {
-    Console.info('Resume sync', id);
+    Console.info('Resume sync', id, 'current pauses', this._pauses.length, this._pauses);
     const index = this._pauses.indexOf(id);
     if (index >= 0) this._pauses.splice(index, 1);
     if (this._pauses.length === 0) {
@@ -244,6 +254,7 @@ class RegisteredStore implements StoreRegistration {
   name: string;
   store: any;
   status$: Observable<StoreSyncStatus | null>;
+  getStatus: () => StoreSyncStatus | null;
   loadStatus$: Observable<StoreLoadStatus | undefined>;
   hasPendingOperations$: Observable<boolean>;
   syncFromServer: () => void;
@@ -265,6 +276,7 @@ class RegisteredStore implements StoreRegistration {
     this.name = registration.name;
     this.store = registration.store;
     this.status$ = registration.status$;
+    this.getStatus = registration.getStatus;
     this.loadStatus$ = registration.loadStatus$;
     this.hasPendingOperations$ = registration.hasPendingOperations$;
     this.syncFromServer = registration.syncFromServer;
@@ -329,8 +341,10 @@ class RegisteredStore implements StoreRegistration {
         map(v => ({...v, syncAgain: this.syncAgain}) as {shouldSync: boolean, needsUpdateFromServer: boolean | undefined, storeLoadStatus: DbStatus<any>, syncAgain: boolean}),
         // sync requested or db changed or syncAgain requested
         debounceTimeExtended(v => v.storeLoadStatus.isNewDb ? 0 : 3000, 5000, 5, (p, n) => !!n.needsUpdateFromServer || p.storeLoadStatus.counter !== n.storeLoadStatus.counter || n.syncAgain),
-        switchMap(v => {
-          if (this.inProgress$.value) return EMPTY;
+      )
+      .subscribe({
+        next: () => {
+          if (this.inProgress$.value) return;
           this.inProgress$.next(true);
           Console.info('Trigger store updates: ', this.name);
           this.syncAgain = false;
@@ -338,22 +352,21 @@ class RegisteredStore implements StoreRegistration {
           if (this.syncTimeout) clearTimeout(this.syncTimeout);
           this.syncTimeout = undefined;
           this.syncTimeoutDate = 0;
-          return this.doSync();
-        })
-      )
-      .subscribe({
-        next: syncAgain => {
-          this.inProgress$.next(false);
-          this.syncAgain = syncAgain;
-          if (syncAgain) {
-            Console.info(this.name + ' needs to sync again to complete');
-            this.lastSync = Date.now() - MINIMUM_SYNC_INTERVAL + 1000;
-            this.syncTimeoutDate = Date.now() + 2000;
-            this.syncTimeout = setTimeout(() => this.fireSyncStatus(), 2000);
-          }
-        },
-        complete: () => this.inProgress$.next(false),
-        error: () => this.inProgress$.next(false),
+          this.doSync().subscribe({
+            next: syncAgain => {
+              this.inProgress$.next(false);
+              this.syncAgain = syncAgain;
+              if (syncAgain) {
+                Console.info(this.name + ' needs to sync again to complete');
+                this.lastSync = Date.now() - MINIMUM_SYNC_INTERVAL + 1000;
+                this.syncTimeoutDate = Date.now() + 2000;
+                this.syncTimeout = setTimeout(() => this.fireSyncStatus(), 2000);
+              }
+            },
+            complete: () => this.inProgress$.next(false),
+            error: () => this.inProgress$.next(false),
+          });
+        }
       });
       // monitoring
       ngZone.runOutsideAngular(() => {

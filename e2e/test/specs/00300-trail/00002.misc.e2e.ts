@@ -48,6 +48,8 @@ describe('Trail page', () => {
       await browser.waitUntil(() => map.getPathsWithClass('track-path').map(p => p.getAttribute('stroke')).then(p => p.indexOf('#E0E000C0') >= 0));
     }, 3, 100);
     let zoom = await map.getZoom();
+    await map.zoomTo(zoom - 1);
+    zoom--;
     // zoom on selection
     await graph.zoomButton.click();
     await browser.waitUntil(() => map.getZoom().then(z => {

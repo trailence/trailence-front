@@ -44,6 +44,7 @@ describe('Copy / Move Trails', () => {
 
     const appMenu = await App.openMenu();
     const copyPage = await appMenu.openCollection('Copy 1');
+    await App.waitNoProgress();
     await expectListContains(await copyPage.trailsAndMap.openTrailsList(), EXPECTED_TRAILS);
     (await copyPage.header.openActionsMenu()).clickItemWithText('Delete')
     const alertDelete = await App.waitAlert();

@@ -85,7 +85,7 @@ describe('Shares - Check shares', () => {
     expect(trails).toContain('Au dessus de Montclar');
     expect(trails).toContain('Col et lacs de la Cayolle');
     expect(trails).toContain('Randonnée du 05/06/2023 à 08:58');
-    expect(trails.length).toBe(5);
+    expect(trails).toHaveSize(5);
 
     const trail = await list.findItemByTrailName('Col et lacs de la Cayolle');
     expect(trail).toBeDefined();
@@ -104,7 +104,7 @@ describe('Shares - Check shares', () => {
     expect(trails).toContain('Tour de Port-Cros');
     expect(trails).toContain('Roquefraîche');
     expect(trails).toContain('Col et lacs de la Cayolle');
-    expect(trails.length).toBe(3);
+    expect(trails).toHaveSize(3);
 
     const trail = await list.findItemByTrailName('Col et lacs de la Cayolle');
     expect(trail).toBeDefined();
@@ -124,7 +124,7 @@ describe('Shares - Check shares', () => {
     expect(trails).toContain('Roquefraîche');
     expect(trails).toContain('Au dessus de Montclar');
     expect(trails).toContain('Col et lacs de la Cayolle');
-    expect(trails.length).toBe(4);
+    expect(trails).toHaveSize(4);
 
     const trail = await list.findItemByTrailName('Col et lacs de la Cayolle');
     expect(trail).toBeDefined();
@@ -142,7 +142,7 @@ describe('Shares - Check shares', () => {
     const trails = await list.getTrailsNames();
     expect(trails).toContain('Tour de Port-Cros');
     expect(trails).toContain('Randonnée du 05/06/2023 à 08:58');
-    expect(trails.length).toBe(2);
+    expect(trails).toHaveSize(2);
   });
 
   it('End', async () => {

@@ -15,7 +15,8 @@ jobs:
           cache-dependency-path: '**/package-lock.json'
       - name: Build and Instrument
         run: |
-          npm ci --no-audit
+          npm ci --no-audit --ignore-scripts
+          npm run postinstall
           npm run build -- --configuration=development
           npm run instrument
       - name: Store web app
@@ -36,14 +37,10 @@ jobs:
           node-version: 22
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
-      - name: Cache Global NPM packages
-        uses: actions/cache@v5
-        with:
-          key: npm-global-packages
-          path: ~/.npm
       - name: Build Production
         run: |
-          npm ci
+          npm ci --ignore-scripts
+          npm run postinstall
           npm run build -- --configuration=production
           npm run generate-public-pages
           rm www/browser/media/*
@@ -71,23 +68,21 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - name: Cache Global NPM packages
-        uses: actions/cache@v5
-        with:
-          key: npm-global-packages
-          path: ~/.npm
       - name: Install dependencies
         run: |
-          npm install -g @ionic/cli @angular/cli
-          npm ci
+          npm install -g $(npm ls @ionic/cli --package-lock-only | grep "@ionic/cli@" | awk -F' ' '{print $2}') $(npm ls @angular/cli --package-lock-only | grep "@angular/cli@" | awk -F' ' '{print $2}')
+          npm ci --ignore-scripts
+          npm run postinstall
+          ng cache clean
+          ng cache enable
       - name: Trust store
-        uses: Acohen-work/secret-to-file-action@v1
+        uses: mobiledevops/secret-to-file-action@085a45b601133564d1311589e82b5b136d0839bb #v2.0.0
         with:
           filename: 'trailence.jks'
           working-directory: './android'
           base64-encoded-secret: ${{ secrets.JKS_BASE64 }}
       - name: Keys
-        uses: Acohen-work/secret-to-file-action@v1
+        uses: mobiledevops/secret-to-file-action@085a45b601133564d1311589e82b5b136d0839bb #v2.0.0
         with:
           filename: 'keys.gradle'
           working-directory: './android'
@@ -171,7 +166,8 @@ jobs:
           cache-dependency-path: '**/package-lock.json'
       - name: Install dependencies
         run: |
-          npm ci
+          npm ci --ignore-scripts
+          npm run postinstall
       - name: Unit Tests
         run: npm run test-ci
       - name: Store coverage results
@@ -218,23 +214,33 @@ jobs:
           path: www
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v6
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 #v6.2.0
         with:
           images: |
             trailence/front
           tags: |
             type=ref,prefix=snapshot-,event=branch
             type=ref,event=tag
+      - name: Cache Docker Compose Images
+        id: cache-docker
+        uses: seijikohara/docker-compose-cache-action@e138e9a95515748205da22252abd19ce8dcbe6c1 #v1.8.23
+        with:
+          compose-files: |
+            e2e/github/docker-compose.yml
+          exclude-images: |
+            trailence/back:*
+          cache-key-prefix: trailence-e2e-docker-images
+          skip-digest-verification: false
       - name: Tests End 2 End
         id: e2e
         run: |
           mkdir .nyc_output
           cd e2e
-          chmod 777 ./*.sh
+          chmod 755 ./*.sh
           test_name=$(npm run tests_to_filename --silent -- ${{matrix.test}})
           echo "test_name=$test_name" >> $GITHUB_OUTPUT
           cd github
-          chmod 777 ./*.sh
+          chmod 755 ./*.sh
           ./prepare_tests.sh "--tests=${{matrix.test}}"
           ./run.sh "--tests=${{matrix.test}}"
       - name: Build coverage report
@@ -284,7 +290,7 @@ jobs:
           pattern: e2e-tests-web-app-*-coverage-report
           merge-multiple: true
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v6.0.0
+        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 #v6.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

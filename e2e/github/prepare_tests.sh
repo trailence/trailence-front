@@ -4,7 +4,7 @@
 docker_pid=$!
 
 cd ..
-npm ci --no-audit
+npm ci --no-audit --ignore-scripts
 code=$?
 if [[ $code -ne 0 ]]; then
   echo "Error installing node modules"

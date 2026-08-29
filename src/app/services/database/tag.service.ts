@@ -4,7 +4,7 @@ import { TagDto } from "src/app/model/dto/tag";
 import { Tag } from "src/app/model/tag";
 import { TrailTagDto } from "src/app/model/dto/trail-tag";
 import { TrailTag } from "src/app/model/trail-tag";
-import { EMPTY, Observable, combineLatest, filter, first, firstValueFrom, map, of, switchMap, tap, throwError, zip } from "rxjs";
+import { EMPTY, Observable, combineLatest, filter, first, firstValueFrom, map, of, switchMap, tap, throwError, timer, zip } from "rxjs";
 import { HttpService } from "../http/http.service";
 import { environment } from "src/environments/environment";
 import { TrailCollectionService } from "./trail-collection.service";
@@ -79,6 +79,7 @@ export class TagService {
     this._trailTagStore.deleteIf('delete multiple tags', trailTag => tags.some(t => trailTag.tagUuid === t.uuid && trailTag.owner === t.owner), () => {
       this._tagStore.deleteIf('delete multiple tags', tag => tags.some(t => tag.uuid === t.uuid && tag.owner === t.owner), ondone);
     });
+    timer(15000).subscribe(() => this._trailTagStore.deleteIf('delete multiple tags', trailTag => tags.some(t => trailTag.tagUuid === t.uuid && trailTag.owner === t.owner)));
   }
 
   public deleteTrailTagsForTrail(owner: string, trailUuid: string, ondone?: () => void): void {
@@ -93,7 +94,7 @@ export class TagService {
     this._trailTagStore.deleteIf('delete multiple trails', trailTag => trails.some(t => t.owner === trailTag.owner && t.uuid === trailTag.trailUuid), ondone);
   }
 
-  public deleteAllTagsFromCollections(collections: TrailCollection[], progress: Progress | undefined, progressWork: number): Observable<any> {
+  public deleteAllTagsFromCollections(collections: TrailCollection[], progress: Progress | undefined, progressWork: number, isSecondAttempt = false): Observable<any> {
     return this._tagStore.getAll$().pipe(
       first(),
       switchMap(tags$ => tags$.length === 0 ? of([]) : zip(tags$.map(tag$ => tag$.pipe(firstTimeout(t => !!t, 1000, () => null as Tag | null))))),
@@ -110,6 +111,10 @@ export class TagService {
             observer.complete();
           });
         });
+      }),
+      tap(() => {
+        if (!isSecondAttempt)
+          timer(15000).pipe(switchMap(() => this.deleteAllTagsFromCollections(collections, undefined, 1, true))).subscribe();
       })
     );
   }

@@ -119,6 +119,25 @@ export class TrailsList extends Component {
     return await this.openTrail(item!);
   }
 
+  public async getNbSelected() {
+    return await TestUtils.retry(async () => {
+      const text = await this.getElement().$('div.selection div.nb-selected').getText();
+      const i = text.indexOf('/');
+      if (i <= 0) throw new Error('Unexpected selection text: ' + text);
+      return Number.parseInt(text.substring(0, i).trim());
+    }, 2, 100);
+  }
+
+  public async ensureSelected(trail: TrailOverview) {
+    const selectedBefore = await this.getNbSelected();
+    await TestUtils.retry(async () => {
+      await trail.selectTrail();
+      await TestUtils.retry(async () => {
+        if (await this.getNbSelected() !== selectedBefore + 1) throw new Error('Expected selected ' + (selectedBefore + 1));
+      }, 3, 100);
+    }, 3, 100);
+  }
+
   public async openSelectionMenu() {
     await this.getElement().$('div.selection ion-button').click();
     const popover = await App.waitPopover();

@@ -148,6 +148,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       name,
       store: this,
       status$: this.syncStatus$,
+      getStatus: () => this.syncStatus$.value,
       loadStatus$: this._storeLoaded$,
       hasPendingOperations$: this.operations.hasPendingOperations$,
       syncFromServer: () => this.triggerSyncFromServer(),

@@ -37,7 +37,13 @@ export class AppMenu extends Component {
   }
 
   public async openCollection(name: string) {
-    return await TestUtils.retry(async () => {
+    return await TestUtils.retry(async (trial) => {
+      if (trial > 1) {
+        // may be collections are collapsed
+        const button = new IonicButton(this.getElement(true).$('div.section-collections div.menu-section-header ion-button[color=secondary]'));
+        const iconName = await button.getElement().$('>>>ion-icon').getAttribute('name');
+        if (iconName === 'chevron-right') await button.click();
+      }
       const items = this.getCollectionsItems();
       await browser.waitUntil(() => this.getCollectionName(items[0]).then(name => name.length > 0), { timeout: 2000 });
       for (const item of await items.getElements()) {

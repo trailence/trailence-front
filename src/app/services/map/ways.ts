@@ -98,7 +98,7 @@ export class Ways {
           if (response) subscriber.next({ways: response.response.ways, done: false, partial: false, osmDataVersion: response.version});
         })
       )
-    )).subscribe(responses => {
+    )).subscribe(responses => { // NOSONAR
       const newProcessed = [...tilesProcessed, ...tilesToProcess];
       const newToProcess: number[] = [];
       for (const response of responses) {

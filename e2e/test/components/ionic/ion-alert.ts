@@ -1,3 +1,4 @@
+import { TestUtils } from '../../utils/test-utils';
 import { Component } from '../component';
 
 export class IonicAlert extends Component {
@@ -35,7 +36,11 @@ export class IonicAlert extends Component {
 
   public async setTextareaValue(value: string) {
     await this.textarea.waitForDisplayed();
-    await this.textarea.setValue(value);
+    await TestUtils.retry(async () => {
+      await this.textarea.setValue(value);
+      const v = await this.textarea.getValue();
+      if (v !== value) throw new Error('Alert textarea expected <' + value + '> but found <' + v + '>');
+    }, 2, 100);
   }
 
   public async clickRadioButtonByLabel(label: string) {

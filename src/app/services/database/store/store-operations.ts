@@ -1,5 +1,5 @@
 import { NgZone } from '@angular/core';
-import { BehaviorSubject, combineLatest, filter, first, map, Observable, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, filter, first, map, Observable, switchMap, tap } from 'rxjs';
 import { Console } from 'src/app/utils/console';
 import { StoreLoadStatus, StoreSyncStatus } from './store';
 
@@ -37,9 +37,11 @@ export class StoreOperations {
     return this._inProgress$.pipe(
       filter(p => {
         if (p) Console.info('Store ' + this.name + ' waiting for ' + this._queue$.value.length + ' operations to finish before sync');
+        else Console.info('Store ' + this.name + ' ready to sync');
         return !p;
       }),
       first(),
+      tap(() => Console.info('Launching store sync: ' + this.name)),
       switchMap(onready),
     );
   }

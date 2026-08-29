@@ -1,6 +1,7 @@
 import { App } from '../../app/app';
 import { TrailsPage, TrailsPageType } from '../../app/pages/trails-page';
 import { ModerationTranslationsComponent } from '../../components/moderation-translations.component';
+import { TestUtils } from '../../utils/test-utils';
 
 describe('Publication - Moderator Accept', () => {
 
@@ -25,8 +26,11 @@ describe('Publication - Moderator Accept', () => {
     const translations = new ModerationTranslationsComponent(trailPage.trailComponent.getElement().$('app-moderation-translations'));
     await translations.waitDisplayedAndOpen();
     await translations.setSourceLang('fr');
-    await translations.setTrailName('This trail is translated');
-    await translations.setTrailDescription('This description is translated');
+    await TestUtils.retry(async () => {
+      await translations.setTrailName('This trail is translated');
+      await translations.setTrailDescription('This description is translated');
+      if (!(await trailPage.trailComponent.canAcceptPublication())) throw new Error('Publish button disabled');
+    }, 2, 100);
     await trailPage.trailComponent.acceptPublication();
     await App.logout(false);
   });

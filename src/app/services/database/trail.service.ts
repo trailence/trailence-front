@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { OwnedStore, UpdatesResponse } from './store/owned-store';
 import { HttpService } from '../http/http.service';
-import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, defaultIfEmpty, filter, first, firstValueFrom, from, map, of, switchMap, take, tap, zip } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, defaultIfEmpty, filter, first, firstValueFrom, from, map, of, switchMap, take, tap, timer, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Trail } from 'src/app/model/trail';
 import { TrailDto } from 'src/app/model/dto/trail';
@@ -155,16 +155,17 @@ export class TrailService {
       return;
     }
     const previousPause = this.injector.get(StoreService).pauseSync();
-    const doneHandler = new CompositeOnDone(() => {
-      if (ondone) ondone();
-      this.injector.get(StoreService).resumeSync(previousPause);
-    });
     const tracks: {uuid: string, owner: string}[] = [];
     for (const trail of trails) {
       tracks.push({uuid: trail.originalTrackUuid, owner: trail.owner});
       if (trail.currentTrackUuid !== trail.originalTrackUuid)
         tracks.push({uuid: trail.currentTrackUuid, owner: trail.owner});
     }
+    const doneHandler = new CompositeOnDone(() => {
+      if (ondone) ondone();
+      this.injector.get(StoreService).resumeSync(previousPause);
+      timer(15000).subscribe(() => this.trackService.deleteMany(tracks, undefined, 1));
+    });
     this.trackService.deleteMany(tracks, progress, progressWork * 2 / 3, doneHandler.add());
     const remainingProgress = progressWork - (progressWork * 2 / 3);
     let tagsWork = remainingProgress / 10;
@@ -192,7 +193,7 @@ export class TrailService {
     this.injector.get(PhotoService).deleteForTrails(trails);
   }
 
-  public deleteAllTrailsFromCollections(collections: TrailCollection[], progress: Progress | undefined, progressWork: number): Observable<any> {
+  public deleteAllTrailsFromCollections(collections: TrailCollection[], progress: Progress | undefined, progressWork: number, isSecondAttempt = false): Observable<any> {
     return this._store.getAll$().pipe(
       first(),
       switchMap(trails$ => trails$.length === 0 ? of([]) : zip(trails$.map(trail$ => trail$.pipe(firstTimeout(t => !!t, 1000, () => null as Trail | null))))),
@@ -208,6 +209,10 @@ export class TrailService {
             observer.complete();
           });
         });
+      }),
+      tap(() => {
+        if (!isSecondAttempt)
+          timer(15000).pipe(switchMap(() => this.deleteAllTrailsFromCollections(collections, undefined, 1, true))).subscribe();
       })
     );
   }
@@ -279,6 +284,7 @@ export class TrailService {
         if (!col || isPublicationCollection(col.type)) return EMPTY;
         return this.injector.get(FetchSourceService).getTrailence$();
       }),
+      first(),
       switchMap(trailence =>
         trailence.searchByArea(trackCloseArea, 100).pipe(
           switchMap(closeSearchResult => {

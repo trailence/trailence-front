@@ -289,6 +289,11 @@ export class TrailComponent extends Component {
     await alert.waitNotDisplayed();
   }
 
+  public async canAcceptPublication() {
+    const details = await (await this.openDetails()).getElement();
+    return await new ToolbarComponent(details.$('app-toolbar')).getButtonByIcon('web').parentElement().getAttribute('class').then(c => !c.includes('disabled'));
+  }
+
   public async acceptPublication() {
     const details = await (await this.openDetails()).getElement();
     const alert = await TestUtils.retry(async () => {

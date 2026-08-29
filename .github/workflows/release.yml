@@ -16,14 +16,10 @@ jobs:
           node-version: 22
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
-      - name: Cache Global NPM packages
-        uses: actions/cache@v5
-        with:
-          key: npm-global-packages
-          path: ~/.npm
       - name: Build Production
         run: |
-          npm ci
+          npm ci --ignore-scripts
+          npm run postinstall
           npm run build -- --configuration=production
           npm run generate-public-pages
           rm www/browser/media/*
@@ -51,23 +47,19 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - name: Cache Global NPM packages
-        uses: actions/cache@v5
-        with:
-          key: npm-global-packages
-          path: ~/.npm
       - name: Install dependencies
         run: |
-          npm install -g @ionic/cli @angular/cli
-          npm ci
+          npm install -g $(npm ls @ionic/cli --package-lock-only | grep "@ionic/cli@" | awk -F' ' '{print $2}') $(npm ls @angular/cli --package-lock-only | grep "@angular/cli@" | awk -F' ' '{print $2}')
+          npm ci --ignore-scripts
+          npm run postinstall
       - name: Trust store
-        uses: Acohen-work/secret-to-file-action@v1
+        uses: mobiledevops/secret-to-file-action@085a45b601133564d1311589e82b5b136d0839bb #v2.0.0
         with:
           filename: 'trailence.jks'
           working-directory: './android'
           base64-encoded-secret: ${{ secrets.JKS_BASE64 }}
       - name: Keys
-        uses: Acohen-work/secret-to-file-action@v1
+        uses: mobiledevops/secret-to-file-action@085a45b601133564d1311589e82b5b136d0839bb #v2.0.0
         with:
           filename: 'keys.gradle'
           working-directory: './android'
@@ -102,23 +94,19 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - name: Cache Global NPM packages
-        uses: actions/cache@v5
-        with:
-          key: npm-global-packages
-          path: ~/.npm
       - name: Install dependencies
         run: |
-          npm install -g @ionic/cli @angular/cli
-          npm ci
+          npm install -g $(npm ls @ionic/cli --package-lock-only | grep "@ionic/cli@" | awk -F' ' '{print $2}') $(npm ls @angular/cli --package-lock-only | grep "@angular/cli@" | awk -F' ' '{print $2}')
+          npm ci --ignore-scripts
+          npm run postinstall
       - name: Trust store
-        uses: Acohen-work/secret-to-file-action@v1
+        uses: mobiledevops/secret-to-file-action@085a45b601133564d1311589e82b5b136d0839bb #v2.0.0
         with:
           filename: 'trailence.jks'
           working-directory: './android'
           base64-encoded-secret: ${{ secrets.JKS_BASE64 }}
       - name: Keys
-        uses: Acohen-work/secret-to-file-action@v1
+        uses: mobiledevops/secret-to-file-action@085a45b601133564d1311589e82b5b136d0839bb #v2.0.0
         with:
           filename: 'keys.gradle'
           working-directory: './android'
@@ -153,23 +141,19 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - name: Cache Global NPM packages
-        uses: actions/cache@v5
-        with:
-          key: npm-global-packages
-          path: ~/.npm
       - name: Install dependencies
         run: |
-          npm install -g @ionic/cli @angular/cli
-          npm ci
+          npm install -g $(npm ls @ionic/cli --package-lock-only | grep "@ionic/cli@" | awk -F' ' '{print $2}') $(npm ls @angular/cli --package-lock-only | grep "@angular/cli@" | awk -F' ' '{print $2}')
+          npm ci --ignore-scripts
+          npm run postinstall
       - name: Trust store
-        uses: Acohen-work/secret-to-file-action@v1
+        uses: mobiledevops/secret-to-file-action@085a45b601133564d1311589e82b5b136d0839bb #v2.0.0
         with:
           filename: 'trailence.jks'
           working-directory: './android'
           base64-encoded-secret: ${{ secrets.JKS_BASE64 }}
       - name: Keys
-        uses: Acohen-work/secret-to-file-action@v1
+        uses: mobiledevops/secret-to-file-action@085a45b601133564d1311589e82b5b136d0839bb #v2.0.0
         with:
           filename: 'keys.gradle'
           working-directory: './android'
@@ -204,23 +188,19 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - name: Cache Global NPM packages
-        uses: actions/cache@v5
-        with:
-          key: npm-global-packages
-          path: ~/.npm
       - name: Install dependencies
         run: |
-          npm install -g @ionic/cli @angular/cli
-          npm ci
+          npm install -g $(npm ls @ionic/cli --package-lock-only | grep "@ionic/cli@" | awk -F' ' '{print $2}') $(npm ls @angular/cli --package-lock-only | grep "@angular/cli@" | awk -F' ' '{print $2}')
+          npm ci --ignore-scripts
+          npm run postinstall
       - name: Trust store
-        uses: Acohen-work/secret-to-file-action@v1
+        uses: mobiledevops/secret-to-file-action@085a45b601133564d1311589e82b5b136d0839bb #v2.0.0
         with:
           filename: 'trailence.jks'
           working-directory: './android'
           base64-encoded-secret: ${{ secrets.JKS_BASE64 }}
       - name: Keys
-        uses: Acohen-work/secret-to-file-action@v1
+        uses: mobiledevops/secret-to-file-action@085a45b601133564d1311589e82b5b136d0839bb #v2.0.0
         with:
           filename: 'keys.gradle'
           working-directory: './android'

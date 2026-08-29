@@ -51,12 +51,14 @@ describe('Shares - Create', () => {
 
   it('Share Tour de Port-Cros and Randonnée du 05/06/2023 à 08:58 to friend4', async () => {
     const list = await collectionPage.trailsAndMap.openTrailsList();
+    expect(await list.getNbSelected()).toBe(0);
     let trail = await list.findItemByTrailName('Tour de Port-Cros');
     expect(trail).toBeDefined();
-    await trail!.selectTrail();
+    await list.ensureSelected(trail!);
     trail = await list.findItemByTrailName('Randonnée du 05/06/2023 à 08:58');
     expect(trail).toBeDefined();
-    await trail!.selectTrail();
+    await list.ensureSelected(trail!);
+    expect(await list.getNbSelected()).toBe(2);
     await list.selectionMenuWithIcon('share');
     const modal = new ShareModal(await App.waitModal());
     await modal.setShareName('2trails');

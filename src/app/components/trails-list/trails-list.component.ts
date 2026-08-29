@@ -154,13 +154,17 @@ export class TrailsListComponent extends AbstractComponent {
     showSpeed: false,
   };
 
+  private static sorted(names: string[], locale: string): string[] {
+    return names.sort((s1, s2) => s1.localeCompare(s2, locale));
+  }
+
   filtersToolbar: MenuItem[] = [
     new MenuItem().setI18nLabel('pages.trails.filters.preset').setSectionTitle(true).setTextColor('secondary'),
     new MenuItem().setIcon('export').setI18nLabel('pages.trails.filters.load').setChildrenProvider(() => {
       const saved = this.preferences.preferences.trailFilters;
       const names = saved ? Object.keys(saved) : [];
       if (names.length === 0) return of([new MenuItem().setI18nLabel('pages.trails.filters.no_saved_filter').setDisabled(true).setAction(() => {})]);
-      return of(names.sort().map(name => {
+      return of(TrailsListComponent.sorted(names, this.preferences.preferences.lang).map(name => {
         const systemFilter = saved![name];
         const userFilter = FiltersUtils.toUserUnit(systemFilter, this.preferences.preferences, this.i18n);
         return new MenuItem().setFixedLabel(name).setSubLabel(FiltersUtils.getDescription(userFilter, this.i18n, this.preferences.preferences))
@@ -209,7 +213,7 @@ export class TrailsListComponent extends AbstractComponent {
         const names = saved ? Object.keys(saved) : [];
         if (names.length === 0) return of(children);
         children.push(new MenuItem());
-        names.sort().forEach(name => {
+        TrailsListComponent.sorted(names, this.preferences.preferences.lang).forEach(name => {
           const systemFilter = saved![name];
           const userFilter = FiltersUtils.toUserUnit(systemFilter, this.preferences.preferences, this.i18n);
           children.push(
@@ -227,7 +231,7 @@ export class TrailsListComponent extends AbstractComponent {
     new MenuItem().setIcon('trash').setI18nLabel('pages.trails.filters.remove').setChildrenProvider(() => {
       const saved = this.preferences.preferences.trailFilters;
       const names = saved ? Object.keys(saved) : [];
-      return of(names.sort().map(name => {
+      return of(TrailsListComponent.sorted(names, this.preferences.preferences.lang).map(name => {
         const systemFilter = saved![name];
         const userFilter = FiltersUtils.toUserUnit(systemFilter, this.preferences.preferences, this.i18n);
         return new MenuItem().setFixedLabel(name).setSubLabel(FiltersUtils.getDescription(userFilter, this.i18n, this.preferences.preferences))

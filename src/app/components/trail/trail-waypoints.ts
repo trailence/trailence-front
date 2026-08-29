@@ -42,11 +42,13 @@ export class TrailsWaypoints {
     const toRemove = [...this.trails];
     const newTrails: TrailWaypoints[] = [];
     for (const trail of trails) {
-      const index = toRemove.findIndex(t => t.trail === trail.trail && t.track === trail.track);
+      const index = toRemove.findIndex(t => t.trail.owner === trail.trail.owner && t.trail.uuid === trail.trail.uuid && t.track.uuid === trail.track.uuid);
       if (index >= 0) {
         const t = toRemove[index];
         newTrails.push(t);
         toRemove.splice(index, 1);
+        t.trail = trail.trail;
+        t.track = trail.track;
         t.mapTrack = trail.mapTrack;
         t.recording = trail.recording;
       } else {
@@ -234,8 +236,6 @@ export class TrailWaypoints {
   hasIntersections = false;
   _showIntersections = false;
 
-  private readonly subscription: Subscription;
-
   public get showBreaks() { return this._showBreaks; }
   public set showBreaks(value: boolean) {
     if (value === this._showBreaks || this.trails.showBreaksOnMapLocked) return;
@@ -268,20 +268,39 @@ export class TrailWaypoints {
   private currentPhotos: {photos: Photo[], point: L.LatLngExpression}[];
 
   constructor(
-    readonly trails: TrailsWaypoints,
-    public readonly trail: Trail,
-    public readonly track: Track,
+    private readonly trails: TrailsWaypoints,
+    trail: Trail,
+    track: Track,
     public recording: boolean,
     public mapTrack: MapTrack,
     readonly initialPhotos: {photos: Photo[], point: L.LatLngExpression}[],
     readonly onUpdated: () => void,
   ) {
     this.currentPhotos = initialPhotos;
-    this.subscription = track.computed.wayPoints$.subscribe(
+    this.trail = trail;
+    this.track = track;
+  }
+
+  private _trail!: Trail;
+  private _track!: Track;
+  private _trackSubscription?: Subscription;
+
+  public get trail() { return this._trail; }
+  public set trail(value: Trail) {
+    if (value === this._trail) return;
+    this._trail = value;
+  }
+
+  public get track() { return this._track; }
+  public set track(value: Track) {
+    if (value === this._track) return;
+    this._track = value;
+    this._trackSubscription?.unsubscribe();
+    this._trackSubscription = value.computed.wayPoints$.subscribe(
       wayPoints => {
-        const previousHighlighted = trails.highlightedWayPoint;
-        const previousHighlightedIndex = previousHighlighted ? this.wayPoints.findIndex(w => w.waypoint === trails.highlightedWayPoint) : -1;
-        if (previousHighlightedIndex >= 0) trails.unhighlightWayPoint(previousHighlighted!, true);
+        const previousHighlighted = this.trails.highlightedWayPoint;
+        const previousHighlightedIndex = previousHighlighted ? this.wayPoints.findIndex(w => w.waypoint === this.trails.highlightedWayPoint) : -1;
+        if (previousHighlightedIndex >= 0) this.trails.unhighlightWayPoint(previousHighlighted!, true);
         this.wayPoints = wayPoints.map(wp => new WayPointWithPhotos(wp, this.getPhotos(this.currentPhotos, wp.position)));
         this.hasBreaks = this.wayPoints.some(wp => !!wp.breakPoint);
         this.hasGuideposts = this.wayPoints.some(wp => !!wp.guidepost);
@@ -289,9 +308,9 @@ export class TrailWaypoints {
         this.wayPointDepartureAndArrival = this.wayPoints.find(wp => wp.trackWayPoint?.isDepartureAndArrival());
         this.wayPointsImages = this.wayPoints.map(wp => {
           if (wp.trackWayPoint?.isDeparture)
-            return MapAnchor.createDataIcon(anchorDepartureBorderColor, trails.i18n.texts.way_points.D, anchorDepartureTextColor, anchorDepartureFillColor);
-          if (wp.trackWayPoint?.isArrival && (!recording || wp.trackWayPoint?.isComputedOnly))
-            return MapAnchor.createDataIcon(anchorArrivalBorderColor, trails.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor);
+            return MapAnchor.createDataIcon(anchorDepartureBorderColor, this.trails.i18n.texts.way_points.D, anchorDepartureTextColor, anchorDepartureFillColor);
+          if (wp.trackWayPoint?.isArrival && (!this.recording || wp.trackWayPoint?.isComputedOnly))
+            return MapAnchor.createDataIcon(anchorArrivalBorderColor, this.trails.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor);
           if (wp.trackWayPoint)
             return MapAnchor.createDataIcon(anchorBorderColor, '' + wp.trackWayPoint.index, anchorTextColor, anchorFillColor);
           if (wp.breakPoint)
@@ -299,9 +318,9 @@ export class TrailWaypoints {
           return undefined;
         });
         if (this.wayPointDepartureAndArrival)
-          this.wayPointsImages.push(MapAnchor.createDataIcon(anchorArrivalBorderColor, trails.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor));
+          this.wayPointsImages.push(MapAnchor.createDataIcon(anchorArrivalBorderColor, this.trails.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor));
         this.intersectionsImages = this.wayPoints.map(wp => wp.intersection?.toSvg('red'))
-        onUpdated();
+        this.onUpdated();
       }
     );
   }
@@ -337,7 +356,7 @@ export class TrailWaypoints {
   }
 
   destroy(): void {
-    this.subscription.unsubscribe();
+    this._trackSubscription?.unsubscribe();
   }
 
 }

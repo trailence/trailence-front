@@ -30,6 +30,7 @@ export class ExtensionsService {
       name: 'extensions',
       store: this,
       status$: this._syncStatus$,
+      getStatus: () => this._syncStatus$.value,
       loadStatus$: this._loaded$,
       hasPendingOperations$: this._pendingOperation$.pipe(map(nb => nb > 0)),
       fireSyncStatus: () => this._syncStatus$.next(this._syncStatus$.value),
