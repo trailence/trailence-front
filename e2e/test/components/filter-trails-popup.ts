@@ -49,7 +49,7 @@ export class FilterTrailsPopup extends ModalComponent {
   public async setTagsFilter(type: string, tags: string[]) {
     const button = new IonicButton(this.getElement().$('>>>app-filter-tags ion-button'));
     await button.click();
-    const modal = new ModalComponent(await App.waitModal(2));
+    const modal = new ModalComponent(await App.waitModal({byTitle: 'Filter on tags'}));
     const radioGroup = new IonicRadioGroup(modal.getElement().$('>>>ion-radio-group'));
     await radioGroup.selectValue(type);
     const checkboxes = modal.getElement().$$('>>>ion-checkbox');

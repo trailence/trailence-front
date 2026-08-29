@@ -98,7 +98,7 @@ export class PhotosComponent extends Component {
 
   public async openSlider(photoContainer: ChainablePromiseElement) {
     await photoContainer.$('app-photo').click();
-    return new PhotosSliderPopup(await App.waitModal(undefined, 'app-photos-slider-popup'));
+    return new PhotosSliderPopup(await App.waitModal({byRootElementName: 'app-photos-slider-popup'}));
   }
 
   public async openSliderByDescription(description: string) {

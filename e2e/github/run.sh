@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# as the nginx directory changed, we restart it
+front_container=$(docker ps -q --filter name=front)
+docker restart $front_container
+
 set -a && source docker.env && set +a
 cd ..
 export MOZ_REMOTE_SETTINGS_DEVTOOLS=1
@@ -9,6 +13,7 @@ code=$?
 
 back_container=$(docker ps -q --filter name=back)
 docker logs $back_container > ./output/back.log
+docker logs $front_container > ./output/nginx.log
 
 cd github
 docker compose down

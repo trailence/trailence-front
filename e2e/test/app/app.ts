@@ -303,38 +303,59 @@ export class App {
     await browser.waitUntil(() => App.getPopoverContainer().isExisting().then(e => !e), opts);
   }
 
-  public static async waitModal(index?: number, byElementName?: string, timeout?: number) {
-    if (index === undefined && byElementName === undefined)
-      index = 1;
-    if (index !== undefined) {
-      try { await browser.waitUntil(() => $$('ion-app>ion-modal:not(.overlay-hidden)').getElements().then(elements => elements.length >= index), {timeout}); }
-      catch (e) {
-        if (timeout) throw e;
-      }
-      const modal = $$('ion-app>ion-modal:not(.overlay-hidden)')[index - 1];
-      await modal.waitForDisplayed();
-      const page = modal.$('>>>.ion-page');
-      await page.waitForExist();
-      return page;
+  public static async waitModal(options?: {
+    byRootElementName?: string,
+    byTitle?: string,
+    timeout?: number,
+  }) {
+    let page: ChainablePromiseElement | undefined = undefined;
+    let getPage: (chain: ChainablePromiseElement) => Promise<ChainablePromiseElement | undefined>;
+    let context = 'Waiting modal';
+    getPage = async chain => {
+      const result = chain.$('>>>.ion-page');
+      await result.waitForDisplayed();
+      return result;
+    };
+    if (options?.byRootElementName) {
+      const elementName = options.byRootElementName;
+      getPage = async chain => {
+        const modalPage = chain.$('>>>' + elementName + '.ion-page');
+        if (await modalPage.isExisting()) {
+          await modalPage.waitForDisplayed();
+          return modalPage;
+        }
+      };
+      context += ' with root element ' + elementName;
+    } else if (options?.byTitle) {
+      const title = options.byTitle;
+      getPage = async chain => {
+        const titleElement = chain.$('>>>ion-header').$('>>>ion-title').$('>>>ion-label');
+        if (!(await titleElement.isExisting())) return undefined;
+        await titleElement.waitForDisplayed();
+        const text = await titleElement.getText();
+        if (text.trim() === title.trim()) return chain.$('>>>.ion-page');
+      };
+      context += ' with title: ' + title;
     }
-    if (byElementName !== undefined) {
-      let page: ChainablePromiseElement | undefined = undefined;
-      await browser.waitUntil(async () => {
-        let i = 0;
-        for (const modal of await browser.$$('ion-app>ion-modal:not(.overlay-hidden)').getElements()) {
-          const modalPage = modal.$('>>>' + byElementName + '.ion-page');
-          if (await modalPage.isExisting()) {
-            page = browser.$$('ion-app>ion-modal:not(.overlay-hidden)')[i].$('>>>' + byElementName + '.ion-page');
+    await browser.waitUntil(async () => {
+      const modals = await browser.$$('ion-app>ion-modal:not(.overlay-hidden)').getElements();
+      if (modals.length === 0) return false;
+      for (const modal of modals) {
+        const id = await modal.getAttribute('id');
+        if (!id) continue;
+        const chain = browser.$('ion-app>ion-modal#' + id);
+        try {
+          const result = await getPage(chain);
+          if (result) {
+            page = result;
             return true;
           }
-          i++;
-        }
-        return false;
-      });
-      expect(page).withContext('Modal with element ' + byElementName).toBeDefined();
-      return page!;
-    }
-    throw new Error('Unexepcted');
+        } catch (_) {}
+      }
+      return false;
+    }, {timeout: options?.timeout});
+    if (!page) throw new Error('Cannot find ' + context);
+    return page;
   }
 
   public static async waitAlert(timeout?: number) {

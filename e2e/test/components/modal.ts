@@ -10,7 +10,7 @@ export class ModalComponent extends Component {
   public get contentElement() { return this.getElement().$('ion-content'); }
 
   public getFooterButtons(end: boolean) {
-    return this.getElement().$('ion-footer ion-buttons[slot=' + (end ? 'end' : 'start') + ']');
+    return this.getElement().$('ion-footer').$('>>>ion-buttons[slot=' + (end ? 'end' : 'start') + ']');
   }
 
   public async getFooterButtonWithText(text: string, end: boolean = true) {

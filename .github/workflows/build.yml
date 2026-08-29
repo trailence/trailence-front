@@ -27,6 +27,8 @@ jobs:
           retention-days: 1
   build-web-app:
     name: Build - Web App
+    needs:
+      - prepare-e2e-web-app # to prioritize only
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -54,6 +56,8 @@ jobs:
   build-android:
     name: Build - Android App
     runs-on: ubuntu-latest
+    needs:
+      - prepare-e2e-web-app # to prioritize only
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -155,6 +159,8 @@ jobs:
   unit-tests-web-app:
     name: Unit Tests - Web App
     runs-on: ubuntu-latest
+    needs:
+      - prepare-e2e-web-app # to prioritize only
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -178,8 +184,6 @@ jobs:
           if-no-files-found: error
           retention-days: 5
   e2e-tests-web-app:
-    needs:
-      - prepare-e2e-web-app
     strategy:
       fail-fast: false
       matrix:
@@ -207,11 +211,6 @@ jobs:
           node-version: 22
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
-      - name: Retrieve web app
-        uses: actions/download-artifact@v8
-        with:
-          name: prepare-e2e-web-app
-          path: www
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 #v6.2.0
@@ -231,8 +230,10 @@ jobs:
             trailence/back:*
           cache-key-prefix: trailence-e2e-docker-images
           skip-digest-verification: false
-      - name: Tests End 2 End
-        id: e2e
+      - name: Prepare tests env
+        id: enve2e
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           mkdir .nyc_output
           cd e2e
@@ -242,6 +243,15 @@ jobs:
           cd github
           chmod 755 ./*.sh
           ./prepare_tests.sh "--tests=${{matrix.test}}"
+      - name: Retrieve web app
+        uses: actions/download-artifact@v8
+        with:
+          name: prepare-e2e-web-app
+          path: www
+      - name: Tests End 2 End
+        id: e2e
+        run: |
+          cd e2e/github
           ./run.sh "--tests=${{matrix.test}}"
       - name: Build coverage report
         run: |
@@ -250,20 +260,20 @@ jobs:
           npm run coverage-report
           ls -l ../coverage/e2e
           sed -i -e 's!www/browser/!!' ../coverage/e2e/lcov.info
-          mv ../coverage/e2e/lcov.info ../coverage/e2e/${{ steps.e2e.outputs.test_name }}.info
+          mv ../coverage/e2e/lcov.info ../coverage/e2e/${{ steps.enve2e.outputs.test_name }}.info
           ls -l ../coverage/e2e
       - name: Upload output
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: wdio_output_${{github.run_number}}_${{ steps.e2e.outputs.test_name }}
+          name: wdio_output_${{github.run_number}}_${{ steps.enve2e.outputs.test_name }}
           path: e2e/output
           retention-days: 5
       - name: Store coverage results
         uses: actions/upload-artifact@v7
         with:
-          name: e2e-tests-web-app-${{ steps.e2e.outputs.test_name }}-coverage-report
-          path: ./coverage/e2e/${{ steps.e2e.outputs.test_name }}.info
+          name: e2e-tests-web-app-${{ steps.enve2e.outputs.test_name }}-coverage-report
+          path: ./coverage/e2e/${{ steps.enve2e.outputs.test_name }}.info
           if-no-files-found: error
           retention-days: 5
   sonar:
