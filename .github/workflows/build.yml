@@ -187,20 +187,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test:
-          - "1:browser:chrome:desktop:00000+00010,00100+00300+00001,00301+00400,00800+00900+50000"
-          - "2:browser:chrome:desktop:00200+00250+00205+00260,01000+00500"
-          - "3:browser:chrome:mobile:00000+00010,00100+00300+00001,00301+00400,00800+00900+50000"
-          - "4:browser:chrome:mobile:00200+00250+00205+00260,01000+00500"
-          - "5:browser:firefox:desktop:00000+00010,00100+00300+00001,00301+00400,00800+00900+50000"
-          - "6:browser:firefox:desktop:00200+00250+00205+00260,01000+00500"
-          - "7:browser:firefox:mobile:00000+00010,00100+00300+00001,00301+00400,00800+00900+50000"
-          - "8:browser:firefox:mobile:00200+00250+00205+00260,01000+00500"
-          - "9:browser:chrome:desktop:05000+00201"
-          - "10:browser:chrome:mobile:05000+00201"
-          - "11:browser:firefox:desktop:05000+00201"
-          - "12:browser:firefox:mobile:05000+00201"
-    name: E2E ${{matrix.test}}
+        testsset:
+          - "01"
+          - "02"
+          - "03"
+          - "04"
+          - "05"
+          - "06"
+          - "07"
+          - "08"
+          - "09"
+          - "10"
+          - "11"
+          - "12"
+    name: E2E ${{matrix.testsset}}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -221,8 +221,9 @@ jobs:
             type=ref,prefix=snapshot-,event=branch
             type=ref,event=tag
       - name: Cache Docker Compose Images
-        id: cache-docker
         uses: seijikohara/docker-compose-cache-action@e138e9a95515748205da22252abd19ce8dcbe6c1 #v1.8.23
+        env:
+          GITHUB_STEP_SUMMARY: /tmp/docker-compose-cache-summary.md
         with:
           compose-files: |
             e2e/github/docker-compose.yml
@@ -231,28 +232,24 @@ jobs:
           cache-key-prefix: trailence-e2e-docker-images
           skip-digest-verification: false
       - name: Prepare tests env
-        id: enve2e
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir .nyc_output
           cd e2e
           chmod 755 ./*.sh
-          test_name=$(npm run tests_to_filename --silent -- ${{matrix.test}})
-          echo "test_name=$test_name" >> $GITHUB_OUTPUT
           cd github
           chmod 755 ./*.sh
-          ./prepare_tests.sh "--tests=${{matrix.test}}"
+          ./prepare_tests.sh "--testsset=github/tests-sets.txt:${{matrix.testsset}}"
       - name: Retrieve web app
         uses: actions/download-artifact@v8
         with:
           name: prepare-e2e-web-app
           path: www
       - name: Tests End 2 End
-        id: e2e
         run: |
           cd e2e/github
-          ./run.sh "--tests=${{matrix.test}}"
+          ./run.sh "--testsset=github/tests-sets.txt:${{matrix.testsset}}"
       - name: Build coverage report
         run: |
           ls -l .nyc_output
@@ -260,20 +257,20 @@ jobs:
           npm run coverage-report
           ls -l ../coverage/e2e
           sed -i -e 's!www/browser/!!' ../coverage/e2e/lcov.info
-          mv ../coverage/e2e/lcov.info ../coverage/e2e/${{ steps.enve2e.outputs.test_name }}.info
+          mv ../coverage/e2e/lcov.info ../coverage/e2e/${{ matrix.testsset }}.info
           ls -l ../coverage/e2e
       - name: Upload output
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: wdio_output_${{github.run_number}}_${{ steps.enve2e.outputs.test_name }}
+          name: wdio_output_${{github.run_number}}_${{ matrix.testsset }}
           path: e2e/output
           retention-days: 5
       - name: Store coverage results
         uses: actions/upload-artifact@v7
         with:
-          name: e2e-tests-web-app-${{ steps.enve2e.outputs.test_name }}-coverage-report
-          path: ./coverage/e2e/${{ steps.enve2e.outputs.test_name }}.info
+          name: e2e-tests-web-app-${{ matrix.testsset }}-coverage-report
+          path: ./coverage/e2e/${{ matrix.testsset }}.info
           if-no-files-found: error
           retention-days: 5
   sonar:

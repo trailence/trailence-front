@@ -54,7 +54,7 @@ export class TrailOverview extends Component {
     // it's in a @defer, so we may need to retry
     const present = await TestUtils.retry(async (trial) => {
       const present = await this.getElement(trial > 2).$('app-rate').isDisplayed();
-      if (!present) throw new Error('missing rate');
+      if (!present) throw new Error('missing rate: ' + await this.getElement().getHTML());
       return present;
     }, 5, 100);
     expect(present).toBeTrue();

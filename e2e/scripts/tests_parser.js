@@ -1,4 +1,26 @@
 import * as fs from 'fs';
+import * as path from 'path';
+
+export function parseTestSet(testSet) {
+  let i = testSet.indexOf(':');
+  const testSetPath = testSet.substring(0, i).trim();
+  const testSetIndex = Number.parseInt(testSet.substring(i + 1).trim());
+  const filePath = path.join('..', testSetPath);
+  const fileContent = fs.readFileSync(filePath, {encoding: 'utf-8'});
+  const lines = fileContent.split('\n');
+  let tests = '';
+  for (const line of lines) {
+    let s = line.trim();
+    if (s.length === 0) continue;
+    i = s.indexOf(':');
+    if (i <= 0) continue;
+    const setIndex = Number.parseInt(s.substring(0, i));
+    if (setIndex !== testSetIndex) continue;
+    if (tests.length > 0) tests += '§';
+    tests += s;
+  }
+  return parseTests(tests);
+}
 
 export function parseTests(tests) {
 

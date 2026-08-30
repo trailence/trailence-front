@@ -54,9 +54,8 @@ describe('Find Trail', () => {
     await alert.clickRadioButtonByLabel('Outdoor Active');
     await alert.clickButtonWithText('Ok');
     await map.topToolbar.clickByIcon('search-map');
-    list = await page.trailsAndMap.openTrailsList();
     await browser.waitUntil(async () => {
-      list.getElement(true);
+      list = await page.trailsAndMap.openTrailsList();
       return list.items.length.then(nb => nb > 0)
     }, { timeout: 45000 });
     trail = await TestUtils.retry(async () => await list.waitTrail('20201025-Saint Honorat'), 2, 1000);

@@ -1,5 +1,5 @@
 import * as create_user from './create_user.js';
-import { parseTests } from './tests_parser.js';
+import { parseTests, parseTestSet } from './tests_parser.js';
 
 const args = [...process.argv];
 args.splice(0, 2);
@@ -17,6 +17,8 @@ for (const arg of args) {
     admin_password = arg.substring(26);
   else if (arg.startsWith('--tests='))
     tests = parseTests(arg.substring(8).trim());
+  else if (arg.startsWith('--testsset='))
+    tests = parseTestSet(arg.substring(11).trim());
   else if (arg === '--preparation')
     preparation = true;
   else
