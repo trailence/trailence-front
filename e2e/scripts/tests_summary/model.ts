@@ -12,6 +12,7 @@ export class TestSet {
 
 export class TestCommand {
   constructor(
+    public readonly cmdInstance: string,
     public readonly browser: string,
     public readonly browserSize: string,
     specs: SpecFile[],
@@ -24,6 +25,7 @@ export class TestCommand {
   public readonly dirnames: string[];
   public readonly command: string;
   public readonly dirs: SpecDir[];
+  public screenShotFile?: string;
 
   public get success(): boolean { return this.dirs.every(d => d.success); }
   public get time(): number { return this.dirs.reduce((p,n)=>p+n.time, 0); }
@@ -55,4 +57,5 @@ export interface Test {
   name: string;
   success: boolean;
   time?: number;
+  error?: string[];
 }

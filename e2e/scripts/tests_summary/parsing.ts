@@ -15,28 +15,43 @@ export async function parseTests(): Promise<TestSet[]> {
     const dir = await fs.promises.opendir('../../output/' + outputEntry.name);
     let dirEntry: fs.Dirent<string> | null;
     const logFiles: string[] = [];
+    const screenShots = new Map<string, string>();
     while ((dirEntry = await dir.read()) !== null) {
-      if (dirEntry.isFile() && dirEntry.name.startsWith('test_') && dirEntry.name.endsWith('.log'))
-        logFiles.push(dirEntry.name);
+      if (dirEntry.isFile() && dirEntry.name.startsWith('test_') && dirEntry.name.endsWith('.log')) {
+        let instance = dirEntry.name.substring(5, dirEntry.name.length - 4);
+        logFiles.push(instance);
+      } else if (dirEntry.isFile() && dirEntry.name.startsWith('wdio_error_') && dirEntry.name.endsWith('.png')) {
+        let instance = dirEntry.name.substring(11);
+        let i = instance.indexOf('_');
+        if (i > 0) {
+          screenShots.set(instance.substring(0, i), '../../output/' + outputEntry!.name + '/' + dirEntry.name);
+        }
+      }
     }
     await dir.close();
     const testSetPromises = logFiles
       .sort((f1, f2) => f1.localeCompare(f2))
-      .map(logfile => readTestCommandLog('../../output/' + outputEntry!.name + '/' + logfile));
+      .map(cmdInstance =>
+        readTestCommandLog('../../output/' + outputEntry!.name + '/test_' + cmdInstance + '.log', cmdInstance)
+        .then(cmd => {
+          cmd.screenShotFile = screenShots.get(cmdInstance);
+          return cmd;
+        })
+      );
     promises.push(Promise.all(testSetPromises).then(testCommands => new TestSet(testSet, testCommands.sort((c1, c2) => c1.command.localeCompare(c2.command)))));
   }
   await outputDir.close();
   return (await Promise.all(promises)).sort((s1, s2) => s1.name.localeCompare(s2.name));
 }
 
-async function readTestCommandLog(filename: string): Promise<TestCommand> {
+async function readTestCommandLog(filename: string, cmdInstance: string): Promise<TestCommand> {
   console.log('Analyzing', filename);
   const file = await fs.promises.readFile(filename, { encoding: 'utf-8' });
   const cmdLine = getLineStartingWith(file, '> wdio run ');
   const browser = getCommandLineArgument(cmdLine, '--browser');
   const browserSize = getCommandLineArgument(cmdLine, '--browser-size');
   const specs = getTestsSpecs(file);
-  return new TestCommand(browser, browserSize, specs);
+  return new TestCommand(cmdInstance, browser, browserSize, specs);
 }
 
 function getTestsSpecs(file: string): SpecFile[] {
@@ -46,11 +61,13 @@ function getTestsSpecs(file: string): SpecFile[] {
     let j = file.indexOf('\n', pos);
     const specFile = file.substring(pos + 14, j).trim();
     let nextLine = getNextLine(file, j + 1);
+    if (!nextLine) break;
     const suiteName = getTextAfter(nextLine.content, ']').trim();
     pos = nextLine.end + 1;
     const tests: Test[] = [];
     do {
       nextLine = getNextLine(file, pos);
+      if (!nextLine) break;
       pos = nextLine.end + 1;
       const success = getTextAfter(nextLine.content, '✓ ').trim();
       if (success.length > 0) {
@@ -69,6 +86,7 @@ function getTestsSpecs(file: string): SpecFile[] {
       j += suiteName.length + 13;
       do {
         nextLine = getNextLine(file, j);
+        if (!nextLine) break;
         let i2 = nextLine.content.indexOf(']  - ');
         if (i2 < 0) break;
         let i3 = nextLine.content.lastIndexOf(':');
@@ -86,6 +104,33 @@ function getTestsSpecs(file: string): SpecFile[] {
     }
     const dir = specFile.substring(0, specFile.indexOf('-'));
     result.push(new SpecFile(dir, specFile, suiteName, tests));
+  }
+  for (const testFile of result) {
+    for (const test of testFile.tests.filter(t => !t.success)) {
+      // try to find the error
+      pos = 0;
+      while ((pos = file.indexOf(') ' + testFile.suiteName + ' ' + test.name, pos)) > 0) {
+        let nextLine = getNextLine(file, pos);
+        if (!nextLine) break;
+        nextLine = getNextLine(file, nextLine.end + 1);
+        if (!nextLine) break;
+        let i = nextLine.content.indexOf('Error: ');
+        if (i < 0) {
+          pos = nextLine.start;
+          continue;
+        }
+        test.error = [nextLine.content.substring(i)];
+        do {
+          nextLine = getNextLine(file, nextLine.end + 1);
+          if (!nextLine) break;
+          i = nextLine.content.indexOf('    at ');
+          if (i < 0) break;
+          test.error.push(nextLine.content.substring(i));
+        } while (true);
+        if (!nextLine) break;
+        pos = nextLine.start + 1;
+      }
+    }
   }
   return result.sort((f1, f2) => compareBy(f1, f2, [f => f.dir, f => f.file, f => f.suiteName]));
 }

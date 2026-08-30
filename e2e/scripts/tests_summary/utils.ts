@@ -11,8 +11,9 @@ export function getLineStartingWith(content: string, start: string): string {
   return content.substring(i + 1, j).trim();
 }
 
-export function getNextLine(file: string, start: number): Line {
+export function getNextLine(file: string, start: number): Line | undefined {
   const end = file.indexOf('\n', start);
+  if (end < 0) return undefined;
   const content = file.substring(start, end).trim();
   return { start, end, content };
 }
@@ -59,10 +60,4 @@ export function toTime(time: number | undefined): string {
 
 export function toSuccess(success: boolean): string {
   return success ? '✅' : '❌';
-}
-
-export function toColoredTime(time: number, times: number[]): string {
-  if (time === Math.min(...times)) return '<span color="#00FF00">' + toTime(time) + '</span>';
-  if (time === Math.max(...times)) return '<span color="#FF0000">' + toTime(time) + '</span>';
-  return toTime(time);
 }

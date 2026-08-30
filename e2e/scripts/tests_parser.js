@@ -16,8 +16,8 @@ export function parseTestSet(testSet) {
     if (i <= 0) continue;
     const setIndex = Number.parseInt(s.substring(0, i));
     if (setIndex !== testSetIndex) continue;
-    if (tests.length > 0) tests += '§';
-    tests += s;
+    if (tests.length > 0) tests += '§' + s.substring(i + 1);
+    else tests = s;
   }
   return parseTests(tests);
 }

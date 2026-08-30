@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import { parseTests } from './parsing';
-import { toColoredTime, toSuccess, toTime } from './utils';
+import { toSuccess, toTime } from './utils';
 
 async function generateSummary() {
   const sets = await parseTests();
@@ -10,14 +10,61 @@ async function generateSummary() {
       { data: 'Set', header: true },
       { data: '🎯', header: true },
       { data: 'Time', header: true },
+      { data: 'Rank', header: true },
     ],
     ...sets.map(set => [
       { data: set.name },
       { data: toSuccess(set.success) },
-      { data: toColoredTime(set.time, sets.map(s => s.time)) },
+      { data: toTime(set.time) },
+      { data: '' + (sets.map(s => s.time).sort((t1,t2) => t1 - t2).indexOf(set.time) + 1) }
     ])
   ]);
 
+  if (sets.some(s => !s.success)) {
+    s = s.addHeading('Errors', 3);
+    for (const set of sets.filter(s => !s.success)) {
+      for (const cmd of set.commands.filter(c => !c.success)) {
+        for (const dir of cmd.dirs.filter(d => !d.success)) {
+          for (const file of dir.files.filter(f => !f.success)) {
+            for (const test of file.tests.filter(t => !t.success)) {
+              s = s.addTable([
+                [
+                  { data: 'Set', header: true },
+                  { data: 'File', header: true },
+                  { data: 'Test', header: true },
+                ],
+                ...(test.error ? [
+                  [
+                    { data: '<pre>' + test.error.join('\n') + '</pre>', colspan: '3' }
+                  ]
+                ] : []),
+              ]);
+            }
+          }
+        }
+      }
+    }
+
+    s = s.addTable([
+      ...sets.filter(s => !s.success).flatMap(set =>
+        set.commands.filter(c => !c.success).flatMap(cmd =>
+          cmd.dirs.filter(d => !d.success).flatMap(dir =>
+            dir.files.filter(f => !f.success).flatMap(file =>
+              file.tests.filter(t => !t.success).flatMap(test =>
+                [
+                  [
+                    { data: set.name },
+                    { data: file.file },
+                    { data: test.name },
+                  ],
+                ]
+              )
+            )
+          )
+        )
+      ),
+    ]);
+  }
 
   s = s.addRaw('<details><summary>Sets Details</summary>');
   s = s.addTable([
@@ -32,7 +79,7 @@ async function generateSummary() {
       [
         { data: set.name, colspan: '3' },
         { data: toSuccess(set.success) },
-        { data: toColoredTime(set.time, sets.map(s => s.time)) }
+        { data: toTime(set.time) }
       ],
       ...set.commands.flatMap(cmd => [
         [
@@ -52,7 +99,6 @@ async function generateSummary() {
     ])
   ]);
   s = s.addRaw('</details>');
-
 
   s = s.addRaw('<details><summary>Tests Details</summary>');
   s = s.addTable([
