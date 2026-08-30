@@ -221,9 +221,7 @@ jobs:
             type=ref,prefix=snapshot-,event=branch
             type=ref,event=tag
       - name: Cache Docker Compose Images
-        uses: seijikohara/docker-compose-cache-action@e138e9a95515748205da22252abd19ce8dcbe6c1 #v1.8.23
-        env:
-          GITHUB_STEP_SUMMARY: /tmp/docker-compose-cache-summary.md
+        uses: seijikohara/docker-compose-cache-action@a65114cba03595f5d0de89287c8ba4b5c613979a #v1.8.24
         with:
           compose-files: |
             e2e/github/docker-compose.yml
@@ -231,6 +229,7 @@ jobs:
             trailence/back:*
           cache-key-prefix: trailence-e2e-docker-images
           skip-digest-verification: false
+          add-job-summary: on-failure
       - name: Prepare tests env
         env:
           GH_TOKEN: ${{ github.token }}
@@ -273,6 +272,27 @@ jobs:
           path: ./coverage/e2e/${{ matrix.testsset }}.info
           if-no-files-found: error
           retention-days: 5
+  tests-summary:
+    name: Tests Summary
+    runs-on: ubuntu-latest
+    needs:
+      - e2e-tests-web-app
+    if: "always()"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Retrieve e2e tests results
+        uses: actions/download-artifact@v8
+        with:
+          path: e2e/output
+          pattern: wdio_output_*
+          merge-multiple: false
+      - name: Build Summary
+        run: |
+          ls e2e/output/wdio_output_*
+          cd e2e/scripts/tests_summary
+          npm ci --ignore-scripts
+          npm run tests-summary
   sonar:
     name: Sonar Analysis
     runs-on: ubuntu-latest

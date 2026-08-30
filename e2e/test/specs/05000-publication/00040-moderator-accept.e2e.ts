@@ -1,5 +1,6 @@
 import { App } from '../../app/app';
 import { TrailsPage, TrailsPageType } from '../../app/pages/trails-page';
+import { Component } from '../../components/component';
 import { ModerationTranslationsComponent } from '../../components/moderation-translations.component';
 import { TestUtils } from '../../utils/test-utils';
 
@@ -29,6 +30,9 @@ describe('Publication - Moderator Accept', () => {
     await TestUtils.retry(async () => {
       await translations.setTrailName('This trail is translated');
       await translations.setTrailDescription('This description is translated');
+      // click outside so the text is taken into account
+      await Component.scrollIntoView(messageElement);
+      try { await messageElement.click(); } catch (_) {}
       if (!(await trailPage.trailComponent.canAcceptPublication())) throw new Error('Publish button disabled');
     }, 2, 100);
     await trailPage.trailComponent.acceptPublication();

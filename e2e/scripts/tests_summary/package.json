@@ -1,0 +1,12 @@
+{
+  "name": "tests_summary",
+  "type": "module",
+  "devDependencies": {
+    "@actions/core": "^3.0.1",
+    "tsx": "^4.21.0",
+    "typescript": "~5.8.3"
+  },
+  "scripts": {
+    "tests-summary": "node --import=tsx ./tests_summary.ts"
+  }
+}

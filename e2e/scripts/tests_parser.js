@@ -11,7 +11,7 @@ export function parseTestSet(testSet) {
   let tests = '';
   for (const line of lines) {
     let s = line.trim();
-    if (s.length === 0) continue;
+    if (s.length === 0 || s.startsWith('#')) continue;
     i = s.indexOf(':');
     if (i <= 0) continue;
     const setIndex = Number.parseInt(s.substring(0, i));
