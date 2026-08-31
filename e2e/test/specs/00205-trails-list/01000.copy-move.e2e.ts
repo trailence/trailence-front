@@ -11,8 +11,7 @@ describe('Copy / Move Trails', () => {
 
   it('Login, create collection and import trails', async () => {
     App.init();
-    const loginPage = await App.start();
-    await loginPage.loginAndWaitMyTrailsCollection();
+    await App.startLoginIfNeeded();
     const menu = await App.openMenu();
     collectionPage = await menu.addCollection('Test List');
     expect(await collectionPage.header.getTitle()).toBe('Test List');
@@ -120,8 +119,8 @@ describe('Copy / Move Trails', () => {
     await expectListContains(list, EXPECTED_TRAILS);
   });
 
-  it('Synchronize and logout', async () => {
-    await App.synchronize(true);
+  it('Synchronize', async () => {
+    await App.synchronize();
   });
 
   it('End', async () => await App.end());

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo Run tests with arguments: $@
+echo "[$(date)] Run tests with arguments: $@"
 
 echo Cleaning...
 
@@ -9,7 +9,7 @@ mkdir ./output
 rm -rf ./tmp-data || true
 mkdir ./tmp-data
 
-echo List tests to run in parallel
+echo "[$(date)] List tests to run in parallel"
 
 npm run list_parallel --silent -- $@ > ./output/tests.txt
 code=$?
@@ -21,9 +21,9 @@ fi
 nb_tests=$(wc -l < ./output/tests.txt)
 echo Jobs to launch: $nb_tests
 
-echo Launching tests in parallel
-
 date=$(date)
+
+echo "[$date] Launching tests in parallel"
 echo "Launching tests at $date" >> ./output/jobs_result.txt
 
 count=0
@@ -53,7 +53,7 @@ while read pid; do
   if [[ $code -ne 0 ]]; then
     result=1
   fi
-  cat ./output/test_$count.log | grep -v "BIDI COMMAND" | grep -v "BIDI RESULT" | grep -v "INFO webdriver: RESULT {\"/home" > ./output/test_$count_filtered.log
+  cat ./output/test_$count.log | grep -v "BIDI COMMAND" | grep -v "BIDI RESULT" | grep -v "Failed parse WebDriver Bidi message" | grep -v "INFO webdriver: RESULT {\"/home" > ./output/test_$count_filtered.log
   rm ./output/test_$count.log
   mv ./output/test_$count_filtered.log ./output/test_$count.log
 done < ./output/jobs.txt

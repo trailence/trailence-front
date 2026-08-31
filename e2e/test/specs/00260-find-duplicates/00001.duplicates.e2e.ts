@@ -13,10 +13,11 @@ describe('Find Duplicates', () => {
 
   it('Login, create collection, import 2 similar trails', async () => {
     App.init();
-    const loginPage = await App.start();
-    await loginPage.loginAndWaitMyTrailsCollection();
+    await App.startLoginIfNeeded();
     const menu = await App.openMenu();
-    collectionPage = await menu.addCollection('Duplicates');
+    collectionPage = await menu.deleteAllCollectionsAndCreate('Duplicates2');
+    const menu2 = await App.openMenu();
+    collectionPage = await menu2.deleteAllCollectionsAndCreate('Duplicates');
     list = await collectionPage.trailsAndMap.openTrailsList();
     await list.importFiles(['./test/assets/gpx-001.gpx', './test/assets/gpx-001-bis.gpx']);
     await list.waitTrail('Randonnée du 05/06/2023 à 08:58');
@@ -111,7 +112,6 @@ describe('Find Duplicates', () => {
     await (await collectionPage.header.openActionsMenu()).clickItemWithText('Delete');
     await (await App.waitAlert()).clickButtonWithRole('danger');
     await browser.waitUntil(() => Page.getActivePageElement().then(p => new HeaderComponent(p).getTitle()).then(title => title === 'My trails'));
-    await App.synchronize(true);
   });
 
   it('End', async () => await App.end());

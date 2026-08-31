@@ -9,8 +9,7 @@ describe('Find Trail', () => {
 
   it('Login', async () => {
     App.init();
-    const loginPage = await App.start();
-    await loginPage.loginAndWaitMyTrailsCollection();
+    await App.startLoginIfNeeded();
   });
 
   let page: TrailsPage;
@@ -97,7 +96,6 @@ describe('Find Trail', () => {
   });*/
 
   it('End', async () => {
-    await App.logout(false);
     await App.end();
   });
 });

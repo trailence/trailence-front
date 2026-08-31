@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnInit, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output } from '@angular/core';
 import { IonInput, IonTextarea, IonButton, IonSpinner, IonIcon, AlertController } from "@ionic/angular/standalone";
 import { ModerationService } from 'src/app/services/moderation/moderation.service';
 import { Trail } from 'src/app/model/trail';
@@ -10,6 +10,7 @@ import { TrailService } from 'src/app/services/database/trail.service';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { AvailableLocales } from 'src/app/services/i18n/available-locales';
 import { WayPoint } from 'src/app/model/way-point';
+import { Subscription, timer } from 'rxjs';
 
 @Component({
   selector: 'app-moderation-translations',
@@ -21,7 +22,7 @@ import { WayPoint } from 'src/app/model/way-point';
     IonButton
 ]
 })
-export class ModerationTranslationsComponent implements OnInit, OnChanges {
+export class ModerationTranslationsComponent implements OnInit, OnChanges, OnDestroy {
 
   @Input() trail!: Trail;
   @Input() track!: Track;
@@ -31,7 +32,6 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges {
   readonly targetLanguages = Object.values(AvailableLocales);
 
   displayTarget?: string;
-  detecting = false;
   translating = 0;
   collapsed = true;
   notReadyReason?: string;
@@ -40,6 +40,8 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges {
   nameTranslation?: string = undefined;
   descriptionTranslation?: string = undefined;
   waypointsTranslation: {name?:string, description?:string}[] = [];
+
+  languagesSubscription?: Subscription;
 
   constructor(
     private readonly moderationService: ModerationService,
@@ -51,7 +53,27 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges {
   ) {}
 
   ngOnInit(): void {
-    this.i18n.getTranslationLanguages().subscribe(l => {
+    this.loadLanguagesList();
+  }
+
+  ngOnChanges(): void {
+    this.populate();
+    this.checkReady();
+    this.changesDetector.detectChanges();
+  }
+
+  ngOnDestroy(): void {
+    this.languagesSubscription?.unsubscribe();
+    this.languagesSubscription = undefined;
+  }
+
+  private loadLanguagesList(): void {
+    if (this.languagesSubscription) return;
+    this.languagesSubscription = this.i18n.getTranslationLanguages().subscribe(l => {
+      if (l.length === 0) {
+        this.reloadLanguagesList();
+        return;
+      }
       this.sourceLanguages = l.map(e => ({code: e.code, name: e.name}));
       this.populate();
       this.checkReady();
@@ -59,10 +81,10 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges {
     });
   }
 
-  ngOnChanges(): void {
-    this.populate();
-    this.checkReady();
-    this.changesDetector.detectChanges();
+  private reloadLanguagesList(): void {
+    this.languagesSubscription?.unsubscribe();
+    this.languagesSubscription = undefined;
+    timer(3000).subscribe(() => this.loadLanguagesList());
   }
 
   private checkReady(): void {
@@ -135,6 +157,7 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges {
 
   toggleCollapse(): void {
     this.collapsed = !this.collapsed;
+    if (!this.collapsed) this.loadLanguagesList();
     this.changesDetector.detectChanges();
   }
 

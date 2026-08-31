@@ -7,9 +7,7 @@ describe('Collections', () => {
 
   it('Login', async () => {
     App.init();
-    const loginPage = await App.start();
-    const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My trails'));
+    await App.startLoginIfNeeded();
   });
 
   it('Only MyTrails collection exists', async () => {
@@ -120,7 +118,6 @@ describe('Collections', () => {
   });
 
   it('End', async () => {
-    await App.logout(false);
     await App.end();
   });
 

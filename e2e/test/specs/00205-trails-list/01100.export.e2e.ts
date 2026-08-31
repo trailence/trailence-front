@@ -12,8 +12,7 @@ describe('Export', () => {
 
   it('Login, create a collection for reimport, Go to Test List', async () => {
     App.init();
-    const loginPage = await App.start();
-    await loginPage.loginAndWaitMyTrailsCollection();
+    await App.startLoginIfNeeded();
     let menu = await App.openMenu();
     await menu.addCollection('Reimport');
 
@@ -139,7 +138,7 @@ describe('Export', () => {
     (await collectionPage.header.openActionsMenu()).clickItemWithText('Delete');
     await (await App.waitAlert()).clickButtonWithRole('danger');
     await App.waitNoProgress();
-    await App.synchronize(true);
+    await App.synchronize();
   });
 
   it('End', async () => await App.end());

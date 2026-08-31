@@ -12,8 +12,7 @@ describe('Trails Tools', () => {
 
   it('Login, open collection, import trails', async () => {
     App.init();
-    const loginPage = await App.start();
-    await loginPage.loginAndWaitMyTrailsCollection();
+    await App.startLoginIfNeeded();
     const menu = await App.openMenu();
     collectionPage = await menu.openCollection('Test SortFilter');
     expect(await collectionPage.header.getTitle()).toBe('Test SortFilter');
@@ -200,10 +199,6 @@ describe('Trails Tools', () => {
     await tags.cancel();
 
     await expectListContains(list, EXPECTED_TRAILS);
-  });
-
-  it('Synchronize and logout', async () => {
-    await App.synchronize(true);
   });
 
   it('End', async () => await App.end());

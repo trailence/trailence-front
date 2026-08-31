@@ -132,13 +132,14 @@
     @let smallMapEnabled = state$.value.mode === 'detailed_small_map';
     @let elevationProfile = state$.value.mode === 'detailed_elevation';
     @let photoEnabled = !smallMapEnabled && !elevationProfile;
-    @for (trailWithInfo of listTrails; track trailWithInfo.trail.uuid + trailWithInfo.trail.owner) {
+    @for (trailWithInfo of listTrails; track trailWithInfo.trail.uuid + trailWithInfo.trail.owner; let index = $index) {
       <div class="trail metadata-container {{cl + (highlighted === trailWithInfo.trail ? ' highlighted' : '')}}"
         id="trail-list-{{id}}-trail-{{trailWithInfo.trail.uuid}}-{{trailWithInfo.trail.owner}}"
         style="--default-size: {{defaultSize}}"
         [horizontalGesture]="enableRemoveByGesture" (horizontalGesturePerformed)="removeFromList(trailWithInfo)"
       >
         <app-trail-overview
+          id="trail-{{id}}-{{index}}"
           [trail]="trailWithInfo.trail"
           [trailInfo]="trailWithInfo.info"
           [trailTags]="trailWithInfo.trailTags"

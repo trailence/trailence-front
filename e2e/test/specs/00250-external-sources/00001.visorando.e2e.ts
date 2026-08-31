@@ -11,8 +11,7 @@ describe('Import data from Visorando', () => {
 
   it('Login, create a collection', async () => {
     App.init();
-    const loginPage = await App.start();
-    await loginPage.loginAndWaitMyTrailsCollection();
+    await App.startLoginIfNeeded();
     const menu = await App.openMenu();
     collectionPage = await menu.addCollection('Visorando');
   });
@@ -207,7 +206,7 @@ describe('Import data from Visorando', () => {
     await (await collectionPage.header.openActionsMenu()).clickItemWithText('Delete');
     await (await App.waitAlert()).clickButtonWithRole('danger');
     await App.waitNoProgress();
-    await App.synchronize(true);
+    await App.synchronize();
   });
 
   it('End', async () => await App.end());

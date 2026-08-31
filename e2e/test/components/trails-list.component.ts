@@ -28,33 +28,37 @@ export class TrailsList extends Component {
     if (!await item.isDisplayed()) {
       await Component.scrollIntoView(item);
     }
-    return new TrailOverview(item.$('app-trail-overview'));
+    const id = await item.$('app-trail-overview').getAttribute('id');
+    return new TrailOverview(browser.$('#' + id));
   }
 
   public async findItemByTrailName(trailName: string) {
-    let overview = new TrailOverview(this.getElement().$('div.trail-name=' + trailName).parentElement().parentElement());
     try {
-      if (await overview.getElement().isExisting()) return overview;
-    } catch (e) {}
+      const id = await this.getElement().$('div.trail-name=' + trailName).parentElement().parentElement().getAttribute('id');
+      return new TrailOverview(browser.$('#' + id));
+    } catch (_) { /* ignore */}
     // not found, we may need to scroll
+    const remainingItems: TrailOverview[] = [];
     for (const item of await this.items.getElements()) {
       try {
         const overview = await this.getItemTrailOverview(item);
         let name = (await overview.getTrailName()).trim();
         if (name === trailName.trim()) return overview;
-        if (name.length === 0) {
-          try {
-            await browser.waitUntil(async () => {
-              await overview.scrollIntoView();
-              name = (await overview.getTrailName()).trim();
-              return name.length > 0;
-            }, { timeout: 5000 });
-          } catch (e) {}
-        }
-        if (name === trailName.trim()) return overview;
-      } catch (e) {
+        if (name.length === 0) remainingItems.push(overview);
+      } catch (_) {
         // ignore
       }
+    }
+    for (const overview of remainingItems) {
+      let name = '';
+      try {
+        await browser.waitUntil(async () => {
+          await overview.scrollIntoView();
+          name = (await overview.getTrailName()).trim();
+          return name.length > 0;
+        }, { timeout: 5000 });
+      } catch (e) {}
+      if (name === trailName.trim()) return overview;
     }
     return undefined;
   }
@@ -70,6 +74,31 @@ export class TrailsList extends Component {
       }
     }
     return names;
+  }
+
+  public async getAllTrails() {
+    const result = new Map<string, TrailOverview>();
+    for (const item of await this.items.getElements()) {
+      const overview = await this.getItemTrailOverview(item);
+      let name = '';
+      try {
+        name = (await overview.getTrailName()).trim();
+        if (name.length === 0) {
+          try {
+            await browser.waitUntil(async () => {
+              await overview.scrollIntoView();
+              name = (await overview.getTrailName()).trim();
+              return name.length > 0;
+            }, { timeout: 5000 });
+          } catch (e) {}
+        }
+      } catch (e) {
+        // ignore
+      }
+      if (name.length === 0) name = '?' + result.size;
+      result.set(name, overview);
+    }
+    return result;
   }
 
   public async waitTrail(trailName: string) {

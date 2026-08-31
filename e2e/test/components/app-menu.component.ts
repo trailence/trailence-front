@@ -40,7 +40,7 @@ export class AppMenu extends Component {
     return await TestUtils.retry(async (trial) => {
       if (trial > 1) {
         // may be collections are collapsed
-        const button = new IonicButton(this.getElement(true).$('div.section-collections div.menu-section-header ion-button[color=secondary]'));
+        const button = new IonicButton(this.getCollectionsSection().$('div.menu-section-header ion-button[color=secondary]'));
         const iconName = await button.getElement().$('>>>ion-icon').getAttribute('name');
         if (iconName === 'chevron-right') await button.click();
       }
@@ -59,6 +59,18 @@ export class AppMenu extends Component {
 
   public getAddCollectionButton() {
     return new IonicButton(this.getCollectionsSection().$('ion-button.new-collection'));
+  }
+
+  public async deleteAllCollectionsAndCreate(name: string) {
+    const cols = await this.getCollections();
+    if (cols.length === 1) return await this.addCollection(name);
+    for (let i = cols.length - 1; i >= 0; --i) {
+      if (cols[i] === 'My trails') continue;
+      await new IonicButton(this.getCollectionsItems()[i].$('ion-button')).click();
+      await new MenuContent(await App.waitPopover()).clickItemWithColor('danger');
+      await (await App.waitAlert()).clickButtonWithRole('danger');
+    }
+    return await this.addCollection(name);
   }
 
   public async addCollection(name: string) {

@@ -11,8 +11,7 @@ describe('Trails list - Sort and filter', () => {
 
   it('Login, create collection, import trails', async () => {
     App.init();
-    const loginPage = await App.start();
-    await loginPage.loginAndWaitMyTrailsCollection();
+    await App.startLoginIfNeeded();
     const menu = await App.openMenu();
     const collectionPage = await menu.addCollection('Test SortFilter');
     expect(await collectionPage.header.getTitle()).toBe('Test SortFilter');
@@ -189,7 +188,6 @@ describe('Trails list - Sort and filter', () => {
   });
 
   it('End', async () => {
-    await App.logout(false);
     await App.end();
   });
 });

@@ -539,7 +539,24 @@ export class TrailsListComponent extends AbstractComponent {
     if (this.collection && !isPublicationCollection(this.collection.type) && (this.collection.type === TrailCollectionType.SHARED || this.collection.owner === this.authService.email)) {
       this.toolbar.push(
         new MenuItem().setIcon('add-circle').setI18nLabel('tools.import')
-          .setAction(() => import('../../services/functions/import').then(m => m.openImportTrailsDialog(this.injector, this.collection!)))
+          .setDisabled(() => !this.collection)
+          .setAction(() => import('../../services/functions/import')
+            .then(m => {
+              if (this.collection)
+                m.openImportTrailsDialog(this.injector, this.collection);
+              else {
+                const retry = (nb: number) => {
+                  setTimeout(() => {
+                    if (this.collection)
+                      m.openImportTrailsDialog(this.injector, this.collection);
+                    else if (nb < 20)
+                      retry(nb + 1);
+                  }, nb * 100);
+                };
+                retry(1);
+              }
+            })
+          )
       );
     }
 

@@ -8,9 +8,7 @@ describe('Trail - Waypoints', () => {
 
   it('Login, import gpx', async () => {
     App.init();
-    const loginPage = await App.start();
-    const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My trails'));
+    const myTrailsPage = await App.startLoginIfNeeded();
     const trailsList = await myTrailsPage.trailsAndMap.openTrailsList();
     await trailsList.importFile('./test/assets/gpx-zip-003.zip');
     await App.waitNoProgress();
@@ -151,10 +149,6 @@ describe('Trail - Waypoints', () => {
       {name: 'Descendre', description: '', hasPhotos: true, isBreakpoint: false, isGuidepost: false, innerGuidpost: undefined},
       {name: '', description: '', hasPhotos: false, isBreakpoint: false, isGuidepost: false, innerGuidpost: undefined},
     ]);
-  });
-
-  it('Synchronize and logout', async () => {
-    await App.synchronize(true);
   });
 
   it('End', async () => await App.end());

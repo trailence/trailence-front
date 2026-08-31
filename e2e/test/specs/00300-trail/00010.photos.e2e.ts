@@ -11,9 +11,7 @@ describe('Trail - Photos', () => {
 
   it('Login and go to trail', async () => {
     App.init();
-    const loginPage = await App.start();
-    const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My trails'));
+    await App.startLoginIfNeeded();
     const menu = await App.openMenu();
     const collectionPage = await menu.openCollection('Test Trail');
     expect(await collectionPage.header.getTitle()).toBe('Test Trail');
@@ -94,16 +92,20 @@ describe('Trail - Photos', () => {
 
   it('Open slider on second photo', async () => {
     const slider = await photosComponent.openSliderByDescription('test.png');
-    expect(await slider.slider.moveNextButton.isEnabled()).toBeFalse();
-    expect(await slider.slider.movePreviousButton.isEnabled()).toBeTrue();
+    await TestUtils.retry(async () => {
+      if ((await slider.slider.moveNextButton.isEnabled()) !== false) throw new Error('Expected next button to be disabled');
+      if ((await slider.slider.movePreviousButton.isEnabled()) !== true) throw new Error('Expected previous button to be enabled');
+    }, 10, 100);
     await slider.slider.movePreviousButton.click();
-    await browser.pause(500);
-    expect(await slider.slider.moveNextButton.isEnabled()).toBeTrue();
-    expect(await slider.slider.movePreviousButton.isEnabled()).toBeFalse();
+    await TestUtils.retry(async () => {
+      if ((await slider.slider.moveNextButton.isEnabled()) !== true) throw new Error('Expected next button to be enabled');
+      if ((await slider.slider.movePreviousButton.isEnabled()) !== false) throw new Error('Expected previous button to be disabled');
+    }, 10, 100);
     await slider.slider.moveNextButton.click();
-    await browser.pause(500);
-    expect(await slider.slider.moveNextButton.isEnabled()).toBeFalse();
-    expect(await slider.slider.movePreviousButton.isEnabled()).toBeTrue();
+    await TestUtils.retry(async () => {
+      if ((await slider.slider.moveNextButton.isEnabled()) !== false) throw new Error('Expected next button to be disabled');
+      if ((await slider.slider.movePreviousButton.isEnabled()) !== true) throw new Error('Expected previous button to be enabled');
+    }, 10, 100);
     await slider.close();
   });
 
@@ -159,7 +161,7 @@ describe('Trail - Photos', () => {
     await newPage.waitDisplayed();
     await newPage.header.getElement().waitForDisplayed();
     expect(await newPage.header.getTitle()).toBe('My trails');
-    await App.synchronize(true);
+    await App.synchronize();
   });
 
   it('End', async () => await App.end());

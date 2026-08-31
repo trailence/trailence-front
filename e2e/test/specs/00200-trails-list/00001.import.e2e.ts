@@ -10,9 +10,7 @@ describe('Trails list', () => {
 
   it('Login', async () => {
     App.init();
-    const loginPage = await App.start();
-    const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My trails'));
+    await App.startLoginIfNeeded();
   });
 
   let collectionPage: TrailsPage;
@@ -212,7 +210,7 @@ describe('Trails list', () => {
   });
 
   it('Synchronize', async () => {
-    await App.synchronize(true);
+    await App.synchronize();
   });
 
   it('End', async () => await App.end());

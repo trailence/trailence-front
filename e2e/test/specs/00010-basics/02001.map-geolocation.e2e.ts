@@ -8,8 +8,7 @@ describe('Locate me on map', () => {
   it('Login', async () => {
     await browser.emulate('geolocation', {latitude: 9.157015, longitude: 124.669407, accuracy: 100, altitude: 140, altitudeAccuracy: 50 });
     App.init();
-    const loginPage = await App.start();
-    myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
+    myTrailsPage = await App.startLoginIfNeeded();
     await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My trails'));
     await browser.execute(() => {
       window.navigator.geolocation.watchPosition = function() {
@@ -36,7 +35,6 @@ describe('Locate me on map', () => {
   });
 
   it('End', async () => {
-    await App.logout(false);
     await App.end();
   });
 

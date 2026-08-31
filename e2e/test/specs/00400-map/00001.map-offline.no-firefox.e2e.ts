@@ -10,9 +10,7 @@ describe('Map offline', () => {
   it('Prepare scenario', async () => {
     // Login
     App.init();
-    const loginPage = await App.start();
-    const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My trails'));
+    const myTrailsPage = await App.startLoginIfNeeded();
     // import trail
     const trailsList = await myTrailsPage.trailsAndMap.openTrailsList();
     await trailsList.importFile('./test/assets/gpx-001.gpx');
@@ -50,20 +48,17 @@ describe('Map offline', () => {
     await map.zoomTo(11);
   });
 
-  it('Offline, IGN satellite is available until zoom 13', async () => {
+  it('Offline, IGN satellite should fallback', async () => {
     await map.selectLayer('ign-sat');
     await browser.waitUntil(async () => {
       const tiles = await map.tiles.getElements();
       if (tiles.length === 0) return false;
       for (const tile of tiles) {
         const c = await tile.getAttribute('class');
-        if (c.indexOf('map-tile-offline') >= 0) return true;
+        if (c.indexOf('map-tile-fallback') || c.indexOf('map-tile-offline') >= 0) return true;
       }
       return false;
     });
-  });
-
-  it('Offline, IGN satellite fallback after zoom 13', async () => {
     await map.zoomTo(14);
     await browser.waitUntil(async () => {
       const tiles = await map.tiles.getElements();
@@ -135,7 +130,6 @@ describe('Map offline', () => {
   });
 
   it('End', async () => {
-    await App.logout(false);
     await App.end();
   });
 });

@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { SpecFile, Test, TestCommand, TestSet } from './model';
-import { compareBy, getCommandLineArgument, getLineStartingWith, getNextLine, getTextAfter } from './utils';
+import { compareBy, getCommandLineArgument, getLineStartingWith, getNextLine, getTextAfter, Line } from './utils';
 
 export async function parseTests(): Promise<TestSet[]> {
   const promises: Promise<TestSet>[] = [];
@@ -114,23 +114,77 @@ function getTestsSpecs(file: string): SpecFile[] {
         if (!nextLine) break;
         nextLine = getNextLine(file, nextLine.end + 1);
         if (!nextLine) break;
-        let i = nextLine.content.indexOf('Error: ');
-        if (i < 0) {
-          pos = nextLine.start;
-          continue;
-        }
-        test.error = [nextLine.content.substring(i)];
-        do {
-          nextLine = getNextLine(file, nextLine.end + 1);
-          if (!nextLine) break;
-          i = nextLine.content.indexOf('    at ');
-          if (i < 0) break;
-          test.error.push(nextLine.content.substring(i));
-        } while (true);
-        if (!nextLine) break;
-        pos = nextLine.start + 1;
+        pos = extractError(file, test, nextLine);
+        if (pos < 0) break;
       }
     }
   }
   return result.sort((f1, f2) => compareBy(f1, f2, [f => f.dir, f => f.file, f => f.suiteName]));
+}
+
+function extractError(file: string, test: Test, nextLine: Line): number {
+  let i = nextLine.content.indexOf('Error: ');
+  if (i >= 0) {
+    test.error = [nextLine.content.substring(i)];
+    return extractErrorStackTrace(file, test, nextLine);
+  }
+  i = nextLine.content.indexOf('Expected ');
+  if (i >= 0) {
+    test.error = [nextLine.content.substring(i)];
+    return extractErrorExpectation(file, test, nextLine);
+  }
+  return nextLine.start;
+}
+
+function extractErrorStackTrace(file: string, test: Test, line: Line): number {
+  let nextLine: Line | undefined = line;
+  do {
+    nextLine = getNextLine(file, nextLine.end + 1);
+    if (!nextLine) break;
+    let i = nextLine.content.indexOf('    at ');
+    if (i < 0) break;
+    test.error!.push(nextLine.content.substring(i));
+  } while (true);
+  if (!nextLine) return -1;
+  return nextLine.start + 1;
+}
+
+function extractErrorExpectation(file: string, test: Test, line: Line): number {
+  let nextLine: Line | undefined = line;
+  for (let lines = 1; lines <= 20; lines++) {
+    nextLine = getNextLine(file, nextLine.end + 1);
+    if (!nextLine) break;
+    let i = nextLine.content.indexOf('    at ');
+    if (i > 0) {
+      test.error!.push(nextLine.content.substring(i));
+      return extractErrorStackTrace(file, test, line);
+    }
+    test.error!.push(nextLine.content);
+  }
+  if (!nextLine) return -1;
+  return nextLine.start + 1;
+}
+
+export async function getSetArtifactUrls(): Promise<Map<string, string>> {
+  const server = process.env['GITHUB_SERVER_URL'];
+  const repo = process.env['GITHUB_REPOSITORY']
+  const runId = process.env['GITHUB_RUN_ID'];
+  const baseUrl = server + '/' + repo + '/actions/runs/' + runId + '/artifacts/';
+  const jsonFile = await fs.promises.readFile('../../output/artifacts.json', 'utf-8');
+  const lines = jsonFile.split('\n');
+  const result = new Map<string, string>();
+  for (const line of lines) {
+    let s = line.trim();
+    if (!s.startsWith('{')) continue;
+    const json = JSON.parse(s);
+    const name = json['name'];
+    if (typeof name !== 'string') continue;
+    if (!name.startsWith('wdio_output_')) continue;
+    const i = name.lastIndexOf('_');
+    const set = name.substring(i + 1);
+    const id = json['id'];
+    if (!id) continue;
+    result.set(set, baseUrl + id);
+  }
+  return result;
 }

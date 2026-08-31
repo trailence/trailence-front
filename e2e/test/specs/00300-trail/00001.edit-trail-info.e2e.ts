@@ -8,9 +8,7 @@ describe('Trail - Edit infos', () => {
 
   it('Login, create collection, and import gpx', async () => {
     App.init();
-    const loginPage = await App.start();
-    const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My trails'));
+    await App.startLoginIfNeeded();
     const menu = await App.openMenu();
     const collectionPage = await menu.addCollection('Test Trail');
     expect(await collectionPage.header.getTitle()).toBe('Test Trail');
@@ -77,8 +75,8 @@ describe('Trail - Edit infos', () => {
     expect(tags.indexOf('Beautiful') >= 0).toBeTrue();
   });
 
-  it('Synchronize and logout', async () => {
-    await App.synchronize(true);
+  it('Synchronize', async () => {
+    await App.synchronize();
   });
 
   it('End', async () => await App.end());

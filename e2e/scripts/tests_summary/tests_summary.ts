@@ -1,9 +1,10 @@
 import * as core from '@actions/core';
-import { parseTests } from './parsing';
+import { getSetArtifactUrls, parseTests } from './parsing';
 import { toSuccess, toTime } from './utils';
 
 async function generateSummary() {
   const sets = await parseTests();
+  const artifacts = await getSetArtifactUrls();
   let s = core.summary;
   s = s.addTable([
     [
@@ -11,12 +12,14 @@ async function generateSummary() {
       { data: '🎯', header: true },
       { data: 'Time', header: true },
       { data: 'Rank', header: true },
+      { data: 'Logs', header: true },
     ],
     ...sets.map(set => [
       { data: set.name },
       { data: toSuccess(set.success) },
       { data: toTime(set.time) },
-      { data: '' + (sets.map(s => s.time).sort((t1,t2) => t1 - t2).indexOf(set.time) + 1) }
+      { data: '' + (sets.map(s => s.time).sort((t1,t2) => t1 - t2).indexOf(set.time) + 1) },
+      { data: '<a target="_blank" href="' + artifacts.get(set.name) + '">' + set.name + '.zip</a>' }
     ])
   ]);
 
@@ -30,40 +33,30 @@ async function generateSummary() {
               s = s.addTable([
                 [
                   { data: 'Set', header: true },
+                  { data: 'Mode', header: true },
                   { data: 'File', header: true },
                   { data: 'Test', header: true },
                 ],
+                [
+                  { data: set.name },
+                  { data: cmd.browser + ' ' + cmd.browserSize },
+                  { data: file.file },
+                  { data: test.name },
+                ],
                 ...(test.error ? [
                   [
-                    { data: '<pre>' + test.error.join('\n') + '</pre>', colspan: '3' }
-                  ]
+                    { data: '<pre>' + test.error.join('\n') + '</pre>', colspan: '4' }
+                  ],
                 ] : []),
+                [
+                  { data: '<a target="_blank" href="' + artifacts.get(set.name) + '">' + set.name + '.zip</a>', colspan: '4' }
+                ]
               ]);
             }
           }
         }
       }
     }
-
-    s = s.addTable([
-      ...sets.filter(s => !s.success).flatMap(set =>
-        set.commands.filter(c => !c.success).flatMap(cmd =>
-          cmd.dirs.filter(d => !d.success).flatMap(dir =>
-            dir.files.filter(f => !f.success).flatMap(file =>
-              file.tests.filter(t => !t.success).flatMap(test =>
-                [
-                  [
-                    { data: set.name },
-                    { data: file.file },
-                    { data: test.name },
-                  ],
-                ]
-              )
-            )
-          )
-        )
-      ),
-    ]);
   }
 
   s = s.addRaw('<details><summary>Sets Details</summary>');
@@ -133,7 +126,8 @@ async function generateSummary() {
               { data: cmd.browser + ' ' + cmd.browserSize, rowspan: '' + (1 + file.tests.length) },
               { data: dir.name, rowspan: '' + (1 + file.tests.length) },
               { data: file.file, rowspan: '' + (1 + file.tests.length) },
-              { data: file.suiteName, rowspan: '' + (1 + file.tests.length), colspan: '2' },
+              { data: file.suiteName, rowspan: '' + (1 + file.tests.length) },
+              { data: '' },
               { data: toSuccess(file.success) },
               { data: toTime(file.time) },
             ],
@@ -159,4 +153,4 @@ generateSummary()
 .catch(e => {
   console.error(e);
   process.exit(1);
-})
+});

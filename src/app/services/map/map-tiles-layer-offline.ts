@@ -8,7 +8,6 @@ import { I18nService } from '../i18n/i18n.service';
 import { Console } from 'src/app/utils/console';
 
 export function handleMapOffline(name: string, displayName: string, tiles: L.TileLayer, getTileUrl: (layer: L.TileLayer, coords: L.Coords, crs?: L.CRS) => string, network: NetworkService, offlineMap: OfflineMapService, i18n: I18nService): L.TileLayer {
-  const originalCreateTile = (tiles as any)['createTile'];
   (tiles as any)['createTile'] = function(coords: L.Coords, done: L.DoneCallback) {
     const loadOffline = (img: any, trial: number, originalSrc: string) => {
       if (img.src) img.src = '';
@@ -67,22 +66,8 @@ export function handleMapOffline(name: string, displayName: string, tiles: L.Til
         },
       });
     };
-    /*
-    const img = originalCreateTile.call(tiles, coords, function(error: Error | undefined, tile: HTMLElement | undefined) {
-      if (!error) {
-        tile?.classList.remove('map-tile-loading');
-        done(undefined, tile);
-        return;
-      }
-      if (!img?._offlineLoaded) {
-        loadOffline(img ?? tile, 1);
-      }
-    });*/
     const img = document.createElement('IMG') as HTMLImageElement;
     img.classList.add('map-tile-loading');
-    //img.crossOrigin = 'anonymous';
-    //const url = img.src;
-    //img.src = '';
     const url = getTileUrl(tiles, coords, this._map ? this._map.options.crs : undefined);
     fetch(url)
     .then(r => {
@@ -96,6 +81,7 @@ export function handleMapOffline(name: string, displayName: string, tiles: L.Til
         });
       }
       if (r.status === 404) {
+        Console.warn('Tile not found', url);
         const svg = '<svg width="800px" height="800px" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">'
           + '<text x="960" y="650" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="100px">'
           + i18n.texts.mapNotAvailable
@@ -114,8 +100,8 @@ export function handleMapOffline(name: string, displayName: string, tiles: L.Til
       }
       return undefined;
     })
-    .catch(e => {
-      Console.error('Cannot fetch tile', url, e);
+    .catch(_ => {
+      Console.error('Cannot fetch tile', url);
       img.onload = () => {
         img.classList.remove('map-tile-loading');
         done(undefined, img);

@@ -10,8 +10,7 @@ describe('Admin Users', () => {
 
   it('Login, go to admin', async () => {
     App.init();
-    const loginPage = await App.start();
-    await loginPage.loginAndWaitMyTrailsCollection();
+    await App.startLoginIfNeeded();
     const menu = await App.openMenu();
     expect(await menu.hasAdmin()).toBeTrue();
     const adminPage = await menu.openAdmin();

@@ -8,11 +8,11 @@
 </div>
 @if (!collapsed) {
   <div class="page-section-sub-title">{{ i18n.texts.translations.trail_moderation.original_language }}</div>
-  @if (detecting || translating > 0) {
+  @if (translating > 0 || !sourceLanguages) {
     <ion-spinner name="dots"></ion-spinner>
   } @else if (sourceLanguages) {
     <div class="source-lang">
-      <select [ngModel]="srcLang" (ngModelChange)="setSrcLang($event)" [disabled]="detecting">
+      <select [ngModel]="srcLang" (ngModelChange)="setSrcLang($event)">
         <option value=""></option>
         @for (sl of sourceLanguages; track sl.code) {
           <option [value]="sl.code">{{sl.name}}</option>

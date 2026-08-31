@@ -8,8 +8,7 @@ describe('Trail page', () => {
 
   it('Login and go to trail page', async () => {
     App.init();
-    const loginPage = await App.start();
-    await loginPage.loginAndWaitMyTrailsCollection();
+    await App.startLoginIfNeeded();
     const menu = await App.openMenu();
     const collectionPage = await menu.openCollection('Test Trail');
     const trailsList = await collectionPage.trailsAndMap.openTrailsList();
@@ -84,7 +83,6 @@ describe('Trail page', () => {
   });
 
   it('End', async () => {
-    await App.logout(false);
     await App.end();
   });
 });

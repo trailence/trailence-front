@@ -11,9 +11,7 @@ describe('Replay trail', () => {
 
   it('Login, import trail and open it', async () => {
     App.init();
-    const loginPage = await App.start();
-    const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My trails'));
+    await App.startLoginIfNeeded();
     const menu = await App.openMenu();
     const page = await menu.addCollection('Replay');
     expect(await page.header.getTitle()).toBe('Replay');
@@ -188,14 +186,13 @@ describe('Replay trail', () => {
     await browser.waitUntil(() => Page.getActivePageElement().then(p => new HeaderComponent(p).getTitle()).then(title => title === 'My trails'));
   });
 
-  it('Remove Replay collection and synchronize', async () => {
+  it('Remove Replay collection', async () => {
     const page = await (await App.openMenu()).openCollection('Replay');
     await (await page.header.openActionsMenu()).clickItemWithText('Delete');
     const alert = await App.waitAlert();
     await alert.clickButtonWithRole('danger');
     await App.waitNoProgress();
     await browser.waitUntil(() => Page.getActivePageElement().then(p => new HeaderComponent(p).getTitle()).then(title => title === 'My trails'));
-    await App.synchronize(true);
   });
 
   it('End', async () => await App.end());

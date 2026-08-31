@@ -40,8 +40,7 @@ describe('Preferences', () => {
 
   it('Login, import a GPX', async () => {
     App.init();
-    const loginPage = await App.start();
-    const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
+    const myTrailsPage = await App.startLoginIfNeeded();
     const trailsList = await myTrailsPage.trailsAndMap.openTrailsList();
     await trailsList.importFile('./test/assets/gpx-001.gpx');
     await checkTrail(trailsList, expectedDateEn, 'Duration', '3h12 (≈ 2h30)', 'Distance', '8.59 km', 'Ascent', '+ 307 m', 'Descent', '- 282 m');
@@ -132,7 +131,6 @@ describe('Preferences', () => {
   });
 
   it('End', async () => {
-    await App.logout(false);
     await App.end();
   });
 

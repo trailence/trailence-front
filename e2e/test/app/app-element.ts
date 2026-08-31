@@ -24,8 +24,8 @@ export abstract class AppElement {
     return !(await this.isDisplayed());
   }
 
-  public async waitNotDisplayed() {
-    return browser.waitUntil(() => this.notDisplayed());
+  public async waitNotDisplayed(timeout?: number) {
+    return browser.waitUntil(() => this.notDisplayed(), {timeout});
   }
 
 }

@@ -1,6 +1,5 @@
 import { IonicButton } from '../../components/ionic/ion-button';
 import { IonicInput } from '../../components/ionic/ion-input';
-import { TestUtils } from '../../utils/test-utils';
 import { App } from '../app';
 import { Page } from './page';
 import { TrailsPage } from './trails-page';

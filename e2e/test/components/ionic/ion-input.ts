@@ -10,10 +10,10 @@ export class IonicInput extends Component {
     super(parent, selector);
   }
 
-  public async setValue(value: string) {
-    await this.waitDisplayed();
+  public async setValue(value: string, waitForDisplayed = true, waitForEnabled = true) {
+    if (waitForDisplayed) await this.waitDisplayed();
     const input = this.getElement().$('input');
-    await input.waitForEnabled();
+    if (waitForEnabled) await input.waitForEnabled();
     await input.setValue(value);
     await browser.execute((e, v) => {
       (e as any).ionChange.emit({value: v});

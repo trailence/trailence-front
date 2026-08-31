@@ -2,6 +2,8 @@ import { expect } from '@wdio/globals'
 import { App } from '../../app/app';
 import { LoginPage } from '../../app/pages/login-page';
 import { TrailsPage } from '../../app/pages/trails-page';
+import { HeaderComponent } from '../../components/header.component';
+import { Page } from '../../app/pages/page';
 
 describe('Login and Logout', () => {
 
@@ -49,8 +51,37 @@ describe('Login and Logout', () => {
     await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My trails'));
   });
 
-  it('End', async () => {
+  it('Logout', async () => await App.logout(false));
+
+  it('Login with redirect on preferences', async () => {
+    const loginPage = await App.start('/preferences');
+    await loginPage.login();
+    expect(await new HeaderComponent(await Page.getActivePageElement()).getTitle()).toBe('Preferences');
     await App.logout(false);
+  });
+
+  it('Login with redirect to an unknown collection, end up to My trails', async () => {
+    const loginPage = await App.start('/trails/collection/00000000-0000-0000-0000-000000000000');
+    await loginPage.login();
+    await browser.waitUntil(() => browser.getTitle().then(title => title === 'My trails - Trailence'));
+    await App.logout(false);
+  });
+
+  it('Login with redirect to an unknown share, end up to My trails', async () => {
+    const loginPage = await App.start('/trails/share/00000000-0000-0000-0000-000000000000/me@trailence.org');
+    await loginPage.login();
+    await browser.waitUntil(() => browser.getTitle().then(title => title === 'My trails - Trailence'));
+    await App.logout(false);
+  });
+
+  it('Login with redirect to an unknown trail, end up to My trails', async () => {
+    const loginPage = await App.start('/trail/me@trailence.org/00000000-0000-0000-0000-000000000000');
+    await loginPage.login();
+    await browser.waitUntil(() => browser.getTitle().then(title => title === 'My trails - Trailence'));
+    await App.logout(false);
+  });
+
+  it('End', async () => {
     await App.end();
   });
 

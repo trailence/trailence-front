@@ -47,12 +47,6 @@ jobs:
           npm run generate-public-pages
           rm www/browser/media/*
           rmdir www/browser/media
-      - name: Store web app
-        uses: actions/upload-artifact@v7
-        with:
-          name: web-app
-          path: www/browser
-          retention-days: 30
   build-android:
     name: Build - Android App
     runs-on: ubuntu-latest
@@ -124,12 +118,6 @@ jobs:
           cd android
           chmod 550 ./gradlew
           ./gradlew assembleRelease
-      - name: Store APK AppGallery
-        uses: actions/upload-artifact@v7
-        with:
-          name: apk-appgallery-release
-          path: android/app/build/outputs/apk/release
-          retention-days: 30
       - name: Build Android PlayStore
         run: |
           chmod 550 ./scripts/build/build-android.sh
@@ -137,12 +125,6 @@ jobs:
           cd android
           chmod 550 ./gradlew
           ./gradlew :app:bundleRelease
-      - name: Store PlayStore AAB
-        uses: actions/upload-artifact@v7
-        with:
-          name: aab-playstore-release
-          path: android/app/build/outputs/bundle/release
-          retention-days: 30
       - name: Build Android FDroid
         run: |
           chmod 550 ./scripts/build/build-android.sh
@@ -150,12 +132,6 @@ jobs:
           cd android
           chmod 550 ./gradlew
           ./gradlew assembleRelease
-      - name: Store APK FDroid
-        uses: actions/upload-artifact@v7
-        with:
-          name: apk-fdroid-release
-          path: android/app/build/outputs/apk/release
-          retention-days: 30
   unit-tests-web-app:
     name: Unit Tests - Web App
     runs-on: ubuntu-latest
@@ -251,13 +227,10 @@ jobs:
           ./run.sh "--testsset=github/tests-sets.txt:${{matrix.testsset}}"
       - name: Build coverage report
         run: |
-          ls -l .nyc_output
           cd e2e
           npm run coverage-report
-          ls -l ../coverage/e2e
           sed -i -e 's!www/browser/!!' ../coverage/e2e/lcov.info
           mv ../coverage/e2e/lcov.info ../coverage/e2e/${{ matrix.testsset }}.info
-          ls -l ../coverage/e2e
       - name: Upload output
         if: always()
         uses: actions/upload-artifact@v7
@@ -287,9 +260,18 @@ jobs:
           path: e2e/output
           pattern: wdio_output_*
           merge-multiple: false
+      - name: List artifact IDs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts \
+            --jq '.artifacts[]
+              | select(.name | startswith("wdio_output_"))
+              | {id, name, url: .archive_download_url}' > e2e/output/artifacts.json
       - name: Build Summary
         run: |
           ls e2e/output/wdio_output_*
+          cat e2e/output/artifacts.json
           cd e2e/scripts/tests_summary
           npm ci --ignore-scripts
           npm run tests-summary

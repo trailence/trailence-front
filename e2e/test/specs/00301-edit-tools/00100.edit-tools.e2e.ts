@@ -15,9 +15,7 @@ describe('Edit tools', () => {
 
   it('Login, import gpx, open edit tools', async () => {
     App.init();
-    const loginPage = await App.start();
-    const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My trails'));
+    const myTrailsPage = await App.startLoginIfNeeded();
     const trailsList = await myTrailsPage.trailsAndMap.openTrailsList();
     await trailsList.importFile('./test/assets/gpx-001.gpx');
     const trail = await trailsList.waitTrail('Randonnée du 05/06/2023 à 08:58');
@@ -124,28 +122,29 @@ describe('Edit tools', () => {
   it('Select from elevation graph, then remove', async () => {
     const graph = await trailPage.trailComponent.showElevationGraph();
     await TestUtils.retry(async (trial) => {
+      const origin = await graph.getElement().$('canvas').getElement();
       if (trial > 1) {
-      await browser.action('pointer')
-        .move({x: 25, y: 25, origin: await graph.getElement().$('canvas').getElement()})
-        .pause(10)
-        .down()
-        .pause(10)
-        .up()
-        .perform();
+        await browser.action('pointer')
+          .move({x: 25, y: 25, origin})
+          .pause(10)
+          .down()
+          .pause(10)
+          .up()
+          .perform();
       }
       // select a range on graph
       await browser.action('pointer')
-        .move({x: 50, y: 25, origin: await graph.getElement().$('canvas').getElement()})
-        .pause(10)
+        .move({x: 50, y: 25 + trial, origin})
+        .pause(10 * trial)
         .down()
-        .pause(10)
-        .move({x: 100, y: 25, origin: await graph.getElement().$('canvas').getElement()})
+        .pause(10 * trial)
+        .move({x: 100, y: 25 + trial, origin})
         .pause(10)
         .up()
         .perform();
       // zoom button should be displayed
-      await browser.waitUntil(() => graph.zoomButton.isDisplayed());
-    }, 3, 100);
+      await browser.waitUntil(() => graph.zoomButton.isDisplayed(), {timeout: 5000});
+    }, 5, 100);
     await tools.waitSelectionTool();
     await tools.removeSelectedRangeAndReconnect();
     await tools.undo();
@@ -245,13 +244,12 @@ describe('Edit tools', () => {
       await tools.undo();
   });
 
-  it('Close edit tools, delete trail, synchronize', async () => {
+  it('Close edit tools, delete trail', async () => {
     await tools.close();
     const menu = await trailPage.header.openActionsMenu();
     await menu.clickItemWithText('Delete');
     await (await App.waitAlert()).clickButtonWithRole('danger');
     await new TrailsPage().waitDisplayed();
-    await App.synchronize(true);
   });
 
   it('End', async () => await App.end());

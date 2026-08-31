@@ -7,8 +7,8 @@ function chromeCaps(downloadPath: string, userDataPath: string, isCi: boolean) {
       args: [
         '--lang=en_US',
         '--disable-ipc-flooding-protection',
-        '--disk-cache-size=1',
-        '--aggressive-cache-discard',
+        //'--disk-cache-size=1',
+        //'--aggressive-cache-discard',
         '--user-data-dir=' + userDataPath,
         '--hide-crash-restore-bubble',
         '--disable-updater-scheduler',
@@ -16,6 +16,7 @@ function chromeCaps(downloadPath: string, userDataPath: string, isCi: boolean) {
         '--enable-automation',
         '--disable-extensions',
         '--disable-crash-reporter',
+        '--disable-actor-safety-checks',
         ...(isCi ? [
           '--no-sandbox',
           '--disable-infobars',

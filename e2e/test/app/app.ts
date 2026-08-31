@@ -13,7 +13,10 @@ export class App {
 
   public static config: AppConfig;
 
+  private static _init = false;
   public static init() {
+    if (App._init) return;
+    App._init = true;
     const trailence = (browser.options as any)['trailence'];
     const instance = trailence.instance ?? '1';
     App.config = {
@@ -112,29 +115,23 @@ export class App {
       const fct = (window as any).__workerCoverage;
       if (fct) fct(); else (window as any).__workerCoverageResult = [];
     });
-    // main thread covergae
-    await browser.execute(() => { (window as any).__coverage__str = JSON.stringify((window as any).__coverage__) ?? ''; });
-    /*
-    await this.retrieveAndWriteCoverage(
-      'main_thread',
-      // getSize
-      () => browser.execute(() => (window as any).__coverage__str.length),
-      // getChunk
-      (pos, step) => browser.execute((pos, step) => (window as any).__coverage__str.substring(pos, pos + step), pos, step),
-    );*/
-    await this.retrieveAndWriteCoverage('main_thread', '__coverage__str');
-    console.log('Wait for workers coverage to be ready');
-    await browser.waitUntil(() => browser.execute(() => (window as any).__workerCoverageResult !== undefined));
-    const nbWorkers = await browser.execute(() => (window as any).__workerCoverageResult.length);
-    console.log('Coverage of ' + nbWorkers + ' workers ready');
-    for (let i = 1; i <= nbWorkers; ++i)
-      await this.retrieveAndWriteCoverage('worker_' + i, '__workerCoverageResult', i - 1);
-      /*
-      await this.retrieveAndWriteCoverage(
-        'worker_' + i,
-        () => browser.execute((index) => (window as any).__workerCoverageResult[index].length, i - 1),
-        (pos, step) => browser.execute((pos, step, index) => (window as any).__workerCoverageResult[index].substring(pos, pos + step), pos, step, i - 1),
-      );*/
+    // main thread coverage
+    const main =
+      browser.execute(() => { (window as any).__coverage__str = JSON.stringify((window as any).__coverage__) ?? ''; })
+      .then(() => this.retrieveAndWriteCoverage('main_thread', '__coverage__str'));
+    // workers coverage
+    const workers = TestUtils.retry(async () => {
+      const nb: number = await browser.execute(() => (window as any).__workerCoverageResult !== undefined ? (window as any).__workerCoverageResult.length : -1);
+      if (nb !== -1) return nb;
+      throw new Error('Still waiting for coverage');
+    }, 100, 1)
+    .then(nbWorkers => {
+      const promises = [];
+      for (let i = 1; i <= nbWorkers; ++i)
+        promises.push(this.retrieveAndWriteCoverage('worker_' + i, '__workerCoverageResult', i - 1));
+      return Promise.all(promises);
+    });
+    await Promise.all([main, workers]);
   }
 
   private static async retrieveAndWriteCoverage(
@@ -166,38 +163,13 @@ export class App {
     fs.renameSync(App.config.downloadPath + '/' + description + '.txt', '../.nyc_output/' + name)
     console.log('Coverage file written: ' + name);
   }
-  /*
-  private static async retrieveAndWriteCoverage(
-    description: string,
-    getSize: () => Promise<number>,
-    getChunk: (pos: number, step: number) => Promise<string>,
-  ) {
-    const start = Date.now();
-    const step = 15000000;
-    const size = await getSize();
-    let coverage = '';
-    let pos = 0;
-    do {
-      const part = await getChunk(pos, step);
-      coverage += part;
-      pos += part.length;
-    } while (pos < size);
-    console.log('Coverage for ' + description + ' retrieved in ' + (Date.now() - start) + ' ms. with size = ' + coverage.length);
-    const fs = await import('fs');
-    const name = 'cov_' + App.config.instance + '_' + description + '_' + Date.now() + '.json';
-    console.log('Writing coverage to ' + name);
-    try {
-      fs.writeFileSync(
-        '../.nyc_output/' + name,
-        coverage
-      );
-      console.log('Coverage file written: ' + name);
-    } catch (e) {
-      console.error('Error writing coverage file', e);
-    }
-  }*/
 
+  private static _started = false;
   private static async startMode() {
+    if (App._started) return;
+    App._started = true;
+    while ((await browser.getWindowHandles()).length > 1)
+      await browser.closeWindow();
     switch (App.config.mode) {
       case 'mobile':
         await browser.setWindowSize(800, 800);
@@ -228,6 +200,33 @@ export class App {
     return loginPage;
   }
 
+  public static async startLoginIfNeeded(): Promise<TrailsPage> {
+    await App.startMode();
+    await browser.url(browser.options.baseUrl! + '/en/login');
+    await (await Page.getActivePageElement()).waitForExist();
+    await this.initBrowser();
+    return await TestUtils.retry(async () => {
+      const url = await browser.getUrl();
+      if (url.includes('/login')) {
+        const loginPage = new LoginPage();
+        try {
+          if (await loginPage.getElement(true).$('>>>ion-spinner').isExisting()) {
+            await loginPage.waitNotDisplayed(15000);
+          } else {
+            await loginPage.loginInput.setValue(App.config.username, false, false);
+            await loginPage.passwordInput.setValue(App.config.password, false, false);
+            await loginPage.loginButton.click({timeout: 1000});
+          }
+        } catch (_) {}
+      } else if (url.includes('/trails/')) {
+        const myTrails = new TrailsPage();
+        await myTrails.waitDisplayed();
+        if ((await myTrails.header.getTitle()) === 'My trails') return myTrails;
+      }
+      throw new Error('Cannot login or page is not My trails');
+    }, 5, 1);
+  }
+
   public static async startHome() {
     await App.startMode();
     await browser.url(browser.options.baseUrl!);
@@ -237,7 +236,10 @@ export class App {
     return homePage;
   }
 
+  private static _initBrowser = false;
   private static async initBrowser() {
+    if (App._initBrowser) return;
+    App._initBrowser = true;
     await browser.execute(() => {
       const d = document.createElement('DIV');
       d.style.pointerEvents = 'none';

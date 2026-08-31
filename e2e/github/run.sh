@@ -12,8 +12,8 @@ export MOZ_REMOTE_SETTINGS_DEVTOOLS=1
 code=$?
 
 back_container=$(docker ps -q --filter name=back)
-docker logs $back_container > ./output/back.log
-docker logs $front_container > ./output/nginx.log
+docker logs $back_container 2>&1 > ./output/back.log
+docker logs $front_container 2>&1 > ./output/nginx.log
 
 cd github
 docker compose down

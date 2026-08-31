@@ -11,9 +11,7 @@ describe('Trail Planner', () => {
 
   it('Login, import gpx and go to trail planner page', async () => {
     App.init();
-    const loginPage = await App.start();
-    const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My trails'));
+    await App.startLoginIfNeeded();
     let menu = await App.openMenu();
     const collectionPage = await menu.addCollection('Wish list');
     expect(await collectionPage.header.getTitle()).toBe('Wish list');
@@ -95,7 +93,6 @@ describe('Trail Planner', () => {
     await (await trailsPage.header.openActionsMenu()).clickItemWithText('Delete');
     await (await App.waitAlert()).clickButtonWithRole('danger');
     await App.waitNoProgress();
-    await App.synchronize(true);
   });
 
   it('End', async () => await App.end());

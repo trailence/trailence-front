@@ -8,8 +8,7 @@ describe('Collection map', () => {
 
   it('Login and go to Test import collection', async () => {
     App.init();
-    const loginPage = await App.start();
-    await loginPage.loginAndWaitMyTrailsCollection();
+    await App.startLoginIfNeeded();
     const menu = await App.openMenu();
     collectionPage = await menu.openCollection('Test Import');
     expect(await collectionPage.header.getTitle()).toBe('Test Import');
@@ -65,7 +64,6 @@ describe('Collection map', () => {
   });
 
   it('End', async () => {
-    await App.logout(false);
     await App.end();
   });
 

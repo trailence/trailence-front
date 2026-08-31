@@ -6,8 +6,7 @@ describe('Publication - User Publish', () => {
 
   it('Login, create collection, import gpx, start publication', async () => {
     App.init();
-    const loginPage = await App.start();
-    await loginPage.loginAndWaitMyTrailsCollection();
+    await App.startLoginIfNeeded();
     const menu = await App.openMenu();
     const collectionPage = await menu.addCollection('Test Publication');
     expect(await collectionPage.header.getTitle()).toBe('Test Publication');

@@ -105,19 +105,42 @@ export class TrailOverview extends Component {
     return await iconElement.nextElement().$('div.metadata-primary').getText();
   }
 
-  public async getTrackMetadata(scroll: boolean = true) {
+  public async getTrackMetadata(scroll: boolean = true): Promise<Map<string, string>> {
     if (scroll) await this.scrollIntoView();
-    const titles = await this.getElement().$$('div.metadata-item-container div.metadata-item div.metadata-content div.metadata-title').getElements();
     const meta = new Map<string, string>();
-    for (const titleElement of titles) {
-      const titleHtml = await titleElement.getHTML();
-      const i = titleHtml.indexOf('>');
-      const j = titleHtml.indexOf('<', i + 1);
-      const titleText = titleHtml.substring(i + 1, j).trim();
-      const value = await titleElement.nextElement().$('div.metadata-primary').getText();
-      meta.set(titleText, value);
+    const html = await this.getElement().$('div.metadata').getHTML();
+    let pos = 0;
+    while ((pos = html.indexOf('class="metadata-title">', pos)) > 0) {
+      let end = html.indexOf('</div>', pos);
+      if (end < 0) break;
+      const title = html.substring(pos + 23, end).trim();
+      let start = html.indexOf('class="metadata-primary">', end);
+      if (start < 0) {
+        meta.set(title, '');
+        pos = end;
+      } else {
+        end = html.indexOf('</div>', start);
+        if (end < 0) {
+          meta.set(title, '');
+          pos = start;
+        } else {
+          const value = html.substring(start + 25, end).trim();
+          meta.set(title, value);
+          pos = end;
+        }
+      }
     }
-    return meta;
+    return await browser.execute(meta => {
+      const result = new Map<string, string>();
+      const fake = document.createElement('DIV');
+      for (const entry of meta.entries()) {
+        fake.innerHTML = entry[1];
+        document.body.appendChild(fake);
+        result.set(entry[0], fake.innerText.trim());
+        fake.remove();
+      }
+      return result;
+    }, meta);
   }
 
 }

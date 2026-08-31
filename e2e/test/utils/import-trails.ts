@@ -1,6 +1,7 @@
 import { App } from '../app/app';
 import { TrailsPage } from '../app/pages/trails-page';
 import { ImportTagsPopup } from '../components/import-tags-popup.component';
+import { TrailOverview } from '../components/trail-overview.component';
 import { TrailsList } from '../components/trails-list.component';
 import { TestUtils } from './test-utils';
 
@@ -79,15 +80,24 @@ export const expectedTrailsByFile: {[key: string]: () => ExpectedTrail[]} = {
   }]
 };
 
-export async function importTrail(collectionPage: TrailsPage, filename: string, expected?: string[], tagsPopup?: (popup: ImportTagsPopup) => Promise<any>) {
+export async function importTrailAndExpect(collectionPage: TrailsPage, filename: string, expected: string[], tagsPopup?: (popup: ImportTagsPopup) => Promise<any>) {
   const trailsList = await collectionPage.trailsAndMap.openTrailsList();
   await importTrailInternal(trailsList, filename, tagsPopup);
-  if (expected) {
+  let result: Map<string, TrailOverview>;
+  await browser.waitUntil(async () => {
+    const trails = await trailsList.getAllTrails();
     for (const trailName of expected) {
-      const trail = await trailsList.waitTrail(trailName);
-      expect(trail).toBeDefined();
+      if (!trails.has(trailName)) throw new Error('Trail not found: ' + trailName + ' among ' + Array.from(trails.keys()));
     }
-  }
+    result = trails;
+    return true;
+  });
+  return result!;
+}
+
+export async function importTrail(collectionPage: TrailsPage, filename: string, tagsPopup?: (popup: ImportTagsPopup) => Promise<any>) {
+  const trailsList = await collectionPage.trailsAndMap.openTrailsList();
+  await importTrailInternal(trailsList, filename, tagsPopup);
 }
 
 async function importTrailInternal(trailsList: TrailsList, filename: string, tagsPopup?: (popup: ImportTagsPopup) => Promise<any>) {
@@ -123,13 +133,14 @@ export async function expectListContains(list: TrailsList, expectedTrails: Expec
   let nbFound = 0;
   try { await browser.waitUntil(() => list.items.length.then(nb => { nbFound = nb; return nb === expectedTrails.length; })); } catch (e) {}
   expect(nbFound).toBe(expectedTrails.length);
+  const inList = await list.getAllTrails();
   for (const expected of expectedTrails) {
-    const trail = await list.findItemByTrailName(expected.name);
-    expect(trail).withContext('Expected trail ' + expected.name).toBeDefined();
+    const trail = inList.get(expected.name);
+    if (!trail) throw new Error('Cannot find trail ' + expected.name + ' in list ' + Array.from(inList.keys()));
     const tags = await TestUtils.retry(async (trial) => {
-      if (trial > 1) await trail!.scrollIntoView();
-      let list = await trail!.getTags();
-      if (list.length !== expected.tags.length) return Promise.reject(new Error('Expected tags ' + expected.tags + ' found ' + list + ' on trail ' + expected.name));
+      if (trial > 1) await trail.scrollIntoView();
+      let list = await trail.getTags();
+      if (list.length !== expected.tags.length) throw new Error('Expected tags ' + expected.tags + ' found ' + list + ' on trail ' + expected.name);
       return list;
     }, 3, 1000);
     expect(tags.length).withContext('Trails tags ' + expected.name).toBe(expected.tags.length);
@@ -139,13 +150,14 @@ export async function expectListContains(list: TrailsList, expectedTrails: Expec
     if (expected.photos > 0) {
       let hasSlider = false;
       await TestUtils.retry(async (trial) => {
-        if (trial > 1) await trail!.scrollIntoView();
-        const slider = trail!.getPhotosSliderElement();
+        if (trial > 1) await trail.scrollIntoView();
+        const slider = trail.getPhotosSliderElement();
         hasSlider = await slider.isExisting() && await slider.isDisplayed();
-        if (!hasSlider) throw Error('Trails expected photos: ' + expected.name);
+        if (!hasSlider) throw new Error('Trails expected photos: ' + expected.name);
       }, 10, 1000);
     }
   }
+  return inList;
 }
 
 export async function expectListContainsByName(list: TrailsList, expectedTrails: ExpectedTrail[]) {
