@@ -126,6 +126,7 @@ export function openImportTrailsFileDialog(injector: Injector, collection: Trail
                   }
                 })
                 .catch((e) => {
+                  Console.error('Error importing from zip', filename, e);
                   zipErrors.push(new I18nError('errors.import.file_not_imported', [filename + '/' + gpxFile.name, e]));
                   progress.subTitle = '' + (index + 1 + previousZipEntries + entryIndex + 1) + '/' + (nbFiles + zipEntries);
                   progress.addWorkDone(1);

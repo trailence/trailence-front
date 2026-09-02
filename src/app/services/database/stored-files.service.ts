@@ -1,10 +1,11 @@
 import { Injectable, Injector } from '@angular/core';
-import { map, Observable, reduce } from 'rxjs';
+import { map, Observable, reduce, tap } from 'rxjs';
 import { Db } from './storage/db';
 import { DbTableWithBlob } from './storage/db-table-with-blob';
 import { Arrays } from 'src/app/utils/arrays';
+import { Console } from 'src/app/utils/console';
 
-interface StoredFileDto {
+export interface StoredFileDto {
   key: string;
   dateStored: number | undefined;
   blob: Blob | undefined;
@@ -24,7 +25,7 @@ export class StoredFilesService {
     this.db.start();
   }
 
-  private getKey(owner: string, type: string, uuid: string): string {
+  public getKey(owner: string, type: string, uuid: string): string {
     return owner + '#' + type + '#' + uuid;
   }
 
@@ -38,16 +39,32 @@ export class StoredFilesService {
 
   public store(owner: string, type: string, uuid: string, blob: Blob): Observable<any> {
     const key = this.getKey(owner, type, uuid);
-    return this.table.addOne$({key, blob, dateStored: Date.now()});
+    return this.table.addOne$({key, blob, dateStored: Date.now()}).pipe(
+      tap({
+        next: () => Console.info('File stored', key),
+        error: e => Console.error('Error storing file', key, e)
+      })
+    );
   }
 
   public deleteFile(owner: string, type: string, uuid: string): Observable<any> {
-    return this.table.deleteOne$(this.getKey(owner, type, uuid));
+    const key = this.getKey(owner, type, uuid);
+    return this.table.deleteOne$(key).pipe(
+      tap({
+        next: r => Console.info('File removed', key, r),
+        error: e => Console.error('Error deleting file', key, e)
+      })
+    );
   }
 
   public deleteFiles(type: string, toDelete: {owner: string, uuid: string}[]): Observable<any> {
     const keys = toDelete.map(d => this.getKey(d.owner, type, d.uuid));
-    return this.table.deleteMany$(keys);
+    return this.table.deleteMany$(keys).pipe(
+      tap({
+        next: r => Console.info('Files removed', keys, r),
+        error: e => Console.error('Error deleting files', keys, e)
+      })
+    );
   }
 
   public getTotalSize(type: string, maxDateStored: number, chunk: number = 100): Observable<[number,number]> {
@@ -64,14 +81,21 @@ export class StoredFilesService {
     );
   }
 
-  public cleanExpiredFiles(type: string, maxDateStored: number): Observable<any> {
-    return this.table.deleteWhen$(25, k => k.indexOf('#' + type + '#') > 0, dto => !dto.dateStored || dto.dateStored < maxDateStored);
+  public cleanExpiredFiles(type: string, maxDateStored: number, filter$?: (items: Partial<StoredFileDto>[]) => Promise<Partial<StoredFileDto>[]>): Observable<number> {
+    return this.table.deleteWhen$(25, k => k.indexOf('#' + type + '#') > 0, dto => {
+      const canDelete = !dto.dateStored || dto.dateStored < maxDateStored
+      if (canDelete) Console.info('Expired file eligible to remove', dto.key, dto.dateStored, maxDateStored);
+      return canDelete;
+    }, filter$);
   }
 
   public cleanUnreferencedFiles(type: string, references: {owner: string, uuid: string}[], maxDateStored: number): Observable<string> {
     const keys = Arrays.mapToSet(references, r => this.getKey(r.owner, type, r.uuid));
     return this.table.deleteWhen$(25, k => !keys.has(k) && k.indexOf('#' + type + '#') > 0, dto => !!dto.dateStored && dto.dateStored < maxDateStored)
-    .pipe(map(nb => '' + nb));
+    .pipe(map(nb => {
+      Console.info('Cleant unreferenced files', nb);
+      return '' + nb;
+    }));
   }
 
   public removeAllFiles(type: string, filterExclude: (owner: string, uuid: string) => boolean): Observable<any> {

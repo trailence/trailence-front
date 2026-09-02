@@ -17,19 +17,19 @@
 
 03:browser:firefox:desktop:00100,00000,00010
 03:browser:firefox:desktop:00001,00300
-03:browser:firefox:desktop:00301,00400,00800
+03:browser:firefox:desktop:00301,00800
 03:browser:firefox:desktop:00200,00260
 03:browser:firefox:desktop:00500
 03:browser:firefox:desktop:00900,50000
 
 04:browser:firefox:mobile:00000,00001,00301
 04:browser:firefox:mobile:00100,00010,00260
-04:browser:firefox:mobile:00300,00400,00800
+04:browser:firefox:mobile:00300,00800
 04:browser:firefox:mobile:00500
 04:browser:firefox:mobile:00900,50000,01000
 
-05:browser:chrome:desktop:00200,01000
-05:browser:chrome:desktop:00250,00260
+05:browser:chrome:desktop:00200,01000,00260
+05:browser:chrome:desktop:00250
 05:browser:chrome:desktop:00500
 05:browser:chrome:desktop:00201
 
@@ -52,8 +52,9 @@
 
 10:browser:chrome:desktop:00205
 10:browser:chrome:mobile:01000,00800
+10:browser:chrome:desktop:00300
 
 11:browser:firefox:mobile:00205
 
-12:browser:chrome:desktop:00300,05000
+12:browser:chrome:desktop:05000
 12:browser:chrome:desktop:00900,50000

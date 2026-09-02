@@ -3,7 +3,7 @@ import { OwnedStore, UpdatesResponse } from './store/owned-store';
 import { PhotoDto } from 'src/app/model/dto/photo';
 import { Photo } from 'src/app/model/photo';
 import { VersionedDto } from 'src/app/model/dto/versioned';
-import { BehaviorSubject, catchError, combineLatest, defaultIfEmpty, EMPTY, first, firstValueFrom, from, map, Observable, of, share, switchMap, tap, timer, zip } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, defaultIfEmpty, EMPTY, first, firstValueFrom, from, map, Observable, of, share, switchMap, tap, throwError, timer, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { HttpService } from '../http/http.service';
 import { RequestLimiter } from 'src/app/utils/request-limiter';
@@ -152,6 +152,7 @@ export class PhotoService {
     }
   }
 
+  private readonly _creating: {owner: string, uuid: string, time: number}[] = [];
   public addPhoto( // NOSONAR
     owner: string, trailUuid: string,
     description: string, index: number,
@@ -163,11 +164,22 @@ export class PhotoService {
   ): Observable<Photo | null> {
     return from(this.injector.get(WorkerService).importPhoto(owner, trailUuid, description, index, content, this.preferences.preferences, dateTaken, latitude, longitude, isCover)).pipe(
       switchMap(imported => {
+        const time = Date.now();
+        this._creating.push({owner, uuid: imported.photo.uuid, time});
+        timer(120000).subscribe(() => {
+          const index = this._creating.findIndex(v => v.owner === owner && v.uuid === imported.photo.uuid && v.time === time);
+          if (index >= 0) this._creating.splice(index, 1);
+        });
         return this.injector.get(StoredFilesService).store(owner, 'photo', imported.photo.uuid, imported.blob).pipe(
           switchMap(() => {
             if (fromModeration) return this.injector.get(ModerationService).createPhoto(imported.photo, imported.blob);
             if (fromRecording) return from(this.injector.get(TraceRecorderService).storePhoto(imported.photo, imported.blob));
             return this.store.create(imported.photo);
+          }),
+          catchError(e => {
+            const index = this._creating.findIndex(v => v.owner === owner && v.uuid === imported.photo.uuid && v.time === time);
+            if (index >= 0) this._creating.splice(index, 1);
+            return throwError(() => e);
           })
         );
       }),
@@ -232,6 +244,7 @@ export class PhotoService {
         this._blobUrls.delete(key);
         blob.close();
       }
+      this.injector.get(StoredFilesService).deleteFile(photo.owner, 'photo', photo.uuid).subscribe();
       if (ondone) ondone();
     });
   }
@@ -242,6 +255,7 @@ export class PhotoService {
       return;
     }
     this.store.deleteIf('deleted photos', item => photos.some(p => p.uuid === item.uuid && p.owner === item.owner), ondone);
+    this.injector.get(StoredFilesService).deleteFiles('photo', photos.map(p => ({owner: p.owner, uuid: p.uuid}))).subscribe();
   }
 
   public deleteForTrail(trail: Trail, ondone?: () => void): void {
@@ -276,14 +290,40 @@ export class PhotoService {
       collection$items(),
       switchMap(items => this.injector.get(StoredFilesService).removeAllFiles('photo', (owner, uuid) => {
         const item = items.find(p => p.owner === owner && p.uuid === uuid);
-        if (!item) return false;
-        return !item.isSavedOnServerAndNotDeletedLocally() || this.store.itemUpdatedLocally(owner, uuid);
+        if (!item) {
+          if (this._creating.some(v => v.owner === owner && v.uuid === uuid)) return true;
+          Console.info('Removing stored file', owner, uuid, 'because no corresponding photo');
+          return false;
+        }
+        const exclude = !item.isSavedOnServerAndNotDeletedLocally() || this.store.itemUpdatedLocally(owner, uuid);
+        if (!exclude)
+          Console.info('Removing stored file', owner, uuid, 'because requested to remove cached files, and the photo is saved on server');
+        return exclude;
       }))
     );
   }
 
   public removeExpiredFiles(): Observable<any> {
-    return this.injector.get(StoredFilesService).cleanExpiredFiles('photo', Date.now() - this.injector.get(PreferencesService).preferences.photoCacheDays);
+    const files = this.injector.get(StoredFilesService);
+    return files.cleanExpiredFiles(
+      'photo',
+      Date.now() - (this.injector.get(PreferencesService).preferences.photoCacheDays * 24 * 60 * 60 * 1000),
+      items =>
+        firstValueFrom(this.store.getAll$().pipe(collection$items()))
+        .then(photos => items.filter(item => {
+          const photo = photos.find(p => item.key === files.getKey(p.owner, 'photo', p.uuid));
+          if (!photo) {
+            if (this._creating.some(v => item.key === files.getKey(v.owner, 'photo', v.uuid))) return false;
+            Console.info('Expired file without photo => delete', item.key, item.dateStored);
+            return true;
+          }
+          const exclude = !photo.isSavedOnServerAndNotDeletedLocally() || this.store.itemUpdatedLocally(photo.owner, photo.uuid);
+          if (!exclude) Console.info('Expired file and photo saved on server => delete', item.key, item.dateStored);
+          return !exclude;
+        }))
+    ).pipe(
+      tap(nb => Console.info('Remove expired files', nb, 'deleted'))
+    );
   }
 
 }
@@ -388,7 +428,11 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> implements StoreWithCleanin
     const trailReady$ = this.trails.getTrail$(entity.trailUuid, entity.owner).pipe(map(trail => !!trail?.isSavedOnServerAndNotDeletedLocally()));
     const fileReady$ = this.files.isStored$(entity.owner, 'photo', entity.uuid);
     return combineLatest([trailReady$, fileReady$]).pipe(
-      map(readiness => !readiness.includes(false))
+      map(readiness => {
+        const ready = !readiness.includes(false);
+        if (!ready) Console.debug('Photo', entity.owner, entity.uuid, entity.index, 'not ready', readiness);
+        return ready;
+      })
     );
   }
 
@@ -452,7 +496,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> implements StoreWithCleanin
     return firstValueFrom(photosCleant$.pipe(
       switchMap(references => {
         if (!references) return of('0');
-        return this.injector.get(StoredFilesService).cleanExpiredFiles('photo', Date.now() - this.injector.get(PreferencesService).preferences.photoCacheDays).pipe(
+        return this.injector.get(StoredFilesService).cleanExpiredFiles('photo', Date.now() - (this.injector.get(PreferencesService).preferences.photoCacheDays * 24 * 60 * 60 * 1000)).pipe(
           switchMap(() => this.injector.get(StoredFilesService).cleanUnreferencedFiles('photo', references, Date.now() - 3 * 24 * 60 * 60 * 1000)),
         );
       })

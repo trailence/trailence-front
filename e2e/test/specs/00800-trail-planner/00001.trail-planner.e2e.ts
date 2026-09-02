@@ -76,8 +76,10 @@ describe('Trail Planner', () => {
     await page.resume();
     await browser.waitUntil(() => map.getPathsWithClass('track-path').length.then(nb => nb > 1));
     await putAnchor(0, 1);
-    let distance = await TestUtils.waitFor(async () => parseInt((await page.getDistance()).replace(',', '').replace('.', '')), d => d > 10);
-    expect(distance).toBeGreaterThan(10);
+    await TestUtils.waitFor(
+      async () => parseInt((await page.getDistance()).replace(',', '').replace('.', '')),
+      d => { if (d <= 10) throw new Error('Expect distance to be greater than 10'); }
+    );
   });
 
   it('Stop, save, and finally delete collection', async () => {

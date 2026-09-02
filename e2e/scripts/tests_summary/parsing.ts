@@ -130,6 +130,8 @@ function extractError(file: string, test: Test, nextLine: Line): number {
   }
   i = nextLine.content.indexOf('Expected ');
   if (i >= 0) {
+    let j = nextLine.content.indexOf(']');
+    if (j > 0) i = j + 1;
     test.error = [nextLine.content.substring(i)];
     return extractErrorExpectation(file, test, nextLine);
   }
@@ -157,7 +159,7 @@ function extractErrorExpectation(file: string, test: Test, line: Line): number {
     let i = nextLine.content.indexOf('    at ');
     if (i > 0) {
       test.error!.push(nextLine.content.substring(i));
-      return extractErrorStackTrace(file, test, line);
+      return extractErrorStackTrace(file, test, nextLine);
     }
     test.error!.push(nextLine.content);
   }

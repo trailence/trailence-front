@@ -39,13 +39,18 @@ async function generateSummary() {
                 ],
                 [
                   { data: set.name },
-                  { data: cmd.browser + ' ' + cmd.browserSize },
+                  { data: cmd.cmdInstance + ' ' + cmd.browser + ' ' + cmd.browserSize },
                   { data: file.file },
                   { data: test.name },
                 ],
                 ...(test.error ? [
                   [
-                    { data: '<pre>' + test.error.join('\n') + '</pre>', colspan: '4' }
+                    { data: '<pre>\n' +
+                      test.error.filter(line => line.trim().length > 0).join('\n')
+                        .replaceAll('&', ' & ')
+                        .replaceAll('<', '(')
+                        .replaceAll('>', ')') +
+                      '\n</pre>', colspan: '4' }
                   ],
                 ] : []),
                 [

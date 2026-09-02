@@ -1,3 +1,5 @@
+import { App } from '../app/app';
+
 export class MailHog {
 
   public async open(newTab: boolean = false) {
@@ -5,6 +7,10 @@ export class MailHog {
       await browser.newWindow('http://localhost:8025', { type: 'tab' });
     } else {
       await browser.url('http://localhost:8025');
+    }
+    if (App.config.mode === 'mobile') {
+      await browser.setWindowSize(1600, 900);
+      await browser.setViewport({width: 1400, height: 850});
     }
     await browser.waitUntil(() => browser.getUrl().then(url => url.indexOf(':8025') > 0));
     await browser.waitUntil(() => browser.getTitle().then(title => title === 'MailHog'));
@@ -68,6 +74,9 @@ export class MailHog {
     await browser.closeWindow();
     const handles = await browser.getWindowHandles();
     await browser.switchToWindow(handles[handles.length - 1]);
+    if (App.config.mode === 'mobile') {
+      await App.startMode(true);
+    }
   }
 
 }

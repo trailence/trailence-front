@@ -1,6 +1,7 @@
 import { App } from '../../app/app';
 import { TrailPage } from '../../app/pages/trail-page';
 import { TrailsPage } from '../../app/pages/trails-page';
+import { Component } from '../../components/component';
 import { TrailOverview } from '../../components/trail-overview.component';
 import { TrailsList } from '../../components/trails-list.component';
 import { TestUtils } from '../../utils/test-utils';
@@ -44,6 +45,7 @@ describe('Find Trail', () => {
 
   it('Search with Outdoor Active', async () => {
     const map = await page.trailsAndMap.openMap();
+    try { await map.topToolbar.clickByIcon('trash'); } catch (_) {}
     if (App.config.mode === 'mobile')
       await map.goTo(43.497514901391675,7.046356201171876, 14);
     else
@@ -53,17 +55,25 @@ describe('Find Trail', () => {
     await alert.clickRadioButtonByLabel('Outdoor Active');
     await alert.clickButtonWithText('Ok');
     await map.topToolbar.clickByIcon('search-map');
-    await browser.waitUntil(async () => {
+    trail = (await TestUtils.waitFor(async () => {
       list = await page.trailsAndMap.openTrailsList();
-      return list.items.length.then(nb => nb > 0)
-    }, { timeout: 45000 });
-    trail = await TestUtils.retry(async () => await list.waitTrail('20201025-Saint Honorat'), 2, 1000);
+      if ((await list.items.length) > 0) return list.getItemTrailOverview(await list.items[0].getElement());
+      return undefined;
+    }, trail => {
+      if (!trail) throw new Error('No trail found');
+    }, 90, 500))!;
   });
 
   it('Check trail from Outdoor Active', async () => {
     trailPage = await list.openTrail(trail);
     const details = await trailPage.trailComponent.openDetails();
-    await browser.waitUntil(() => details.$('a=Open in Outdoor Active').isExisting());
+    await browser.waitUntil(async () => {
+      const link = details.$('div.external-link a');
+      await Component.scrollIntoView(link);
+      const text = (await link.getText()).trim();
+      if (text !== 'Open in Outdoor Active') throw new Error('Link does not contain expected text: ' + text);
+      return true;
+    });
     await trailPage.header.goBack();
   });
 

@@ -44,11 +44,21 @@ describe('Trails list', () => {
   it('Open trail, it has the original track and an improved track', async () => {
     await browser.waitUntil(() => trailPage.header.getTitle().then(title => title === 'Randonnée du 05/06/2023 à 08:58'));
     const trail = trailPage.trailComponent;
-    const improvedAscent = await TestUtils.waitFor(() => trail.getMetadataValueByTitle('Ascent', true), value => !!value && value.length > 0);
+    const improvedAscent = await TestUtils.waitFor(
+      () => trail.getMetadataValueByTitle('Ascent', true),
+      value => {
+        if (!value?.length) throw new Error('Expect ascent to not be 0, found: ' + value);
+      }
+    );
     expect(improvedAscent).toBeDefined();
     expect(improvedAscent!.indexOf('+ ')).toBe(0);
     await trail.toggleShowOriginalTrace();
-    const originalAscent = await TestUtils.waitFor(() => trail.getMetadataValueByTitle('Ascent', true), value => !!value && value.length > 0 && value !== improvedAscent);
+    const originalAscent = await TestUtils.waitFor(
+      () => trail.getMetadataValueByTitle('Ascent', true),
+      value => {
+        if (!value?.length || value === improvedAscent) throw new Error('Expect ascent to not be 0 and different from ' + improvedAscent + ', found: ' + value);
+      }
+    );
     expect(originalAscent).toBeDefined();
     expect(originalAscent!.indexOf('+ ')).toBe(0);
     expect(parseInt(originalAscent!.substring(2).replaceAll(',', ''))).toBeGreaterThan(parseInt(improvedAscent!.substring(2).replaceAll(',', '')));
@@ -56,7 +66,6 @@ describe('Trails list', () => {
     collectionPage = new TrailsPage();
     await collectionPage.waitDisplayed();
   });
-
 
   it('Import a GPX file with Tag 1 and Tag 2', async () => {
     const trailsList = await collectionPage.trailsAndMap.openTrailsList();
@@ -76,8 +85,7 @@ describe('Trails list', () => {
     });
     await trail.clickMenuItemWithIcon('tags');
     const tagsPopup = new TagsPopup('selection', await App.waitModal());
-    const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), tags => tags.length === 2);
-    expect(allTags.length).toBe(2);
+    const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), tags => { if (tags.length !== 2) throw new Error('Expect 2 tags, found: ' + tags.length); });
     expect(allTags.indexOf('Tag 1') >= 0).toBeTrue();
     expect(allTags.indexOf('Tag 2') >= 0).toBeTrue();
     await tagsPopup.cancel();
@@ -114,8 +122,7 @@ describe('Trails list', () => {
     });
     await trail.clickMenuItemWithIcon('tags');
     const tagsPopup = new TagsPopup('selection', await App.waitModal());
-    const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), tags => tags.length === 3);
-    expect(allTags.length).toBe(3);
+    const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), tags => { if (tags.length !== 3) throw new Error('Expect 3 tags, found: ' + tags.length); });
     expect(allTags.indexOf('Tag 1') >= 0).toBeTrue();
     expect(allTags.indexOf('Tag 2') >= 0).toBeTrue();
     expect(allTags.indexOf('Tag 3') >= 0).toBeTrue();
@@ -140,8 +147,7 @@ describe('Trails list', () => {
     });
     await trail.clickMenuItemWithIcon('tags');
     const tagsPopup = new TagsPopup('selection', await App.waitModal());
-    const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), tags => tags.length === 3);
-    expect(allTags.length).toBe(3);
+    const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), tags => { if (tags.length !== 3) throw new Error('Expect 3 tags, found: ' + tags.length); });
     expect(allTags.indexOf('Tag 1') >= 0).toBeTrue();
     expect(allTags.indexOf('Tag 2') >= 0).toBeTrue();
     expect(allTags.indexOf('Tag 3') >= 0).toBeTrue();
@@ -175,8 +181,7 @@ describe('Trails list', () => {
 
     await trail1.clickMenuItemWithIcon('tags');
     const tagsPopup = new TagsPopup('selection', await App.waitModal());
-    const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), tags => tags.length === 4);
-    expect(allTags.length).toBe(4);
+    const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), tags => { if (tags.length !== 4) throw new Error('Expect 4 tags, found: ' + tags.length); });
     expect(allTags.indexOf('Tag 1') >= 0).toBeTrue();
     expect(allTags.indexOf('Tag 2') >= 0).toBeTrue();
     expect(allTags.indexOf('Tag 3') >= 0).toBeTrue();
@@ -207,10 +212,58 @@ describe('Trails list', () => {
     const photosPopup = await trailPage.trailComponent.openPhotos();
     const photos = photosPopup.getPhotosContainers();
     expect(await photos.length).toBe(1);
+    await trailPage.header.goBack();
+    collectionPage = new TrailsPage();
+    await collectionPage.waitDisplayed();
   });
 
-  it('Synchronize', async () => {
-    await App.synchronize();
+  it('Map bubbles', async () => {
+    const map = await collectionPage.trailsAndMap.openMap();
+    await map.fitBounds();
+
+    // map should contain only trails
+    let paths = await map.getPathsWithClass('track-path').map(e => e.getAttribute('stroke'));
+    expect(paths.length).toBeGreaterThan(0);
+    expect(paths.every(p => p === 'red'));
+    let bubbles = await map.getOverlaysSvgsWithClass('bubble').map(e => e.getAttribute('stroke'));
+    expect(bubbles.length).toBe(0);
+
+    await map.setBubblesMode();
+    // map should contain only bubbles
+    paths = await TestUtils.retry(() => map.getPathsWithClass('track-path').map(e => e.getAttribute('stroke')).then(p => { if (p.length > 0) throw new Error('' + p.length + ' paths found'); return p; }), 5, 1000);
+    expect(paths.length).toBe(0);
+    bubbles = await map.getOverlaysSvgsWithClass('bubble').map(m => m.getAttribute('class'));
+    expect(bubbles.length).toBeGreaterThan(0);
+    expect(bubbles.every(c => c.indexOf('bubble') >= 0));
+
+    await map.setPathMode();
+    // map should contain only trails
+    paths = await TestUtils.retry(() => map.getPathsWithClass('track-path').map(e => e.getAttribute('stroke')).then(p => { if (p.length === 0) throw new Error('No path found'); return p; }), 5, 1000);
+    expect(paths.length).toBeGreaterThan(0);
+    expect(paths.every(p => p === 'red'));
+    bubbles = await map.getOverlaysSvgsWithClass('bubble').map(m => m.getAttribute('class'));
+    expect(bubbles.length).toBe(0);
+  });
+
+  it('Can select a trail from map', async () => {
+    const map = await collectionPage.trailsAndMap.openMap();
+    await map.goTo(43.01415572012757,6.39906406402588,16);
+
+    const mapRect = await map.getMapPosition();
+    let found = false;
+    const startX = Math.floor(mapRect.x + (mapRect.w / 2) - 15);
+    const startY = Math.floor(mapRect.y + (mapRect.h / 2) - 25);
+    for (let x = startX; x < startX + 25; x += 5) {
+      for (let y = startY; y < startY + 30; y += 5) {
+        await browser.action('pointer').move({x, y, origin: 'viewport'}).pause(100).down().pause(10).up().perform();
+        if (await map.markers.length) {
+          found = true;
+          break;
+        }
+      }
+      if (found) break;
+    }
+    expect(found).toBeTrue();
   });
 
   it('End', async () => await App.end());

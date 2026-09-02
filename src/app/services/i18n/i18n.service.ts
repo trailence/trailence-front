@@ -436,6 +436,7 @@ export class I18nService {
   }
 
   public translateWithArguments(i18nKey: string, args: any[]): string {
+    if (typeof i18nKey !== 'string') return '' + i18nKey;
     const path = i18nKey.split('.');
     let t = this.texts;
     for (const name of path) t = t ? t[name] : undefined;
@@ -451,6 +452,7 @@ export class I18nService {
   }
 
   public translateWithArguments$(i18nKey: string, args: any[]): Observable<string> {
+    if (typeof i18nKey !== 'string') return of('' + i18nKey);
     const path = i18nKey.split('.');
     return this.texts$.pipe(
       switchMap(texts => {

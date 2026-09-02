@@ -165,8 +165,8 @@ export class App {
   }
 
   private static _started = false;
-  private static async startMode() {
-    if (App._started) return;
+  public static async startMode(forceRefresh = false) {
+    if (App._started && !forceRefresh) return;
     App._started = true;
     while ((await browser.getWindowHandles()).length > 1)
       await browser.closeWindow();
@@ -176,7 +176,7 @@ export class App {
         await browser.setViewport({
           width: 350,
           height: 600
-        })
+        });
         break;
       case 'desktop':
         await browser.setWindowSize(1600, 900);
@@ -309,7 +309,7 @@ export class App {
     byRootElementName?: string,
     byTitle?: string,
     timeout?: number,
-  }) {
+  }): Promise<ChainablePromiseElement> {
     let page: ChainablePromiseElement | undefined = undefined;
     let getPage: (chain: ChainablePromiseElement) => Promise<ChainablePromiseElement | undefined>;
     let context = 'Waiting modal';

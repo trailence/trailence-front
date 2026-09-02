@@ -509,6 +509,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   public updateWithLock(item: STORE_ITEM, updater: (latestVersion: STORE_ITEM) => void, ondone?: (item: STORE_ITEM) => void) {
     this.lockItem(item, (locked, unlock) => {
       if (!locked) {
+        Console.warn('Cannot get lock on', this.table.name, item);
         if (ondone) ondone(item);
         return;
       }

@@ -25,13 +25,12 @@ export class TestUtils {
     });
   }
 
-  public static async waitFor<T>(operation: () => Promise<T>, predicate: (result: T) => boolean): Promise<T> {
-    let result: T;
-    await browser.waitUntil(async () => {
-      result = await operation();
-      return predicate(result);
-    });
-    return result!;
+  public static async waitFor<T>(operation: () => Promise<T>, check: (result: T) => void, trials = 30, delay = 500): Promise<T> {
+    return await TestUtils.retry(async () => {
+      const r = await operation();
+      check(r);
+      return r;
+    }, trials, delay);
   }
 
 }

@@ -2,7 +2,7 @@ import { App } from '../../app/app';
 import { TrailPage } from '../../app/pages/trail-page';
 import { EditTools } from '../../components/edit-tools.component';
 import { MapComponent } from '../../components/map.component';
-import { ChainablePromiseElement} from 'webdriverio';
+import { ChainablePromiseElement, Origin} from 'webdriverio';
 import { TestUtils } from '../../utils/test-utils';
 import { TrailsPage } from '../../app/pages/trails-page';
 
@@ -122,24 +122,31 @@ describe('Edit tools', () => {
   it('Select from elevation graph, then remove', async () => {
     const graph = await trailPage.trailComponent.showElevationGraph();
     await TestUtils.retry(async (trial) => {
-      const origin = await graph.getElement().$('canvas').getElement();
-      if (trial > 1) {
-        await browser.action('pointer')
-          .move({x: 25, y: 25, origin})
-          .pause(10)
-          .down()
-          .pause(10)
-          .up()
-          .perform();
+      let origin: WebdriverIO.Element | Origin;
+      let pos: {x: number, y: number};
+      if (trial < 3) {
+        origin = await graph.getElement().$('canvas').getElement();
+        pos = {x: 0, y: 0};
+      } else {
+        origin = 'viewport';
+        pos = await graph.getElement().$('canvas').getLocation();
       }
       // select a range on graph
       await browser.action('pointer')
-        .move({x: 50, y: 25 + trial, origin})
+        .move({x: pos.x + 50, y: pos.y + 25 + trial, origin})
         .pause(10 * trial)
         .down()
         .pause(10 * trial)
-        .move({x: 100, y: 25 + trial, origin})
+        .move({x: pos.x + 60, y: pos.y + 25 + trial, origin})
         .pause(10)
+        .move({x: pos.x + 70, y: pos.y + 25 + trial, origin})
+        .pause(10)
+        .move({x: pos.x + 80, y: pos.y + 25 + trial, origin})
+        .pause(10)
+        .move({x: pos.x + 90, y: pos.y + 25 + trial, origin})
+        .pause(10)
+        .move({x: pos.x + 100, y: pos.y + 25 + trial, origin})
+        .pause(10 * trial)
         .up()
         .perform();
       // zoom button should be displayed
