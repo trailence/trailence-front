@@ -273,8 +273,11 @@ jobs:
           ls e2e/output/wdio_output_*
           cat e2e/output/artifacts.json
           cd e2e/scripts/tests_summary
+          echo NPM
           npm ci --ignore-scripts
+          echo Generate Summary
           npm run tests-summary
+          echo Done
   sonar:
     name: Sonar Analysis
     runs-on: ubuntu-latest
@@ -298,6 +301,12 @@ jobs:
           path: coverage/e2e
           pattern: e2e-tests-web-app-*-coverage-report
           merge-multiple: true
+      - name: Cache SonarQube packages
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 #v6.1.0
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 #v6.0.0
         env:

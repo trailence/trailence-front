@@ -1,3 +1,4 @@
+import { App } from '../app/app';
 import { AppElement } from '../app/app-element';
 import { TestUtils } from '../utils/test-utils';
 import { IonicButton } from './ionic/ion-button';
@@ -103,6 +104,19 @@ export class TagsPopup extends ModalComponent {
       }
     }
     throw Error('Tag not found: ' + currentName);
+  }
+
+  public async removeTag(name: string) {
+    const inputs = this.contentElement.$$('>>>div.tag-node ion-input');
+    for (const input of await inputs.getElements()) {
+      const i = new IonicInput(input);
+      if (await i.getValue() === name) {
+        await new IonicButton(i.getElement().parentElement().$('ion-button[color=danger]')).click();
+        await (await App.waitAlert()).clickButtonWithRole('danger');
+        return;
+      }
+    }
+    throw Error('Tag not found: ' + name);
   }
 
   public async save() {

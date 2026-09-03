@@ -73,7 +73,7 @@ describe('Trail Page', () => {
     await tagsPopup.apply();
     try { await browser.waitUntil(() => new TrailPage(trailPage.owner, trailPage.uuid).trailComponent.getTags().then(tags => tags.length === 1)); } catch (e) {}
     trailPage = new TrailPage(trailPage.owner, trailPage.uuid);
-    tags = await TestUtils.waitFor(() => trailPage.trailComponent.getTags(), tags => { if (tags.length !== 1) throw new Error('Expect 1 tag, found: ' + tags.length); });
+    tags = await TestUtils.waitFor(() => trailPage.trailComponent.getTags(), async tags => { if (tags.length !== 1) throw new Error('Expect 1 tag, found: ' + tags.length); });
     expect(tags.indexOf('Beautiful') >= 0).toBeTrue();
   });
 
@@ -243,12 +243,12 @@ describe('Trail Page', () => {
       .pause(10)
       .up()
       .perform();
-    await TestUtils.waitFor(() => map.markers.length, nb => {if (nb !== 1) throw new Error('Expected 1 marker, found: ' + nb)});
+    await TestUtils.waitFor(() => map.markers.length, async nb => {if (nb !== 1) throw new Error('Expected 1 marker, found: ' + nb)});
 
     await trailPage.trailComponent.toggleShowPhotosOnMap();
-    await TestUtils.waitFor(() => map.markers.length, nb => {if (nb !== 2) throw new Error('Expected 2 markers, found: ' + nb)});
+    await TestUtils.waitFor(() => map.markers.length, async nb => {if (nb !== 2) throw new Error('Expected 2 markers, found: ' + nb)});
     await trailPage.trailComponent.toggleShowPhotosOnMap();
-    await TestUtils.waitFor(() => map.markers.length, nb => {if (nb !== 1) throw new Error('Expected 1 marker, found: ' + nb)});
+    await TestUtils.waitFor(() => map.markers.length, async nb => {if (nb !== 1) throw new Error('Expected 1 marker, found: ' + nb)});
   });
 
   it('Clear files on preferences page', async () => {

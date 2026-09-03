@@ -29,8 +29,9 @@ import { WorkerService } from 'src/app/worker/web-app';
 import { TrackComputedDataCacheService } from './track-computed-data-cache.service';
 import { NetworkService } from '../network/network.service';
 import { OwnerUuid } from 'src/app/model/dto/owned';
-import { SHARED_OWNER_PREFIX } from 'src/app/model/dto/trail-collection';
+import { SHARED_OWNER_PREFIX, TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { Maps } from 'src/app/utils/maps';
+import { TrailCollectionService } from './trail-collection.service';
 
 interface MetadataItem extends TrackMetadataSnapshot {
   key: string;
@@ -154,7 +155,7 @@ export class TrackDatabase implements StoreWithCleaning {
         status.hasLocalDeletes = r2.length > 0;
         status.hasLocalUpdates = r3.length > 0;
         this.syncStatus$.next(status);
-        this.loaded$.next({counter: ready.counter, email: ready.email!});
+        this.loaded$.next({counter: ready.counter, email: ready.email!, isNewDb: ready.isNew});
         return true;
       }),
     );
@@ -721,21 +722,53 @@ export class TrackDatabase implements StoreWithCleaning {
     });
   }
 
+  private filterReadyToSave$(items: TrackItem[]): Observable<TrackItem[]> {
+    const sharedCollections = new Set<string>();
+    const itemsFromSharedCollection: TrackItem[] = [];
+    const itemsReady: TrackItem[] = [];
+    for (const item of items) {
+      if (item.owner.startsWith(SHARED_OWNER_PREFIX)) {
+        itemsFromSharedCollection.push(item);
+        sharedCollections.add(item.owner.substring(SHARED_OWNER_PREFIX.length));
+      } else {
+        itemsReady.push(item);
+      }
+    }
+    if (sharedCollections.size === 0) return of(items);
+    return this.injector.get(TrailCollectionService).getAllCollectionsReady$().pipe(
+      first(),
+      map(collections => {
+        const found = new Set<string>();
+        for (const c of collections) {
+          if (c.type === TrailCollectionType.SHARED && sharedCollections.has(c.uuid) && c.isSavedOnServerAndNotDeletedLocally())
+            found.add(SHARED_OWNER_PREFIX + c.uuid);
+        }
+        const ready = itemsFromSharedCollection.filter(i => found.has(i.owner));
+        ready.push(...itemsReady);
+        return ready;
+      })
+    );
+  }
+
   private syncCreatedLocally(status: StoreLoadStatus): Observable<boolean> {
     return this.tableFullTrack.getWhere$(new DbTableWhereEquals('version', 0), 50).pipe(
       switchMap(items => {
         if (status.counter !== this.loaded$.value?.counter) return EMPTY;
         const toCreate = items.filter(item => this._errors.canProcess(item.uuid + '#' + item.owner, true));
         if (toCreate.length === 0) return of(true);
-        Console.info('' + toCreate.length + ' tracks to be created on server');
-        const limiter = new RequestLimiter(2);
-        const requests: Observable<any>[] = [];
-        for (const item of toCreate) {
-          const request = this.createItemRequest(status, item);
-          requests.push(limiter.add(request));
-        }
-        if (requests.length === 0) return of(true);
-        return zip(requests).pipe(map(() => items.length < 50), defaultIfEmpty(true));
+        return this.filterReadyToSave$(toCreate).pipe(
+          switchMap(ready => {
+            Console.info('' + ready.length + ' tracks to be created on server (+' + (toCreate.length - ready.length) + ' not ready)');
+            const limiter = new RequestLimiter(2);
+            const requests: Observable<any>[] = [];
+            for (const item of ready) {
+              const request = this.createItemRequest(status, item);
+              requests.push(limiter.add(request));
+            }
+            if (requests.length === 0) return of(true);
+            return zip(requests).pipe(map(() => items.length < 50 && ready.length === toCreate.length), defaultIfEmpty(true));
+          })
+        )
       }),
       catchError(error => {
         // should not happen

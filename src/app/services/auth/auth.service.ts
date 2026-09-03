@@ -244,10 +244,12 @@ export class AuthService {
   }
 
   public login(email: string, password: string, captchaToken?: string): Observable<AuthResponse> {
+    Console.info('[AUTH] start login for', email);
     return this.getDeviceInfo().pipe(
       switchMap(deviceInfo => this.loginAndStoreKey(
-        publicKeyBase64 =>
-          this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/login', {
+        publicKeyBase64 => {
+          Console.info('[AUTH] Sending login request for', email);
+          return this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/login', {
             email,
             password,
             publicKey: publicKeyBase64,
@@ -255,6 +257,7 @@ export class AuthService {
             captchaToken,
             expiresAfter: this.platform.is('capacitor') ? KEY_EXPIRATION_NATIVE : KEY_EXPIRATION_WEB,
           } as LoginRequest)
+        }
       )),
     );
   }
@@ -270,11 +273,13 @@ export class AuthService {
   }
 
   private loginAndStoreKey(loginRequest: (publicKeyBase64: string) => Observable<AuthResponse>): Observable<AuthResponse> {
+    Console.info('[AUTH] Generating key pair');
     return this.generateKeys().pipe(
       switchMap(keys =>
         loginRequest(keys.publicKeyBase64)
         .pipe(
           tap(response => {
+            Console.info('[AUTH] login response received');
             this._auth$.next(response);
           }),
           switchMap(response =>

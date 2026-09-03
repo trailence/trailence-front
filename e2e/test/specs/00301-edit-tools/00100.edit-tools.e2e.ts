@@ -124,7 +124,7 @@ describe('Edit tools', () => {
     await TestUtils.retry(async (trial) => {
       let origin: WebdriverIO.Element | Origin;
       let pos: {x: number, y: number};
-      if (trial < 3) {
+      if (trial < 4) {
         origin = await graph.getElement().$('canvas').getElement();
         pos = {x: 0, y: 0};
       } else {
@@ -137,21 +137,32 @@ describe('Edit tools', () => {
         .pause(10 * trial)
         .down()
         .pause(10 * trial)
+        .move({x: pos.x + 55, y: pos.y + 25 + trial, origin})
+        .pause(10 + trial)
         .move({x: pos.x + 60, y: pos.y + 25 + trial, origin})
-        .pause(10)
+        .pause(10 + trial)
+        .move({x: pos.x + 65, y: pos.y + 25 + trial, origin})
+        .pause(10 + trial)
         .move({x: pos.x + 70, y: pos.y + 25 + trial, origin})
-        .pause(10)
+        .pause(10 + trial)
+        .move({x: pos.x + 75, y: pos.y + 25 + trial, origin})
+        .pause(10 + trial)
         .move({x: pos.x + 80, y: pos.y + 25 + trial, origin})
-        .pause(10)
+        .pause(10 + trial)
+        .move({x: pos.x + 85, y: pos.y + 25 + trial, origin})
+        .pause(10 + trial)
         .move({x: pos.x + 90, y: pos.y + 25 + trial, origin})
-        .pause(10)
+        .pause(10 + trial)
+        .move({x: pos.x + 95, y: pos.y + 25 + trial, origin})
+        .pause(10 + trial)
         .move({x: pos.x + 100, y: pos.y + 25 + trial, origin})
         .pause(10 * trial)
         .up()
+        .pause(10 * trial)
         .perform();
       // zoom button should be displayed
       await browser.waitUntil(() => graph.zoomButton.isDisplayed(), {timeout: 5000});
-    }, 5, 100);
+    }, 10, 100);
     await tools.waitSelectionTool();
     await tools.removeSelectedRangeAndReconnect();
     await tools.undo();

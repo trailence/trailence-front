@@ -29,7 +29,6 @@
 04:browser:firefox:mobile:00900,50000,01000
 
 05:browser:chrome:desktop:00200,01000,00260
-05:browser:chrome:desktop:00250
 05:browser:chrome:desktop:00500
 05:browser:chrome:desktop:00201
 
@@ -49,12 +48,17 @@
 08:browser:firefox:mobile:00201
 
 09:browser:chrome:mobile:00205
+09:browser:chrome:desktop:00250
 
 10:browser:chrome:desktop:00205
 10:browser:chrome:mobile:01000,00800
 10:browser:chrome:desktop:00300
+10:browser:chrome:mobile:00600
 
 11:browser:firefox:mobile:00205
+11:browser:firefox:mobile:00600
+11:browser:firefox:desktop:00600
 
 12:browser:chrome:desktop:05000
 12:browser:chrome:desktop:00900,50000
+12:browser:chrome:desktop:00600

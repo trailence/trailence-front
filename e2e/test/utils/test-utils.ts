@@ -25,10 +25,10 @@ export class TestUtils {
     });
   }
 
-  public static async waitFor<T>(operation: () => Promise<T>, check: (result: T) => void, trials = 30, delay = 500): Promise<T> {
+  public static async waitFor<T>(operation: () => Promise<T>, check: (result: T) => Promise<any>, trials = 30, delay = 500): Promise<T> {
     return await TestUtils.retry(async () => {
       const r = await operation();
-      check(r);
+      await check(r);
       return r;
     }, trials, delay);
   }
