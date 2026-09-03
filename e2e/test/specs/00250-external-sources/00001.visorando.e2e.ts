@@ -78,56 +78,68 @@ describe('Import data from Visorando', () => {
     try { await App.waitNoProgress(); } catch (e) {}
   });
 
+  let ready = false;
+
   it('Check trails are there', async () => {
     await browser.waitUntil(() => list.items.length.then(l => l > 5));
     expect(await list.items.length).toBeGreaterThan(5);
     await list.waitTrail('Circuit des balcons des Gorges de Daluis');
     await list.waitTrail('Cime du Mont Meras');
-    try { await App.waitNoProgress(); } catch (e) {}
+    try { await App.waitNoProgress(); ready = true; } catch (e) {}
   });
 
   it('Wait for everything to finish', async () => {
-    try { await App.waitNoProgress(); } catch (e) {}
+    if (ready) return;
+    try { await App.waitNoProgress(); ready = true; } catch (e) {}
   });
 
   it('Wait again for everything to finish', async () => {
-    try { await App.waitNoProgress(); } catch (e) {}
+    if (ready) return;
+    try { await App.waitNoProgress(); ready = true; } catch (e) {}
   });
 
   it('Wait again again for everything to finish', async () => {
-    try { await App.waitNoProgress(); } catch (e) {}
+    if (ready) return;
+    try { await App.waitNoProgress(); ready = true; } catch (e) {}
   });
 
   it('Wait again again again for everything to finish', async () => {
-    try { await App.waitNoProgress(); } catch (e) {}
+    if (ready) return;
+    try { await App.waitNoProgress(); ready = true; } catch (e) {}
   });
 
   it('Wait again again again again for everything to finish', async () => {
-    try { await App.waitNoProgress(); } catch (e) {}
+    if (ready) return;
+    try { await App.waitNoProgress(); ready = true; } catch (e) {}
   });
 
   it('Wait again again again again again for everything to finish', async () => {
-    try { await App.waitNoProgress(); } catch (e) {}
+    if (ready) return;
+    try { await App.waitNoProgress(); ready = true; } catch (e) {}
   });
 
   it('Wait again again again again again again for everything to finish', async () => {
-    try { await App.waitNoProgress(); } catch (e) {}
+    if (ready) return;
+    try { await App.waitNoProgress(); ready = true; } catch (e) {}
   });
 
   it('Wait again again again again again again again for everything to finish', async () => {
-    try { await App.waitNoProgress(); } catch (e) {}
+    if (ready) return;
+    try { await App.waitNoProgress(); ready = true; } catch (e) {}
   });
 
+  ready = false;
   it('Remove all imported trails', async () => {
     await App.waitNoProgress();
     await list.selectAllCheckbox.setSelected(true);
     await list.selectionMenu('Delete');
     await (await App.waitAlert()).clickButtonWithRole('danger');
-    try { await App.waitNoProgress(); } catch (e) {}
+    try { await App.waitNoProgress(); ready = true; } catch (e) {}
   });
 
   it('Wait for trails to be deleted', async () => {
-    await App.waitNoProgress();
+    if (!ready)
+      await App.waitNoProgress();
   });
 
   it('Import from clipboard', async () => {

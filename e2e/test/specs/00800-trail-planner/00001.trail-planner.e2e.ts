@@ -78,7 +78,7 @@ describe('Trail Planner', () => {
     await putAnchor(0, 1);
     await TestUtils.waitFor(
       async () => parseInt((await page.getDistance()).replace(',', '').replace('.', '')),
-      d => { if (d <= 10) throw new Error('Expect distance to be greater than 10'); }
+      async d => { if (d <= 10) throw new Error('Expect distance to be greater than 10'); }
     );
   });
 

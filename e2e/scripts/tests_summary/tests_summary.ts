@@ -1,24 +1,30 @@
 import * as core from '@actions/core';
 import { getSetArtifactUrls, parseTests } from './parsing';
 import { toSuccess, toTime } from './utils';
+import { TestNode } from './model';
 
 async function generateSummary() {
   const sets = await parseTests();
   const artifacts = await getSetArtifactUrls();
+  const timeInfo = (node: TestNode) => toTime(node.testsTime) + (node.hasMissingTime ? ' (partial)' : '');
   let s = core.summary;
   s = s.addTable([
     [
       { data: 'Set', header: true },
       { data: '🎯', header: true },
-      { data: 'Time', header: true },
+      { data: 'Tests Time', header: true },
+      { data: 'Rank', header: true },
+      { data: 'Cmd Time', header: true },
       { data: 'Rank', header: true },
       { data: 'Logs', header: true },
     ],
     ...sets.map(set => [
       { data: set.name },
       { data: toSuccess(set.success) },
-      { data: toTime(set.time) },
-      { data: '' + (sets.map(s => s.time).sort((t1,t2) => t1 - t2).indexOf(set.time) + 1) },
+      { data: timeInfo(set) },
+      { data: '' + (sets.map(s => s.testsTime).sort((t1,t2) => t1 - t2).indexOf(set.testsTime) + 1) },
+      { data: toTime(set.cmdTime) },
+      { data: '' + (sets.map(s => s.cmdTime).sort((t1,t2) => t1 - t2).indexOf(set.cmdTime) + 1) },
       { data: '<a target="_blank" href="' + artifacts.get(set.name) + '">' + set.name + '.zip</a>' }
     ])
   ]);
@@ -71,27 +77,30 @@ async function generateSummary() {
       { data: 'Cmd', header: true },
       { data: 'Dir', header: true },
       { data: '🎯', header: true },
-      { data: 'Time', header: true },
+      { data: 'Total Time', header: true },
+      { data: 'Tests Time', header: true },
     ],
     ...sets.flatMap(set => [
       [
         { data: set.name, colspan: '3' },
         { data: toSuccess(set.success) },
-        { data: toTime(set.time) }
+        { data: toTime(set.cmdTime) },
+        { data: timeInfo(set) },
       ],
       ...set.commands.flatMap(cmd => [
         [
           { data: set.name },
-          { data: cmd.command, colspan: '2' },
+          { data: cmd.cmdInstance + ' ' + cmd.command, colspan: '2' },
           { data: toSuccess(cmd.success) },
-          { data: toTime(cmd.time) },
+          { data: toTime(cmd.cmdTime) },
+          { data: timeInfo(cmd) },
         ],
         ...cmd.dirs.map(dir => [
           { data: set.name },
-          { data: cmd.command },
+          { data: cmd.cmdInstance + ' ' + cmd.command },
           { data: dir.name },
           { data: toSuccess(dir.success) },
-          { data: toTime(dir.time) },
+          { data: timeInfo(dir), colspan: '2' },
         ]),
       ]),
     ])
@@ -114,27 +123,27 @@ async function generateSummary() {
       [
         { data: set.name, colspan: '6' },
         { data: toSuccess(set.success) },
-        { data: toTime(set.time) }
+        { data: toTime(set.testsTime) }
       ],
       ...set.commands.flatMap(cmd =>
         cmd.dirs.flatMap(dir => [
           [
             { data: set.name },
-            { data: cmd.browser + ' ' + cmd.browserSize },
+            { data: cmd.cmdInstance + ' ' + cmd.browser + ' ' + cmd.browserSize },
             { data: dir.name, colspan: '4' },
             { data: toSuccess(dir.success) },
-            { data: toTime(dir.time) },
+            { data: toTime(dir.testsTime) },
           ],
           ...dir.files.flatMap(file => [
             [
               { data: set.name, rowspan: '' + (1 + file.tests.length) },
-              { data: cmd.browser + ' ' + cmd.browserSize, rowspan: '' + (1 + file.tests.length) },
+              { data: cmd.cmdInstance + ' ' + cmd.browser + ' ' + cmd.browserSize, rowspan: '' + (1 + file.tests.length) },
               { data: dir.name, rowspan: '' + (1 + file.tests.length) },
               { data: file.file, rowspan: '' + (1 + file.tests.length) },
               { data: file.suiteName, rowspan: '' + (1 + file.tests.length) },
               { data: '' },
               { data: toSuccess(file.success) },
-              { data: toTime(file.time) },
+              { data: toTime(file.testsTime) },
             ],
             ...file.tests.map(test => [
               { data: test.name },

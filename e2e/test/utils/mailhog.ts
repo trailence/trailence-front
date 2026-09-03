@@ -1,4 +1,5 @@
 import { App } from '../app/app';
+import { TestUtils } from './test-utils';
 
 export class MailHog {
 
@@ -23,13 +24,11 @@ export class MailHog {
   }
 
   public async openMessageTo(email: string) {
-    let content: string | undefined;
-    await browser.waitUntil(async () => {
-      content = await this.getMessageContent(email);
-      if (!content) await this.refreshMessages();
-      return !!content;
+    return await TestUtils.waitFor(() => this.getMessageContent(email), async content => {
+      if (content) return;
+      await this.refreshMessages();
+      throw new Error('mail not found for ' + email);
     });
-    return content;
   }
 
   private async refreshMessages() {
@@ -41,7 +40,7 @@ export class MailHog {
     }
   }
 
-  private async getMessageContent(email: string) {
+  private async getMessageContent(email: string): Promise<string | undefined> {
     console.log('search for mail to ' + email + ' in mailhog');
     for (const msg of await $('div.messages').$$('div.msglist-message').getElements()) {
       for (const div of await msg.$$('div div div').getElements()) {

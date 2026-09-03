@@ -96,13 +96,19 @@ export class App {
         return promise;
       },
       suiteDone: (result) => {
-        console.log('Suite done: ' + result.fullName);
+        const json = {
+          suite: result.fullName,
+          tests: timing.map(t => ({test: t.name, time: t.end - t.start}))
+        };
+        console.log('Suite json¤' + result.fullName + '¤' + JSON.stringify(json) + '\n\n');
+        let s = 'Suite done: ' + result.fullName + '\n';
         for (const t of timing) {
-          let s = ' - ' + t.name + ': ';
-          while (s.length < 100) s += ' ';
-          s += (t.end - t.start) + ' ms.';
-          console.log(s);
+          let line = '#    - ' + t.name + '¤ ';
+          while (line.length < 100) line += ' ';
+          line += (t.end - t.start) + ' ms.';
+          s += line + '\n';
         }
+        console.log(s);
       },
     });
   }
@@ -266,10 +272,10 @@ export class App {
     return await this.openLink(link);
   }
 
-  public static async openLink(link: string) {
+  public static async openLink(link: string, type: TrailsPageType = TrailsPageType.SHARE) {
     const url = browser.options.baseUrl!;
     await browser.url(url + '/link/' + link);
-    const trailsPage = new TrailsPage(TrailsPageType.SHARE);
+    const trailsPage = new TrailsPage(type);
     await trailsPage.waitDisplayed();
     return trailsPage;
   }
@@ -410,6 +416,31 @@ export class App {
       return;
     }
     return await this.handleLogout(menu, false);
+  }
+
+  public static async forceSyncronize() {
+    const header = await TestUtils.retry(async () => {
+      const page = await Page.getActivePageElement();
+      const header = new HeaderComponent(page);
+      await header.waitDisplayed(false, 5000);
+      return header;
+    }, 2, 100);
+    const menu = await header.openUserMenu();
+    const item = menu.getElement().$('>>>ion-item#item-synchro');
+    try {
+      await item.click();
+      const popover = $('ion-app>ion-popover:not(.overlay-hidden).popover-nested');
+      await popover.waitForDisplayed({timeout: 2500});
+      const viewport = popover.$('>>>div.popover-viewport');
+      await viewport.waitForExist({timeout: 1000});
+      const syncItem = viewport.$('>>>ion-list ion-item:first-child');
+      await syncItem.waitForDisplayed({timeout: 1000});
+      await syncItem.click();
+      await browser.waitUntil(() => App.getPopoverContainer().isDisplayed().then(d => !d), {timeout: 2000});
+    } catch (_) {}
+    try {
+      await menu.close();
+    } catch (_) {}
   }
 
   public static async logout(withDelete: boolean = false) {

@@ -338,7 +338,7 @@ class RegisteredStore implements StoreRegistration {
           });
           return false;
         }),
-        map(v => ({...v, syncAgain: this.syncAgain}) as {shouldSync: boolean, needsUpdateFromServer: boolean | undefined, storeLoadStatus: DbStatus<any>, syncAgain: boolean}),
+        map(v => ({...v, syncAgain: this.syncAgain}) as {shouldSync: boolean, needsUpdateFromServer: boolean | undefined, storeLoadStatus: StoreLoadStatus, syncAgain: boolean}),
         // sync requested or db changed or syncAgain requested
         debounceTimeExtended(v => v.storeLoadStatus.isNewDb ? 0 : 3000, 5000, 5, (p, n) => !!n.needsUpdateFromServer || p.storeLoadStatus.counter !== n.storeLoadStatus.counter || n.syncAgain),
       )

@@ -59,7 +59,7 @@ describe('Find Trail', () => {
       list = await page.trailsAndMap.openTrailsList();
       if ((await list.items.length) > 0) return list.getItemTrailOverview(await list.items[0].getElement());
       return undefined;
-    }, trail => {
+    }, async trail => {
       if (!trail) throw new Error('No trail found');
     }, 90, 500))!;
   });

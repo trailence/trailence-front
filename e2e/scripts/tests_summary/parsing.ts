@@ -50,11 +50,29 @@ async function readTestCommandLog(filename: string, cmdInstance: string): Promis
   const cmdLine = getLineStartingWith(file, '> wdio run ');
   const browser = getCommandLineArgument(cmdLine, '--browser');
   const browserSize = getCommandLineArgument(cmdLine, '--browser-size');
-  const specs = getTestsSpecs(file);
-  return new TestCommand(cmdInstance, browser, browserSize, specs);
+  const specs = getTestsSpecs(filename, file);
+  return new TestCommand(cmdInstance, browser, browserSize, specs, getCommandTime(file));
 }
 
-function getTestsSpecs(file: string): SpecFile[] {
+function getCommandTime(file: string): number | undefined {
+  let i1 = file.indexOf('[START TIME=');
+  if (i1 < 0) return undefined;
+  let i2 = file.indexOf(']', i1);
+  if (i2 < 0) return undefined;
+  const start = Number.parseInt(file.substring(i1 + 12, i2));
+  if (Number.isNaN(start)) return undefined;
+
+  i1 = file.indexOf('[END TIME=');
+  if (i1 < 0) return undefined;
+  i2 = file.indexOf(']', i1);
+  if (i2 < 0) return undefined;
+  const end = Number.parseInt(file.substring(i1 + 10, i2));
+  if (Number.isNaN(end)) return undefined;
+
+  return (end - start) * 1000;
+}
+
+function getTestsSpecs(filename: string, file: string): SpecFile[] {
   let pos = 0;
   const result: SpecFile[] = [];
   while ((pos = file.indexOf('» /test/specs/', pos)) > 0) {
@@ -81,26 +99,12 @@ function getTestsSpecs(file: string): SpecFile[] {
       }
       break;
     } while (true);
-    j = file.indexOf('Suite done: ' + suiteName + '\n');
-    if (j > 0) {
-      j += suiteName.length + 13;
-      do {
-        nextLine = getNextLine(file, j);
-        if (!nextLine) break;
-        let i2 = nextLine.content.indexOf(']  - ');
-        if (i2 < 0) break;
-        let i3 = nextLine.content.lastIndexOf(':');
-        const testName = nextLine.content.substring(i2 + 5, i3);
-        const test = tests.find(t => testName === (suiteName + ' ' + t.name));
-        if (test) {
-          i2 = nextLine.content.indexOf(' ms.', i3 + 1);
-          const time = Number.parseInt(nextLine.content.substring(i3 + 1, i2).trim());
-          if (!Number.isNaN(time)) test.time = time;
-        }
-        j = nextLine.end + 1;
-      } while (true);
-    } else {
-      console.warn('Cannot find Suite done: ' + suiteName);
+    console.log('Suite found', suiteName, 'with', tests.length, 'tests in', filename, tests.map(t => '<' + t.name + '>'));
+    if (!extractSuiteTimeFromJson(filename, file, suiteName, tests)) {
+      console.warn('json not found', suiteName, 'in', filename);
+      if (!extractSuiteTimeFromText(file, suiteName, tests)) {
+        console.warn('Cannot find Suite done: ' + suiteName + 'in', filename);
+      }
     }
     const dir = specFile.substring(0, specFile.indexOf('-'));
     result.push(new SpecFile(dir, specFile, suiteName, tests));
@@ -120,6 +124,74 @@ function getTestsSpecs(file: string): SpecFile[] {
     }
   }
   return result.sort((f1, f2) => compareBy(f1, f2, [f => f.dir, f => f.file, f => f.suiteName]));
+}
+
+function extractSuiteTimeFromJson(filename: string, file: string, suiteName: string, tests: Test[]): boolean {
+  let i = file.indexOf('Suite json¤' + suiteName + '¤');
+  if (i < 0) return false;
+  let j = file.indexOf('\n', i);
+  if (j < 0) return false;
+  try {
+    const s = file.substring(i + 12 + suiteName.length, j).trim();
+    const json = JSON.parse(s) as {suite: string, tests: {test: string, time: number}[]};
+    if (json['suite'] !== suiteName) {
+      console.warn('Suite json does not match', '<' + suiteName + '>', '<' + json['suite'] + '> in', filename);
+      return false;
+    }
+    console.log('json found', suiteName, 'in', filename);
+    for (const test of json.tests) {
+      const item = tests.find(t => suiteName + ' ' + t.name === test.test && t.time === undefined);
+      if (item) item.time = test.time;
+    }
+    console.log('suite parsed', suiteName, tests.filter(t => t.time !== undefined).length, '/', tests.length, 'in', filename);
+    return true;
+  } catch (e) {
+    console.warn('Cannot parse suite json', e);
+    return false;
+  }
+}
+
+function extractSuiteTimeFromText(file: string, suiteName: string, tests: Test[]): boolean {
+  let j = file.indexOf('Suite done: ' + suiteName + '\n');
+  if (j < 0) return false;
+  j += suiteName.length + 13;
+  let additionalTimings: number[] = [];
+  do {
+    let nextLine = getNextLine(file, j);
+    if (!nextLine) break;
+    let i2 = nextLine.content.indexOf('#    - ');
+    if (i2 < 0) {
+      i2 = nextLine.content.indexOf(' ms.');
+      if (i2 > 0) {
+        // truncated line
+        let i3 = nextLine.content.lastIndexOf(' ', i2 - 1);
+        if (i3 >= 0) {
+          const time = Number.parseInt(nextLine.content.substring(i3 + 1, i2).trim());
+          if (!Number.isNaN(time)) additionalTimings.push(time);
+        }
+        j = nextLine.end + 1;
+        continue;
+      }
+      break;
+    }
+    let i3 = nextLine.content.indexOf('¤');
+    const testName = nextLine.content.substring(i2 + 7, i3);
+    const test = tests.find(t => testName === (suiteName + ' ' + t.name) && t.time === undefined);
+    if (test) {
+      i2 = nextLine.content.indexOf(' ms.', i3 + 1);
+      const time = Number.parseInt(nextLine.content.substring(i3 + 1, i2).trim());
+      if (!Number.isNaN(time)) test.time = time;
+    }
+    j = nextLine.end + 1;
+  } while (true);
+  if (additionalTimings.length > 0 && tests.reduce((p,n) => p + (n.time === undefined ? 1 : 0), 0) === additionalTimings.length) {
+    for (const test of tests) {
+      if (test.time === undefined) {
+        test.time = additionalTimings.splice(0, 1)[0];
+      }
+    }
+  }
+  return true;
 }
 
 function extractError(file: string, test: Test, nextLine: Line): number {

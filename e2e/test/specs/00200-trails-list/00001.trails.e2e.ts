@@ -46,7 +46,7 @@ describe('Trails list', () => {
     const trail = trailPage.trailComponent;
     const improvedAscent = await TestUtils.waitFor(
       () => trail.getMetadataValueByTitle('Ascent', true),
-      value => {
+      async value => {
         if (!value?.length) throw new Error('Expect ascent to not be 0, found: ' + value);
       }
     );
@@ -55,7 +55,7 @@ describe('Trails list', () => {
     await trail.toggleShowOriginalTrace();
     const originalAscent = await TestUtils.waitFor(
       () => trail.getMetadataValueByTitle('Ascent', true),
-      value => {
+      async value => {
         if (!value?.length || value === improvedAscent) throw new Error('Expect ascent to not be 0 and different from ' + improvedAscent + ', found: ' + value);
       }
     );
@@ -85,7 +85,7 @@ describe('Trails list', () => {
     });
     await trail.clickMenuItemWithIcon('tags');
     const tagsPopup = new TagsPopup('selection', await App.waitModal());
-    const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), tags => { if (tags.length !== 2) throw new Error('Expect 2 tags, found: ' + tags.length); });
+    const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), async tags => { if (tags.length !== 2) throw new Error('Expect 2 tags, found: ' + tags.length); });
     expect(allTags.indexOf('Tag 1') >= 0).toBeTrue();
     expect(allTags.indexOf('Tag 2') >= 0).toBeTrue();
     await tagsPopup.cancel();
@@ -122,7 +122,7 @@ describe('Trails list', () => {
     });
     await trail.clickMenuItemWithIcon('tags');
     const tagsPopup = new TagsPopup('selection', await App.waitModal());
-    const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), tags => { if (tags.length !== 3) throw new Error('Expect 3 tags, found: ' + tags.length); });
+    const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), async tags => { if (tags.length !== 3) throw new Error('Expect 3 tags, found: ' + tags.length); });
     expect(allTags.indexOf('Tag 1') >= 0).toBeTrue();
     expect(allTags.indexOf('Tag 2') >= 0).toBeTrue();
     expect(allTags.indexOf('Tag 3') >= 0).toBeTrue();
@@ -147,7 +147,7 @@ describe('Trails list', () => {
     });
     await trail.clickMenuItemWithIcon('tags');
     const tagsPopup = new TagsPopup('selection', await App.waitModal());
-    const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), tags => { if (tags.length !== 3) throw new Error('Expect 3 tags, found: ' + tags.length); });
+    const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), async tags => { if (tags.length !== 3) throw new Error('Expect 3 tags, found: ' + tags.length); });
     expect(allTags.indexOf('Tag 1') >= 0).toBeTrue();
     expect(allTags.indexOf('Tag 2') >= 0).toBeTrue();
     expect(allTags.indexOf('Tag 3') >= 0).toBeTrue();
@@ -181,7 +181,7 @@ describe('Trails list', () => {
 
     await trail1.clickMenuItemWithIcon('tags');
     const tagsPopup = new TagsPopup('selection', await App.waitModal());
-    const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), tags => { if (tags.length !== 4) throw new Error('Expect 4 tags, found: ' + tags.length); });
+    const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), async tags => { if (tags.length !== 4) throw new Error('Expect 4 tags, found: ' + tags.length); });
     expect(allTags.indexOf('Tag 1') >= 0).toBeTrue();
     expect(allTags.indexOf('Tag 2') >= 0).toBeTrue();
     expect(allTags.indexOf('Tag 3') >= 0).toBeTrue();

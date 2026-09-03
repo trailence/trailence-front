@@ -119,7 +119,7 @@ export class ExtensionsService {
       next: items => {
         if (this._loadCounter !== loadStatus.counter) return;
         this._extensions$.next(items.map(item => new Extension(item.version, item.extension, item.data)));
-        this._loaded$.next({counter: loadStatus.counter, email: loadStatus.email!});
+        this._loaded$.next({counter: loadStatus.counter, email: loadStatus.email!, isNewDb: loadStatus.isNewDb});
       },
       error: e => Console.error('Error loading extensions', e),
     });

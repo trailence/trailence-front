@@ -10,6 +10,8 @@ import { TestUtils } from '../utils/test-utils';
 import { TrailPlannerPage } from '../app/pages/trail-planner-page';
 import { AdminPage } from '../admin/admin.page';
 import { MenuContent } from './menu-content.component';
+import { IonicToggle } from './ionic/ion-toggle';
+import { IonicInput } from './ionic/ion-input';
 
 export class AppMenu extends Component {
 
@@ -73,13 +75,21 @@ export class AppMenu extends Component {
     return await this.addCollection(name);
   }
 
-  public async addCollection(name: string) {
+  public async addCollection(name: string, sharedWith?: string[]) {
     const modal = await TestUtils.retry(async () => {
       await this.getAddCollectionButton().click();
       return new CollectionModal(await App.waitModal());
     }, 2, 1000);
     expect(await modal.getTitle()).toBe('Collection');
     await modal.setName(name);
+    if (sharedWith !== undefined) {
+      await modal.toggleSharedCollection();
+      if (sharedWith.length > 0) {
+        for (let i = 0; i < sharedWith.length; ++i) {
+          await modal.addSharedWith(sharedWith[i]);
+        }
+      }
+    }
     await modal.clickCreate();
     const trailsPage = new TrailsPage();
     await trailsPage.waitDisplayed();

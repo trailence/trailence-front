@@ -27,6 +27,7 @@ export interface StoreSyncProgress {
 export interface StoreLoadStatus {
   counter: number;
   email: string;
+  isNewDb: boolean;
 }
 
 export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncStatus> {
@@ -239,7 +240,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
           Console.info('Data loaded from store', this.table.name);
           this._store.next(newStore);
           this.beforeEmittingStoreLoaded();
-          this._storeLoaded$.next({counter: status.counter, email: status.email!});
+          this._storeLoaded$.next({counter: status.counter, email: status.email!, isNewDb: status.isNewDb});
         },
         error: e => {
           Console.error('Error loading store ' + this.table.name, e);
