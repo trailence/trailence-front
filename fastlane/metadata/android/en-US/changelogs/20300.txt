@@ -1,0 +1,2 @@
+Shared collections — Members of a collection can now add, edit or delete trails, making it easier to build and manage routes together
+Various other improvements and bug fixes

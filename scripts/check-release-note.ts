@@ -1,5 +1,8 @@
 const fs = require('fs');
 import { AvailableLocales } from '../src/app/services/i18n/available-locales';
+import { fastlaneLanguages, knownLanguages } from './utils/fastlane';
+import { versionNameToVersionCode } from './utils/parse-version';
+import { extractVersionNote } from './utils/version-notes';
 
 if (process.argv.length < 3) {
   console.log('Usage: check-release-note <major>.<minor>.<fix>');
@@ -7,35 +10,10 @@ if (process.argv.length < 3) {
   throw new Error('No version found: invalid usage');
 }
 
-const versionStr = process.argv[2];
-const versionRegexp = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/;
-const version = versionStr.match(versionRegexp);
-if (!version) {
-  console.log('Invalid version: ', versionStr);
-  throw new Error('Invalid version: ' + versionStr);
-}
-const major = parseInt(version[1]);
-const minor = parseInt(version[2]);
-const fix = parseInt(version[3]);
+console.log('Checking release note for version: ', process.argv[2]);
+const versionCode = versionNameToVersionCode(process.argv[2]);
 
-console.log('Checking release note for version: ', versionStr);
-
-const versionCode = fix + minor * 100 + major * 10000;
-const knownLanguages = Object.keys(AvailableLocales);
-const fastlaneLanguages = ['de-DE', 'en-US', 'fr-FR', 'es-ES', 'it', 'pt-PT'];
-if (fastlaneLanguages.length !== knownLanguages.length) throw Error('Fastlane languages count does not match with available locales');
-
-const json = fs.readFileSync('./src/assets/releases/notes.json', { encoding: 'utf-8'});
-const releases = JSON.parse(json);
-
-let versionKey = '' + versionCode;
-while (versionKey.length < 6) versionKey = '0' + versionKey;
-
-if (!releases[versionKey]) {
-  throw new Error('No release found with key: ' + versionKey);
-}
-
-const release = releases[versionKey];
+const release = extractVersionNote(versionCode);
 for (const lang of knownLanguages) {
   if (!release[lang]) {
     throw new Error('Language ' + lang + ' not found in release note');
@@ -51,7 +29,7 @@ for (const lang of knownLanguages) {
   if ((itemsEn && (!r['items'] || r['items'].length !== itemsEn.length)) || (!itemsEn && r['items'])) throw new Error('Items do not match between en and ' + lang);
 }
 
-for (const lang of fastlaneLanguages) {
+for (const lang of Object.values(fastlaneLanguages)) {
   if (!fs.existsSync('./fastlane/metadata/android/' + lang + '/changelogs/' + versionCode + '.txt'))
     throw new Error('Missing release note for fastlane language ' + lang);
 }

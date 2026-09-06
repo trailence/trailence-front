@@ -1,0 +1,2 @@
+Geteilte Sammlungen — Mitglieder einer Sammlung können jetzt Wege hinzufügen, bearbeiten oder löschen, um gemeinsam Routen zu erstellen und zu verwalten
+Einige weitere Verbesserungen und Fehlerbehebungen

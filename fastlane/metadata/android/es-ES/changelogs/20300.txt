@@ -1,0 +1,2 @@
+Colecciones compartidas — Los miembros de una colección pueden ahora añadir, editar o eliminar rutas para crear y gestionar sus recorridos juntos
+Otras mejoras y correcciones de errores

@@ -1,0 +1,2 @@
+Collections partagées — Les membres d’une collection peuvent désormais ajouter, modifier ou supprimer des parcours, pour construire et gérer leurs itinéraires ensemble
+Quelques autres améliorations et corrections de bugs

@@ -1,0 +1,2 @@
+Coleções partilhadas — Os membros de uma coleção podem agora adicionar, editar ou eliminar percursos, para criarem e gerirem os seus itinerários em conjunto
+Outras melhorias e correções de erros
