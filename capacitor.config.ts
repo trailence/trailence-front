@@ -15,6 +15,9 @@ const config: CapacitorConfig = {
     },
     Keyboard: {
       resizeOnFullScreen: false
+    },
+    SystemBars: {
+      insetsHandling: 'disable'
     }
   },
   android: {

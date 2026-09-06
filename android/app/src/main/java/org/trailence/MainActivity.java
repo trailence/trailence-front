@@ -32,18 +32,16 @@ public class MainActivity extends BridgeActivity {
     super.onCreate(savedInstanceState);
     WebView.setWebContentsDebuggingEnabled(true);
     ViewCompat.setOnApplyWindowInsetsListener(this.getBridge().getWebView(), (v, windowInsets) -> {
-      if (Build.VERSION.SDK_INT < 35) {
-        try {
-          Insets insets = TrailencePlugin.getDeviceInsets(windowInsets, this, getApplicationContext());
-          String js =
-            "document.documentElement.style.setProperty('--safe-area-inset-top', '" + insets.top + "px');" +
-              "document.documentElement.style.setProperty('--safe-area-inset-bottom', '" + insets.bottom + "px');" +
-              "document.documentElement.style.setProperty('--safe-area-inset-left', '" + insets.left + "px');" +
-              "document.documentElement.style.setProperty('--safe-area-inset-right', '" + insets.right + "px');";
-          bridge.getWebView().evaluateJavascript(js, null);
-        } catch (Exception e) {
-          Logger.error("Error setting insets", e);
-        }
+      try {
+        Insets insets = TrailencePlugin.getDeviceInsets(windowInsets, this, getApplicationContext());
+        String js =
+          "document.documentElement.style.setProperty('--safe-area-inset-top', '" + insets.top + "px');" +
+            "document.documentElement.style.setProperty('--safe-area-inset-bottom', '" + insets.bottom + "px');" +
+            "document.documentElement.style.setProperty('--safe-area-inset-left', '" + insets.left + "px');" +
+            "document.documentElement.style.setProperty('--safe-area-inset-right', '" + insets.right + "px');";
+        bridge.getWebView().evaluateJavascript(js, null);
+      } catch (Exception e) {
+        Logger.error("Error setting insets", e);
       }
       return WindowInsetsCompat.CONSUMED;
     });

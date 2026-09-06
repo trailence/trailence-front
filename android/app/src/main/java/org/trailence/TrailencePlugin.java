@@ -348,8 +348,6 @@ public class TrailencePlugin extends Plugin {
 
   public static Insets getDeviceInsets(WindowInsetsCompat windowInsets, AppCompatActivity activity, Context ctx) {
     try {
-      if (ctx.getApplicationInfo().targetSdkVersion < 35)
-        return Insets.of(0, 0, 0, 0);
       Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
       float density = activity.getResources().getDisplayMetrics().density;
       int topInset = (int) (insets.top / density);

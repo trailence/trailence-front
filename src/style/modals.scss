@@ -132,6 +132,7 @@ ion-modal, ion-alert {
   --modal-border: 2px solid rgba(var(--ion-color-dark-rgb), 0.1);
   --modal-border-width: 2px;
   --modal-shadow: 0 0 10px 0px rgba(var(--ion-background-color-rgb), 0.66);
+  max-height: calc(100vh - var(--modal-area-margin-height));
 
   > * {
     --ion-safe-area-top: 0px;
