@@ -1,7 +1,7 @@
-import { Track } from 'src/app/model/track';
+import { Track } from '@trailence/model/track';
 import { DataPoint } from './data-point';
-import { ComputedPreferences } from 'src/app/services/preferences/preferences';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { ComputedPreferences } from '@trailence/services/preferences/preferences';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 
 export class EstimatedSpeedDatasetBuilder {
   public static readonly SPEED_ESTIMATION_COLOR = '#C0C040';

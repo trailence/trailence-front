@@ -1,17 +1,17 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { Component, EventEmitter, Injector, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Injector, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { of } from 'rxjs';
-import { Track } from 'src/app/model/track';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { HikingDifficulty, WaySurface, WayType, WayVisibility } from 'src/app/services/map/way';
-import { AbstractComponent } from 'src/app/utils/component-utils';
-import { TrackOsmStatInfo, TrackOsmStats, TrackSection, trackSectionsComparator } from 'src/app/utils/track-computed-data/track-osm-stats';
+import { Track } from '@trailence/model/track';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { HikingDifficulty, WaySurface, WayType, WayVisibility } from '@trailence/services/map/way';
+import { AbstractComponent } from '@trailence/utils/component-utils';
+import { TrackOsmStatInfo, TrackOsmStats, TrackSection, trackSectionsComparator } from '@trailence/utils/track-computed-data/track-osm-stats';
 import { ProgressBarComponent } from '../../progress-bar/progress-bar.component';
 import { IonSpinner } from '@ionic/angular';
-import { I18nPipe } from 'src/app/services/i18n/i18n-string';
-import { TrackPointReference } from 'src/app/utils/track-computed-data/types';
-import { computePercentagesWithoutDecimal } from 'src/app/utils/math-utils';
-import { Console } from 'src/app/utils/console';
+import { I18nPipe } from '@trailence/services/i18n/i18n-string';
+import { TrackPointReference } from '@trailence/utils/track-computed-data/types';
+import { computePercentagesWithoutDecimal } from '@trailence/utils/math-utils';
+import { Console } from '@trailence/utils/console';
 
 type Stat<T> = {value: T | 'unknown' | 'others', percent: number, distance: number, sections: TrackSection[]}
 
@@ -26,6 +26,7 @@ interface Stats {
   selector: 'app-track-osm-stats',
   templateUrl: './track-osm-stats.component.html',
   styleUrl: './track-osm-stats.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [NgTemplateOutlet, NgClass, ProgressBarComponent, IonSpinner, I18nPipe]
 })
 export class TrackOsmStatsComponent extends AbstractComponent {

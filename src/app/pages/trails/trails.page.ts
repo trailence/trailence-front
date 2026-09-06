@@ -1,52 +1,53 @@
-import { Component, Injector, Input, ViewChild } from '@angular/core';
-import { AbstractPage } from 'src/app/utils/component-utils';
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { AuthService } from 'src/app/services/auth/auth.service';
+import { Component, Injector, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { AbstractPage } from '@trailence/utils/component-utils';
+import { TrailCollectionService } from '@trailence/services/database/trail-collection.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
 import { BehaviorSubject, EMPTY, map, of, switchMap, combineLatest, Observable, debounceTime, from, concat } from 'rxjs';
 import { Router } from '@angular/router';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { HeaderComponent } from 'src/app/components/header/header.component';
-import { Trail } from 'src/app/model/trail';
-import { TrailService } from 'src/app/services/database/trail.service';
-import { TrailsAndMapComponent } from 'src/app/components/trails-and-map/trails-and-map.component';
-import { MenuItem } from 'src/app/components/menus/menu-item';
-import { collection$items$ } from 'src/app/utils/rxjs/collection$items';
-import { ShareService } from 'src/app/services/database/share.service';
-import { Share } from 'src/app/model/share';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { HeaderComponent } from '@trailence/components/header/header.component';
+import { Trail } from '@trailence/model/trail';
+import { TrailService } from '@trailence/services/database/trail.service';
+import { TrailsAndMapComponent } from '@trailence/components/trails-and-map/trails-and-map.component';
+import { MenuItem } from '@trailence/components/menus/menu-item';
+import { collection$items$ } from '@trailence/utils/rxjs/collection$items';
+import { ShareService } from '@trailence/services/database/share.service';
+import { Share } from '@trailence/model/share';
 import { List } from 'immutable';
-import { Console } from 'src/app/utils/console';
-import { NetworkService } from 'src/app/services/network/network.service';
-import { AuthResponse } from 'src/app/services/auth/auth-response';
-import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
-import { ModerationService } from 'src/app/services/moderation/moderation.service';
+import { Console } from '@trailence/utils/console';
+import { NetworkService } from '@trailence/services/network/network.service';
+import { AuthResponse } from '@trailence/services/auth/auth-response';
+import { firstTimeout } from '@trailence/utils/rxjs/first-timeout';
+import { ModerationService } from '@trailence/services/moderation/moderation.service';
 import { NavController } from '@ionic/angular';
-import { MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
-import { MySelectionService } from 'src/app/services/database/my-selection.service';
-import { MapLayersService } from 'src/app/services/map/map-layers.service';
-import { TrailCollection } from 'src/app/model/trail-collection';
-import { isPublicationCollection, TrailCollectionType } from 'src/app/model/dto/trail-collection';
-import { BrowserService } from 'src/app/services/browser/browser.service';
+import { MyPublicTrailsService } from '@trailence/services/database/my-public-trails.service';
+import { MySelectionService } from '@trailence/services/database/my-selection.service';
+import { MapLayersService } from '@trailence/services/map/map-layers.service';
+import { TrailCollection } from '@trailence/model/trail-collection';
+import { isPublicationCollection, TrailCollectionType } from '@trailence/model/dto/trail-collection';
+import { BrowserService } from '@trailence/services/browser/browser.service';
 import { AsyncPipe } from '@angular/common';
-import { HttpService } from 'src/app/services/http/http.service';
-import { environment } from 'src/environments/environment';
-import { Arrays } from 'src/app/utils/arrays';
-import { UserProfile } from 'src/app/services/contribution/contribution.service';
-import { ObjectUtils } from 'src/app/utils/object-utils';
-import { AvatarComponent } from 'src/app/components/avatar/avatar.component';
-import { ContributionsBadgesComponent } from 'src/app/components/contributions-badges/contribution-badges.component';
-import { SearchTrailsService } from 'src/app/services/search-trails/search-trails.service';
-import { MapBubble } from 'src/app/components/map/bubble/map-bubble';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
-import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
-import { TranslatedString } from 'src/app/services/i18n/i18n-string';
-import { NULL_UUID } from 'src/app/utils/string-utils';
-import { Filters } from 'src/app/services/preferences/preferences';
+import { HttpService } from '@trailence/services/http/http.service';
+import { environment } from '@env/environment';
+import { Arrays } from '@trailence/utils/arrays';
+import { UserProfile } from '@trailence/services/contribution/contribution.service';
+import { ObjectUtils } from '@trailence/utils/object-utils';
+import { AvatarComponent } from '@trailence/components/avatar/avatar.component';
+import { ContributionsBadgesComponent } from '@trailence/components/contributions-badges/contribution-badges.component';
+import { SearchTrailsService } from '@trailence/services/search-trails/search-trails.service';
+import { MapBubble } from '@trailence/components/map/bubble/map-bubble';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
+import { TrailMenuService } from '@trailence/services/database/trail-menu.service';
+import { FetchSourceService } from '@trailence/services/fetch-source/fetch-source.service';
+import { TranslatedString } from '@trailence/services/i18n/i18n-string';
+import { NULL_UUID } from '@trailence/utils/string-utils';
+import { Filters } from '@trailence/services/preferences/preferences';
 
 @Component({
   selector: 'app-trails-page',
   templateUrl: './trails.page.html',
   styleUrls: ['./trails.page.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     HeaderComponent,
     TrailsAndMapComponent,

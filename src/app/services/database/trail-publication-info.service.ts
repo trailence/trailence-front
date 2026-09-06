@@ -4,13 +4,13 @@ import { TrailLinkService } from './link.service';
 import { TrailService } from './trail.service';
 import { AuthService } from '../auth/auth.service';
 import { BehaviorSubject, combineLatest, map, Observable, of, switchMap } from 'rxjs';
-import { collection$items } from 'src/app/utils/rxjs/collection$items';
+import { collection$items } from '@trailence/utils/rxjs/collection$items';
 import { TrailCollectionService } from './trail-collection.service';
-import { SHARED_OWNER_PREFIX, TrailCollectionType } from 'src/app/model/dto/trail-collection';
-import { TrailLink } from 'src/app/model/dto/trail-link';
-import { TrailCollection } from 'src/app/model/trail-collection';
-import { Trail } from 'src/app/model/trail';
-import { MyPublicTrail } from 'src/app/model/dto/my-public-trail';
+import { SHARED_OWNER_PREFIX, TrailCollectionType } from '@trailence/model/dto/trail-collection';
+import { TrailLink } from '@trailence/model/dto/trail-link';
+import { TrailCollection } from '@trailence/model/trail-collection';
+import { Trail } from '@trailence/model/trail';
+import { MyPublicTrail } from '@trailence/model/dto/my-public-trail';
 
 interface PublicationsData {
   email: string | undefined,

@@ -1,7 +1,7 @@
 import { of } from 'rxjs';
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
 import { AlertController } from '@ionic/angular';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 
 export class SetElevationOnRangeWithStartTool implements TrackEditTool {
 

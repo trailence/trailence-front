@@ -1,7 +1,7 @@
 import { Injector } from '@angular/core';
-import { Trail } from 'src/app/model/trail';
+import { Trail } from '@trailence/model/trail';
 import { TrackService } from '../database/track.service';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { first, of, timeout } from 'rxjs';
 import { Platform } from '@ionic/angular';
 

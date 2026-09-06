@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, NgZone, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { EMPTY, first, Subscription, switchMap, timer } from 'rxjs';
-import { Photo } from 'src/app/model/photo';
+import { Photo } from '@trailence/model/photo';
 import { IonSpinner, IonIcon } from "@ionic/angular";
-import { PhotoService } from 'src/app/services/database/photo.service';
-import { Console } from 'src/app/utils/console';
-import { NetworkService } from 'src/app/services/network/network.service';
-import { ChangesDetection } from 'src/app/utils/angular-helpers';
+import { PhotoService } from '@trailence/services/database/photo.service';
+import { Console } from '@trailence/utils/console';
+import { NetworkService } from '@trailence/services/network/network.service';
+import { ChangesDetection } from '@trailence/utils/angular-helpers';
 import { NgStyle } from '@angular/common';
-import { ObserverHelper } from 'src/app/utils/observer-helper';
+import { ObserverHelper } from '@trailence/utils/observer-helper';
 
 @Component({
     selector: 'app-photo',

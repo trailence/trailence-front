@@ -1,7 +1,7 @@
 import { of } from 'rxjs';
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
-import { TrackUtils } from 'src/app/utils/track-utils';
-import { WayPoint } from 'src/app/model/way-point';
+import { TrackUtils } from '@trailence/utils/track-utils';
+import { WayPoint } from '@trailence/model/way-point';
 
 export class RemoveWayPointTool implements TrackEditTool {
 

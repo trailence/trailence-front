@@ -1,6 +1,6 @@
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
 import { of } from 'rxjs';
-import { removeBreaksMovesOnTrack } from 'src/app/services/track-edition/path-analysis/remove-breaks-moves';
+import { removeBreaksMovesOnTrack } from '@trailence/services/track-edition/path-analysis/remove-breaks-moves';
 
 export class RemoveBreaksMovesTool implements TrackEditTool {
 

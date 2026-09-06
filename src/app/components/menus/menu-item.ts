@@ -1,7 +1,7 @@
 import { Observable, first, forkJoin, map, of, switchMap } from "rxjs";
 import { I18nService } from "../../services/i18n/i18n.service";
 import { ObjectUtils } from "../../utils/object-utils";
-import { IdGenerator } from 'src/app/utils/component-utils';
+import { IdGenerator } from '@trailence/utils/component-utils';
 
 export type Attribute<T> = T | undefined | (() => T | undefined);
 

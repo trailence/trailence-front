@@ -1,10 +1,11 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { FilterNumeric, NumericFilterCustomConfig } from '../filter';
 import { IonRange, IonLabel } from '@ionic/angular';
 
 @Component({
   selector: 'app-filter-numeric-custom',
   templateUrl: './filter-numeric-custom.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonRange, IonLabel
   ]

@@ -1,6 +1,6 @@
 import { of } from 'rxjs';
 import { MapTool, MapToolContext } from './tool.interface';
-import { MapGeolocationService } from 'src/app/services/map/map-geolocation.service';
+import { MapGeolocationService } from '@trailence/services/map/map-geolocation.service';
 
 export class MapShowPositionTool extends MapTool {
 

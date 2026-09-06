@@ -1,7 +1,7 @@
-import { FilterEnum, FilterNumeric, FilterTags } from 'src/app/components/filters/filter';
+import { FilterEnum, FilterNumeric, FilterTags } from '@trailence/components/filters/filter';
 import { LocaleKey } from '../i18n/available-locales';
-import { TrailLoopType } from 'src/app/model/dto/trail-loop-type';
-import { TrailActivity } from 'src/app/model/dto/trail-activity';
+import { TrailLoopType } from '@trailence/model/dto/trail-loop-type';
+import { TrailActivity } from '@trailence/model/dto/trail-activity';
 
 export type DistanceUnit = 'IMPERIAL' | 'METERS';
 export type HourFormat = 'H12' | 'H24';

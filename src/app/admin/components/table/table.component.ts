@@ -1,16 +1,17 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { PageResult } from '../paginator/page-result';
 import { PaginatorComponent } from '../paginator/paginator.component';
 import { TableColumn, TableSettings } from './table-settings';
 import { IonIcon, IonSpinner, IonCheckbox } from '@ionic/angular';
-import { ErrorService } from 'src/app/services/progress/error.service';
-import { I18nPipe } from 'src/app/services/i18n/i18n-string';
+import { ErrorService } from '@trailence/services/progress/error.service';
+import { I18nPipe } from '@trailence/services/i18n/i18n-string';
 import { NgClass, NgStyle, NgTemplateOutlet } from '@angular/common';
 
 @Component({
   selector: 'app-table',
   templateUrl: './table.component.html',
   styleUrl: './table.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     PaginatorComponent,
     I18nPipe,

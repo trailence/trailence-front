@@ -1,16 +1,16 @@
 import { Injector } from '@angular/core';
 import * as L from 'leaflet';
-import { countMapAdditionsOptions, MapAdditionsOptions, MapAdditionsService } from 'src/app/services/map/map-additions.service';
+import { countMapAdditionsOptions, MapAdditionsOptions, MapAdditionsService } from '@trailence/services/map/map-additions.service';
 import { MapTool, MapToolContext } from './tool.interface';
 import { of } from 'rxjs';
 import { ModalController, ToastController } from '@ionic/angular';
-import { MapLayersService } from 'src/app/services/map/map-layers.service';
+import { MapLayersService } from '@trailence/services/map/map-layers.service';
 import { BadgesConfig } from '../../menus/menu-item';
-import { OfflineMapService } from 'src/app/services/map/offline-map.service';
-import { Way, WayPermission } from 'src/app/services/map/way';
-import { POI } from 'src/app/services/map/poi';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { NetworkService } from 'src/app/services/network/network.service';
+import { OfflineMapService } from '@trailence/services/map/offline-map.service';
+import { Way, WayPermission } from '@trailence/services/map/way';
+import { POI } from '@trailence/services/map/poi';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { NetworkService } from '@trailence/services/network/network.service';
 
 export class AdditionsTool extends MapTool {
 

@@ -1,4 +1,4 @@
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 
 export async function convertToJpeg(image: Blob, maxWidth?: number, maxHeight?: number, quality?: number, minWidth?: number, minHeight?: number): Promise<{jpeg: ArrayBuffer, width: number, height: number}> {
   let img: ImageBitmap;

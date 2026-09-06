@@ -1,5 +1,5 @@
 import { Platform } from '@ionic/angular/common';
-import { trailenceAppVersionCode, trailenceAppVersionName } from 'src/app/trailence-version';
+import { trailenceAppVersionCode, trailenceAppVersionName } from '@trailence/trailence-version';
 
 const DEVICE_ID_KEY = "device_id";
 

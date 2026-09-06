@@ -1,11 +1,12 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { IonHeader, IonToolbar, IonContent, IonTitle, IonIcon, IonList, IonItem, IonButton, ModalController } from "@ionic/angular";
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 
 @Component({
     selector: 'app-errors-modal',
     templateUrl: './errors-modal.component.html',
     styleUrls: [],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [IonButton, IonItem, IonList, IonIcon, IonTitle, IonContent, IonToolbar, IonHeader]
 })
 export class ErrorsModalComponent {

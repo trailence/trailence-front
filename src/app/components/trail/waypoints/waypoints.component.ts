@@ -1,21 +1,22 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnDestroy, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
 import { TrailsWaypoints, TrailWaypoints } from '../trail-waypoints';
 import { Subscription } from 'rxjs';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { IonCheckbox, IonSegment, IonSegmentButton, ModalController, AlertController } from '@ionic/angular';
 import { TrackEditToolsComponent } from '../../track-edit-tools/track-edit-tools.component';
-import { ChangesDetection } from 'src/app/utils/angular-helpers';
+import { ChangesDetection } from '@trailence/utils/angular-helpers';
 import { NgClass } from '@angular/common';
-import { TrackWayPoint } from 'src/app/utils/track-waypoints/track-waypoint';
+import { TrackWayPoint } from '@trailence/utils/track-waypoints/track-waypoint';
 import { WayPointComponent } from './waypoint.component';
-import { WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
-import { TrackPointReference } from 'src/app/utils/track-computed-data/types';
-import { Track } from 'src/app/model/track';
+import { WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
+import { TrackPointReference } from '@trailence/utils/track-computed-data/types';
+import { Track } from '@trailence/model/track';
 
 @Component({
   selector: 'app-trail-waypoints',
   templateUrl: './waypoints.component.html',
   styleUrl: './waypoints.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonCheckbox, IonSegment, IonSegmentButton,
     NgClass,

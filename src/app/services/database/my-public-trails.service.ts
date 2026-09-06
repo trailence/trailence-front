@@ -2,12 +2,12 @@ import { Injectable } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import { NetworkService } from '../network/network.service';
 import { BehaviorSubject, concat, debounceTime, EMPTY, filter, switchMap, tap, timer } from 'rxjs';
-import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
 import { HttpService } from '../http/http.service';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 import { CommonDatabaseService } from './common-database.service';
-import { Console } from 'src/app/utils/console';
-import { MyPublicTrail } from 'src/app/model/dto/my-public-trail';
+import { Console } from '@trailence/utils/console';
+import { MyPublicTrail } from '@trailence/model/dto/my-public-trail';
 
 @Injectable({providedIn: 'root'})
 export class MyPublicTrailsService {

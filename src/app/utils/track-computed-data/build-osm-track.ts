@@ -1,6 +1,6 @@
-import { Track } from 'src/app/model/track';
+import { Track } from '@trailence/model/track';
 import { OsmWaysTrackPoint } from './match-osm-ways';
-import { PointDescriptor } from 'src/app/model/point-descriptor';
+import { PointDescriptor } from '@trailence/model/point-descriptor';
 import { TrackPointReference } from './types';
 import { distance } from '../latlng';
 

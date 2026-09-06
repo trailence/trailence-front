@@ -1,13 +1,14 @@
-import { Component, ContentChild, Input, OnDestroy } from '@angular/core';
+import { Component, ContentChild, Input, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { IonInput, IonIcon } from '@ionic/angular';
 import { Subscription } from 'rxjs';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { COMPLEXITY_LEVELS, MIN_COMPLEXITY, PasswordUtils } from 'src/app/utils/password-utils';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { COMPLEXITY_LEVELS, MIN_COMPLEXITY, PasswordUtils } from '@trailence/utils/password-utils';
 
 @Component({
   selector: 'app-input-password',
   templateUrl: './input-password.component.html',
   styleUrl: './input-password.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonIcon,
   ]

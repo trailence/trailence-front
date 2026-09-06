@@ -1,18 +1,18 @@
 import { Injectable, Injector } from '@angular/core';
-import { APK_PATH, AppDownload } from 'src/app/services/update/common';
+import { APK_PATH, AppDownload } from '@trailence/services/update/common';
 import { Platform, AlertController, ModalController } from '@ionic/angular';
 import { BehaviorSubject, catchError, first, map, Observable, of, switchMap } from 'rxjs';
-import { HttpService } from 'src/app/services/http/http.service';
-import { environment } from 'src/environments/environment';
-import { trailenceAppVersionCode } from 'src/app/trailence-version';
-import { NetworkService } from 'src/app/services/network/network.service';
+import { HttpService } from '@trailence/services/http/http.service';
+import { environment } from '@env/environment';
+import { trailenceAppVersionCode } from '@trailence/trailence-version';
+import { NetworkService } from '@trailence/services/network/network.service';
 import Trailence from '../trailence.service';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { ProgressService } from 'src/app/services/progress/progress.service';
-import { ErrorService } from 'src/app/services/progress/error.service';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
-import { Console } from 'src/app/utils/console';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { ProgressService } from '@trailence/services/progress/progress.service';
+import { ErrorService } from '@trailence/services/progress/error.service';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
+import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
+import { Console } from '@trailence/utils/console';
 
 @Injectable({providedIn: 'root'})
 export class UpdateService {
@@ -68,7 +68,7 @@ export class UpdateService {
   }
 
   private async displayUpdate() {
-    const module = await import('src/app/components/updates/release-notes-popup/release-notes-popup.component');
+    const module = await import('@trailence/components/updates/release-notes-popup/release-notes-popup.component');
     const modal = await this.injector.get(ModalController).create({
       component: module.ReleaseNotesPopup,
       componentProps: { sinceVersion: trailenceAppVersionCode, type: 'available' },

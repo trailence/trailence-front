@@ -1,5 +1,5 @@
 import { Injectable, Injector, NgZone, OnDestroy } from '@angular/core';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 
 const STARTUP_GRACE_PERIOD = 60000;
 const CLEANUP_DELAY = 10000;
@@ -66,7 +66,7 @@ export class CleanupService implements OnDestroy {
       if (!this.timeout) {
         this.nextTimeout = Date.now() + STARTUP_GRACE_PERIOD;
         this.ngZone.runOutsideAngular(() => this.timeout = setTimeout(() => {
-          import('src/app/services/trace-recorder/trace-recorder.service')
+          import('@trailence/services/trace-recorder/trace-recorder.service')
           .then(module => {
             const traceService = this.injector.get(module.TraceRecorderService);
             this.isRecording = () => traceService.recording;

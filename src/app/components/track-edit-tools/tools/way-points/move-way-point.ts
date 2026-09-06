@@ -1,8 +1,8 @@
 import { filter, Subscription, take } from 'rxjs';
 import { InteractiveToolContext, TrackEditTool, TrackEditToolContext } from '../tool.interface';
-import { TrackUtils } from 'src/app/utils/track-utils';
-import { MenuItem } from 'src/app/components/menus/menu-item';
-import { PointReference } from 'src/app/model/point-reference';
+import { TrackUtils } from '@trailence/utils/track-utils';
+import { MenuItem } from '@trailence/components/menus/menu-item';
+import { PointReference } from '@trailence/model/point-reference';
 
 export class MoveWayPointTool implements TrackEditTool {
 

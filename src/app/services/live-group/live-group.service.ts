@@ -2,18 +2,18 @@ import { Injectable, Injector } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { NetworkService } from '../network/network.service';
 import { BehaviorSubject, catchError, combineLatest, debounceTime, defaultIfEmpty, EMPTY, filter, interval, map, Observable, Subscription, switchMap, tap } from 'rxjs';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 import { GeolocationService } from '../geolocation/geolocation.service';
 import { AuthService } from '../auth/auth.service';
 import { deviceId } from '../auth/device-info';
 import { I18nService } from '../i18n/i18n.service';
-import { PointDto } from 'src/app/model/dto/point';
-import { POSITION_FACTOR } from 'src/app/model/point-dto-mapper';
+import { PointDto } from '@trailence/model/dto/point';
+import { POSITION_FACTOR } from '@trailence/model/point-dto-mapper';
 import { Router } from '@angular/router';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 import { GeolocationState } from '../geolocation/geolocation.interface';
 import { AlertController } from '@ionic/angular';
-import { LiveGroupDto } from 'src/app/model/dto/live-group';
+import { LiveGroupDto } from '@trailence/model/dto/live-group';
 
 const LATEST_GROUPS_KEY_PREFIX = 'trailence.latest_live_groups.';
 

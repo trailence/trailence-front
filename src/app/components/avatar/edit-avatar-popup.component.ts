@@ -1,15 +1,15 @@
-import { ChangeDetectorRef, Component, Injector, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ModalController, IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonCheckbox, IonIcon } from '@ionic/angular';
 import { map, of, switchMap } from 'rxjs';
-import { AVATAR_MAX_SIZE, AVATAR_MIN_SIZE, AvatarService } from 'src/app/services/avatar/avatar.service';
-import { FileService } from 'src/app/services/file/file.service';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
+import { AVATAR_MAX_SIZE, AVATAR_MIN_SIZE, AvatarService } from '@trailence/services/avatar/avatar.service';
+import { FileService } from '@trailence/services/file/file.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { Subscriptions } from '@trailence/utils/rxjs/subscription-utils';
 import { PhotoEditorComponent } from '../photo-editor/photo-editor.component';
-import { BinaryContent } from 'src/app/utils/binary-content';
-import { Console } from 'src/app/utils/console';
-import { ErrorService } from 'src/app/services/progress/error.service';
-import { WorkerService } from 'src/app/worker/web-app';
+import { BinaryContent } from '@trailence/utils/binary-content';
+import { Console } from '@trailence/utils/console';
+import { ErrorService } from '@trailence/services/progress/error.service';
+import { WorkerService } from '@trailence/worker/web-app';
 
 export async function openEditAvatarPopup(injector: Injector) {
   const modal = await injector.get(ModalController).create({
@@ -21,6 +21,7 @@ export async function openEditAvatarPopup(injector: Injector) {
 @Component({
   templateUrl: './edit-avatar-popup.component.html',
   styleUrl: './edit-avatar-popup.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonCheckbox, IonIcon,
     PhotoEditorComponent,

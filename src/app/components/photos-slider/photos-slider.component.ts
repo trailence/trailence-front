@@ -1,9 +1,9 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
-import { Photo } from 'src/app/model/photo';
+import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Photo } from '@trailence/model/photo';
 import { PhotoComponent } from '../photo/photo.component';
-import { BrowserService } from 'src/app/services/browser/browser.service';
+import { BrowserService } from '@trailence/services/browser/browser.service';
 import { IonButton, IonIcon, GestureController, Gesture, GestureDetail } from "@ionic/angular";
-import { IdGenerator } from 'src/app/utils/component-utils';
+import { IdGenerator } from '@trailence/utils/component-utils';
 import { Subscription } from 'rxjs';
 import { NgClass, NgStyle } from '@angular/common';
 
@@ -11,6 +11,7 @@ import { NgClass, NgStyle } from '@angular/common';
     selector: 'app-photos-slider',
     templateUrl: './photos-slider.component.html',
     styleUrls: ['./photos-slider.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
       IonIcon, IonButton,
       NgStyle, NgClass,

@@ -1,6 +1,6 @@
-import { Segment } from 'src/app/model/segment';
+import { Segment } from '@trailence/model/segment';
 import { ImprovmentRecordingState } from '../track-edition.service';
-import { Track } from 'src/app/model/track';
+import { Track } from '@trailence/model/track';
 
 export function removeUnprobablePointsOnTrack(track: Track): void {
   for (const segment of track.segments) {

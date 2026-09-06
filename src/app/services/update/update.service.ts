@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Platform } from '@ionic/angular/common';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 import { AppDownload } from './common';
 import { PreferencesService } from '../preferences/preferences.service';
 import { BehaviorSubject } from 'rxjs';

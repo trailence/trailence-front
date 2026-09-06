@@ -1,6 +1,6 @@
 import { of } from 'rxjs';
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
-import { TrackUtils } from 'src/app/utils/track-utils';
+import { TrackUtils } from '@trailence/utils/track-utils';
 
 export class RemoveBeforeSelectedPointTool implements TrackEditTool {
 

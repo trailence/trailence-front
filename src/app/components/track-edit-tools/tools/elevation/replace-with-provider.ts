@@ -1,5 +1,5 @@
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
-import { GeoService } from 'src/app/services/geolocation/geo.service';
+import { GeoService } from '@trailence/services/geolocation/geo.service';
 
 export class ReplaceElevationWithProvider implements TrackEditTool {
 

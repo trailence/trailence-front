@@ -1,12 +1,12 @@
 import { EnvironmentInjector, Injector } from '@angular/core';
-import { Track } from 'src/app/model/track';
-import { Trail } from 'src/app/model/trail';
-import { AssetsService } from 'src/app/services/assets/assets.service';
-import { TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { MapLayer } from 'src/app/services/map/map-layers.service';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
+import { Track } from '@trailence/model/track';
+import { Trail } from '@trailence/model/trail';
+import { AssetsService } from '@trailence/services/assets/assets.service';
+import { TrailInfo } from '@trailence/services/fetch-source/fetch-source.interfaces';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { MapLayer } from '@trailence/services/map/map-layers.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
 
 export interface PageLayout {
   width: number;

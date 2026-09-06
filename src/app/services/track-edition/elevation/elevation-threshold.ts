@@ -1,7 +1,7 @@
-import { PointDescriptor } from 'src/app/model/point-descriptor';
-import { Segment } from 'src/app/model/segment';
-import { Track } from 'src/app/model/track';
-import { TrackUtils } from 'src/app/utils/track-utils';
+import { PointDescriptor } from '@trailence/model/point-descriptor';
+import { Segment } from '@trailence/model/segment';
+import { Track } from '@trailence/model/track';
+import { TrackUtils } from '@trailence/utils/track-utils';
 import * as L from 'leaflet';
 
 export function applyElevationThresholdToTrack(track: Track, threshold: number, maxDistance: number): void {

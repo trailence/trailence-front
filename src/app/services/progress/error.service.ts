@@ -4,7 +4,7 @@ import { I18nService } from '../i18n/i18n.service';
 import { CompositeI18nString, TranslatedString } from '../i18n/i18n-string';
 import { ApiError } from '../http/api-error';
 import { AuthService } from '../auth/auth.service';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 
 @Injectable({providedIn: 'root'})
 export class ErrorService {

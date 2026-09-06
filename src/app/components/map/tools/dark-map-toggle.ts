@@ -1,4 +1,4 @@
-import { MapLayersService } from 'src/app/services/map/map-layers.service';
+import { MapLayersService } from '@trailence/services/map/map-layers.service';
 import { MapTool, MapToolContext } from './tool.interface';
 import { of } from 'rxjs';
 

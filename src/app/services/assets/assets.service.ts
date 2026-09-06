@@ -2,9 +2,9 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, NgZone } from "@angular/core";
 import { addIcons } from 'ionicons';
 import { firstValueFrom, Observable, Subscriber } from "rxjs";
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 import { ICONS } from './icons';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 
 const ICONS_VERSION = '12';
 const iconsPath = '/icons.' + ICONS_VERSION + '.svg';

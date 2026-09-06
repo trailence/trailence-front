@@ -1,8 +1,8 @@
 import { Injectable, SecurityContext } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { IdGenerator } from 'src/app/utils/component-utils';
-import { Console } from 'src/app/utils/console';
-import { XmlUtils } from 'src/app/utils/xml-utils';
+import { IdGenerator } from '@trailence/utils/component-utils';
+import { Console } from '@trailence/utils/console';
+import { XmlUtils } from '@trailence/utils/xml-utils';
 
 @Injectable({providedIn: 'root'})
 export class OsmcSymbolService {

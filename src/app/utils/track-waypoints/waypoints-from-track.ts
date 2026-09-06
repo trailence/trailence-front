@@ -1,9 +1,9 @@
-import { Track } from 'src/app/model/track';
+import { Track } from '@trailence/model/track';
 import { TrackWayPoint, TrackWayPointElement } from './track-waypoint';
-import { WayPoint } from 'src/app/model/way-point';
+import { WayPoint } from '@trailence/model/way-point';
 import { Arrays } from '../arrays';
-import { PointDescriptor } from 'src/app/model/point-descriptor';
-import { Point } from 'src/app/model/point';
+import { PointDescriptor } from '@trailence/model/point-descriptor';
+import { Point } from '@trailence/model/point';
 import { TrackPointReference } from '../track-computed-data/types';
 
 export const MAX_DEPARTURE_ARRIVAL_DISTANCE = 25;

@@ -23,7 +23,7 @@
   </div>
   @if (!collection || shared) {
     <div class="shared-section">
-      @let anonymous = authService.auth?.isAnonymous;
+      @let anonymous = $safeNavigationMigration(authService.auth?.isAnonymous);
       <ion-toggle [checked]="shared" [disabled]="!!collection || anonymous" (ionChange)="setShared($event.detail.checked)">{{ i18n.texts.pages.collection_form.shared.toggle_label }}</ion-toggle>
       @if (anonymous) {
         <div class="explanation">

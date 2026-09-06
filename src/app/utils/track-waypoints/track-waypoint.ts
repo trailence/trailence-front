@@ -1,6 +1,6 @@
-import { Track } from 'src/app/model/track';
-import { WayPoint } from 'src/app/model/way-point';
-import { Point } from 'src/app/model/point';
+import { Track } from '@trailence/model/track';
+import { WayPoint } from '@trailence/model/way-point';
+import { Point } from '@trailence/model/point';
 import { IdGenerator } from '../component-utils';
 import { TrackPointReference } from '../track-computed-data/types';
 

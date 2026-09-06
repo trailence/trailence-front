@@ -1,9 +1,9 @@
 import { Observable, of } from 'rxjs';
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
-import { TrackUtils } from 'src/app/utils/track-utils';
+import { TrackUtils } from '@trailence/utils/track-utils';
 import { ModalController } from '@ionic/angular';
-import { WayPoint } from 'src/app/model/way-point';
-import { Track } from 'src/app/model/track';
+import { WayPoint } from '@trailence/model/way-point';
+import { Track } from '@trailence/model/track';
 
 export class EditWayPointTool implements TrackEditTool {
 

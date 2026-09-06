@@ -1,13 +1,14 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ReleaseNotesComponent } from '../release-notes/release-notes.component';
 import { IonHeader, IonButton, IonToolbar, IonTitle, IonIcon, IonLabel, IonFooter, IonButtons, ModalController } from "@ionic/angular";
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { UpdateService } from 'src/app/services/update/update.service';
-import { trailenceAppVersionName } from 'src/app/trailence-version';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { UpdateService } from '@trailence/services/update/update.service';
+import { trailenceAppVersionName } from '@trailence/trailence-version';
 
 @Component({
   templateUrl: './release-notes-popup.component.html',
   styleUrl: './release-notes-popup.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonButtons, IonFooter, IonLabel, IonIcon, IonTitle, IonToolbar, IonButton, IonHeader,
     ReleaseNotesComponent,

@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { BehaviorSubject, filter, from, map, Observable, switchMap, tap } from 'rxjs';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { DynamicCacheObservables } from 'src/app/utils/rxjs/dynamic-cache-observable';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
+import { DynamicCacheObservables } from '@trailence/utils/rxjs/dynamic-cache-observable';
 import { NetworkService } from '../network/network.service';
 import { AuthService } from '../auth/auth.service';
 

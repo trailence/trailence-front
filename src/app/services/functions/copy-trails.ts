@@ -1,25 +1,25 @@
 import { Injector } from '@angular/core';
-import { Trail } from 'src/app/model/trail';
-import { TrailCollection } from 'src/app/model/trail-collection';
+import { Trail } from '@trailence/model/trail';
+import { TrailCollection } from '@trailence/model/trail-collection';
 import { I18nService } from '../i18n/i18n.service';
 import { Progress, ProgressService } from '../progress/progress.service';
 import { TrackService } from '../database/track.service';
 import { TagService } from '../database/tag.service';
 import { PhotoService } from '../database/photo.service';
 import { combineLatest, first, from, map, Observable, of, switchMap, tap, zip } from 'rxjs';
-import { Photo } from 'src/app/model/photo';
+import { Photo } from '@trailence/model/photo';
 import { TrailService } from '../database/trail.service';
 import { Router } from '@angular/router';
-import { Arrays } from 'src/app/utils/arrays';
+import { Arrays } from '@trailence/utils/arrays';
 import { ErrorService } from '../progress/error.service';
-import { IdGenerator } from 'src/app/utils/component-utils';
+import { IdGenerator } from '@trailence/utils/component-utils';
 import { TrailCollectionService } from '../database/trail-collection.service';
 import { DependenciesService } from '../database/dependencies.service';
 import { AlertController, ModalController } from '@ionic/angular';
-import { TrailDto } from 'src/app/model/dto/trail';
+import { TrailDto } from '@trailence/model/dto/trail';
 import { ModerationService } from '../moderation/moderation.service';
 import { StoreService } from '../database/store/store.service';
-import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { TrailCollectionType } from '@trailence/model/dto/trail-collection';
 
 export function copyTrailsTo( // NOSONAR
   injector: Injector, trails: Trail[], toCollection: TrailCollection,

@@ -1,4 +1,4 @@
-import { ErrorService } from 'src/app/services/progress/error.service';
+import { ErrorService } from '@trailence/services/progress/error.service';
 
 export function provideErrorService(logToConsole: boolean = false) {
   return {

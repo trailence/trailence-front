@@ -1,5 +1,5 @@
 import { MapTool, MapToolContext } from './tool.interface';
-import { MapAdditionsService } from 'src/app/services/map/map-additions.service';
+import { MapAdditionsService } from '@trailence/services/map/map-additions.service';
 import { of } from 'rxjs';
 
 export class GoBackTool extends MapTool {

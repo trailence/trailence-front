@@ -1,21 +1,22 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
 import { IonInput, IonTextarea, IonButton, IonSpinner, IonIcon, AlertController } from "@ionic/angular";
-import { ModerationService } from 'src/app/services/moderation/moderation.service';
-import { Trail } from 'src/app/model/trail';
+import { ModerationService } from '@trailence/services/moderation/moderation.service';
+import { Trail } from '@trailence/model/trail';
 import { FormsModule } from '@angular/forms';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { Console } from 'src/app/utils/console';
-import { Track } from 'src/app/model/track';
-import { TrailService } from 'src/app/services/database/trail.service';
-import { ErrorService } from 'src/app/services/progress/error.service';
-import { AvailableLocales } from 'src/app/services/i18n/available-locales';
-import { WayPoint } from 'src/app/model/way-point';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { Console } from '@trailence/utils/console';
+import { Track } from '@trailence/model/track';
+import { TrailService } from '@trailence/services/database/trail.service';
+import { ErrorService } from '@trailence/services/progress/error.service';
+import { AvailableLocales } from '@trailence/services/i18n/available-locales';
+import { WayPoint } from '@trailence/model/way-point';
 import { Subscription, timer } from 'rxjs';
 
 @Component({
   selector: 'app-moderation-translations',
   templateUrl: './moderation-translations.component.html',
   styleUrl: './moderation-translations.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonSpinner, IonTextarea, IonInput, IonIcon,
     FormsModule,

@@ -1,7 +1,7 @@
-import { Point } from 'src/app/model/point';
-import { Segment } from 'src/app/model/segment';
-import { Track } from 'src/app/model/track';
-import { TrackUtils } from 'src/app/utils/track-utils';
+import { Point } from '@trailence/model/point';
+import { Segment } from '@trailence/model/segment';
+import { Track } from '@trailence/model/track';
+import { TrackUtils } from '@trailence/utils/track-utils';
 
 export function adjustUnprobableElevationToTrackBasedOnGrade(track: Track): void {
   for (const segment of track.segments)

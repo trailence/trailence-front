@@ -1,12 +1,13 @@
 import { NgStyle, NgTemplateOutlet } from '@angular/common';
-import { Component, Input } from '@angular/core';
-import { UserQuotas } from 'src/app/services/auth/user-quotas';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { UserQuotas } from '@trailence/services/auth/user-quotas';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 
 @Component({
   selector: 'app-user-quotas',
   templateUrl: './user-quotas.component.html',
   styleUrl: './user-quotas.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     NgTemplateOutlet,
     NgStyle,

@@ -1,19 +1,20 @@
-import { Component } from '@angular/core';
-import { HttpService } from 'src/app/services/http/http.service';
-import { environment } from 'src/environments/environment';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { HttpService } from '@trailence/services/http/http.service';
+import { environment } from '@env/environment';
 import { TableComponent } from '../../components/table/table.component';
 import { PageRequest } from '../../components/paginator/page-request';
 import { PageResult } from '../../components/paginator/page-result';
 import { HorizontalAlignment, TableColumn, TableSettings } from '../../components/table/table-settings';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { UserDto } from '../../model/user';
 import { ModalController, IonSegment, IonSegmentButton } from '@ionic/angular';
-import { StringUtils } from 'src/app/utils/string-utils';
+import { StringUtils } from '@trailence/utils/string-utils';
 
 @Component({
   selector: 'app-admin-users-page',
   templateUrl: './users.page.html',
   styleUrl: './users.page.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     TableComponent,
     IonSegment, IonSegmentButton,

@@ -1,14 +1,14 @@
-import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { Photo } from 'src/app/model/photo';
+import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Photo } from '@trailence/model/photo';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonFooter, IonButtons, ModalController, IonRange } from "@ionic/angular";
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { MenuItem } from '../menus/menu-item';
-import { PhotoService } from 'src/app/services/database/photo.service';
+import { PhotoService } from '@trailence/services/database/photo.service';
 import { first, Observable, of, Subscription } from 'rxjs';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
 import { RangeComponent } from '../range/range.component';
-import { BrowserService } from 'src/app/services/browser/browser.service';
+import { BrowserService } from '@trailence/services/browser/browser.service';
 import { NgStyle } from '@angular/common';
 
 export async function openEditor(injector: Injector, photo: Photo) {
@@ -30,6 +30,7 @@ export async function openEditor(injector: Injector, photo: Photo) {
   selector: 'app-photo-editor',
   templateUrl: './photo-editor.component.html',
   styleUrl: './photo-editor.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonButtons, IonFooter, IonButton, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, IonRange,
     ToolbarComponent,

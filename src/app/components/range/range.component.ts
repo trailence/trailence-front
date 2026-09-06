@@ -1,5 +1,5 @@
 import { NgStyle } from '@angular/common';
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { GestureController, Gesture, GestureDetail } from '@ionic/angular';
 
 export interface RangeValue {
@@ -11,6 +11,7 @@ export interface RangeValue {
   selector: 'app-range',
   templateUrl: './range.component.html',
   styleUrl: './range.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     NgStyle,
   ]

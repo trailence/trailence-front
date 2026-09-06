@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, filter, first, map, Observable, of } from 'rxjs';
 import { HttpService } from '../http/http.service';
-import { environment } from 'src/environments/environment';
-import { IdGenerator } from 'src/app/utils/component-utils';
-import { Console } from 'src/app/utils/console';
+import { environment } from '@env/environment';
+import { IdGenerator } from '@trailence/utils/component-utils';
+import { Console } from '@trailence/utils/console';
 
 interface ConfigFromServer {
   provider: string;

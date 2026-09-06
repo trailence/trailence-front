@@ -2,7 +2,7 @@ import { GraphPointReference } from '../trail-graph/graph-events';
 import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
 import { MapComponent } from '../map/map.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
-import { PointReference } from 'src/app/model/point-reference';
+import { PointReference } from '@trailence/model/point-reference';
 
 export class TrailHoverCursor {
 

@@ -3,13 +3,13 @@ import { BehaviorSubject, catchError, EMPTY, firstValueFrom, from, map, Observab
 import { CacheService, TimeoutCacheDb } from '../cache/cache.service';
 import { HttpService } from '../http/http.service';
 import { AuthService } from '../auth/auth.service';
-import { environment } from 'src/environments/environment';
-import { Console } from 'src/app/utils/console';
+import { environment } from '@env/environment';
+import { Console } from '@trailence/utils/console';
 import { NetworkService } from '../network/network.service';
-import { PendingRequests } from 'src/app/utils/pending-requests';
+import { PendingRequests } from '@trailence/utils/pending-requests';
 import { ApiError } from '../http/api-error';
 import { ErrorService } from '../progress/error.service';
-import { AvatarDto } from 'src/app/model/dto/avatar';
+import { AvatarDto } from '@trailence/model/dto/avatar';
 
 export const AVATAR_MIN_SIZE = 48;
 export const AVATAR_MAX_SIZE = 128;

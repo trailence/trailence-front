@@ -1,6 +1,6 @@
-import { Console } from 'src/app/utils/console';
-import { convertDMSToDD } from 'src/app/utils/coordinates-parser';
-import { ImageInfo, ImageUtils } from 'src/app/utils/image-utils';
+import { Console } from '@trailence/utils/console';
+import { convertDMSToDD } from '@trailence/utils/coordinates-parser';
+import { ImageInfo, ImageUtils } from '@trailence/utils/image-utils';
 
 export function extractInfos(image: Uint8Array): ImageInfo | undefined {
   if (ImageUtils.isJpeg(image)) {

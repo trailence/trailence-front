@@ -1,19 +1,19 @@
 import { ChangeDetectorRef, Component, Injectable, Injector, Input } from '@angular/core';
-import Trailence from 'src/app/services/trailence.service';
-import { Console } from 'src/app/utils/console';
-import { AuthService } from 'src/app/services/auth/auth.service';
+import Trailence from '@trailence/services/trailence.service';
+import { Console } from '@trailence/utils/console';
+import { AuthService } from '@trailence/services/auth/auth.service';
 import { first } from 'rxjs';
 import { IonHeader, IonContent, IonToolbar, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, ModalController, IonRadio, IonRadioGroup, Platform, NavController, AlertController } from "@ionic/angular";
 import { Router } from '@angular/router';
-import { ErrorService } from 'src/app/services/progress/error.service';
-import { TrailCollection } from 'src/app/model/trail-collection';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { ProgressService } from 'src/app/services/progress/progress.service';
-import { TranslatedString } from 'src/app/services/i18n/i18n-string';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
-import { TrailSourceType } from 'src/app/model/dto/trail';
+import { ErrorService } from '@trailence/services/progress/error.service';
+import { TrailCollection } from '@trailence/model/trail-collection';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { TrailCollectionService } from '@trailence/services/database/trail-collection.service';
+import { ProgressService } from '@trailence/services/progress/progress.service';
+import { TranslatedString } from '@trailence/services/i18n/i18n-string';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
+import { TrailCollectionType } from '@trailence/model/dto/trail-collection';
+import { TrailSourceType } from '@trailence/model/dto/trail';
 import { Keyboard } from '@capacitor/keyboard';
 
 @Injectable({providedIn: 'root'})
@@ -65,7 +65,7 @@ export class PlatformService {
               text: this.i18n.texts.buttons.yes,
               role: 'success',
               handler: () => {
-                import('src/app/services/trailence.service').then(t => t.default.exitApp({}));
+                import('@trailence/services/trailence.service').then(t => t.default.exitApp({}));
               }
             }, {
               text: this.i18n.texts.buttons.no,
@@ -155,7 +155,7 @@ export class PlatformService {
           onDone: (collection: TrailCollection) => {
             const i18n = this.injector.get(I18nService);
             const progress = this.injector.get(ProgressService).create(i18n.texts.tools.importing, 1);
-            import('src/app/services/functions/import')
+            import('@trailence/services/functions/import')
             .then(importer => {
               Promise.all(importer.importGpx(this.injector, buffer, collection.getContentOwner(), collection.uuid, undefined, TrailSourceType.FILE_IMPORT, filename, Date.now()).map(i => i.allDone))
               .then(imported => {

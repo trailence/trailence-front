@@ -1,19 +1,20 @@
-import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { IonSearchbar, IonPopover, IonList, IonItem, IonLabel, IonSpinner } from "@ionic/angular";
 import { BehaviorSubject, catchError, debounceTime, filter, map, of, switchMap, tap } from 'rxjs';
-import { GeoService } from 'src/app/services/geolocation/geo.service';
-import { Place } from 'src/app/services/geolocation/place';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { GeoService } from '@trailence/services/geolocation/geo.service';
+import { Place } from '@trailence/services/geolocation/place';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { IonSearchbarCustomEvent, SearchbarChangeEventDetail } from '@ionic/core';
-import { IdGenerator } from 'src/app/utils/component-utils';
-import { ErrorService } from 'src/app/services/progress/error.service';
-import { Console } from 'src/app/utils/console';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { IdGenerator } from '@trailence/utils/component-utils';
+import { ErrorService } from '@trailence/services/progress/error.service';
+import { Console } from '@trailence/utils/console';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 
 @Component({
     selector: 'app-search-place',
     templateUrl: './search-place.component.html',
     styleUrls: ['./search-place.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
       IonSpinner, IonLabel, IonItem, IonList, IonPopover, IonSearchbar,
     ]

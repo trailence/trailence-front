@@ -1,6 +1,6 @@
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
-import { copyPoint, PointDescriptor } from 'src/app/model/point-descriptor';
-import { TrackUtils } from 'src/app/utils/track-utils';
+import { copyPoint, PointDescriptor } from '@trailence/model/point-descriptor';
+import { TrackUtils } from '@trailence/utils/track-utils';
 import { of } from 'rxjs';
 
 export class LinkToNextSegment implements TrackEditTool {

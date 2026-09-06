@@ -1,40 +1,41 @@
-import { Component, Injector, ViewChild } from '@angular/core';
+import { Component, Injector, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { combineLatest, debounceTime, first, map, Observable, of } from 'rxjs';
-import { HeaderComponent } from 'src/app/components/header/header.component';
-import { MapState } from 'src/app/components/map/map-state';
-import { MapComponent } from 'src/app/components/map/map.component';
-import { MapTrack } from 'src/app/components/map/track/map-track';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { AbstractPage } from 'src/app/utils/component-utils';
+import { HeaderComponent } from '@trailence/components/header/header.component';
+import { MapState } from '@trailence/components/map/map-state';
+import { MapComponent } from '@trailence/components/map/map.component';
+import { MapTrack } from '@trailence/components/map/track/map-track';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { AbstractPage } from '@trailence/utils/component-utils';
 import { IonButton, IonIcon, IonToggle, IonLabel, IonModal, IonHeader, IonToolbar, IonTitle, IonContent, IonFooter, IonButtons,
   IonInput, IonSelect, IonSelectOption, ModalController, IonSpinner, AlertController } from "@ionic/angular";
-import { Track } from 'src/app/model/track';
-import { MapTrackPointReference } from 'src/app/components/map/track/map-track-point-reference';
-import { SearchPlaceComponent } from 'src/app/components/search-place/search-place.component';
-import { Place } from 'src/app/services/geolocation/place';
+import { Track } from '@trailence/model/track';
+import { MapTrackPointReference } from '@trailence/components/map/track/map-track-point-reference';
+import { SearchPlaceComponent } from '@trailence/components/search-place/search-place.component';
+import { Place } from '@trailence/services/geolocation/place';
 import { FormsModule } from '@angular/forms';
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { TrailCollection } from 'src/app/model/trail-collection';
+import { TrailCollectionService } from '@trailence/services/database/trail-collection.service';
+import { TrailCollection } from '@trailence/model/trail-collection';
 import { Router } from '@angular/router';
-import { TrailGraphComponent } from 'src/app/components/trail-graph/trail-graph.component';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { TrailOverviewCondensedComponent } from 'src/app/components/trail-overview/condensed/trail-overview-condensed.component';
+import { TrailGraphComponent } from '@trailence/components/trail-graph/trail-graph.component';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
+import { TrailOverviewCondensedComponent } from '@trailence/components/trail-overview/condensed/trail-overview-condensed.component';
 import { TrackBuilder, WAY_MAPTRACK_FORBIDDEN_COLOR, WAY_MAPTRACK_PERMISSIVE_COLOR } from './track-builder';
 import { Trails } from './trails';
-import { TrailHoverCursor } from 'src/app/components/trail/hover-cursor';
-import { GraphPointReference } from 'src/app/components/trail-graph/graph-events';
-import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
-import { MenuItem } from 'src/app/components/menus/menu-item';
-import { ToolbarComponent } from 'src/app/components/menus/toolbar/toolbar.component';
-import { NetworkService } from 'src/app/services/network/network.service';
+import { TrailHoverCursor } from '@trailence/components/trail/hover-cursor';
+import { GraphPointReference } from '@trailence/components/trail-graph/graph-events';
+import { TrailCollectionType } from '@trailence/model/dto/trail-collection';
+import { MenuItem } from '@trailence/components/menus/menu-item';
+import { ToolbarComponent } from '@trailence/components/menus/toolbar/toolbar.component';
+import { NetworkService } from '@trailence/services/network/network.service';
 import { AsyncPipe, NgClass, NgStyle } from '@angular/common';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { BrowserService } from 'src/app/services/browser/browser.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { BrowserService } from '@trailence/services/browser/browser.service';
 
 @Component({
     selector: 'app-trail-planner',
     templateUrl: './trail-planner.page.html',
     styleUrls: ['./trail-planner.page.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
       IonSpinner, IonSelect, IonSelectOption, IonInput, IonButtons, IonFooter, IonContent, IonTitle, IonToolbar, IonHeader,
       IonModal, IonLabel, IonToggle, IonIcon, IonButton,

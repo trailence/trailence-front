@@ -1,14 +1,14 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
 import { StatsSource, StatsSourceCollection } from '../../stats-config';
 import { BehaviorSubject, combineLatest, map } from 'rxjs';
 import { IonSelect, IonSelectOption } from "@ionic/angular";
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { TrailCollection } from 'src/app/model/trail-collection';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
-import { ShareService } from 'src/app/services/database/share.service';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { Share } from 'src/app/model/share';
+import { TrailCollectionService } from '@trailence/services/database/trail-collection.service';
+import { TrailCollection } from '@trailence/model/trail-collection';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { TrailCollectionType } from '@trailence/model/dto/trail-collection';
+import { ShareService } from '@trailence/services/database/share.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { Share } from '@trailence/model/share';
 
 interface SourceOption {
   value: string;
@@ -19,6 +19,7 @@ interface SourceOption {
 @Component({
   selector: 'app-stats-source-selection',
   templateUrl: './stats-source-selection.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonSelect, IonSelectOption,
   ]

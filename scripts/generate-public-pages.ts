@@ -1,5 +1,5 @@
 import * as fs from 'node:fs';
-import { AvailableLocales } from 'src/app/services/i18n/available-locales';
+import { AvailableLocales } from '@trailence/services/i18n/available-locales';
 
 interface PublicPage {
   name: string;

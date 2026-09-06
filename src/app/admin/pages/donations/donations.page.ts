@@ -1,21 +1,22 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { TableColumn, TableSettings } from '../../components/table/table-settings';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { HttpService } from 'src/app/services/http/http.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { HttpService } from '@trailence/services/http/http.service';
 import { DonationDto } from '../../model/donation';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 import { PageRequest } from '../../components/paginator/page-request';
 import { PageResult } from '../../components/paginator/page-result';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
 import { IonSegment, IonSegmentButton, IonButton, ModalController } from '@ionic/angular';
 import { TableComponent } from '../../components/table/table.component';
 import { DonationGoalsComponent } from './goals/donation-goals.component';
-import { DonationPage } from 'src/app/pages/donation/donation.page';
+import { DonationPage } from '@trailence/pages/donation/donation.page';
 import { NgClass } from '@angular/common';
 
 @Component({
   templateUrl: './donations.page.html',
   styleUrl: './donations.page.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonSegment, IonSegmentButton, IonButton,
     TableComponent, DonationGoalsComponent, DonationPage,

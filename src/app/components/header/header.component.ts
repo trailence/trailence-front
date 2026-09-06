@@ -1,28 +1,29 @@
-import { Component, Injector, Input } from '@angular/core';
+import { Component, Injector, Input, ChangeDetectionStrategy } from '@angular/core';
 import { IonHeader, IonToolbar, IonButtons, IonIcon, IonMenuButton, IonButton, IonPopover, IonContent, IonBadge, IonLabel, IonList, IonItem } from '@ionic/angular';
 import { HeaderUserMenuComponent } from '../header-user-menu/header-user-menu.component';
-import { AuthService } from 'src/app/services/auth/auth.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
 import { Router } from '@angular/router';
-import { MenuItem } from 'src/app/components/menus/menu-item';
-import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
+import { MenuItem } from '@trailence/components/menus/menu-item';
+import { AbstractComponent, IdGenerator } from '@trailence/utils/component-utils';
 import { MenuContentComponent } from '../menus/menu-content/menu-content.component';
 import { from, map, of, switchMap } from 'rxjs';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { publicRoutes } from 'src/app/routes/package.routes';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { BrowserService } from 'src/app/services/browser/browser.service';
-import { LongPressDirective } from 'src/app/utils/long-press.directive';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { publicRoutes } from '@trailence/routes/package.routes';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { BrowserService } from '@trailence/services/browser/browser.service';
+import { LongPressDirective } from '@trailence/utils/long-press.directive';
 import { NgClass } from '@angular/common';
-import { I18nPipe } from 'src/app/services/i18n/i18n-string';
+import { I18nPipe } from '@trailence/services/i18n/i18n-string';
 import { LangPickerComponent } from '../lang-picker/lang-picker.component';
-import { AvailableLocales } from 'src/app/services/i18n/available-locales';
-import { LiveGroupDto } from 'src/app/model/dto/live-group';
-import { AppDownload } from 'src/app/services/update/common';
+import { AvailableLocales } from '@trailence/services/i18n/available-locales';
+import { LiveGroupDto } from '@trailence/model/dto/live-group';
+import { AppDownload } from '@trailence/services/update/common';
 
 @Component({
     selector: 'app-header',
     templateUrl: './header.component.html',
     styleUrls: ['./header.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
       IonItem, IonList, IonBadge, IonContent, IonPopover, IonButton, IonHeader, IonToolbar, IonButtons, IonIcon, IonLabel, IonMenuButton,
       HeaderUserMenuComponent, MenuContentComponent,
@@ -99,7 +100,7 @@ export class HeaderComponent extends AbstractComponent {
         this.auth.userChanged$.pipe(
           switchMap(auth => {
             if (auth) return of({groups: [], paused: false});
-            return from(import('src/app/services/live-group/live-group.service').then(module => this.injector.get(module.LiveGroupService))).pipe(
+            return from(import('@trailence/services/live-group/live-group.service').then(module => this.injector.get(module.LiveGroupService))).pipe(
               switchMap(service => service.groups$.pipe(
                 switchMap(groups => groups?.length ? service.paused$.pipe(map(paused => ({groups, paused}))) : of({groups: [], paused: false}))
               )),
@@ -112,7 +113,7 @@ export class HeaderComponent extends AbstractComponent {
         }
       );
       this.whenVisible.subscribe(
-        from(import('src/app/services/update/update.service').then(module => this.injector.get(module.UpdateService))).pipe(
+        from(import('@trailence/services/update/update.service').then(module => this.injector.get(module.UpdateService))).pipe(
           switchMap(service => service.availableDownload$)
         ),
         update => this.update = update
@@ -138,10 +139,10 @@ export class HeaderComponent extends AbstractComponent {
   }
 
   pauseLiveGroups(): void {
-    import('src/app/services/live-group/live-group.service').then(module => this.injector.get(module.LiveGroupService).pause());
+    import('@trailence/services/live-group/live-group.service').then(module => this.injector.get(module.LiveGroupService).pause());
   }
   resumeLiveGroups(): void {
-    import('src/app/services/live-group/live-group.service').then(module => this.injector.get(module.LiveGroupService).resume());
+    import('@trailence/services/live-group/live-group.service').then(module => this.injector.get(module.LiveGroupService).resume());
   }
 
 }

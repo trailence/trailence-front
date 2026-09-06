@@ -1,17 +1,17 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Injector, Input } from '@angular/core';
-import { Track } from 'src/app/model/track';
-import { AbstractComponent } from 'src/app/utils/component-utils';
+import { Track } from '@trailence/model/track';
+import { AbstractComponent } from '@trailence/utils/component-utils';
 import { DomController } from '@ionic/angular';
 import { BehaviorSubject, Observable, combineLatest, map, of, switchMap } from 'rxjs';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { AssetsService } from 'src/app/services/assets/assets.service';
-import { Resubscribeables } from 'src/app/utils/rxjs/subscription-utils';
-import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
-import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { AssetsService } from '@trailence/services/assets/assets.service';
+import { Resubscribeables } from '@trailence/utils/rxjs/subscription-utils';
+import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
+import { TrackMetadataSnapshot } from '@trailence/model/snapshots';
 import { addTooltip } from '../tooltip/tooltip.directive';
-import { TranslatedString } from 'src/app/services/i18n/i18n-string';
-import { ComputedPreferences } from 'src/app/services/preferences/preferences';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { TranslatedString } from '@trailence/services/i18n/i18n-string';
+import { ComputedPreferences } from '@trailence/services/preferences/preferences';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
 
 class Meta {
   distanceValue?: number = undefined;

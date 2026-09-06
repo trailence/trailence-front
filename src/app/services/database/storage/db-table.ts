@@ -1,8 +1,8 @@
 import { EventEmitter, Injector, NgZone } from '@angular/core';
 import Dexie, { Collection, Table } from 'dexie';
 import { BehaviorSubject, debounceTime, first, firstValueFrom, from, map, MonoTypeOperatorFunction, Observable, of, switchMap } from 'rxjs';
-import { Console } from 'src/app/utils/console';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { Console } from '@trailence/utils/console';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { Db, DbReady } from './db';
 
 export interface DbStatus<DTO> {

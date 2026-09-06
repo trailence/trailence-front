@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Injector } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector, ChangeDetectionStrategy } from '@angular/core';
 import { IonApp, IonRouterOutlet, IonContent, IonMenu } from '@ionic/angular';
 import { MenuComponent } from './components/menus/global-menu/menu.component';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
@@ -19,6 +19,7 @@ Console.info('App loading: main component loaded ', Date.now() - ((globalThis as
     selector: 'app-root',
     templateUrl: 'app.component.html',
     styleUrls: ['app.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
         IonApp,
         IonMenu,

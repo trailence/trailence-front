@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Platform } from '@ionic/angular';
-import { BinaryContent } from 'src/app/utils/binary-content';
+import { BinaryContent } from '@trailence/utils/binary-content';
 import { IFileService, OpenFileRequest } from './file.interface';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 
 @Injectable({
   providedIn: 'root'

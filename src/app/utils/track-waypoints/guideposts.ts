@@ -1,10 +1,10 @@
-import { POI } from 'src/app/services/map/poi';
+import { POI } from '@trailence/services/map/poi';
 import { TrackWayPoint, TrackWayPointElement } from './track-waypoint';
-import { Track } from 'src/app/model/track';
+import { Track } from '@trailence/model/track';
 import { WayPointFromTrack } from './waypoints-from-track';
 import { distance } from '../latlng';
-import { WayPoint } from 'src/app/model/way-point';
-import { Point } from 'src/app/model/point';
+import { WayPoint } from '@trailence/model/way-point';
+import { Point } from '@trailence/model/point';
 import { TrackPointReference } from '../track-computed-data/types';
 import { BreakPoint } from './breakpoints';
 

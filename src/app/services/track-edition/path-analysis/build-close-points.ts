@@ -1,4 +1,4 @@
-import { Track } from 'src/app/model/track';
+import { Track } from '@trailence/model/track';
 import * as L from 'leaflet';
 
 export function getDistancesForAnalysis(track: Track) {

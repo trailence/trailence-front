@@ -1,9 +1,10 @@
-import { Component, ElementRef, Input, OnChanges, OnInit } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, OnInit, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
   selector: 'app-svg-container',
   template: ``,
   styles: ``,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [],
 })
 export class SvgContainerComponent implements OnInit, OnChanges {

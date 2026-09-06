@@ -1,20 +1,21 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
 import { TrailWaypoints, WayPointWithPhotos } from '../trail-waypoints';
 import { IonIcon, IonButton } from '@ionic/angular';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { PhotosSliderComponent } from '../../photos-slider/photos-slider.component';
-import { WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
+import { WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
 import { TextComponent } from '../../text/text.component';
-import { Photo } from 'src/app/model/photo';
-import { PhotoService } from 'src/app/services/database/photo.service';
+import { Photo } from '@trailence/model/photo';
+import { PhotoService } from '@trailence/services/database/photo.service';
 import { SvgContainerComponent } from '../../svg-container/svg-container.component';
-import { TrackPointReference } from 'src/app/utils/track-computed-data/types';
-import { TrackUtils } from 'src/app/utils/track-utils';
+import { TrackPointReference } from '@trailence/utils/track-computed-data/types';
+import { TrackUtils } from '@trailence/utils/track-utils';
 
 @Component({
   selector: 'app-waypoint',
   templateUrl: './waypoint.component.html',
   styleUrl: './waypoint.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonIcon, IonButton,
     PhotosSliderComponent,

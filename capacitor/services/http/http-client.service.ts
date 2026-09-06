@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { CapacitorHttp, HttpHeaders, HttpResponse } from '@capacitor/core';
 import { Observable } from 'rxjs';
-import { IHttpClient } from 'src/app/services/http/http-client.interface';
-import { TrailenceHttpRequest, ResponseType } from 'src/app/services/http/http-request';
-import { TrailenceHttpResponse } from 'src/app/services/http/http-response';
-import { BinaryContent } from 'src/app/utils/binary-content';
-import { environment } from 'src/environments/environment';
+import { IHttpClient } from '@trailence/services/http/http-client.interface';
+import { TrailenceHttpRequest, ResponseType } from '@trailence/services/http/http-request';
+import { TrailenceHttpResponse } from '@trailence/services/http/http-response';
+import { BinaryContent } from '@trailence/utils/binary-content';
+import { environment } from '@env/environment';
 
 @Injectable({
   providedIn: 'root'

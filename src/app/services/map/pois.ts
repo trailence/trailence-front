@@ -3,13 +3,13 @@ import { DbTableWithBlob } from '../database/storage/db-table-with-blob';
 import { Injector, NgZone } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { NetworkService } from '../network/network.service';
-import { PendingRequests } from 'src/app/utils/pending-requests';
-import { environment } from 'src/environments/environment';
-import { Console } from 'src/app/utils/console';
+import { PendingRequests } from '@trailence/utils/pending-requests';
+import { environment } from '@env/environment';
+import { Console } from '@trailence/utils/console';
 import { ApiError } from '../http/api-error';
-import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
 import { DbTableWhereLessThan } from '../database/storage/db-table';
-import { WorkerService } from 'src/app/worker/web-app';
+import { WorkerService } from '@trailence/worker/web-app';
 import { POI, POIType } from './poi';
 import { CleanupService } from '../database/cleanup/cleanup.service';
 

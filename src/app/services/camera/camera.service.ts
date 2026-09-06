@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ICameraService } from './camera.interface';
-import { BinaryContent } from 'src/app/utils/binary-content';
+import { BinaryContent } from '@trailence/utils/binary-content';
 
 @Injectable({
   providedIn: 'root'

@@ -1,27 +1,27 @@
 import { EnvironmentInjector, Injector } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { Trail } from 'src/app/model/trail';
-import { AssetsService } from 'src/app/services/assets/assets.service';
-import { TrackService } from 'src/app/services/database/track.service';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { environment } from 'src/environments/environment';
+import { Trail } from '@trailence/model/trail';
+import { AssetsService } from '@trailence/services/assets/assets.service';
+import { TrackService } from '@trailence/services/database/track.service';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
+import { environment } from '@env/environment';
 import { defaultNextPage, HorizBounds, PdfContext } from './pdf-context';
 import { generatePdfHeader } from './pdf-header';
 import { generatePdfMap } from './pdf-map';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { metaToPdf } from './pdf-meta';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { Track } from 'src/app/model/track';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { Track } from '@trailence/model/track';
 import { generateElevationGraphToPdf } from './pdf-elevation-graph';
 import { addQrCodeToPdf } from './pdf-qrcode';
 import { hasWaypointsContent } from '../waypoints-utils';
-import { MapLayer } from 'src/app/services/map/map-layers.service';
-import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
-import { Console } from 'src/app/utils/console';
-import { BinaryContent } from 'src/app/utils/binary-content';
+import { MapLayer } from '@trailence/services/map/map-layers.service';
+import { FetchSourceService } from '@trailence/services/fetch-source/fetch-source.service';
+import { Console } from '@trailence/utils/console';
+import { BinaryContent } from '@trailence/utils/binary-content';
 import { PdfFixedColumnsLayout, pdfFullWidth, PdfSectionGenerator } from './pdf-layout-helper';
 import { generateDescriptionAndWaypoints } from './pdf-description-and-waypoints';
-import { computeWayPointsFromTrack, WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
+import { computeWayPointsFromTrack, WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
 
 export enum PdfModel {
   BIG_MAP = 'BIG_MAP',

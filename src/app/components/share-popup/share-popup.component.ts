@@ -1,24 +1,24 @@
-import { Component, Injector, Input, OnInit } from '@angular/core';
-import { ShareElementType } from 'src/app/model/dto/share';
-import { Trail } from 'src/app/model/trail';
+import { Component, Injector, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { ShareElementType } from '@trailence/model/dto/share';
+import { Trail } from '@trailence/model/trail';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonInput, IonButton, IonFooter, IonButtons, ModalController, IonRadio, IonRadioGroup, IonCheckbox } from "@ionic/angular";
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { FormsModule } from '@angular/forms';
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { AuthService } from 'src/app/services/auth/auth.service';
+import { TrailCollectionService } from '@trailence/services/database/trail-collection.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
 import { Observable, of } from 'rxjs';
 import { TagsComponent } from '../tags/tags.component';
-import { Tag } from 'src/app/model/tag';
-import { ShareService } from 'src/app/services/database/share.service';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { Share } from 'src/app/model/share';
-import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
-import { TranslatedString } from 'src/app/services/i18n/i18n-string';
-import { TagService } from 'src/app/services/database/tag.service';
+import { Tag } from '@trailence/model/tag';
+import { ShareService } from '@trailence/services/database/share.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { Share } from '@trailence/model/share';
+import { TrailCollectionType } from '@trailence/model/dto/trail-collection';
+import { TranslatedString } from '@trailence/services/i18n/i18n-string';
+import { TagService } from '@trailence/services/database/tag.service';
 import { AsyncPipe } from '@angular/common';
-import { AvailableLocales, LocaleKey } from 'src/app/services/i18n/available-locales';
+import { AvailableLocales, LocaleKey } from '@trailence/services/i18n/available-locales';
 import { EmailsValue, MultipleInputEmailComponent } from '../input-email/multiple-input-email.component';
-import { TrailCollection } from 'src/app/model/trail-collection';
+import { TrailCollection } from '@trailence/model/trail-collection';
 
 export function openSharePopup(injector: Injector, collection: TrailCollection, trails: Trail[]) {
   injector.get(ModalController).create({
@@ -41,6 +41,7 @@ enum SharePage {
     selector: 'app-share-popup',
     templateUrl: './share-popup.component.html',
     styleUrls: ['./share-popup.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
       IonCheckbox, IonRadioGroup, IonRadio, IonButtons, IonFooter, IonButton, IonInput, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader,
       FormsModule,

@@ -1,33 +1,33 @@
 import { Injectable, Injector } from '@angular/core';
 import { OwnedStore, UpdatesResponse } from './store/owned-store';
-import { PhotoDto } from 'src/app/model/dto/photo';
-import { Photo } from 'src/app/model/photo';
-import { VersionedDto } from 'src/app/model/dto/versioned';
+import { PhotoDto } from '@trailence/model/dto/photo';
+import { Photo } from '@trailence/model/photo';
+import { VersionedDto } from '@trailence/model/dto/versioned';
 import { BehaviorSubject, catchError, combineLatest, defaultIfEmpty, EMPTY, first, firstValueFrom, from, map, Observable, of, share, switchMap, tap, throwError, timer, zip } from 'rxjs';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 import { HttpService } from '../http/http.service';
-import { RequestLimiter } from 'src/app/utils/request-limiter';
+import { RequestLimiter } from '@trailence/utils/request-limiter';
 import { StoredFilesService } from './stored-files.service';
 import { TrailService } from './trail.service';
-import { collection$items } from 'src/app/utils/rxjs/collection$items';
-import { CompositeOnDone } from 'src/app/utils/callback-utils';
-import { Trail } from 'src/app/model/trail';
+import { collection$items } from '@trailence/utils/rxjs/collection$items';
+import { CompositeOnDone } from '@trailence/utils/callback-utils';
+import { Trail } from '@trailence/model/trail';
 import { ModalController, Platform } from '@ionic/angular';
 import { PreferencesService } from '../preferences/preferences.service';
 import { DatabaseSubject } from './database-subject';
 import { DatabaseSubjectService } from './database-subject-service';
 import { ErrorService } from '../progress/error.service';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
-import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
+import { firstTimeout } from '@trailence/utils/rxjs/first-timeout';
 import { QuotaService } from '../auth/quota.service';
 import { ModerationService } from '../moderation/moderation.service';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
 import { CommonDatabaseService } from './common-database.service';
 import { StoreWithCleaning } from './store/store.service';
-import { WorkerService } from 'src/app/worker/web-app';
-import { SHARED_OWNER_PREFIX } from 'src/app/model/dto/trail-collection';
+import { WorkerService } from '@trailence/worker/web-app';
+import { SHARED_OWNER_PREFIX } from '@trailence/model/dto/trail-collection';
 
 @Injectable({providedIn: 'root'})
 export class PhotoService {

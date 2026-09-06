@@ -1,13 +1,13 @@
 import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, concat, defaultIfEmpty, first, firstValueFrom, from, map, of, switchMap, tap, toArray } from 'rxjs';
-import { Owned } from 'src/app/model/owned';
-import { OwnedDto } from 'src/app/model/dto/owned';
+import { Owned } from '@trailence/model/owned';
+import { OwnedDto } from '@trailence/model/dto/owned';
 import { Store, StoreSyncStatus } from './store';
 import { Injector } from '@angular/core';
 import { ErrorService } from '../../progress/error.service';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 import { DependenciesService } from '../dependencies.service';
 import { DbTable } from '../storage/db-table';
-import { Maps } from 'src/app/utils/maps';
+import { Maps } from '@trailence/utils/maps';
 
 export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> extends Store<ENTITY, StoredItem<DTO>, OwnedStoreSyncStatus> {
 

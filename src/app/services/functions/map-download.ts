@@ -1,7 +1,7 @@
 import { Injector } from '@angular/core';
 import { catchError, combineLatest, debounceTime, first, map, of } from 'rxjs';
-import { Trail } from 'src/app/model/trail';
-import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
+import { Trail } from '@trailence/model/trail';
+import { filterItemsDefined } from '@trailence/utils/rxjs/filter-defined';
 import { TrackService } from '../database/track.service';
 import { ModalController } from '@ionic/angular';
 

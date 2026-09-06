@@ -1,4 +1,4 @@
-import { Arrays } from 'src/app/utils/arrays';
+import { Arrays } from '@trailence/utils/arrays';
 import { Way } from './way';
 import * as L from 'leaflet';
 

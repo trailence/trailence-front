@@ -1,23 +1,24 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonButtons, IonFooter, IonButton, ModalController, IonInput } from "@ionic/angular";
 import { CodeInputModule } from 'angular-code-input';
-import { InputPasswordComponent } from 'src/app/components/input-password/input-password.component';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { ApiError } from 'src/app/services/http/api-error';
-import { HttpService } from 'src/app/services/http/http.service';
-import { I18nPipe } from 'src/app/services/i18n/i18n-string';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { ErrorService } from 'src/app/services/progress/error.service';
-import { Console } from 'src/app/utils/console';
-import { PasswordUtils } from 'src/app/utils/password-utils';
-import { environment } from 'src/environments/environment';
+import { InputPasswordComponent } from '@trailence/components/input-password/input-password.component';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { ApiError } from '@trailence/services/http/api-error';
+import { HttpService } from '@trailence/services/http/http.service';
+import { I18nPipe } from '@trailence/services/i18n/i18n-string';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { ErrorService } from '@trailence/services/progress/error.service';
+import { Console } from '@trailence/utils/console';
+import { PasswordUtils } from '@trailence/utils/password-utils';
+import { environment } from '@env/environment';
 
 @Component({
   selector: 'app-change-password',
   templateUrl: './change-password.component.html',
   styleUrls: ['./change-password.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonInput, IonButton, IonFooter, IonButtons, IonContent, IonLabel, IonTitle, IonToolbar, IonHeader,
     FormsModule,

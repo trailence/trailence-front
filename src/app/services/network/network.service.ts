@@ -3,8 +3,8 @@ import { INetworkService, PingResponse, sameOsmDataVersions } from './network.in
 import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpClientService } from '../http/http-client.service';
 import { HttpMethod, TrailenceHttpRequest } from '../http/http-request';
-import { environment } from 'src/environments/environment';
-import { Console } from 'src/app/utils/console';
+import { environment } from '@env/environment';
+import { Console } from '@trailence/utils/console';
 import { HttpService } from '../http/http.service';
 
 @Injectable({

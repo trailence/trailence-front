@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { FilePicker } from '@capawesome/capacitor-file-picker';
-import { IFileService, OpenFileRequest } from 'src/app/services/file/file.interface';
-import { BinaryContent } from 'src/app/utils/binary-content';
+import { IFileService, OpenFileRequest } from '@trailence/services/file/file.interface';
+import { BinaryContent } from '@trailence/utils/binary-content';
 import Trailence from '../trailence.service';
 
 

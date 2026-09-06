@@ -1,4 +1,4 @@
-import { POI, POIType } from 'src/app/services/map/poi';
+import { POI, POIType } from '@trailence/services/map/poi';
 
 export async function parsePois(blob: Blob, type: POIType, south: number, west: number, north: number, east: number): Promise<POI[]> {
   const data = new DataView(await blob.arrayBuffer());

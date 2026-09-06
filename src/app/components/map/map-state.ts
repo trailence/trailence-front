@@ -1,6 +1,6 @@
 import { BehaviorSubject, distinctUntilChanged, map, Observable } from 'rxjs';
 import * as L from 'leaflet';
-import { MapAdditionsOptions } from 'src/app/services/map/map-additions.service';
+import { MapAdditionsOptions } from '@trailence/services/map/map-additions.service';
 
 export enum RotateMode {
   NORTH = 'north',

@@ -1,6 +1,6 @@
 import * as C from 'chart.js';
-import { Track } from 'src/app/model/track';
-import { Color } from 'src/app/utils/color';
+import { Track } from '@trailence/model/track';
+import { Color } from '@trailence/utils/color';
 
 export class PositionPlugin implements C.Plugin<"line"> {
 

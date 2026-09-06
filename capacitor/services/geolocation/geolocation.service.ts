@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
-import { PointDto } from 'src/app/model/dto/point';
-import { GEOLOCATION_MAX_AGE, GEOLOCATION_TIMEOUT, GeolocationState, IGeolocationService } from 'src/app/services/geolocation/geolocation.interface';
+import { PointDto } from '@trailence/model/dto/point';
+import { GEOLOCATION_MAX_AGE, GEOLOCATION_TIMEOUT, GeolocationState, IGeolocationService } from '@trailence/services/geolocation/geolocation.interface';
 import { registerPlugin } from '@capacitor/core';
 import { BehaviorSubject } from 'rxjs';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 import { AlertController } from '@ionic/angular';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 
 interface WatcherOptions {
     backgroundMessage?: string;

@@ -1,16 +1,16 @@
 import { Injectable, Injector } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { INetworkService, PingResponse, sameOsmDataVersions } from 'src/app/services/network/network.interface';
+import { INetworkService, PingResponse, sameOsmDataVersions } from '@trailence/services/network/network.interface';
 import { ConnectionStatus, Network } from '@capacitor/network';
-import { HttpClientService } from 'src/app/services/http/http-client.service';
-import { HttpMethod, TrailenceHttpRequest } from 'src/app/services/http/http-request';
-import { environment } from 'src/environments/environment';
-import { Console } from 'src/app/utils/console';
-import { HttpService } from 'src/app/services/http/http.service';
-import { StringUtils } from 'src/app/utils/string-utils';
-import { trailenceAppVersionCode } from 'src/app/trailence-version';
+import { HttpClientService } from '@trailence/services/http/http-client.service';
+import { HttpMethod, TrailenceHttpRequest } from '@trailence/services/http/http-request';
+import { environment } from '@env/environment';
+import { Console } from '@trailence/utils/console';
+import { HttpService } from '@trailence/services/http/http.service';
+import { StringUtils } from '@trailence/utils/string-utils';
+import { trailenceAppVersionCode } from '@trailence/trailence-version';
 import { AlertController } from '@ionic/angular';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 
 @Injectable({
   providedIn: 'root'

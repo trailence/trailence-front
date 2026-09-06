@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { DonationGoalDto } from 'src/app/pages/donation/donation-goal';
-import { HttpService } from 'src/app/services/http/http.service';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { ErrorService } from 'src/app/services/progress/error.service';
-import { environment } from 'src/environments/environment';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { DonationGoalDto } from '@trailence/pages/donation/donation-goal';
+import { HttpService } from '@trailence/services/http/http.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { ErrorService } from '@trailence/services/progress/error.service';
+import { environment } from '@env/environment';
 import { IonFooter, IonToolbar, IonButtons, IonButton, IonIcon, IonLabel } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 
@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
   selector: 'app-donation-goals',
   templateUrl: './donation-goals.component.html',
   styleUrl: './donation-goals.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormsModule,
     IonFooter, IonToolbar, IonButtons, IonButton, IonIcon, IonLabel,

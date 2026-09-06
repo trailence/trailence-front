@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { IonIcon } from '@ionic/angular';
 
 @Component({
@@ -29,6 +29,7 @@ import { IonIcon } from '@ionic/angular';
     font-size: 12px;
   }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonIcon, DecimalPipe]
 })
 export class RateComponent {

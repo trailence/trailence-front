@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { catchError, map, Observable, of, switchMap, throwError, timeout } from 'rxjs';
 import { ApiError } from '../http/api-error';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 
 @Injectable({
   providedIn: 'root'

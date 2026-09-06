@@ -1,8 +1,8 @@
 import { of } from 'rxjs';
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
-import { Track } from 'src/app/model/track';
-import { TrackUtils } from 'src/app/utils/track-utils';
-import { PointReference, RangeReference } from 'src/app/model/point-reference';
+import { Track } from '@trailence/model/track';
+import { TrackUtils } from '@trailence/utils/track-utils';
+import { PointReference, RangeReference } from '@trailence/model/point-reference';
 
 export class RemoveSelectionTool implements TrackEditTool {
 

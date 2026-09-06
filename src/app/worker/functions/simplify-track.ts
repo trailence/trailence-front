@@ -1,5 +1,5 @@
-import { SimplifiedPoint, SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
-import { distance } from 'src/app/utils/latlng';
+import { SimplifiedPoint, SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
+import { distance } from '@trailence/utils/latlng';
 
 export async function simplifyTrack(points: SimplifiedPoint[]): Promise<SimplifiedTrackSnapshot> {
   const simplified: SimplifiedTrackSnapshot = { points: [] };

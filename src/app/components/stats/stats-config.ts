@@ -1,7 +1,7 @@
 import { BehaviorSubject } from 'rxjs';
-import { TrailActivity } from 'src/app/model/dto/trail-activity';
-import { Arrays } from 'src/app/utils/arrays';
-import { Console } from 'src/app/utils/console';
+import { TrailActivity } from '@trailence/model/dto/trail-activity';
+import { Arrays } from '@trailence/utils/arrays';
+import { Console } from '@trailence/utils/console';
 
 export class StatsConfig {
 

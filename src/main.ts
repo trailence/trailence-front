@@ -1,4 +1,4 @@
-import { enableProdMode, ErrorHandler } from '@angular/core';
+import { enableProdMode, ErrorHandler, provideZoneChangeDetection } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { RouteReuseStrategy, provideRouter, withComponentInputBinding } from '@angular/router';
 import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular';
@@ -6,7 +6,7 @@ import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular';
 import { routes } from './app/routes/routes';
 import { AppComponent } from './app/app.component';
 import { environment } from './environments/environment';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { Console } from './app/utils/console';
 import { provideServiceWorker } from '@angular/service-worker';
 
@@ -29,10 +29,11 @@ if (environment.production) {
 
 bootstrapApplication(AppComponent, {
   providers: [
+    provideZoneChangeDetection(),
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideIonicAngular({mode: 'md', swipeBackEnabled: false}),
     provideRouter(routes, withComponentInputBinding()),
-    provideHttpClient(),
+    provideHttpClient(withXhr()),
     { provide: ErrorHandler, useClass: MyErrorHandler },
     provideServiceWorker('ngsw-worker.js', {
       enabled: environment.serviceWorker,

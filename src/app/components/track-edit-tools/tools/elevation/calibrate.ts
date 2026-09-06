@@ -1,10 +1,10 @@
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
-import { GeoService } from 'src/app/services/geolocation/geo.service';
-import { Point } from 'src/app/model/point';
-import { copyPoint, PointDescriptor } from 'src/app/model/point-descriptor';
+import { GeoService } from '@trailence/services/geolocation/geo.service';
+import { Point } from '@trailence/model/point';
+import { copyPoint, PointDescriptor } from '@trailence/model/point-descriptor';
 import { Observable, of, switchMap } from 'rxjs';
 import { AlertController } from '@ionic/angular';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 
 export class CalibrateElevationWithProvider implements TrackEditTool {
 

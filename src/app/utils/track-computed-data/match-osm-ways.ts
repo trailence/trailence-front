@@ -1,4 +1,4 @@
-import { Way } from 'src/app/services/map/way';
+import { Way } from '@trailence/services/map/way';
 import { ClosestMatch, ClosestPointOnSegment, closestPointOnSegment, distance, earthBBox, EarthBBox, EarthPoint, findClosestPointOnPath, isPointInBBox } from '../latlng';
 import { TrackPointReference } from './types';
 

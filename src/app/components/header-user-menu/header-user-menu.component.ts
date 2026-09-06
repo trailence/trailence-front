@@ -2,19 +2,19 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, ViewCh
 import { Router } from '@angular/router';
 import { IonButton, IonPopover, IonList, IonItem, IonIcon, IonLabel, IonContent, IonModal, IonHeader, IonToolbar, IonTitle, IonFooter, IonButtons, IonBadge, IonToggle, Platform } from '@ionic/angular';
 import { combineLatest, map } from 'rxjs';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { TranslatedString } from 'src/app/services/i18n/i18n-string';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { NetworkService } from 'src/app/services/network/network.service';
-import { NotificationsService } from 'src/app/services/notifications/notifications.service';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { TranslatedString } from '@trailence/services/i18n/i18n-string';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { NetworkService } from '@trailence/services/network/network.service';
+import { NotificationsService } from '@trailence/services/notifications/notifications.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { AbstractComponent, IdGenerator } from '@trailence/utils/component-utils';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { ContributionsBadgesComponent } from "../contributions-badges/contribution-badges.component";
-import { environment } from 'src/environments/environment';
-import Trailence from 'src/app/services/trailence.service';
-import { StoreService } from 'src/app/services/database/store/store.service';
-import { AvailableLocales } from 'src/app/services/i18n/available-locales';
+import { environment } from '@env/environment';
+import Trailence from '@trailence/services/trailence.service';
+import { StoreService } from '@trailence/services/database/store/store.service';
+import { AvailableLocales } from '@trailence/services/i18n/available-locales';
 
 @Component({
     selector: 'app-header-user-menu',

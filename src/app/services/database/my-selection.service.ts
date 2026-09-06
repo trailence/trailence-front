@@ -2,8 +2,8 @@ import { Injectable, Injector } from '@angular/core';
 import { SimpleStoreWithoutUpdate } from './store/simple-store-without-update';
 import { Observable, of } from 'rxjs';
 import { HttpService } from '../http/http.service';
-import { environment } from 'src/environments/environment';
-import { collection$items } from 'src/app/utils/rxjs/collection$items';
+import { environment } from '@env/environment';
+import { collection$items } from '@trailence/utils/rxjs/collection$items';
 import { CommonDatabaseService } from './common-database.service';
 
 @Injectable({providedIn: 'root'})

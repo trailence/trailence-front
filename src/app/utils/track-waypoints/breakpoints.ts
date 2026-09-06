@@ -1,10 +1,10 @@
-import { Track } from 'src/app/model/track';
-import { BreakPointSection } from 'src/app/services/track-edition/time/break-detection';
+import { Track } from '@trailence/model/track';
+import { BreakPointSection } from '@trailence/services/track-edition/time/break-detection';
 import { TrackUtils } from '../track-utils';
 import { TrackWayPoint, TrackWayPointElement } from './track-waypoint';
-import { WayPoint } from 'src/app/model/way-point';
-import { Segment } from 'src/app/model/segment';
-import { Point } from 'src/app/model/point';
+import { WayPoint } from '@trailence/model/way-point';
+import { Segment } from '@trailence/model/segment';
+import { Point } from '@trailence/model/point';
 import { TrackPointReference } from '../track-computed-data/types';
 
 export class BreakPoint extends TrackWayPointElement {

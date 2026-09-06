@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, catchError, EMPTY, filter, first, map, Observable, of, switchMap } from 'rxjs';
-import { Extension } from 'src/app/model/extension';
+import { Extension } from '@trailence/model/extension';
 import { StoreLoadStatus, StoreSyncStatus } from './store/store';
 import { HttpService } from '../http/http.service';
-import { environment } from 'src/environments/environment';
-import { Arrays } from 'src/app/utils/arrays';
-import { Console } from 'src/app/utils/console';
+import { environment } from '@env/environment';
+import { Arrays } from '@trailence/utils/arrays';
+import { Console } from '@trailence/utils/console';
 import { StoreService } from './store/store.service';
 import { CommonDatabaseService } from './common-database.service';
 import { DbStatus, DbTable } from './storage/db-table';

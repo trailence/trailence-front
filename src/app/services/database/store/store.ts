@@ -1,8 +1,8 @@
 import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, debounceTime, defaultIfEmpty, filter, first, forkJoin, map, of, switchMap, timeout } from "rxjs";
 import { Injector, NgZone } from "@angular/core";
 import { SynchronizationLocks } from './synchronization-locks';
-import { Console } from 'src/app/utils/console';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { Console } from '@trailence/utils/console';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { StoreErrors } from './store-errors';
 import { StoreOperations } from './store-operations';
 import { DbStatus, DbTable } from '../storage/db-table';

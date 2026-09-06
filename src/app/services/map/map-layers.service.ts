@@ -7,7 +7,7 @@ import { ExtensionsService } from '../database/extensions.service';
 import { from, Observable } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { HttpClient } from '@angular/common/http';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 import { I18nService } from '../i18n/i18n.service';
 
 const LOCALSTORAGE_KEY_DARKMAP = 'trailence.dark-map';

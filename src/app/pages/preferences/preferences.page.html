@@ -23,7 +23,7 @@
     <div class="preference-content">
       <div class="title">{{i18n.texts.pages.preferences.theme}}</div>
       <div class="value">
-        <ion-segment [value]="preferences.preferences.theme" mode="ios" (ionChange)="setTheme($event.detail.value?.toString())" [scrollable]="true">
+        <ion-segment [value]="preferences.preferences.theme" mode="ios" (ionChange)="setTheme($safeNavigationMigration($event.detail.value?.toString()))" [scrollable]="true">
           <ion-segment-button value="LIGHT" layout="icon-top">
             <ion-icon name="theme-light"></ion-icon>
             <ion-label>{{i18n.texts.pages.preferences.themes.light}}</ion-label>
@@ -64,7 +64,7 @@
     <div class="preference-content">
       <div class="title">{{i18n.texts.pages.preferences.distance_unit}}</div>
       <div class="value">
-        <ion-segment [value]="preferences.preferences.distanceUnit" mode="ios" (ionChange)="setDistanceUnit($event.detail.value?.toString())" [scrollable]="true">
+        <ion-segment [value]="preferences.preferences.distanceUnit" mode="ios" (ionChange)="setDistanceUnit($safeNavigationMigration($event.detail.value?.toString()))" [scrollable]="true">
           <ion-segment-button value="METERS">
             <ion-label>{{i18n.texts.pages.preferences.distance_units.meters}}</ion-label>
           </ion-segment-button>
@@ -83,7 +83,7 @@
     <div class="preference-content">
       <div class="title">{{i18n.texts.pages.preferences.date_format}}</div>
       <div class="value">
-        <ion-segment [value]="preferences.preferences.dateFormat" mode="ios" (ionChange)="setDateFormat($event.detail.value?.toString())" [scrollable]="true">
+        <ion-segment [value]="preferences.preferences.dateFormat" mode="ios" (ionChange)="setDateFormat($safeNavigationMigration($event.detail.value?.toString()))" [scrollable]="true">
           <ion-segment-button value="dd/mm/yyyy">
             <ion-label>{{i18n.getDateForFormat(timestamp, 'dd/mm/yyyy')}}</ion-label>
           </ion-segment-button>
@@ -105,7 +105,7 @@
     <div class="preference-content">
       <div class="title">{{i18n.texts.pages.preferences.time_format}}</div>
       <div class="value">
-        <ion-segment [value]="preferences.preferences.hourFormat" mode="ios" (ionChange)="setHourFormat($event.detail.value?.toString())" [scrollable]="true">
+        <ion-segment [value]="preferences.preferences.hourFormat" mode="ios" (ionChange)="setHourFormat($safeNavigationMigration($event.detail.value?.toString()))" [scrollable]="true">
           <ion-segment-button value="H24">
             <ion-label>{{i18n.getTimeForFormat(timestamp, 'H24')}}</ion-label>
           </ion-segment-button>
@@ -374,7 +374,7 @@
           <tr>
             <th>{{i18n.texts.pages.preferences.offline_maps.size}}</th>
             <td>
-              {{i18n.sizeToString(offlineMapCounters?.size)}}
+              {{i18n.sizeToString($safeNavigationMigration(offlineMapCounters?.size))}}
             </td>
           </tr>
         </table>
@@ -501,7 +501,7 @@
           <tr>
             <th>{{i18n.texts.pages.preferences.photos_cache_expired}}</th>
             <td>
-              {{i18n.sizeToString(photoCacheSize?.expired)}}
+              {{i18n.sizeToString($safeNavigationMigration(photoCacheSize?.expired))}}
             </td>
           </tr>
         </table>

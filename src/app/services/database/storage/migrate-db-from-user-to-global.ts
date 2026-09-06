@@ -4,7 +4,7 @@ import { LOCALSTORAGE_KEY_AUTH } from '../../auth/auth.service';
 import { indexedDbCursorBatch, openIndexedDb } from '../indexed-db/indexed-db';
 import { Injector } from '@angular/core';
 import { LocalFilesService } from '../../local-files/local-files.service';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 
 export async function migrateLatestUserDbToGlobalDb(dbName: string, injector: Injector): Promise<boolean> {
   const latestAuthStr = localStorage.getItem(LOCALSTORAGE_KEY_AUTH);

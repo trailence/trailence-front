@@ -1,29 +1,30 @@
-import { Component, Injector, NgZone, OnDestroy } from '@angular/core';
-import { HeaderComponent } from 'src/app/components/header/header.component';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { Component, Injector, NgZone, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { HeaderComponent } from '@trailence/components/header/header.component';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { IonIcon, IonSegment, IonSegmentButton, IonLabel, IonRange, IonButton, IonInput, IonSpinner, IonRadio, IonRadioGroup, IonToggle } from "@ionic/angular";
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { DateFormat, DistanceUnit, HourFormat, ThemeType } from 'src/app/services/preferences/preferences';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { DateFormat, DistanceUnit, HourFormat, ThemeType } from '@trailence/services/preferences/preferences';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { OfflineMapService } from 'src/app/services/map/offline-map.service';
-import { ExtensionsService } from 'src/app/services/database/extensions.service';
-import { FilterNumeric, NumericFilterCustomConfig } from 'src/app/components/filters/filter';
-import { PhotoService } from 'src/app/services/database/photo.service';
-import { FilterNumericCustomComponent } from 'src/app/components/filters/filter-numeric-custom/filter-numeric-custom.component';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { IdGenerator } from 'src/app/utils/component-utils';
-import { InputNumberComponent } from 'src/app/components/input-number/input-number.component';
-import { AvatarService } from 'src/app/services/avatar/avatar.service';
-import { AvatarComponent } from 'src/app/components/avatar/avatar.component';
-import { ObserverHelper } from 'src/app/utils/observer-helper';
-import { LangPickerComponent } from 'src/app/components/lang-picker/lang-picker.component';
-import { AvatarDto } from 'src/app/model/dto/avatar';
+import { OfflineMapService } from '@trailence/services/map/offline-map.service';
+import { ExtensionsService } from '@trailence/services/database/extensions.service';
+import { FilterNumeric, NumericFilterCustomConfig } from '@trailence/components/filters/filter';
+import { PhotoService } from '@trailence/services/database/photo.service';
+import { FilterNumericCustomComponent } from '@trailence/components/filters/filter-numeric-custom/filter-numeric-custom.component';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { IdGenerator } from '@trailence/utils/component-utils';
+import { InputNumberComponent } from '@trailence/components/input-number/input-number.component';
+import { AvatarService } from '@trailence/services/avatar/avatar.service';
+import { AvatarComponent } from '@trailence/components/avatar/avatar.component';
+import { ObserverHelper } from '@trailence/utils/observer-helper';
+import { LangPickerComponent } from '@trailence/components/lang-picker/lang-picker.component';
+import { AvatarDto } from '@trailence/model/dto/avatar';
 
 @Component({
   selector: 'app-preferences',
   templateUrl: './preferences.page.html',
   styleUrls: ['./preferences.page.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonRadioGroup, IonRadio, IonSpinner, IonInput, IonButton, IonRange, IonLabel, IonSegmentButton, IonSegment, IonIcon, IonToggle,
     HeaderComponent,

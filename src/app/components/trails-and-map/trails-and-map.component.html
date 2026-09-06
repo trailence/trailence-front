@@ -69,7 +69,7 @@
         [hasFixedHeight]="true"
         [config]="bottomSheetMetadataConfig"
         [alwaysShowLocation]="true"
-        [navigationCount]="bottomSheetTrails?.length"
+        [navigationCount]="$safeNavigationMigration(bottomSheetTrails?.length)"
         [navigationIndex]="bottomSheetTrailsIndex"
         (navigationIndexChange)="navigateBottomSheetTrail($event)"
         [renameOnTrailNamePress]="true"

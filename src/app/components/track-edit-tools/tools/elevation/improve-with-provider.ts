@@ -1,8 +1,8 @@
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
-import { GeoService } from 'src/app/services/geolocation/geo.service';
-import { Point } from 'src/app/model/point';
-import { copyPoint, PointDescriptor } from 'src/app/model/point-descriptor';
-import { improveElevationWithProvider } from 'src/app/services/track-edition/elevation/improve-elevations-with-provider';
+import { GeoService } from '@trailence/services/geolocation/geo.service';
+import { Point } from '@trailence/model/point';
+import { copyPoint, PointDescriptor } from '@trailence/model/point-descriptor';
+import { improveElevationWithProvider } from '@trailence/services/track-edition/elevation/improve-elevations-with-provider';
 import { map } from 'rxjs';
 
 export class ImproveElevationWithProvider implements TrackEditTool {

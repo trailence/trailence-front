@@ -1,21 +1,21 @@
 import { TestBed } from '@angular/core/testing';
 import { TraceRecorderService } from './trace-recorder.service';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { provideErrorService } from 'test/utils/mock-error-service';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideErrorService } from '@test/utils/mock-error-service';
 import { BehaviorSubject, firstValueFrom, of } from 'rxjs';
-import { provideAuthService } from 'test/utils/mock-auth-service';
-import { provideNetworkService } from 'test/utils/mock-network-service';
+import { provideAuthService } from '@test/utils/mock-auth-service';
+import { provideNetworkService } from '@test/utils/mock-network-service';
 import { TrailCollectionService } from '../database/trail-collection.service';
-import { TrailCollection } from 'src/app/model/trail-collection';
+import { TrailCollection } from '@trailence/model/trail-collection';
 import { GeolocationService } from '../geolocation/geolocation.service';
 import { GeolocationState } from '../geolocation/geolocation.interface';
-import { PointDto } from 'src/app/model/dto/point';
+import { PointDto } from '@trailence/model/dto/point';
 import { I18nService } from '../i18n/i18n.service';
 import { TrackService } from '../database/track.service';
 import { AuthService } from '../auth/auth.service';
 import { AuthResponse } from '../auth/auth-response';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
+import { TrailCollectionType } from '@trailence/model/dto/trail-collection';
 import { StoreService } from '../database/store/store.service';
 
 describe('Test Trace Recorder', () => {
@@ -31,7 +31,7 @@ describe('Test Trace Recorder', () => {
   beforeEach(async () => {
     userEmail = 'user' + Date.now() + '_' + (testCount++) + '@trailence.org';
     TestBed.configureTestingModule({ imports: [], providers: [
-      provideHttpClient(withInterceptorsFromDi()),
+      provideHttpClient(withXhr(), withInterceptorsFromDi()),
       provideErrorService(),
       provideNetworkService(),
       provideAuthService(userEmail)

@@ -1,8 +1,8 @@
 import { FilterEnum, FilterNumeric } from '../filters/filter';
-import { ComputedPreferences, Filters } from 'src/app/services/preferences/preferences';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { TrailLoopType } from 'src/app/model/dto/trail-loop-type';
-import { TrailActivity } from 'src/app/model/dto/trail-activity';
+import { ComputedPreferences, Filters } from '@trailence/services/preferences/preferences';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { TrailLoopType } from '@trailence/model/dto/trail-loop-type';
+import { TrailActivity } from '@trailence/model/dto/trail-activity';
 
 export class FiltersUtils {
 

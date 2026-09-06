@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { PointDto } from 'src/app/model/dto/point';
+import { PointDto } from '@trailence/model/dto/point';
 
 export const GEOLOCATION_MAX_AGE = 15000;
 export const GEOLOCATION_TIMEOUT = 5000;

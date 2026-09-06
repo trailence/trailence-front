@@ -1,9 +1,9 @@
-import { Component, Input } from '@angular/core';
-import { MapAdditionsOptions } from 'src/app/services/map/map-additions.service';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { MapAdditionsOptions } from '@trailence/services/map/map-additions.service';
 import { IonCheckbox, IonIcon, IonLabel, IonButton, ModalController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { MapLayer, MapLayersService } from 'src/app/services/map/map-layers.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { MapLayer, MapLayersService } from '@trailence/services/map/map-layers.service';
 
 @Component({
   template: `
@@ -116,6 +116,7 @@ import { MapLayer, MapLayersService } from 'src/app/services/map/map-layers.serv
     }
   }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonCheckbox, IonIcon, IonLabel, IonButton,
     FormsModule,

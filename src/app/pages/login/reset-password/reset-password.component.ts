@@ -1,21 +1,22 @@
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonButtons, IonFooter, IonButton, ModalController, IonInput } from "@ionic/angular";
 import { CodeInputModule } from 'angular-code-input';
-import { CaptchaService } from 'src/app/services/captcha/captcha.service';
-import { ApiError } from 'src/app/services/http/api-error';
-import { HttpService } from 'src/app/services/http/http.service';
-import { I18nPipe } from 'src/app/services/i18n/i18n-string';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { ErrorService } from 'src/app/services/progress/error.service';
-import { Console } from 'src/app/utils/console';
-import { environment } from 'src/environments/environment';
+import { CaptchaService } from '@trailence/services/captcha/captcha.service';
+import { ApiError } from '@trailence/services/http/api-error';
+import { HttpService } from '@trailence/services/http/http.service';
+import { I18nPipe } from '@trailence/services/i18n/i18n-string';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { ErrorService } from '@trailence/services/progress/error.service';
+import { Console } from '@trailence/utils/console';
+import { environment } from '@env/environment';
 
 @Component({
   selector: 'app-reset-password',
   templateUrl: './reset-password.component.html',
   styleUrls: ['./reset-password.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonInput, IonButton, IonFooter, IonButtons, IonContent, IonLabel, IonTitle, IonToolbar, IonHeader,
     FormsModule,

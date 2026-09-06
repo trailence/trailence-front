@@ -1,10 +1,11 @@
-import { Component, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { NavController } from '@ionic/angular';
-import { AuthService } from 'src/app/services/auth/auth.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
 
 @Component({
   template: '',
   styles: '',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: []
 })
 export class TryPage implements OnChanges {

@@ -1,4 +1,4 @@
-import { UserQuotas } from 'src/app/services/auth/user-quotas';
+import { UserQuotas } from '@trailence/services/auth/user-quotas';
 
 export interface UserDto {
   email: string;

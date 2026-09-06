@@ -1,7 +1,7 @@
-import { Segment } from 'src/app/model/segment';
+import { Segment } from '@trailence/model/segment';
 import { MapTrack } from './map-track';
-import { Point } from 'src/app/model/point';
-import { SimplifiedPoint } from 'src/app/model/snapshots';
+import { Point } from '@trailence/model/point';
+import { SimplifiedPoint } from '@trailence/model/snapshots';
 
 export class MapTrackPointReference {
 

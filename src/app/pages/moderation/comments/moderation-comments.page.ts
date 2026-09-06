@@ -1,16 +1,17 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { HeaderComponent } from 'src/app/components/header/header.component';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { FeedbackToReview, ModerationService } from 'src/app/services/moderation/moderation.service';
-import { Console } from 'src/app/utils/console';
+import { ChangeDetectorRef, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { HeaderComponent } from '@trailence/components/header/header.component';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { FeedbackToReview, ModerationService } from '@trailence/services/moderation/moderation.service';
+import { Console } from '@trailence/utils/console';
 import { IonSpinner, IonButton, IonIcon } from "@ionic/angular";
 import { RouterLink } from '@angular/router';
-import { FeedbackComponent } from 'src/app/components/trail/rate-and-comments/feedback/feedback.component';
+import { FeedbackComponent } from '@trailence/components/trail/rate-and-comments/feedback/feedback.component';
 
 @Component({
   selector: 'app-comments-moderation',
   templateUrl: './moderation-comments.page.html',
   styleUrl: './moderation-comments.page.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonIcon, IonButton, IonSpinner,
     HeaderComponent, RouterLink, FeedbackComponent
   ]

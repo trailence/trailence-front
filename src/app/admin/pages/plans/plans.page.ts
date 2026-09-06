@@ -1,17 +1,18 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { TableComponent } from '../../components/table/table.component';
 import { TableColumn, TableSettings } from '../../components/table/table-settings';
 import { PageRequest } from '../../components/paginator/page-request';
 import { PageResult } from '../../components/paginator/page-result';
-import { HttpService } from 'src/app/services/http/http.service';
-import { environment } from 'src/environments/environment';
+import { HttpService } from '@trailence/services/http/http.service';
+import { environment } from '@env/environment';
 import { PlanDto } from '../../model/plan';
 import { IonButton, ModalController } from '@ionic/angular';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 
 @Component({
   templateUrl: './plans.page.html',
   styleUrl: './plans.page.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     TableComponent,
     IonButton

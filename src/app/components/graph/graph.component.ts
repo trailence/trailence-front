@@ -1,18 +1,19 @@
-import { ChangeDetectorRef, Component, ElementRef, Injector, Input, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, Injector, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { BaseChartDirective } from 'ng2-charts';
-import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
-import { BrowserService } from 'src/app/services/browser/browser.service';
+import { AbstractComponent, IdGenerator } from '@trailence/utils/component-utils';
+import { BrowserService } from '@trailence/services/browser/browser.service';
 import { combineLatest, concat, debounceTime, of, Subscription } from 'rxjs';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
 import { IonButton, IonIcon, GestureController, Gesture } from "@ionic/angular";
 import { NgStyle } from '@angular/common';
 import { GraphConfig, GraphConfigSource, GraphProvider } from './graph-config';
-import { ObserverHelper } from 'src/app/utils/observer-helper';
+import { ObserverHelper } from '@trailence/utils/observer-helper';
 
 @Component({
   selector: 'app-graph',
   templateUrl: './graph.component.html',
   styleUrl: './graph.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonIcon, IonButton,
     BaseChartDirective,

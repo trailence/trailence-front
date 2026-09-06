@@ -1,25 +1,26 @@
-import { ChangeDetectorRef, Component, Injector } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { IonCard, IonCardContent, IonInput, IonItem, IonList, IonButton, IonSpinner, IonLabel, ModalController, NavController, IonToolbar } from '@ionic/angular';
 import { catchError, combineLatest, filter, first, of, timeout } from 'rxjs';
-import { HeaderComponent } from 'src/app/components/header/header.component';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { CaptchaService } from 'src/app/services/captcha/captcha.service';
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { ApiError } from 'src/app/services/http/api-error';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { NetworkService } from 'src/app/services/network/network.service';
-import { Console } from 'src/app/utils/console';
+import { HeaderComponent } from '@trailence/components/header/header.component';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { CaptchaService } from '@trailence/services/captcha/captcha.service';
+import { TrailCollectionService } from '@trailence/services/database/trail-collection.service';
+import { ApiError } from '@trailence/services/http/api-error';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { NetworkService } from '@trailence/services/network/network.service';
+import { Console } from '@trailence/utils/console';
 import { PublicPage } from '../public.page';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
 import { NgStyle } from '@angular/common';
-import { StoreService } from 'src/app/services/database/store/store.service';
+import { StoreService } from '@trailence/services/database/store/store.service';
 
 @Component({
     selector: 'app-login',
     templateUrl: './login.page.html',
     styleUrls: ['./login.page.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
         IonToolbar,
         IonLabel,

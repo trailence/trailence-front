@@ -1,10 +1,11 @@
-import { Component, ElementRef, Input, OnChanges } from '@angular/core';
-import { Track } from 'src/app/model/track';
+import { Component, ElementRef, Input, OnChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Track } from '@trailence/model/track';
 import { getGradeRange, gradeColors } from '../trail-graph/grade-values';
-import { ObserverHelper } from 'src/app/utils/observer-helper';
+import { ObserverHelper } from '@trailence/utils/observer-helper';
 
 @Component({
   selector: 'app-trail-small-elevation-profile',
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: ``,
 })
 export class TrailSmallElevationProfileComponent implements OnChanges {

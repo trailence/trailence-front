@@ -1,15 +1,16 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { DonationDto } from 'src/app/admin/model/donation';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { DonationDto } from '@trailence/admin/model/donation';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonInput, ModalController } from '@ionic/angular';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { FormsModule } from '@angular/forms';
-import { HttpService } from 'src/app/services/http/http.service';
-import { environment } from 'src/environments/environment';
-import { ErrorService } from 'src/app/services/progress/error.service';
+import { HttpService } from '@trailence/services/http/http.service';
+import { environment } from '@env/environment';
+import { ErrorService } from '@trailence/services/progress/error.service';
 
 @Component({
   templateUrl: './donation-form.component.html',
   styleUrl: './donation-form.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonInput,
     FormsModule,

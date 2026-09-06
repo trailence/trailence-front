@@ -1,32 +1,32 @@
-import { ChangeDetectorRef, Component, EnvironmentInjector, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Trail } from 'src/app/model/trail';
+import { ChangeDetectorRef, Component, EnvironmentInjector, Injector, Input, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Trail } from '@trailence/model/trail';
 import { ModalController, IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonRadioGroup, IonRadio, IonCheckbox } from '@ionic/angular';
 import { PdfModel, PdfOptions } from './generation/pdf-generator';
-import { environment } from 'src/environments/environment';
-import { IdGenerator } from 'src/app/utils/component-utils';
-import { FileService } from 'src/app/services/file/file.service';
-import { BinaryContent } from 'src/app/utils/binary-content';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { environment } from '@env/environment';
+import { IdGenerator } from '@trailence/utils/component-utils';
+import { FileService } from '@trailence/services/file/file.service';
+import { BinaryContent } from '@trailence/utils/binary-content';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { FormsModule } from '@angular/forms';
 import { NgStyle } from '@angular/common';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { TrailLinkService } from 'src/app/services/database/link.service';
-import { Track } from 'src/app/model/track';
-import { TrackService } from 'src/app/services/database/track.service';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { TrailLinkService } from '@trailence/services/database/link.service';
+import { Track } from '@trailence/model/track';
+import { TrackService } from '@trailence/services/database/track.service';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { combineLatest, first, firstValueFrom, of } from 'rxjs';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
 import { hasWaypointsContent } from './waypoints-utils';
-import { MapLayersService } from 'src/app/services/map/map-layers.service';
-import { TypeUtils } from 'src/app/utils/type-utils';
-import { Console } from 'src/app/utils/console';
-import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
-import { AvatarService } from 'src/app/services/avatar/avatar.service';
-import { PhotoService } from 'src/app/services/database/photo.service';
-import { Photo } from 'src/app/model/photo';
+import { MapLayersService } from '@trailence/services/map/map-layers.service';
+import { TypeUtils } from '@trailence/utils/type-utils';
+import { Console } from '@trailence/utils/console';
+import { FetchSourceService } from '@trailence/services/fetch-source/fetch-source.service';
+import { AvatarService } from '@trailence/services/avatar/avatar.service';
+import { PhotoService } from '@trailence/services/database/photo.service';
+import { Photo } from '@trailence/model/photo';
 import { PhotosSliderComponent } from '../photos-slider/photos-slider.component';
-import { computeWayPointsFromTrack, WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
-import { AssetsService } from 'src/app/services/assets/assets.service';
+import { computeWayPointsFromTrack, WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
+import { AssetsService } from '@trailence/services/assets/assets.service';
 
 export function openPdfPopup(injector: Injector, trail: Trail) {
   injector.get(ModalController).create({
@@ -43,6 +43,7 @@ const KEY_LOCAL_STORAGE = 'trailence.pdf-options';
 @Component({
   templateUrl: './pdf-popup.component.html',
   styleUrl: './pdf-popup.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonCheckbox, IonRadioGroup, IonRadio,
     FormsModule, NgStyle,

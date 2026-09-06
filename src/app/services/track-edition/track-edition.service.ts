@@ -1,16 +1,16 @@
 import { Injectable } from '@angular/core';
-import { Track } from 'src/app/model/track';
+import { Track } from '@trailence/model/track';
 import { applyElevationThresholdToSegment, applyElevationThresholdToTrack } from './elevation/elevation-threshold';
-import { Segment } from 'src/app/model/segment';
+import { Segment } from '@trailence/model/segment';
 import { adjustUnprobableElevationToSegmentBasedOnGrade, adjustUnprobableElevationToTrackBasedOnGrade } from './elevation/unprobable-elevation-with-grade';
 import { PreferencesService } from '../preferences/preferences.service';
-import { Trail } from 'src/app/model/trail';
+import { Trail } from '@trailence/model/trail';
 import { detectLoopType } from './path-analysis/loop-type-detection';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 import { removeUnprobablePointsBasedOnAccuracyOnSegment, removeUnprobablePointsBasedOnBigMovesOnShortTimeOnSegment, removeUnprobablePointsOnTrack } from './path-analysis/remove-unprobable-points';
 import { removeBreaksMovesOnSegment, removeBreaksMovesOnTrack } from './path-analysis/remove-breaks-moves';
 import { OfflineMapService } from '../map/offline-map.service';
-import { WorkerService } from 'src/app/worker/web-app';
+import { WorkerService } from '@trailence/worker/web-app';
 import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
 import { NetworkService } from '../network/network.service';
 

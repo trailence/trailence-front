@@ -1,21 +1,21 @@
-import { Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { LiveGroupService } from 'src/app/services/live-group/live-group.service';
+import { Component, Injector, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { LiveGroupService } from '@trailence/services/live-group/live-group.service';
 import { IonHeader, IonToolbar, IonIcon, IonLabel, IonButtons, IonButton, IonContent, IonFooter, IonTitle, IonInput, ModalController, IonCheckbox } from '@ionic/angular';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { FormsModule } from '@angular/forms';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { ErrorService } from 'src/app/services/progress/error.service';
-import { NetworkService } from 'src/app/services/network/network.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { ErrorService } from '@trailence/services/progress/error.service';
+import { NetworkService } from '@trailence/services/network/network.service';
 import { AsyncPipe } from '@angular/common';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { Trail } from 'src/app/model/trail';
-import { TrailService } from 'src/app/services/database/trail.service';
-import { TrailLinkService } from 'src/app/services/database/link.service';
-import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { Trail } from '@trailence/model/trail';
+import { TrailService } from '@trailence/services/database/trail.service';
+import { TrailLinkService } from '@trailence/services/database/link.service';
+import { Subscriptions } from '@trailence/utils/rxjs/subscription-utils';
 import { CollapsableSectionComponent } from '../collapsable-section/collapsable-section.component';
 import { TooltipDirective } from '../tooltip/tooltip.directive';
-import { SHARED_OWNER_PREFIX } from 'src/app/model/dto/trail-collection';
-import { LiveGroupDto } from 'src/app/model/dto/live-group';
+import { SHARED_OWNER_PREFIX } from '@trailence/model/dto/trail-collection';
+import { LiveGroupDto } from '@trailence/model/dto/live-group';
 
 export function openCreateLiveGroupPopup(injector: Injector, trailOwner?: string, trailUuid?: string): Promise<LiveGroupDto | null> {
   return injector.get(ModalController).create({
@@ -38,6 +38,7 @@ export const LAST_NAME_STORAGE_KEY_PREFIX = 'trailence.live-group.last-name.';
 @Component({
   templateUrl: './live-group-popup.component.html',
   styleUrl: './live-group-popup.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonHeader, IonToolbar, IonIcon, IonLabel, IonButtons, IonButton, IonContent, IonFooter, IonTitle, IonInput, IonCheckbox,
     FormsModule,

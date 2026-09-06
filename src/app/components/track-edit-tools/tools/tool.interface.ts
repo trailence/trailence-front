@@ -1,8 +1,8 @@
 import { Injector, Type } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Track } from 'src/app/model/track';
+import { Track } from '@trailence/model/track';
 import { TrackEditToolComponent } from './track-edit-tools-stack';
-import { Trail } from 'src/app/model/trail';
+import { Trail } from '@trailence/model/trail';
 import { TrailSelection } from '../../trail/trail-selection';
 import { MapComponent } from '../../map/map.component';
 import { MenuItem } from '../../menus/menu-item';

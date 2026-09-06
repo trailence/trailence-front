@@ -1,11 +1,11 @@
-import { Track } from 'src/app/model/track';
+import { Track } from '@trailence/model/track';
 import * as L from 'leaflet';
 import { Subscription } from 'rxjs';
-import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
-import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
+import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
+import { SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
 import { EventEmitter } from '@angular/core';
 import { getGradeRange, gradeColors } from '../../trail-graph/grade-values';
-import { distance } from 'src/app/utils/latlng';
+import { distance } from '@trailence/utils/latlng';
 
 export class MapTrackPath {
 

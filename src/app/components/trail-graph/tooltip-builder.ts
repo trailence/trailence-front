@@ -1,5 +1,5 @@
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { environment } from 'src/environments/environment';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { environment } from '@env/environment';
 
 const MIN_DISTANCE = 15;
 const MAX_DISTANCE = 100;

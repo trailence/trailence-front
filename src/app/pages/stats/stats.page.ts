@@ -1,12 +1,13 @@
-import { Component, Injector } from '@angular/core';
-import { HeaderComponent } from 'src/app/components/header/header.component';
-import { StatsComponent } from 'src/app/components/stats/stats.component';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { AbstractPage } from 'src/app/utils/component-utils';
+import { Component, Injector, ChangeDetectionStrategy } from '@angular/core';
+import { HeaderComponent } from '@trailence/components/header/header.component';
+import { StatsComponent } from '@trailence/components/stats/stats.component';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { AbstractPage } from '@trailence/utils/component-utils';
 
 @Component({
   templateUrl: './stats.page.html',
   styleUrl: './stats.page.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     HeaderComponent, StatsComponent
   ]

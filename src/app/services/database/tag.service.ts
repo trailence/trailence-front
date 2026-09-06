@@ -1,28 +1,28 @@
 import { Injectable, Injector } from "@angular/core";
 import { OwnedStore, UpdatesResponse } from "./store/owned-store";
-import { TagDto } from "src/app/model/dto/tag";
-import { Tag } from "src/app/model/tag";
-import { TrailTagDto } from "src/app/model/dto/trail-tag";
-import { TrailTag } from "src/app/model/trail-tag";
+import { TagDto } from '@trailence/model/dto/tag';
+import { Tag } from '@trailence/model/tag';
+import { TrailTagDto } from '@trailence/model/dto/trail-tag';
+import { TrailTag } from '@trailence/model/trail-tag';
 import { EMPTY, Observable, combineLatest, filter, first, firstValueFrom, map, of, switchMap, tap, throwError, timer, zip } from "rxjs";
 import { HttpService } from "../http/http.service";
-import { environment } from "src/environments/environment";
+import { environment } from '@env/environment';
 import { TrailCollectionService } from "./trail-collection.service";
-import { VersionedDto } from "src/app/model/dto/versioned";
+import { VersionedDto } from '@trailence/model/dto/versioned';
 import { TrailService } from "./trail.service";
 import { AuthService } from "../auth/auth.service";
-import { collection$items } from 'src/app/utils/rxjs/collection$items';
+import { collection$items } from '@trailence/utils/rxjs/collection$items';
 import { Progress } from '../progress/progress.service';
-import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
-import { CompositeOnDone } from 'src/app/utils/callback-utils';
+import { firstTimeout } from '@trailence/utils/rxjs/first-timeout';
+import { CompositeOnDone } from '@trailence/utils/callback-utils';
 import { QuotaService } from '../auth/quota.service';
 import { SimpleStoreWithoutUpdate } from './store/simple-store-without-update';
 import { ShareService } from './share.service';
 import { CommonDatabaseService } from './common-database.service';
 import { StoreWithCleaning } from './store/store.service';
-import { SHARED_OWNER_PREFIX, TrailCollectionType } from 'src/app/model/dto/trail-collection';
-import { Trail } from 'src/app/model/trail';
-import { TrailCollection } from 'src/app/model/trail-collection';
+import { SHARED_OWNER_PREFIX, TrailCollectionType } from '@trailence/model/dto/trail-collection';
+import { Trail } from '@trailence/model/trail';
+import { TrailCollection } from '@trailence/model/trail-collection';
 
 @Injectable({
     providedIn: 'root'

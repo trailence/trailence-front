@@ -1,16 +1,17 @@
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { IonIcon } from '@ionic/angular';
 import { Subscription } from 'rxjs';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { Contributions, ContributionService } from 'src/app/services/contribution/contribution.service';
-import { TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { Contributions, ContributionService } from '@trailence/services/contribution/contribution.service';
+import { TrailInfo } from '@trailence/services/fetch-source/fetch-source.interfaces';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 
 @Component({
   selector: 'app-contributions-badges',
   templateUrl: './contribution-badges.component.html',
   styleUrl: './contribution-badges.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonIcon
   ]

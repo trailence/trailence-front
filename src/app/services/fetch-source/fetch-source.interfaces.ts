@@ -1,13 +1,13 @@
 import * as L from 'leaflet';
-import { Trail } from 'src/app/model/trail';
-import { Track } from 'src/app/model/track';
+import { Trail } from '@trailence/model/trail';
+import { Track } from '@trailence/model/track';
 import { Injector } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
-import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
-import { TrailActivity } from 'src/app/model/dto/trail-activity';
-import { computeWayPointsFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
+import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from '@trailence/model/snapshots';
+import { TrailActivity } from '@trailence/model/dto/trail-activity';
+import { computeWayPointsFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
 import { Filters } from '../preferences/preferences';
 
 export abstract class FetchSourcePlugin {

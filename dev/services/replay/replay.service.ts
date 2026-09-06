@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { MenuItem } from 'src/app/components/menus/menu-item';
-import { Track } from 'src/app/model/track';
-import { Trail } from 'src/app/model/trail';
-import { TrackService } from 'src/app/services/database/track.service';
-import { TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
-import { TrackUtils } from 'src/app/utils/track-utils';
+import { MenuItem } from '@trailence/components/menus/menu-item';
+import { Track } from '@trailence/model/track';
+import { Trail } from '@trailence/model/trail';
+import { TrackService } from '@trailence/services/database/track.service';
+import { TraceRecorderService } from '@trailence/services/trace-recorder/trace-recorder.service';
+import { TrackUtils } from '@trailence/utils/track-utils';
 
 @Injectable({
   providedIn: 'root'

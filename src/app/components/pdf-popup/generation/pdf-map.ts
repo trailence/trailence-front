@@ -3,8 +3,8 @@ import { PdfContext } from './pdf-context';
 import { MapAnchor } from '../../map/markers/map-anchor';
 import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorDABorderColor, anchorDATextColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor } from '../../map/track/map-track-way-points';
 import { addSvgToPdf } from './pdf-icon';
-import { Console } from 'src/app/utils/console';
-import { ErrorService } from 'src/app/services/progress/error.service';
+import { Console } from '@trailence/utils/console';
+import { ErrorService } from '@trailence/services/progress/error.service';
 import * as L from 'leaflet';
 
 export async function generatePdfMap(ctx: PdfContext, x: number, y: number, width: number, height: number, includeWaypoints: boolean) {

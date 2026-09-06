@@ -1,13 +1,13 @@
-import { HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
-import { Photo } from 'src/app/model/photo';
-import { Point } from 'src/app/model/point';
-import { Segment } from 'src/app/model/segment';
-import { Track } from 'src/app/model/track';
-import { Trail } from 'src/app/model/trail';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { GpxFormat } from 'src/app/utils/formats/gpx-format';
+import { Photo } from '@trailence/model/photo';
+import { Point } from '@trailence/model/point';
+import { Segment } from '@trailence/model/segment';
+import { Track } from '@trailence/model/track';
+import { Trail } from '@trailence/model/trail';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { GpxFormat } from '@trailence/utils/formats/gpx-format';
 
 describe('Test Gpx Format', () => {
 
@@ -15,7 +15,7 @@ describe('Test Gpx Format', () => {
   let preferencesService: PreferencesService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ imports: [], providers: [provideHttpClient(withInterceptorsFromDi())] });
+    TestBed.configureTestingModule({ imports: [], providers: [provideHttpClient(withXhr(), withInterceptorsFromDi())] });
     http = TestBed.inject(HttpClient);
     preferencesService = TestBed.inject(PreferencesService);
   });

@@ -1,11 +1,11 @@
-import { HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
-import { GpxFormat } from 'src/app/utils/formats/gpx-format';
+import { GpxFormat } from '@trailence/utils/formats/gpx-format';
 import { Trail } from '../trail';
 import { Track } from '../track';
 import { Point } from '../point';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
 
 describe('Test Trail and Track DTOs', () => {
 
@@ -13,7 +13,7 @@ describe('Test Trail and Track DTOs', () => {
   let preferencesService: PreferencesService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ imports: [], providers: [provideHttpClient(withInterceptorsFromDi())] });
+    TestBed.configureTestingModule({ imports: [], providers: [provideHttpClient(withXhr(), withInterceptorsFromDi())] });
     http = TestBed.inject(HttpClient);
     preferencesService = TestBed.inject(PreferencesService);
   });

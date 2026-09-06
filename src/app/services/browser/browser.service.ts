@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, debounceTime, Subject } from 'rxjs';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 import { Platform } from '@ionic/angular/common';
 
 @Injectable({providedIn: 'root'})

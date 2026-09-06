@@ -1,15 +1,16 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { MapLayer, MapLayersService } from 'src/app/services/map/map-layers.service';
+import { Component, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
+import { MapLayer, MapLayersService } from '@trailence/services/map/map-layers.service';
 import * as L from 'leaflet';
 import { IonRadio, IonRadioGroup, IonCheckbox, IonHeader, IonToolbar, IonIcon, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, ModalController } from "@ionic/angular";
-import { environment } from 'src/environments/environment';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { environment } from '@env/environment';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { NgClass, NgTemplateOutlet } from '@angular/common';
 
 @Component({
     selector: 'app-map-layer-selection',
     templateUrl: './map-layer-selection.component.html',
     styleUrls: ['./map-layer-selection.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
       IonIcon, IonToolbar, IonHeader, IonCheckbox, IonRadioGroup, IonRadio, IonTitle, IonLabel, IonButton, IonButtons, IonFooter,
       NgClass, NgTemplateOutlet,

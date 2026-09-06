@@ -1,10 +1,10 @@
-import { Component, Injector, Input, OnInit } from '@angular/core';
-import { Trail } from 'src/app/model/trail';
+import { Component, Injector, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Trail } from '@trailence/model/trail';
 import { ModalController, IonContent, IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonFooter, IonButtons, IonButton, IonList, IonItem, IonRadio, IonCheckbox, IonRadioGroup } from '@ionic/angular';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { TrailService } from 'src/app/services/database/trail.service';
-import { TrailActivitiesGroups, TrailActivity, TrailActivityGroup } from 'src/app/model/dto/trail-activity';
-import { TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { TrailService } from '@trailence/services/database/trail.service';
+import { TrailActivitiesGroups, TrailActivity, TrailActivityGroup } from '@trailence/model/dto/trail-activity';
+import { TraceRecorderService } from '@trailence/services/trace-recorder/trace-recorder.service';
 
 export async function openActivityDialog(injector: Injector, trails: Trail[], isRecording: boolean = false) {
   let sel = [trails[0].activity];
@@ -61,6 +61,7 @@ export async function openActivitiesSelectionPopup(
 @Component({
   templateUrl: './activity-popup.component.html',
   styleUrl: './activity-popup.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonRadioGroup, IonCheckbox, IonRadio, IonItem, IonList, IonButton, IonButtons, IonFooter, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, IonContent,
   ]

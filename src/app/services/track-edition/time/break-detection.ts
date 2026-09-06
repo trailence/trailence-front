@@ -1,5 +1,5 @@
-import { Segment } from 'src/app/model/segment';
-import { Track } from 'src/app/model/track';
+import { Segment } from '@trailence/model/segment';
+import { Track } from '@trailence/model/track';
 
 export interface BreakPointSection {
   segmentIndex: number;

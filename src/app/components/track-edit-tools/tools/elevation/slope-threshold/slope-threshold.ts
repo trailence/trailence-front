@@ -1,7 +1,7 @@
 import { TrackEditTool, TrackEditToolContext } from '../../tool.interface';
 import { ModalController } from '@ionic/angular';
 import { SlopeThresholdModal } from './slope-threshold-modal';
-import { applyElevationThresholdToTrack } from 'src/app/services/track-edition/elevation/elevation-threshold';
+import { applyElevationThresholdToTrack } from '@trailence/services/track-edition/elevation/elevation-threshold';
 import { of } from 'rxjs';
 
 export class SlopeThreshold implements TrackEditTool {

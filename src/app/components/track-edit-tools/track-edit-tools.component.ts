@@ -1,13 +1,13 @@
-import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { ToastController, AlertController } from "@ionic/angular";
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { InteractiveToolContext, TrackEditTool, TrackEditToolContext } from './tools/tool.interface';
 import { RemoveUnprobableElevation } from './tools/elevation/remove-unprobable-elevation';
-import { MenuItem } from 'src/app/components/menus/menu-item';
+import { MenuItem } from '@trailence/components/menus/menu-item';
 import { BehaviorSubject, combineLatest, debounceTime, defaultIfEmpty, first, map, Observable, of, Subscription, switchMap } from 'rxjs';
-import { Track } from 'src/app/model/track';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { Track } from '@trailence/model/track';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { SlopeThreshold } from './tools/elevation/slope-threshold/slope-threshold';
 import { TrackEditToolsStack } from './tools/track-edit-tools-stack';
 import { SelectionComponent } from './tools/selection/selection.component';
@@ -21,23 +21,23 @@ import { ReplaceElevationWithProvider } from './tools/elevation/replace-with-pro
 import { ImproveElevationWithProvider } from './tools/elevation/improve-with-provider';
 import { JoinArrivalToDeparture } from './tools/path/join-arrival-to-departure';
 import { JoinDepartureToArrival } from './tools/path/join-departure-to-arrival';
-import { Trail } from 'src/app/model/trail';
+import { Trail } from '@trailence/model/trail';
 import { BackToOriginalTrack } from './tools/track/back-to-original';
 import { ToogleShowOnlyModifiedTrack } from './tools/track/toggle-show-only-modified-track';
 import { TrailSelection } from '../trail/trail-selection';
 import { EditWayPointTool } from './tools/way-points/edit-way-point';
-import { PointReference, RangeReference } from 'src/app/model/point-reference';
-import { TrackService } from 'src/app/services/database/track.service';
-import { TrailService } from 'src/app/services/database/trail.service';
-import { TrackEditionService } from 'src/app/services/track-edition/track-edition.service';
-import { ProgressService } from 'src/app/services/progress/progress.service';
+import { PointReference, RangeReference } from '@trailence/model/point-reference';
+import { TrackService } from '@trailence/services/database/track.service';
+import { TrailService } from '@trailence/services/database/trail.service';
+import { TrackEditionService } from '@trailence/services/track-edition/track-edition.service';
+import { ProgressService } from '@trailence/services/progress/progress.service';
 import { RemoveUnprobablePointsTool } from './tools/path/remove-unprobable-points';
 import { RemoveBreaksMovesTool } from './tools/path/remove-breaks-moves';
 import { SetElevationOnRangeManualDiffTool, SetElevationOnRangeManualValueTool, SetElevationOnRangeSmoothTool, SetElevationOnRangeWithEndTool, SetElevationOnRangeWithStartTool } from './tools/elevation/set-elevation';
 import { ApplyDefaultImprovementsTool } from './tools/track/apply-default-improvements';
 import { MergeSegementsTool } from './tools/path/merge-segments';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
-import { ModerationService } from 'src/app/services/moderation/moderation.service';
+import { ModerationService } from '@trailence/services/moderation/moderation.service';
 import { BackToDeparture } from './tools/path/back-to-departure';
 import { RemoveTime } from './tools/track/remove-time';
 import { LinkToNextSegment } from './tools/selection/link-to-next-segment';
@@ -47,7 +47,7 @@ import { AddOsmPath } from './tools/path/manual/add-osm-path';
 import { MapComponent } from '../map/map.component';
 import { ArrivalToStart } from './tools/path/arrival-to-start';
 import { MoveWayPointTool } from './tools/way-points/move-way-point';
-import { WayPoint } from 'src/app/model/way-point';
+import { WayPoint } from '@trailence/model/way-point';
 import { CalibrateElevationWithProvider } from './tools/elevation/calibrate';
 import { MoveWayPointIndexTool } from './tools/way-points/move-way-point-index';
 
@@ -62,6 +62,7 @@ interface TrackEditToolsState {
   selector: 'app-track-edit-tools',
   templateUrl: './track-edit-tools.component.html',
   styleUrl: './track-edit-tools.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ToolbarComponent,
   ]

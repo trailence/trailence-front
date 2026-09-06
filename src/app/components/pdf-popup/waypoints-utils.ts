@@ -1,4 +1,4 @@
-import { WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
+import { WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
 
 export function hasWaypointsContent(wayPoints: WayPointFromTrack[], sourceLang: string, userLang: string) {
   const departure = wayPoints.find(wp => wp.isDeparture);

@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { ICameraService } from 'src/app/services/camera/camera.interface';
+import { ICameraService } from '@trailence/services/camera/camera.interface';
 import { Camera, CameraResultType, CameraSource, ImageOptions } from '@capacitor/camera';
-import { BinaryContent } from 'src/app/utils/binary-content';
+import { BinaryContent } from '@trailence/utils/binary-content';
 import Trailence from '../trailence.service';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 
 @Injectable({
   providedIn: 'root'

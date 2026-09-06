@@ -1,22 +1,22 @@
 import { Injectable, Injector } from '@angular/core';
 import { SimpleStore } from './store/simple-store';
-import { ShareDto, ShareElementType } from 'src/app/model/dto/share';
-import { Share } from 'src/app/model/share';
+import { ShareDto, ShareElementType } from '@trailence/model/dto/share';
+import { Share } from '@trailence/model/share';
 import { combineLatest, EMPTY, map, Observable, of, switchMap, tap, zip } from 'rxjs';
 import { HttpService } from '../http/http.service';
-import { environment } from 'src/environments/environment';
-import { RequestLimiter } from 'src/app/utils/request-limiter';
+import { environment } from '@env/environment';
+import { RequestLimiter } from '@trailence/utils/request-limiter';
 import { TrailCollectionService } from './trail-collection.service';
 import { TagService } from './tag.service';
 import { AuthService } from '../auth/auth.service';
 import { TrailService } from './trail.service';
-import { MenuItem } from 'src/app/components/menus/menu-item';
+import { MenuItem } from '@trailence/components/menus/menu-item';
 import { I18nService } from '../i18n/i18n.service';
 import { AlertController, ModalController } from '@ionic/angular';
-import { collection$items, collection$items$ } from 'src/app/utils/rxjs/collection$items';
+import { collection$items, collection$items$ } from '@trailence/utils/rxjs/collection$items';
 import { QuotaService } from '../auth/quota.service';
-import { Arrays } from 'src/app/utils/arrays';
-import { Trail } from 'src/app/model/trail';
+import { Arrays } from '@trailence/utils/arrays';
+import { Trail } from '@trailence/model/trail';
 import { CommonDatabaseService } from './common-database.service';
 
 @Injectable({

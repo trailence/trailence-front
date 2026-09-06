@@ -1,13 +1,13 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { first, map, of, switchMap, zip } from 'rxjs';
-import { Tag } from 'src/app/model/tag';
-import { TagService } from 'src/app/services/database/tag.service';
-import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
+import { Tag } from '@trailence/model/tag';
+import { TagService } from '@trailence/services/database/tag.service';
+import { firstTimeout } from '@trailence/utils/rxjs/first-timeout';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonButton, ModalController } from "@ionic/angular";
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { Arrays } from 'src/app/utils/arrays';
-import { Progress, ProgressService } from 'src/app/services/progress/progress.service';
-import { TrailCollection } from 'src/app/model/trail-collection';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { Arrays } from '@trailence/utils/arrays';
+import { Progress, ProgressService } from '@trailence/services/progress/progress.service';
+import { TrailCollection } from '@trailence/model/trail-collection';
 
 class ResolvedTag {
   constructor(
@@ -21,6 +21,7 @@ class ResolvedTag {
     selector: 'app-import-tags-popup',
     templateUrl: './import-tags-popup.component.html',
     styleUrls: ['./import-tags-popup.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [IonButton, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader]
 })
 export class ImportTagsPopupComponent  implements OnInit {

@@ -1,10 +1,10 @@
 import { Injectable, Injector } from '@angular/core';
 import { SimpleStoreWithoutUpdate } from './store/simple-store-without-update';
-import { TrailLink } from 'src/app/model/dto/trail-link';
+import { TrailLink } from '@trailence/model/dto/trail-link';
 import { HttpService } from '../http/http.service';
 import { catchError, concatAll, EMPTY, from, map, Observable, switchMap, toArray } from 'rxjs';
-import { environment } from 'src/environments/environment';
-import { Console } from 'src/app/utils/console';
+import { environment } from '@env/environment';
+import { Console } from '@trailence/utils/console';
 import { TrailService } from './trail.service';
 import { AuthService } from '../auth/auth.service';
 import { CommonDatabaseService } from './common-database.service';

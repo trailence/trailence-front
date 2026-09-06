@@ -1,22 +1,22 @@
 import { BehaviorSubject, Subscription } from 'rxjs';
-import { Track } from 'src/app/model/track';
-import { Trail } from 'src/app/model/trail';
+import { Track } from '@trailence/model/track';
+import { Trail } from '@trailence/model/trail';
 import { MapAnchor } from '../map/markers/map-anchor';
 import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorBreakBorderColor, anchorBreakFillColor, anchorBreakTextColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor, MapTrackWayPoints } from '../map/track/map-track-way-points';
 import { MapTrack } from '../map/track/map-track';
-import { samePositionRound } from 'src/app/model/point';
-import { PointReference } from 'src/app/model/point-reference';
+import { samePositionRound } from '@trailence/model/point';
+import { PointReference } from '@trailence/model/point-reference';
 import { TrailSelection } from './trail-selection';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { Photo } from 'src/app/model/photo';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { Photo } from '@trailence/model/photo';
 import * as L from 'leaflet';
-import { Arrays } from 'src/app/utils/arrays';
-import { OfflineMapService } from 'src/app/services/map/offline-map.service';
-import { TrackWayPoint } from 'src/app/utils/track-waypoints/track-waypoint';
-import { WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
-import { BreakPoint } from 'src/app/utils/track-waypoints/breakpoints';
-import { GuidepostWayPoint } from 'src/app/utils/track-waypoints/guideposts';
-import { OsmWayIntersection } from 'src/app/utils/track-waypoints/way-intersection';
+import { Arrays } from '@trailence/utils/arrays';
+import { OfflineMapService } from '@trailence/services/map/offline-map.service';
+import { TrackWayPoint } from '@trailence/utils/track-waypoints/track-waypoint';
+import { WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
+import { BreakPoint } from '@trailence/utils/track-waypoints/breakpoints';
+import { GuidepostWayPoint } from '@trailence/utils/track-waypoints/guideposts';
+import { OsmWayIntersection } from '@trailence/utils/track-waypoints/way-intersection';
 
 export class TrailsWaypoints {
 

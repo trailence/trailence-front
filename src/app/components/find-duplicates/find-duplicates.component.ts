@@ -1,20 +1,20 @@
-import { Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Injector, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { IonHeader, IonFooter, IonToolbar, IonTitle, IonButtons, IonButton, IonLabel, IonIcon, IonContent, IonRadioGroup, IonRadio, IonSelect, IonSelectOption, IonInput, IonPopover, IonList, IonItem, IonSpinner, ModalController } from '@ionic/angular';
 import { first, map, Observable, of, switchMap, zip } from 'rxjs';
-import { Track } from 'src/app/model/track';
-import { Trail } from 'src/app/model/trail';
-import { TrailCollection } from 'src/app/model/trail-collection';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { TrackService } from 'src/app/services/database/track.service';
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { TrailService } from 'src/app/services/database/trail.service';
-import { I18nPipe } from 'src/app/services/i18n/i18n-string';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { estimateSimilarity } from 'src/app/services/track-edition/path-analysis/similarity';
-import { collection$items } from 'src/app/utils/rxjs/collection$items';
-import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
+import { Track } from '@trailence/model/track';
+import { Trail } from '@trailence/model/trail';
+import { TrailCollection } from '@trailence/model/trail-collection';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { TrackService } from '@trailence/services/database/track.service';
+import { TrailCollectionService } from '@trailence/services/database/trail-collection.service';
+import { TrailService } from '@trailence/services/database/trail.service';
+import { I18nPipe } from '@trailence/services/i18n/i18n-string';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { estimateSimilarity } from '@trailence/services/track-edition/path-analysis/similarity';
+import { collection$items } from '@trailence/utils/rxjs/collection$items';
+import { Subscriptions } from '@trailence/utils/rxjs/subscription-utils';
 import { TrailComponent } from '../trail/trail.component';
-import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { TrailCollectionType } from '@trailence/model/dto/trail-collection';
 import { NgClass, NgStyle } from '@angular/common';
 
 export function openFindDuplicates(injector: Injector, fromCollection: string): void {
@@ -31,6 +31,7 @@ export function openFindDuplicates(injector: Injector, fromCollection: string): 
 @Component({
   templateUrl: './find-duplicates.component.html',
   styleUrl: './find-duplicates.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonHeader, IonFooter, IonToolbar, IonTitle, IonButtons, IonButton, IonLabel, IonIcon, IonContent,
     IonRadioGroup, IonRadio, IonSelect, IonSelectOption, IonInput, IonSpinner, IonPopover, IonList, IonItem,

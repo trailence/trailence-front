@@ -1,25 +1,26 @@
-import { ChangeDetectorRef, Component, Injector } from '@angular/core';
-import { HeaderComponent } from 'src/app/components/header/header.component';
+import { ChangeDetectorRef, Component, Injector, ChangeDetectionStrategy } from '@angular/core';
+import { HeaderComponent } from '@trailence/components/header/header.component';
 import { IonCard, IonToolbar, IonLabel, IonCardContent, IonList, IonItem, IonInput, IonButton, IonSpinner, NavController } from "@ionic/angular";
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { NetworkService } from 'src/app/services/network/network.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { NetworkService } from '@trailence/services/network/network.service';
 import { FormsModule } from '@angular/forms';
-import { CaptchaService } from 'src/app/services/captcha/captcha.service';
-import { Console } from 'src/app/utils/console';
+import { CaptchaService } from '@trailence/services/captcha/captcha.service';
+import { Console } from '@trailence/utils/console';
 import { CodeInputModule } from 'angular-code-input';
-import { EMAIL_REGEX } from 'src/app/utils/string-utils';
-import { HttpService } from 'src/app/services/http/http.service';
-import { environment } from 'src/environments/environment';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { AuthService } from 'src/app/services/auth/auth.service';
+import { EMAIL_REGEX } from '@trailence/utils/string-utils';
+import { HttpService } from '@trailence/services/http/http.service';
+import { environment } from '@env/environment';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
 import { PublicPage } from '../public.page';
 import { NgClass } from '@angular/common';
-import { PasswordUtils } from 'src/app/utils/password-utils';
-import { InputPasswordComponent } from 'src/app/components/input-password/input-password.component';
+import { PasswordUtils } from '@trailence/utils/password-utils';
+import { InputPasswordComponent } from '@trailence/components/input-password/input-password.component';
 
 @Component({
   templateUrl: './register.page.html',
   styleUrl: './register.page.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormsModule,
     HeaderComponent,

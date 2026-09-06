@@ -1,10 +1,11 @@
-import { Component, ElementRef, Injector, Input } from '@angular/core';
-import { AvatarService } from 'src/app/services/avatar/avatar.service';
-import { AbstractComponent } from 'src/app/utils/component-utils';
+import { Component, ElementRef, Injector, Input, ChangeDetectionStrategy } from '@angular/core';
+import { AvatarService } from '@trailence/services/avatar/avatar.service';
+import { AbstractComponent } from '@trailence/utils/component-utils';
 
 @Component({
   selector: 'app-avatar',
   template: ``,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [],
 })
 export class AvatarComponent extends AbstractComponent {

@@ -1,18 +1,19 @@
-import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { UserSubscriptionDto } from 'src/app/admin/model/user-subscription';
-import { HttpService } from 'src/app/services/http/http.service';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { ErrorService } from 'src/app/services/progress/error.service';
-import { environment } from 'src/environments/environment';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { UserSubscriptionDto } from '@trailence/admin/model/user-subscription';
+import { HttpService } from '@trailence/services/http/http.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { ErrorService } from '@trailence/services/progress/error.service';
+import { environment } from '@env/environment';
 import { IonSelect, IonSelectOption, IonButton, IonIcon, AlertController } from '@ionic/angular';
-import { PlanDto } from 'src/app/admin/model/plan';
+import { PlanDto } from '@trailence/admin/model/plan';
 import { map } from 'rxjs';
-import { PageResult } from 'src/app/admin/components/paginator/page-result';
+import { PageResult } from '@trailence/admin/components/paginator/page-result';
 
 @Component({
   selector: 'app-user-subscriptions',
   templateUrl: './user-subscriptions.component.html',
   styleUrl: './user-subscriptions.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonSelect, IonSelectOption, IonButton, IonIcon,
   ]

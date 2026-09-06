@@ -1,13 +1,14 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, Injector, Input } from '@angular/core';
+import { Component, Injector, Input, ChangeDetectionStrategy } from '@angular/core';
 import { IonHeader, IonButton, IonToolbar, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, ModalController } from "@ionic/angular";
-import { Trail } from 'src/app/model/trail';
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { Trail } from '@trailence/model/trail';
+import { TrailCollectionService } from '@trailence/services/database/trail-collection.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 
 @Component({
   templateUrl: './start-publication-modal.component.html',
   styleUrl: './start-publication-modal.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonButtons, IonFooter, IonContent, IonLabel, IonIcon, IonToolbar, IonButton, IonHeader,
     NgTemplateOutlet,

@@ -1,5 +1,5 @@
 import { Observable, Subscriber } from 'rxjs';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 
 export class DatabaseSubject<T> {
 

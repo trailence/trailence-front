@@ -1,6 +1,6 @@
 import { MapTool } from './tool.interface';
 import { Observable } from 'rxjs';
-import { ScreenLockService } from 'src/app/services/screen-lock/screen-lock.service';
+import { ScreenLockService } from '@trailence/services/screen-lock/screen-lock.service';
 
 export class PhoneLockTool extends MapTool {
 

@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, filter, Observable, tap } from 'rxjs';
-import { HttpService } from 'src/app/services/http/http.service';
-import { Console } from 'src/app/utils/console';
-import { environment } from 'src/environments/environment';
+import { HttpService } from '@trailence/services/http/http.service';
+import { Console } from '@trailence/utils/console';
+import { environment } from '@env/environment';
 import { PageRequest } from '../components/paginator/page-request';
 import { PageResult } from '../components/paginator/page-result';
 import { ContactMessageDto } from '../model/contact-message';

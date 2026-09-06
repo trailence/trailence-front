@@ -2,8 +2,8 @@ import { Injectable, Injector } from '@angular/core';
 import { map, Observable, reduce, tap } from 'rxjs';
 import { Db } from './storage/db';
 import { DbTableWithBlob } from './storage/db-table-with-blob';
-import { Arrays } from 'src/app/utils/arrays';
-import { Console } from 'src/app/utils/console';
+import { Arrays } from '@trailence/utils/arrays';
+import { Console } from '@trailence/utils/console';
 
 export interface StoredFileDto {
   key: string;

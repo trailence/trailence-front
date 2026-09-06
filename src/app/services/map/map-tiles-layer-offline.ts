@@ -1,11 +1,11 @@
 import * as L from 'leaflet';
 import { first } from 'rxjs';
-import { OfflineMapService } from 'src/app/services/map/offline-map.service';
-import { NetworkService } from 'src/app/services/network/network.service';
-import { BinaryContent } from 'src/app/utils/binary-content';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { OfflineMapService } from '@trailence/services/map/offline-map.service';
+import { NetworkService } from '@trailence/services/network/network.service';
+import { BinaryContent } from '@trailence/utils/binary-content';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { I18nService } from '../i18n/i18n.service';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 
 export function handleMapOffline(name: string, displayName: string, tiles: L.TileLayer, getTileUrl: (layer: L.TileLayer, coords: L.Coords, crs?: L.CRS) => string, network: NetworkService, offlineMap: OfflineMapService, i18n: I18nService): L.TileLayer {
   (tiles as any)['createTile'] = function(coords: L.Coords, done: L.DoneCallback) {

@@ -1,9 +1,9 @@
 import { MapTrack } from '../map/track/map-track';
 import { Injector } from '@angular/core';
-import { Track } from 'src/app/model/track';
-import { Trail } from 'src/app/model/trail';
-import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { Track } from '@trailence/model/track';
+import { Trail } from '@trailence/model/trail';
+import { FetchSourceService } from '@trailence/services/fetch-source/fetch-source.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 
 export function checkPublicTrailsAround(injector: Injector, track: Track, listener: (mapTracks: MapTrack[]) => void) {
   const trailence = injector.get(FetchSourceService).getPluginByName('Trailence');

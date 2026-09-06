@@ -1,28 +1,28 @@
 import { Injectable, Injector } from '@angular/core';
-import { MenuItem } from 'src/app/components/menus/menu-item';
+import { MenuItem } from '@trailence/components/menus/menu-item';
 import { ANONYMOUS_USER, AuthService } from '../auth/auth.service';
 import { ModalController, AlertController, Platform } from '@ionic/angular';
-import { TrailCollection } from 'src/app/model/trail-collection';
+import { TrailCollection } from '@trailence/model/trail-collection';
 import { Router } from '@angular/router';
-import { Trail } from 'src/app/model/trail';
+import { Trail } from '@trailence/model/trail';
 import { combineLatest, first, firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
 import { TrailCollectionService } from './trail-collection.service';
 import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
-import { isPublicationCollection, isPublicationLockedCollection, SHARED_OWNER_PREFIX, TrailCollectionType } from 'src/app/model/dto/trail-collection';
-import { Track } from 'src/app/model/track';
+import { isPublicationCollection, isPublicationLockedCollection, SHARED_OWNER_PREFIX, TrailCollectionType } from '@trailence/model/dto/trail-collection';
+import { Track } from '@trailence/model/track';
 import { TrackService } from './track.service';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { TrailService } from './trail.service';
 import { MyPublicTrailsService } from './my-public-trails.service';
 import { MySelectionService } from './my-selection.service';
-import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { TrackMetadataSnapshot } from '@trailence/model/snapshots';
 import { I18nService } from '../i18n/i18n.service';
 import { ModerationService } from '../moderation/moderation.service';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 import Trailence from '../trailence.service';
 import { TrailLinkService } from './link.service';
 import { LiveGroupService } from '../live-group/live-group.service';
-import { NULL_UUID } from 'src/app/utils/string-utils';
+import { NULL_UUID } from '@trailence/utils/string-utils';
 
 @Injectable({providedIn: 'root'})
 export class TrailMenuService {

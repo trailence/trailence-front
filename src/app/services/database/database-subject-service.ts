@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { DatabaseSubject } from './database-subject';
-import { Maps } from 'src/app/utils/maps';
-import { Console } from 'src/app/utils/console';
+import { Maps } from '@trailence/utils/maps';
+import { Console } from '@trailence/utils/console';
 
 @Injectable({providedIn: 'root'})
 export class DatabaseSubjectService {

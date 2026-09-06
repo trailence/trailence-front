@@ -1,87 +1,87 @@
 import { AfterContentChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, SecurityContext, ViewChild } from '@angular/core';
 import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, distinctUntilChanged, filter, first, firstValueFrom, from, map, of, skip, switchMap, take, takeWhile, tap, timer } from 'rxjs';
-import { Trail } from 'src/app/model/trail';
-import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
+import { Trail } from '@trailence/model/trail';
+import { AbstractComponent, IdGenerator } from '@trailence/utils/component-utils';
 import { MapComponent } from '../map/map.component';
 import { MapTrack } from '../map/track/map-track';
-import { Track } from 'src/app/model/track';
-import { TrackService } from 'src/app/services/database/track.service';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { Track } from '@trailence/model/track';
+import { TrackService } from '@trailence/services/database/track.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { AsyncPipe, NgClass, NgComponentOutlet, NgStyle, NgTemplateOutlet } from '@angular/common';
 import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonCheckbox, AlertController, IonSpinner, ModalController, ToastController, IonInput, IonBadge } from "@ionic/angular";
 import { TrackMetadataComponent, TrackMetadataConfig } from '../track-metadata/track-metadata.component';
 import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
 import { GraphPointReference } from '../trail-graph/graph-events';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { TrailService } from 'src/app/services/database/trail.service';
-import { Recording, TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { TrailService } from '@trailence/services/database/trail.service';
+import { Recording, TraceRecorderService } from '@trailence/services/trace-recorder/trace-recorder.service';
 import { TrailHoverCursor } from './hover-cursor';
 import { Router, RouterLink } from '@angular/router';
-import { TagService } from 'src/app/services/database/tag.service';
-import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
-import { PhotoService } from 'src/app/services/database/photo.service';
-import { Photo } from 'src/app/model/photo';
+import { TagService } from '@trailence/services/database/tag.service';
+import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
+import { PhotoService } from '@trailence/services/database/photo.service';
+import { Photo } from '@trailence/model/photo';
 import { PhotoComponent } from '../photo/photo.component';
-import { BrowserService } from 'src/app/services/browser/browser.service';
-import { Arrays } from 'src/app/utils/arrays';
+import { BrowserService } from '@trailence/services/browser/browser.service';
+import { Arrays } from '@trailence/utils/arrays';
 import { MapPhoto } from '../map/markers/map-photo';
-import { BinaryContent } from 'src/app/utils/binary-content';
-import { TrackUtils } from 'src/app/utils/track-utils';
+import { BinaryContent } from '@trailence/utils/binary-content';
+import { TrackUtils } from '@trailence/utils/track-utils';
 import * as L from 'leaflet';
-import { Console } from 'src/app/utils/console';
-import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
-import { estimateSimilarity } from 'src/app/services/track-edition/path-analysis/similarity';
-import { CompositeI18nString, DateTimeI18nString, I18nPipe, I18nString, TranslatedString } from 'src/app/services/i18n/i18n-string';
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { isPublicationCollection, SHARED_OWNER_PREFIX, TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { Console } from '@trailence/utils/console';
+import { FetchSourceService } from '@trailence/services/fetch-source/fetch-source.service';
+import { estimateSimilarity } from '@trailence/services/track-edition/path-analysis/similarity';
+import { CompositeI18nString, DateTimeI18nString, I18nPipe, I18nString, TranslatedString } from '@trailence/services/i18n/i18n-string';
+import { TrailCollectionService } from '@trailence/services/database/trail-collection.service';
+import { isPublicationCollection, SHARED_OWNER_PREFIX, TrailCollectionType } from '@trailence/model/dto/trail-collection';
 import { TrackEditToolsComponent } from '../track-edit-tools/track-edit-tools.component';
 import { TrackEditToolComponent, TrackEditToolsStack } from '../track-edit-tools/tools/track-edit-tools-stack';
 import { TrailSelection } from './trail-selection';
-import { RangeReference } from 'src/app/model/point-reference';
+import { RangeReference } from '@trailence/model/point-reference';
 import { MenuItem } from '../menus/menu-item';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
-import { TrailSourceType } from 'src/app/model/dto/trail';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { TrailCollection } from 'src/app/model/trail-collection';
+import { TrailSourceType } from '@trailence/model/dto/trail';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { TrailCollection } from '@trailence/model/trail-collection';
 import { PublicationChecklist } from './publication-checklist/checklist';
-import { ModerationService } from 'src/app/services/moderation/moderation.service';
-import { environment } from 'src/environments/environment';
-import { FeedbackService, MyFeedback } from 'src/app/services/feedback/feedback.service';
+import { ModerationService } from '@trailence/services/moderation/moderation.service';
+import { environment } from '@env/environment';
+import { FeedbackService, MyFeedback } from '@trailence/services/feedback/feedback.service';
 import { RateAndCommentsComponent } from './rate-and-comments/rate-and-comments.component';
-import { TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
-import { NetworkService } from 'src/app/services/network/network.service';
+import { TrailInfo } from '@trailence/services/fetch-source/fetch-source.interfaces';
+import { NetworkService } from '@trailence/services/network/network.service';
 import { TextComponent } from '../text/text.component';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { FormsModule } from '@angular/forms';
 import { ModerationTranslationsComponent } from './moderation-translations/moderation-translations.component';
 import { TooltipDirective } from '../tooltip/tooltip.directive';
-import { CameraService } from 'src/app/services/camera/camera.service';
+import { CameraService } from '@trailence/services/camera/camera.service';
 import { WaypointsComponent } from './waypoints/waypoints.component';
 import { TrailsWaypoints } from './trail-waypoints';
-import { WayPoint } from 'src/app/model/way-point';
-import { samePositionRound } from 'src/app/model/point';
-import { MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
-import { HttpService } from 'src/app/services/http/http.service';
-import { ErrorService } from 'src/app/services/progress/error.service';
-import { LiveGroupService } from 'src/app/services/live-group/live-group.service';
+import { WayPoint } from '@trailence/model/way-point';
+import { samePositionRound } from '@trailence/model/point';
+import { MyPublicTrailsService } from '@trailence/services/database/my-public-trails.service';
+import { HttpService } from '@trailence/services/http/http.service';
+import { ErrorService } from '@trailence/services/progress/error.service';
+import { LiveGroupService } from '@trailence/services/live-group/live-group.service';
 import { LiveGroupComponent } from '../live-group/live-group.component';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { ContributionsBadgesComponent } from '../contributions-badges/contribution-badges.component';
-import { ApiError } from 'src/app/services/http/api-error';
-import { OfflineMapService } from 'src/app/services/map/offline-map.service';
-import { WorkerService } from 'src/app/worker/web-app';
-import { TrackWayPoint } from 'src/app/utils/track-waypoints/track-waypoint';
-import { buildOsmTrack } from 'src/app/utils/track-computed-data/build-osm-track';
+import { ApiError } from '@trailence/services/http/api-error';
+import { OfflineMapService } from '@trailence/services/map/offline-map.service';
+import { WorkerService } from '@trailence/worker/web-app';
+import { TrackWayPoint } from '@trailence/utils/track-waypoints/track-waypoint';
+import { buildOsmTrack } from '@trailence/utils/track-computed-data/build-osm-track';
 import { TrackOsmStatsComponent } from './osm-stats/track-osm-stats.component';
-import { TrackSection } from 'src/app/utils/track-computed-data/track-osm-stats';
-import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
+import { TrackSection } from '@trailence/utils/track-computed-data/track-osm-stats';
+import { SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
 import { PhotosComponent } from '../photos/photos.component';
 import { buildMapMarkedTrails, MapMarkedTrail } from '../map/marked-trail/map-marked-trail';
 import { MapElement } from '../map/map-element';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
-import { TrackPointReference } from 'src/app/utils/track-computed-data/types';
-import { LiveGroupDto } from 'src/app/model/dto/live-group';
+import { TrackPointReference } from '@trailence/utils/track-computed-data/types';
+import { LiveGroupDto } from '@trailence/model/dto/live-group';
 
 interface TrailSource {
   isExternal: boolean;
@@ -1906,7 +1906,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
 
   openDateDialog(): void {
     if (this.trail2 || !this.trail1 || !this.editable) return;
-    import('src/app/services/database/trail-menu.service').then(module => this.injector.get(module.TrailMenuService).openTrailDatePopup(this.trail1!, this.tracks$.value[0]));
+    import('@trailence/services/database/trail-menu.service').then(module => this.injector.get(module.TrailMenuService).openTrailDatePopup(this.trail1!, this.tracks$.value[0]));
   }
 
   openActivityDialog(): void {
@@ -1918,7 +1918,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   }
 
   openPublish(): void {
-    import('src/app/services/database/trail-menu.service').then(module => this.injector.get(module.TrailMenuService).startPublication(this.trail1!));
+    import('@trailence/services/database/trail-menu.service').then(module => this.injector.get(module.TrailMenuService).startPublication(this.trail1!));
   }
 
   canEdit(): boolean {

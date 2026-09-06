@@ -1,11 +1,11 @@
 import { Injectable, SecurityContext } from '@angular/core';
 import { PreferencesService } from '../preferences/preferences.service';
 import { BehaviorSubject, catchError, combineLatest, filter, map, Observable, of, switchMap, tap } from 'rxjs';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 import { DateFormat, DistanceUnit, HourFormat } from '../preferences/preferences';
-import { StringUtils } from 'src/app/utils/string-utils';
+import { StringUtils } from '@trailence/utils/string-utils';
 import { AssetsService } from '../assets/assets.service';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 import { DomSanitizer } from '@angular/platform-browser';
 import { LocaleKey } from './available-locales';
 

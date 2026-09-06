@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { MenuItem } from 'src/app/components/menus/menu-item';
-import { Trail } from 'src/app/model/trail';
+import { MenuItem } from '@trailence/components/menus/menu-item';
+import { Trail } from '@trailence/model/trail';
 
 @Injectable({
   providedIn: 'root'

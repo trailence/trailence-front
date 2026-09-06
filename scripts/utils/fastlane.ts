@@ -1,4 +1,4 @@
-import { AvailableLocales } from 'src/app/services/i18n/available-locales';
+import { AvailableLocales } from '@trailence/services/i18n/available-locales';
 
 export const knownLanguages = Object.keys(AvailableLocales);
 export const fastlaneLanguages = {

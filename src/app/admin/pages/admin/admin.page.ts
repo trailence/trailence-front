@@ -1,16 +1,17 @@
-import { ChangeDetectorRef, Component, Injector } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonRouterOutlet, IonSegment, IonSegmentButton } from '@ionic/angular';
-import { HeaderComponent } from 'src/app/components/header/header.component';
+import { HeaderComponent } from '@trailence/components/header/header.component';
 import { I18nAdminService } from '../../services/i18n-admin.service';
-import { I18nPipe } from 'src/app/services/i18n/i18n-string';
-import { AbstractPage } from 'src/app/utils/component-utils';
+import { I18nPipe } from '@trailence/services/i18n/i18n-string';
+import { AbstractPage } from '@trailence/utils/component-utils';
 import { MessagesService } from '../../services/messages.service';
 
 @Component({
   selector: 'app-admin-page',
   templateUrl: './admin.page.html',
   styleUrl: './admin.page.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     HeaderComponent,
     I18nPipe,

@@ -1,13 +1,13 @@
-import { Component, Injector } from '@angular/core';
+import { Component, Injector, ChangeDetectionStrategy } from '@angular/core';
 import { IonIcon, IonButton } from '@ionic/angular';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
 import { DonationStatusDto } from './donation-status';
-import { HttpService } from 'src/app/services/http/http.service';
-import { environment } from 'src/environments/environment';
-import { Console } from 'src/app/utils/console';
-import { NetworkService } from 'src/app/services/network/network.service';
-import { HeaderComponent } from 'src/app/components/header/header.component';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { HttpService } from '@trailence/services/http/http.service';
+import { environment } from '@env/environment';
+import { Console } from '@trailence/utils/console';
+import { NetworkService } from '@trailence/services/network/network.service';
+import { HeaderComponent } from '@trailence/components/header/header.component';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { PublicPage } from '../public.page';
 import { NgStyle } from '@angular/common';
 
@@ -21,6 +21,7 @@ interface Goal {
   selector: 'app-donation-page',
   templateUrl: './donation.page.html',
   styleUrl: './donation.page.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonIcon, IonButton,
     HeaderComponent,

@@ -1,16 +1,16 @@
-import { WorkerService } from 'src/app/worker/web-app';
+import { WorkerService } from '@trailence/worker/web-app';
 import { DbTableWithBlob } from '../database/storage/db-table-with-blob';
 import { HttpService } from '../http/http.service';
 import { NetworkService } from '../network/network.service';
-import { PendingRequests } from 'src/app/utils/pending-requests';
+import { PendingRequests } from '@trailence/utils/pending-requests';
 import { Injector, NgZone } from '@angular/core';
 import { catchError, debounceTime, filter, first, firstValueFrom, forkJoin, from, map, Observable, of, Subscriber, switchMap, tap } from 'rxjs';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 import { ApiError } from '../http/api-error';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 import { Way } from './way';
 import { DbTableWhereLessThan } from '../database/storage/db-table';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { CleanupService } from '../database/cleanup/cleanup.service';
 
 const CACHE_EXPIRATION = 90 * 24 * 60 * 60 * 1000;

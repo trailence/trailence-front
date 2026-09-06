@@ -1,16 +1,16 @@
-import { Track } from 'src/app/model/track';
-import { OsmWayMatchResponse } from 'src/app/utils/track-computed-data/track-computed-data';
+import { Track } from '@trailence/model/track';
+import { OsmWayMatchResponse } from '@trailence/utils/track-computed-data/track-computed-data';
 import * as L from 'leaflet';
 import { Injector } from '@angular/core';
-import { OsmcSymbolService } from 'src/app/services/geolocation/osmc-symbol.service';
+import { OsmcSymbolService } from '@trailence/services/geolocation/osmc-symbol.service';
 import { MapElement } from '../map-element';
-import { Point } from 'src/app/model/point';
-import { OsmWaysTrackPoint } from 'src/app/utils/track-computed-data/match-osm-ways';
-import { Arrays } from 'src/app/utils/arrays';
-import { TrackPointReference } from 'src/app/utils/track-computed-data/types';
-import { EarthPoint } from 'src/app/utils/latlng';
-import { Way } from 'src/app/services/map/way';
-import { Maps } from 'src/app/utils/maps';
+import { Point } from '@trailence/model/point';
+import { OsmWaysTrackPoint } from '@trailence/utils/track-computed-data/match-osm-ways';
+import { Arrays } from '@trailence/utils/arrays';
+import { TrackPointReference } from '@trailence/utils/track-computed-data/types';
+import { EarthPoint } from '@trailence/utils/latlng';
+import { Way } from '@trailence/services/map/way';
+import { Maps } from '@trailence/utils/maps';
 
 const MIN_DISTANCE_TO_DISPLAY = 100;
 const MAX_DISTANCE_TO_MERGE = 75;

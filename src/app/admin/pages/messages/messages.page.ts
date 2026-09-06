@@ -1,17 +1,18 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { MessagesService } from '../../services/messages.service';
 import { TableColumn, TableSettings } from '../../components/table/table-settings';
 import { PageRequest } from '../../components/paginator/page-request';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { TableComponent } from '../../components/table/table.component';
 import { ContactMessageDto } from '../../model/contact-message';
 import { IonButton, ModalController } from '@ionic/angular';
-import { ErrorService } from 'src/app/services/progress/error.service';
-import { Console } from 'src/app/utils/console';
+import { ErrorService } from '@trailence/services/progress/error.service';
+import { Console } from '@trailence/utils/console';
 
 @Component({
   templateUrl: './messages.page.html',
   styleUrl: './messages.page.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     TableComponent,
     IonButton,

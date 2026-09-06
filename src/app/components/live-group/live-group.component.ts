@@ -1,7 +1,7 @@
-import { ChangeDetectorRef, Component, Injector, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { LiveGroupService } from 'src/app/services/live-group/live-group.service';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { ChangeDetectorRef, Component, Injector, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { LiveGroupService } from '@trailence/services/live-group/live-group.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
 import { IonIcon, AlertController, IonButton } from '@ionic/angular';
 import { RelativeDateComponent } from '../relative-date/relative-date.component';
 import { MapComponent } from '../map/map.component';
@@ -9,20 +9,21 @@ import { firstValueFrom, map, Observable, of, Subscription, switchMap } from 'rx
 import * as L from 'leaflet';
 import { MenuItem } from '../menus/menu-item';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
-import { NetworkService } from 'src/app/services/network/network.service';
+import { NetworkService } from '@trailence/services/network/network.service';
 import { Router } from '@angular/router';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { defaultAuthRoute, defaultPublicRoute } from 'src/app/routes/package.routes';
-import { I18nPipe } from 'src/app/services/i18n/i18n-string';
-import { GeolocationService } from 'src/app/services/geolocation/geolocation.service';
-import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
-import { BoundsBuilder } from 'src/app/utils/leaflet-utils';
-import { LiveGroupDto, LiveGroupMemberDto } from 'src/app/model/dto/live-group';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { defaultAuthRoute, defaultPublicRoute } from '@trailence/routes/package.routes';
+import { I18nPipe } from '@trailence/services/i18n/i18n-string';
+import { GeolocationService } from '@trailence/services/geolocation/geolocation.service';
+import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
+import { BoundsBuilder } from '@trailence/utils/leaflet-utils';
+import { LiveGroupDto, LiveGroupMemberDto } from '@trailence/model/dto/live-group';
 
 @Component({
   selector: 'app-live-group',
   templateUrl: './live-group.component.html',
   styleUrl: './live-group.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonIcon, IonButton,
     RelativeDateComponent,

@@ -1,12 +1,12 @@
 import { BehaviorSubject, combineLatest, EMPTY, map, of, Subscription, switchMap } from 'rxjs';
-import { PointReference, RangeReference } from 'src/app/model/point-reference';
-import { Track } from 'src/app/model/track';
+import { PointReference, RangeReference } from '@trailence/model/point-reference';
+import { Track } from '@trailence/model/track';
 import { MapComponent } from '../map/map.component';
 import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
 import { GraphPointReference, GraphRange } from '../trail-graph/graph-events';
 import { MapAnchor } from '../map/markers/map-anchor';
-import { WayPoint } from 'src/app/model/way-point';
+import { WayPoint } from '@trailence/model/way-point';
 
 export class TrailSelection {
 

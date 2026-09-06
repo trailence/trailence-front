@@ -1,24 +1,25 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonRange, IonFooter, IonButtons, IonButton, ModalController, IonSpinner } from "@ionic/angular";
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { MapLayerSelectionComponent } from '../map-layer-selection/map-layer-selection.component';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { MapLayer } from 'src/app/services/map/map-layers.service';
-import { OfflineMapService } from 'src/app/services/map/offline-map.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { MapLayer } from '@trailence/services/map/map-layers.service';
+import { OfflineMapService } from '@trailence/services/map/offline-map.service';
 import * as L from 'leaflet';
-import { Track } from 'src/app/model/track';
-import { NetworkService } from 'src/app/services/network/network.service';
-import { LeafletUtils } from 'src/app/utils/leaflet-utils';
+import { Track } from '@trailence/model/track';
+import { NetworkService } from '@trailence/services/network/network.service';
+import { LeafletUtils } from '@trailence/utils/leaflet-utils';
 import { AsyncPipe } from '@angular/common';
-import { Arrays } from 'src/app/utils/arrays';
+import { Arrays } from '@trailence/utils/arrays';
 import { BehaviorSubject, debounceTime, switchMap, tap } from 'rxjs';
-import { calculateTilesFromBounds, calculateTilesFromPaths } from 'src/app/services/map/calculate-tiles';
-import { Console } from 'src/app/utils/console';
+import { calculateTilesFromBounds, calculateTilesFromPaths } from '@trailence/services/map/calculate-tiles';
+import { Console } from '@trailence/utils/console';
 
 @Component({
     selector: 'app-download-map-popup',
     templateUrl: './download-map-popup.component.html',
     styleUrls: [],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [IonButton, IonButtons, IonFooter, IonRange, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, IonSpinner, MapLayerSelectionComponent, AsyncPipe]
 })
 export class DownloadMapPopupComponent implements OnInit, OnChanges {

@@ -1,7 +1,7 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { EmailValue, InputEmailComponent } from './input-email.component';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { Arrays } from 'src/app/utils/arrays';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { Arrays } from '@trailence/utils/arrays';
 
 export interface EmailsValue {
   emails: string[];
@@ -31,6 +31,7 @@ export interface EmailsValue {
       }
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [InputEmailComponent]
 })
 export class MultipleInputEmailComponent implements OnInit, OnChanges {

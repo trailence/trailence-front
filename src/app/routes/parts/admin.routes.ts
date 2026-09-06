@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
-import { AuthService } from 'src/app/services/auth/auth.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
 
 export const adminRoutes: Routes = [
   {

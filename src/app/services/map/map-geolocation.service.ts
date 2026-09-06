@@ -2,10 +2,10 @@ import { Injectable } from '@angular/core';
 import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
 import { GeolocationService } from '../geolocation/geolocation.service';
 import { BehaviorSubject, combineLatest, concat, map, Observable, of, switchMap } from 'rxjs';
-import { PointDto } from 'src/app/model/dto/point';
+import { PointDto } from '@trailence/model/dto/point';
 import { I18nService } from '../i18n/i18n.service';
-import { Console } from 'src/app/utils/console';
-import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { Console } from '@trailence/utils/console';
+import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
 
 @Injectable({providedIn: 'root'})
 export class MapGeolocationService {

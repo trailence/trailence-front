@@ -1,14 +1,14 @@
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideAuthService } from 'test/utils/mock-auth-service';
-import { provideMockLocalFilesService } from 'test/utils/mock-local-files-service';
+import { provideAuthService } from '@test/utils/mock-auth-service';
+import { provideMockLocalFilesService } from '@test/utils/mock-local-files-service';
 import { DbTestsUtils } from './db-tests-utils';
 import { BlobDto, DbTablesMetaBlob } from './db-tables-meta-blob';
 import { Db } from './db';
 import { BehaviorSubject, filter, firstValueFrom } from 'rxjs';
 import { I18nService } from '../../i18n/i18n.service';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import Dexie from 'dexie';
 import { AuthService } from '../../auth/auth.service';
 import { AuthResponse } from '../../auth/auth-response';
@@ -25,7 +25,7 @@ function runTests(withFiles: boolean) {
     beforeEach(() => {
       const providers = [];
       if (withFiles) {
-        providers.push(provideMockLocalFilesService(), provideHttpClient(withInterceptorsFromDi()), provideAuthService('test@trailence.org'));
+        providers.push(provideMockLocalFilesService(), provideHttpClient(withXhr(), withInterceptorsFromDi()), provideAuthService('test@trailence.org'));
       }
       TestBed.configureTestingModule({ imports: [], providers});
 

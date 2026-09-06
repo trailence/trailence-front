@@ -1,22 +1,23 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
-import { Feedback, FeedbackReply, FeedbackService } from 'src/app/services/feedback/feedback.service';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Feedback, FeedbackReply, FeedbackService } from '@trailence/services/feedback/feedback.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { RateComponent } from '../rate/rate.component';
 import { IonButton, AlertController, IonTextarea } from "@ionic/angular";
-import { AuthService } from 'src/app/services/auth/auth.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
 import { FormsModule } from '@angular/forms';
-import { ErrorService } from 'src/app/services/progress/error.service';
-import { RelativeDateComponent } from 'src/app/components/relative-date/relative-date.component';
-import { ModerationService } from 'src/app/services/moderation/moderation.service';
-import { AvatarComponent } from 'src/app/components/avatar/avatar.component';
-import { AvatarService } from 'src/app/services/avatar/avatar.service';
+import { ErrorService } from '@trailence/services/progress/error.service';
+import { RelativeDateComponent } from '@trailence/components/relative-date/relative-date.component';
+import { ModerationService } from '@trailence/services/moderation/moderation.service';
+import { AvatarComponent } from '@trailence/components/avatar/avatar.component';
+import { AvatarService } from '@trailence/services/avatar/avatar.service';
 import { AsyncPipe } from '@angular/common';
-import { FetchSourceTrailComment } from 'src/app/services/fetch-source/fetch-source.interfaces';
+import { FetchSourceTrailComment } from '@trailence/services/fetch-source/fetch-source.interfaces';
 
 @Component({
   selector: 'app-feedback',
   templateUrl: './feedback.component.html',
   styleUrl: './feedback.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonTextarea,
     IonButton,

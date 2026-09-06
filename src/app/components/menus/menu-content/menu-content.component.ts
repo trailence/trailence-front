@@ -1,11 +1,11 @@
-import { ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnChanges, OnInit, SimpleChanges } from '@angular/core';
-import { ComputedMenuItem, ComputedMenuItems, MenuItem } from 'src/app/components/menus/menu-item';
+import { ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnChanges, OnInit, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { ComputedMenuItem, ComputedMenuItems, MenuItem } from '@trailence/components/menus/menu-item';
 import { IonItem, IonIcon, IonLabel, IonList, IonListHeader, IonButton, PopoverController } from "@ionic/angular";
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { ToolbarComponent } from '../toolbar/toolbar.component';
-import { ChangesDetection } from 'src/app/utils/angular-helpers';
+import { ChangesDetection } from '@trailence/utils/angular-helpers';
 import { AsyncPipe, NgTemplateOutlet } from '@angular/common';
-import { BrowserService } from 'src/app/services/browser/browser.service';
+import { BrowserService } from '@trailence/services/browser/browser.service';
 
 interface Section {
   type: 'toolbar' | 'menu';
@@ -17,6 +17,7 @@ interface Section {
     selector: 'app-menu-content',
     templateUrl: './menu-content.component.html',
     styleUrls: ['./menu-content.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
       IonButton, IonListHeader, IonList, IonLabel, IonIcon, IonItem,
       ToolbarComponent,

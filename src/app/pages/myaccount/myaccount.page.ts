@@ -1,26 +1,27 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { HeaderComponent } from 'src/app/components/header/header.component';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { HttpService } from 'src/app/services/http/http.service';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { environment } from 'src/environments/environment';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { HeaderComponent } from '@trailence/components/header/header.component';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { HttpService } from '@trailence/services/http/http.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { environment } from '@env/environment';
 import { IonButton, ModalController } from "@ionic/angular";
 import { first, switchMap } from 'rxjs';
-import { NetworkService } from 'src/app/services/network/network.service';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { UserKey, UserKeysComponent } from 'src/app/components/user-keys/user-keys.components';
-import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
-import { UserQuotas } from 'src/app/services/auth/user-quotas';
-import { QuotaService } from 'src/app/services/auth/quota.service';
-import { UserQuotasComponent } from 'src/app/components/user-quotas/user-quotas.component';
+import { NetworkService } from '@trailence/services/network/network.service';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
+import { UserKey, UserKeysComponent } from '@trailence/components/user-keys/user-keys.components';
+import { Subscriptions } from '@trailence/utils/rxjs/subscription-utils';
+import { UserQuotas } from '@trailence/services/auth/user-quotas';
+import { QuotaService } from '@trailence/services/auth/quota.service';
+import { UserQuotasComponent } from '@trailence/components/user-quotas/user-quotas.component';
 import { Router } from '@angular/router';
 import { AsyncPipe } from '@angular/common';
-import { AvatarComponent } from 'src/app/components/avatar/avatar.component';
+import { AvatarComponent } from '@trailence/components/avatar/avatar.component';
 
 @Component({
   selector: 'app-myaccount',
   templateUrl: './myaccount.page.html',
   styleUrls: ['./myaccount.page.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonButton,
     HeaderComponent,

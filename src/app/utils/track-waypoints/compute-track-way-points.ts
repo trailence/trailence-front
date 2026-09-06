@@ -1,12 +1,12 @@
 import { combineLatest, concat, first, map, Observable, of } from 'rxjs';
-import { Track } from 'src/app/model/track';
+import { Track } from '@trailence/model/track';
 import { TrackWayPoint, TrackWayPointElement } from './track-waypoint';
 import { computeWayPointsFromTrack } from './waypoints-from-track';
 import { computeBreakPoints } from './breakpoints';
 import { extendsAround } from '../leaflet-utils';
 import { debounceTimeExtended } from '../rxjs/debounce-time-extended';
 import { computeGuidepostsWayPoints, GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT } from './guideposts';
-import { BreakPointSection } from 'src/app/services/track-edition/time/break-detection';
+import { BreakPointSection } from '@trailence/services/track-edition/time/break-detection';
 import { computeOsmWayChanges } from './way-intersection';
 
 export function computeTrackWayPoints(track: Track, breaksSections: BreakPointSection[]): Observable<TrackWayPoint[]> {

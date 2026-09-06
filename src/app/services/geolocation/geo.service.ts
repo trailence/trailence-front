@@ -1,18 +1,18 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { catchError, map, Observable, of, switchMap, tap, timer, zip } from 'rxjs';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 import * as L from 'leaflet';
 import { Place } from './place';
-import { Track } from 'src/app/model/track';
-import { Segment } from 'src/app/model/segment';
-import { samePositionRound } from 'src/app/model/point';
-import { PointDescriptor } from 'src/app/model/point-descriptor';
+import { Track } from '@trailence/model/track';
+import { Segment } from '@trailence/model/segment';
+import { samePositionRound } from '@trailence/model/point';
+import { PointDescriptor } from '@trailence/model/point-descriptor';
 import { PreferencesService } from '../preferences/preferences.service';
-import { RequestLimiter } from 'src/app/utils/request-limiter';
+import { RequestLimiter } from '@trailence/utils/request-limiter';
 import { Progress, ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
-import { parseCoordinates } from 'src/app/utils/coordinates-parser';
+import { parseCoordinates } from '@trailence/utils/coordinates-parser';
 import { OverpassClient } from './overpass-client.service';
 
 @Injectable({

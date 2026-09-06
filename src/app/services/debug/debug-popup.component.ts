@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DebugService } from './debug.service';
 import { ModalController } from '@ionic/angular';
 
 @Component({
   templateUrl: './debug-popup.component.html',
   styleUrl: './debug-popup.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: []
 })
 export class DebugPopup implements OnInit {

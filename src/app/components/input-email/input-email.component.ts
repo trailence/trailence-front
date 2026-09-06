@@ -1,7 +1,7 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { IonInput, IonIcon } from '@ionic/angular';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { EMAIL_REGEX } from 'src/app/utils/string-utils';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { EMAIL_REGEX } from '@trailence/utils/string-utils';
 
 export interface EmailValue {
   email?: string;
@@ -33,6 +33,7 @@ export interface EmailValue {
         margin-top: 2px;
       }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonInput, IonIcon]
 })
 export class InputEmailComponent {

@@ -1,14 +1,15 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { HeaderComponent } from 'src/app/components/header/header.component';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { ChangeDetectorRef, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { HeaderComponent } from '@trailence/components/header/header.component';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { IonSpinner, IonButton, IonIcon } from '@ionic/angular';
-import { ModerationService } from 'src/app/services/moderation/moderation.service';
+import { ModerationService } from '@trailence/services/moderation/moderation.service';
 import { catchError, combineLatest, map, of, switchMap } from 'rxjs';
-import { AvatarComponent } from 'src/app/components/avatar/avatar.component';
+import { AvatarComponent } from '@trailence/components/avatar/avatar.component';
 
 @Component({
   templateUrl: './moderation-avatars.page.html',
   styleUrl: './moderation-avatars.page.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonSpinner, IonButton, IonIcon,
     HeaderComponent,

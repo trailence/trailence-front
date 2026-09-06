@@ -1,46 +1,46 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, Output, SimpleChanges } from '@angular/core';
-import { Trail } from 'src/app/model/trail';
-import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
+import { Trail } from '@trailence/model/trail';
+import { AbstractComponent, IdGenerator } from '@trailence/utils/component-utils';
 import { TrackMetadataComponent, TrackMetadataConfig } from '../track-metadata/track-metadata.component';
-import { Track } from 'src/app/model/track';
-import { TrackService } from 'src/app/services/database/track.service';
+import { Track } from '@trailence/model/track';
+import { TrackService } from '@trailence/services/database/track.service';
 import { IonIcon, IonCheckbox, IonButton, IonSpinner, PopoverController, DomController, Platform, IonBadge } from "@ionic/angular";
 import { BehaviorSubject, combineLatest, concat, firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { MenuContentComponent } from '../menus/menu-content/menu-content.component';
-import { TagService } from 'src/app/services/database/tag.service';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
-import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
-import { TrailService } from 'src/app/services/database/trail.service';
-import { Arrays } from 'src/app/utils/arrays';
-import { AssetsService } from 'src/app/services/assets/assets.service';
-import { BrowserService } from 'src/app/services/browser/browser.service';
-import { PhotoService } from 'src/app/services/database/photo.service';
-import { Photo } from 'src/app/model/photo';
+import { TagService } from '@trailence/services/database/tag.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
+import { TrailMenuService } from '@trailence/services/database/trail-menu.service';
+import { TrailService } from '@trailence/services/database/trail.service';
+import { Arrays } from '@trailence/utils/arrays';
+import { AssetsService } from '@trailence/services/assets/assets.service';
+import { BrowserService } from '@trailence/services/browser/browser.service';
+import { PhotoService } from '@trailence/services/database/photo.service';
+import { Photo } from '@trailence/model/photo';
 import { PhotosSliderComponent } from "../photos-slider/photos-slider.component";
 import { Router } from '@angular/router';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
-import { TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
-import { OsmcSymbolService } from 'src/app/services/geolocation/osmc-symbol.service';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
+import { FetchSourceService } from '@trailence/services/fetch-source/fetch-source.service';
+import { TrailInfo } from '@trailence/services/fetch-source/fetch-source.interfaces';
+import { OsmcSymbolService } from '@trailence/services/geolocation/osmc-symbol.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { TrailCollectionService } from '@trailence/services/database/trail-collection.service';
 import { RateComponent } from '../trail/rate-and-comments/rate/rate.component';
-import { MySelectionService } from 'src/app/services/database/my-selection.service';
-import { LongPressDirective } from 'src/app/utils/long-press.directive';
-import { TrailTag } from 'src/app/model/trail-tag';
+import { MySelectionService } from '@trailence/services/database/my-selection.service';
+import { LongPressDirective } from '@trailence/utils/long-press.directive';
+import { TrailTag } from '@trailence/model/trail-tag';
 import { TrailSmallMapComponent } from '../trail-small-map/trail-small-map.component';
-import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { TrackMetadataSnapshot } from '@trailence/model/snapshots';
 import { NgClass, NgStyle } from '@angular/common';
-import { TrailLink } from 'src/app/model/dto/trail-link';
-import { TrailLinkService } from 'src/app/services/database/link.service';
+import { TrailLink } from '@trailence/model/dto/trail-link';
+import { TrailLinkService } from '@trailence/services/database/link.service';
 import { TrailSmallElevationProfileComponent } from '../trail-small-elevation-profile/trail-small-elevation-profile.component';
 import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
-import { ObserverHelper } from 'src/app/utils/observer-helper';
-import { TrailPublicationInfoService } from 'src/app/services/database/trail-publication-info.service';
-import { SHARED_OWNER_PREFIX } from 'src/app/model/dto/trail-collection';
+import { ObserverHelper } from '@trailence/utils/observer-helper';
+import { TrailPublicationInfoService } from '@trailence/services/database/trail-publication-info.service';
+import { SHARED_OWNER_PREFIX } from '@trailence/model/dto/trail-collection';
 
 class Meta {
   name?: string;
@@ -576,7 +576,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     this.changesDetection.detectChanges(() => {
       if (tab === 'elevation') {
         // loading of component is in a @defer
-        import('src/app/components/trail-graph/trail-graph.component')
+        import('@trailence/components/trail-graph/trail-graph.component')
         .then(() => this.changesDetection.detectChanges());
       }
     });

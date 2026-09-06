@@ -1,7 +1,7 @@
-import { Track } from 'src/app/model/track';
-import { Trail } from 'src/app/model/trail';
-import { TrailService } from 'src/app/services/database/trail.service';
-import { Console } from 'src/app/utils/console';
+import { Track } from '@trailence/model/track';
+import { Trail } from '@trailence/model/trail';
+import { TrailService } from '@trailence/services/database/trail.service';
+import { Console } from '@trailence/utils/console';
 
 export class PublicationChecklist {
 

@@ -1,16 +1,17 @@
-import { Component, Injector, Input } from '@angular/core';
-import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
+import { Component, Injector, Input, ChangeDetectionStrategy } from '@angular/core';
+import { FetchSourceService } from '@trailence/services/fetch-source/fetch-source.service';
 import { IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonInput, ModalController, Platform } from '@ionic/angular';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { I18nPipe } from 'src/app/services/i18n/i18n-string';
-import { Console } from 'src/app/utils/console';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { I18nPipe } from '@trailence/services/i18n/i18n-string';
+import { Console } from '@trailence/utils/console';
 import { firstValueFrom } from 'rxjs';
-import { Trail } from 'src/app/model/trail';
-import { TrailCollection } from 'src/app/model/trail-collection';
+import { Trail } from '@trailence/model/trail';
+import { TrailCollection } from '@trailence/model/trail-collection';
 
 @Component({
   templateUrl: './import-popup.component.html',
   styleUrl: './import-popup.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonInput, I18nPipe]
 })
 export class ImportPopupComponent {

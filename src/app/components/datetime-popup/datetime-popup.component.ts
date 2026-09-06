@@ -1,8 +1,8 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { IonDatetime, ModalController, IonContent, IonFooter, IonToolbar, IonButtons, IonButton, IonHeader, IonTitle, IonIcon, IonLabel } from '@ionic/angular';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { TypeUtils } from 'src/app/utils/type-utils';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { TypeUtils } from '@trailence/utils/type-utils';
 
 @Component({
   'template': `
@@ -38,6 +38,7 @@ import { TypeUtils } from 'src/app/utils/type-utils';
   </ion-toolbar>
 </ion-footer>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonDatetime, IonContent, IonFooter, IonToolbar, IonButtons, IonButton, IonHeader, IonTitle, IonIcon, IonLabel
   ],

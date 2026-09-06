@@ -1,15 +1,16 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { PlanDto } from 'src/app/admin/model/plan';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { PlanDto } from '@trailence/admin/model/plan';
 import { IonHeader, IonToolbar, IonTitle, IonLabel, IonInput, IonFooter, IonButtons, IonButton, ModalController, AlertController } from '@ionic/angular';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { HttpService } from 'src/app/services/http/http.service';
-import { environment } from 'src/environments/environment';
-import { ErrorService } from 'src/app/services/progress/error.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { HttpService } from '@trailence/services/http/http.service';
+import { environment } from '@env/environment';
+import { ErrorService } from '@trailence/services/progress/error.service';
 
 @Component({
   templateUrl: './plan-form.component.html',
   styleUrl: './plan-form.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonHeader, IonToolbar, IonTitle, IonLabel, IonInput, IonFooter, IonButtons, IonButton,
     ReactiveFormsModule

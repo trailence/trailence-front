@@ -1,11 +1,12 @@
 import { NgStyle } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { IonToggle } from "@ionic/angular";
 
 @Component({
     selector: 'app-toggle-choice',
     templateUrl: './toggle-choice.component.html',
     styleUrls: ['./toggle-choice.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [IonToggle, NgStyle]
 })
 export class ToggleChoiceComponent<T> {

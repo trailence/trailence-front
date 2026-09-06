@@ -1,5 +1,5 @@
 import { Injectable, Injector } from '@angular/core';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 import { DbTable } from './storage/db-table';
 import { CommonDatabaseService } from './common-database.service';
 import { EMPTY, firstValueFrom, map, Observable, of, switchMap } from 'rxjs';

@@ -1,29 +1,30 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, Injector, Input, ViewChild } from '@angular/core';
+import { Component, Injector, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { BehaviorSubject, combineLatest, of } from 'rxjs';
-import { HeaderComponent } from 'src/app/components/header/header.component';
-import { LiveGroupComponent } from 'src/app/components/live-group/live-group.component';
-import { MapComponent } from 'src/app/components/map/map.component';
-import { MapTrack } from 'src/app/components/map/track/map-track';
-import { MenuItem } from 'src/app/components/menus/menu-item';
-import { BrowserService } from 'src/app/services/browser/browser.service';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { LiveGroupService } from 'src/app/services/live-group/live-group.service';
-import { NetworkService } from 'src/app/services/network/network.service';
-import { AbstractPage } from 'src/app/utils/component-utils';
+import { HeaderComponent } from '@trailence/components/header/header.component';
+import { LiveGroupComponent } from '@trailence/components/live-group/live-group.component';
+import { MapComponent } from '@trailence/components/map/map.component';
+import { MapTrack } from '@trailence/components/map/track/map-track';
+import { MenuItem } from '@trailence/components/menus/menu-item';
+import { BrowserService } from '@trailence/services/browser/browser.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { LiveGroupService } from '@trailence/services/live-group/live-group.service';
+import { NetworkService } from '@trailence/services/network/network.service';
+import { AbstractPage } from '@trailence/utils/component-utils';
 import { IonInput, IonCard, IonCardContent, IonToolbar, IonLabel, IonButton, IonSpinner } from '@ionic/angular';
 import { LAST_NAME_STORAGE_KEY_PREFIX } from '../../components/live-group/live-group-popup.component';
-import { AuthService } from 'src/app/services/auth/auth.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ErrorService } from 'src/app/services/progress/error.service';
-import { defaultAuthRoute, defaultPublicRoute } from 'src/app/routes/package.routes';
-import { Console } from 'src/app/utils/console';
-import { LiveGroupDto } from 'src/app/model/dto/live-group';
+import { ErrorService } from '@trailence/services/progress/error.service';
+import { defaultAuthRoute, defaultPublicRoute } from '@trailence/routes/package.routes';
+import { Console } from '@trailence/utils/console';
+import { LiveGroupDto } from '@trailence/model/dto/live-group';
 
 @Component({
   templateUrl: './live-group.page.html',
   styleUrl: './live-group.page.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     HeaderComponent,
     LiveGroupComponent,

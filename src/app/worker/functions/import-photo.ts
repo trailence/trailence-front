@@ -1,8 +1,8 @@
-import { PhotoDto } from 'src/app/model/dto/photo';
-import { ComputedPreferences } from 'src/app/services/preferences/preferences';
-import { ImageInfo } from 'src/app/utils/image-utils';
+import { PhotoDto } from '@trailence/model/dto/photo';
+import { ComputedPreferences } from '@trailence/services/preferences/preferences';
+import { ImageInfo } from '@trailence/utils/image-utils';
 import { extractInfos } from './extract-image-infos';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 import { convertToJpeg } from './image-to-jpeg';
 
 export async function importPhoto( // NOSONAR

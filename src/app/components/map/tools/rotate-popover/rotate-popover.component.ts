@@ -1,11 +1,11 @@
-import { Component, Injector, Input } from '@angular/core';
+import { Component, Injector, Input, ChangeDetectionStrategy } from '@angular/core';
 import { IonList, IonItem, IonIcon, IonLabel, PopoverController } from '@ionic/angular';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { MapComponent } from '../../map.component';
 import { RotateMode } from '../../map-state';
-import { GeolocationService } from 'src/app/services/geolocation/geolocation.service';
+import { GeolocationService } from '@trailence/services/geolocation/geolocation.service';
 import { AsyncPipe } from '@angular/common';
-import { MotionService } from 'src/app/services/motion/motion.service';
+import { MotionService } from '@trailence/services/motion/motion.service';
 
 export async function openRotatePopover(injector: Injector, event: Event, map: MapComponent) {
   const popover = await injector.get(PopoverController).create({
@@ -22,6 +22,7 @@ export async function openRotatePopover(injector: Injector, event: Event, map: M
 @Component({
   templateUrl: './rotate-popover.component.html',
   styleUrl: './rotate-popover.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonList, IonItem, IonIcon, IonLabel,
     AsyncPipe,

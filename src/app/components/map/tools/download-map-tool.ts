@@ -1,4 +1,4 @@
-import { Trail } from 'src/app/model/trail';
+import { Trail } from '@trailence/model/trail';
 import { MapTool, MapToolContext } from './tool.interface';
 import { of } from 'rxjs';
 

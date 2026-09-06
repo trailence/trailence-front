@@ -54,14 +54,14 @@
                   <div class="metadata-content">
                     <div class="metadata-title">{{i18n.texts.metadata.description}}</div>
                     <div class="metadata-value">
-                      <div class="metadata-primary"><app-text [text]="trail1.description" [lang]="trail1WithInfo!.source?.info?.lang" [translations]="trail1WithInfo!.source?.info?.descriptionTranslations" [showSource]="showTextHtml"></app-text></div>
-                      <div class="metadata-secondary"><app-text [text]="trail2.description" [lang]="trail2WithInfo!.source?.info?.lang" [translations]="trail2WithInfo!.source?.info?.descriptionTranslations" [showSource]="showTextHtml"></app-text></div>
+                      <div class="metadata-primary"><app-text [text]="trail1.description" [lang]="$safeNavigationMigration(trail1WithInfo!.source?.info?.lang)" [translations]="$safeNavigationMigration(trail1WithInfo!.source?.info?.descriptionTranslations)" [showSource]="showTextHtml"></app-text></div>
+                      <div class="metadata-secondary"><app-text [text]="trail2.description" [lang]="$safeNavigationMigration(trail2WithInfo!.source?.info?.lang)" [translations]="$safeNavigationMigration(trail2WithInfo!.source?.info?.descriptionTranslations)" [showSource]="showTextHtml"></app-text></div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              @if (!isPublication && trail1WithInfo?.collection && (trail1WithInfo?.tagsNames !== undefined || trail2WithInfo?.tagsNames !== undefined)) {
+              @if (!isPublication && trail1WithInfo?.collection && ($safeNavigationMigration(trail1WithInfo?.tagsNames) !== undefined || $safeNavigationMigration(trail2WithInfo?.tagsNames) !== undefined)) {
                 <div class="metadata-item-container">
                   <div class="metadata-item">
                     <ion-icon name="tags"></ion-icon>
@@ -161,7 +161,7 @@
               <div class="description-text">
                 @if (!editable) {
                   <h2>
-                    <app-text [text]="trail1.description" [lang]="trail1WithInfo?.source?.info?.lang" [translations]="trail1WithInfo?.source?.info?.descriptionTranslations" [showSource]="showTextHtml"></app-text>
+                    <app-text [text]="trail1.description" [lang]="$safeNavigationMigration(trail1WithInfo?.source?.info?.lang)" [translations]="$safeNavigationMigration(trail1WithInfo?.source?.info?.descriptionTranslations)" [showSource]="showTextHtml"></app-text>
                   </h2>
                 } @else {
                   @if (!editingDescription) {
@@ -328,10 +328,10 @@
 
             @if (trail1WithInfo?.source?.isExternalOnly && trail1.owner === 'trailence' && trail1WithInfo?.source?.info) {
               <div class="trail-publication">
-                @let info = trail1WithInfo?.source?.info;
+                @let info = $safeNavigationMigration(trail1WithInfo?.source?.info);
                 @let author = info?.author || i18n.texts.pages.preferences.anonymous;
                 <div class="author-infos">
-                  <app-avatar [uuid]="info?.authorAvatar" [name]="info?.author" [anonymous]="!info?.author"></app-avatar>
+                  <app-avatar [uuid]="$safeNavigationMigration(info?.authorAvatar)" [name]="$safeNavigationMigration(info?.author)" [anonymous]="!info?.author"></app-avatar>
                   <div class="trail-publication-infos">
                     <div>
                       {{i18n.texts.pages.trail.published_on}}
@@ -344,7 +344,7 @@
                         <span class="you"> ({{i18n.texts.pages.trail.sections.comments.you}})</span>
                       } @else {
                         <span class="author">
-                          <a [routerLink]="'/user-routes/' + info?.authorPublicId">
+                          <a [routerLink]="'/user-routes/' + $safeNavigationMigration(info?.authorPublicId)">
                             {{author}}
                           </a>
                         </span>
@@ -473,7 +473,7 @@
             @let followedTrack = remaining ? {track: remaining.track, position: remaining.trackPosition} : undefined;
             <app-trail-waypoints
               [trails]="trailsWaypoints"
-              [lang]="trail1WithInfo?.source?.info?.lang"
+              [lang]="$safeNavigationMigration(trail1WithInfo?.source?.info?.lang)"
               [editTools]="editTools"
               [showSource]="showTextHtml"
               [followedTrack]="followedTrack"
@@ -563,12 +563,12 @@
           </div>
         </ion-segment-button>
       }
-      @if (!trail2 && trail1 && trail1WithInfo?.source?.isExternalOnly && (trail1.owner === 'trailence' || trail1WithInfo?.source?.info !== undefined)) {
+      @if (!trail2 && trail1 && trail1WithInfo?.source?.isExternalOnly && (trail1.owner === 'trailence' || $safeNavigationMigration(trail1WithInfo?.source?.info) !== undefined)) {
         <ion-segment-button value="reviews">
           <div class="tab-segment-content">
             <ion-icon name="chat-bubbles"></ion-icon>
             <div class="text">{{i18n.texts.pages.trail.tabs.comments}}</div>
-            @if (trail1WithInfo?.feedbackCount !== undefined) {
+            @if ($safeNavigationMigration(trail1WithInfo?.feedbackCount) !== undefined) {
               <ion-badge [color]="trail1WithInfo!.feedbackCount! > 0 ? 'secondary' : 'medium'">{{trail1WithInfo!.feedbackCount}}</ion-badge>
             }
           </div>
@@ -706,7 +706,7 @@
       <div class="trail-waypoints-tab">
         <app-trail-waypoints
           [trails]="trailsWaypoints"
-          [lang]="trail1WithInfo?.source?.info?.lang"
+          [lang]="$safeNavigationMigration(trail1WithInfo?.source?.info?.lang)"
           [editTools]="editTools"
           [showSource]="showTextHtml"
           [followedTrack]="followedTrack"
@@ -722,7 +722,7 @@
     }
     @case ('external') {
       <div class="external-page-tab">
-        <iframe [src]="trail1WithInfo?.source?.externalSafeUrl" sandbox="allow-downloads allow-same-origin allow-scripts" referrerpolicy="no-referrer"></iframe>
+        <iframe [src]="$safeNavigationMigration(trail1WithInfo?.source?.externalSafeUrl)" sandbox="allow-downloads allow-same-origin allow-scripts" referrerpolicy="no-referrer"></iframe>
       </div>
     }
   }

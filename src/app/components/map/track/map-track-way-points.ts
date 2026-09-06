@@ -1,14 +1,14 @@
-import { Track } from 'src/app/model/track';
+import { Track } from '@trailence/model/track';
 import { MapAnchor } from '../markers/map-anchor';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { combineLatest, Subscription } from 'rxjs';
 import * as L from 'leaflet';
-import { Color } from 'src/app/utils/color';
-import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
-import { TrackWayPoint } from 'src/app/utils/track-waypoints/track-waypoint';
-import { MAX_DEPARTURE_ARRIVAL_DISTANCE, WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
-import { BreakPoint } from 'src/app/utils/track-waypoints/breakpoints';
-import { GuidepostWayPoint } from 'src/app/utils/track-waypoints/guideposts';
+import { Color } from '@trailence/utils/color';
+import { SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
+import { TrackWayPoint } from '@trailence/utils/track-waypoints/track-waypoint';
+import { MAX_DEPARTURE_ARRIVAL_DISTANCE, WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
+import { BreakPoint } from '@trailence/utils/track-waypoints/breakpoints';
+import { GuidepostWayPoint } from '@trailence/utils/track-waypoints/guideposts';
 
 export const anchorBorderColor = '#d00000';
 export const anchorFillColor = '#a00000';

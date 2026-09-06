@@ -1,6 +1,6 @@
 import { of } from 'rxjs';
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
-import { copyPoint, PointDescriptor } from 'src/app/model/point-descriptor';
+import { copyPoint, PointDescriptor } from '@trailence/model/point-descriptor';
 
 export class BackToDeparture implements TrackEditTool {
 

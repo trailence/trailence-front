@@ -1,12 +1,12 @@
 import { Injectable, Injector, NgZone } from '@angular/core';
 import { BehaviorSubject, catchError, combineLatest, debounceTime, defaultIfEmpty, distinctUntilChanged, EMPTY, filter, map, Observable, of, Subscription, switchMap, tap, timeout } from 'rxjs';
 import { StoreLoadStatus, StoreSyncStatus } from './store';
-import { Console } from 'src/app/utils/console';
-import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { Console } from '@trailence/utils/console';
+import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
 import { NetworkService } from '../../network/network.service';
 import { AuthService } from '../../auth/auth.service';
 import { DbStatus } from '../storage/db-table';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { CleanupService } from '../cleanup/cleanup.service';
 
 const AUTO_UPDATE_FROM_SERVER_EVERY = 30 * 60 * 1000;

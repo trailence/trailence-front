@@ -2,15 +2,15 @@ import { combineLatest, distinctUntilChanged, of, Subscription, switchMap } from
 import { TrackEditToolContext } from '../../tool.interface';
 import { AddPointsContext, AddPointsTool } from './add-points-tool';
 import * as L from 'leaflet';
-import { WayUtils } from 'src/app/services/map/way-utils';
-import { MapTrack } from 'src/app/components/map/track/map-track';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { MapTrackPointReference } from 'src/app/components/map/track/map-track-point-reference';
-import { Arrays } from 'src/app/utils/arrays';
-import { PointDescriptor } from 'src/app/model/point-descriptor';
-import { TrackUtils } from 'src/app/utils/track-utils';
-import { Way } from 'src/app/services/map/way';
-import { OfflineMapService } from 'src/app/services/map/offline-map.service';
+import { WayUtils } from '@trailence/services/map/way-utils';
+import { MapTrack } from '@trailence/components/map/track/map-track';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { MapTrackPointReference } from '@trailence/components/map/track/map-track-point-reference';
+import { Arrays } from '@trailence/utils/arrays';
+import { PointDescriptor } from '@trailence/model/point-descriptor';
+import { TrackUtils } from '@trailence/utils/track-utils';
+import { Way } from '@trailence/services/map/way';
+import { OfflineMapService } from '@trailence/services/map/offline-map.service';
 
 const MIN_ZOOM = 14;
 const MATCHING_MAX_DISTANCE = 2.5;

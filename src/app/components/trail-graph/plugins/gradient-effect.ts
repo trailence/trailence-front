@@ -1,5 +1,5 @@
 import * as C from 'chart.js';
-import { Color } from 'src/app/utils/color';
+import { Color } from '@trailence/utils/color';
 
 export class GradientEffectPlugin implements C.Plugin<"line"> {
 

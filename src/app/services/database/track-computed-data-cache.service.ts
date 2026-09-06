@@ -1,13 +1,13 @@
 import { Injectable, Injector, NgZone, OnDestroy } from '@angular/core';
 import { firstValueFrom, Observable } from 'rxjs';
-import { Track } from 'src/app/model/track';
+import { Track } from '@trailence/model/track';
 import { HikingDifficulty, Way, WaySurface, WayType, WayVisibility } from '../map/way';
 import { DbTable, DbTableWhereEquals } from './storage/db-table';
 import { Db } from './storage/db';
 import { AllWaysResponse } from '../map/ways';
-import { OsmWaysTrackPoint } from 'src/app/utils/track-computed-data/match-osm-ways';
-import { OsmWayMatchResponse } from 'src/app/utils/track-computed-data/track-computed-data';
-import { TrackOsmStatInfo, TrackOsmStats } from 'src/app/utils/track-computed-data/track-osm-stats';
+import { OsmWaysTrackPoint } from '@trailence/utils/track-computed-data/match-osm-ways';
+import { OsmWayMatchResponse } from '@trailence/utils/track-computed-data/track-computed-data';
+import { TrackOsmStatInfo, TrackOsmStats } from '@trailence/utils/track-computed-data/track-osm-stats';
 import { CleanupService } from './cleanup/cleanup.service';
 import { TrackService } from './track.service';
 import { POI } from '../map/poi';

@@ -1,5 +1,5 @@
 import { of } from 'rxjs';
-import { NetworkService } from 'src/app/services/network/network.service';
+import { NetworkService } from '@trailence/services/network/network.service';
 
 export function provideNetworkService(internetConnected: boolean = false, serverConnected: boolean = false) {
   return {

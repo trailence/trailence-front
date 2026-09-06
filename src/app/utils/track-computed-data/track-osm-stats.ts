@@ -1,4 +1,4 @@
-import { HikingDifficulty, Way, WaySurface, WayType, WayVisibility } from 'src/app/services/map/way';
+import { HikingDifficulty, Way, WaySurface, WayType, WayVisibility } from '@trailence/services/map/way';
 import { OsmWaysTrackPoint } from './match-osm-ways';
 import { distance } from '../latlng';
 import { TrackPointReference } from './types';

@@ -1,14 +1,15 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonIcon, IonToolbar, IonTitle, IonLabel, IonFooter, IonButton, IonButtons, ModalController, IonContent, IonRadioGroup, IonRadio, IonCheckbox } from "@ionic/angular";
-import { Photo } from 'src/app/model/photo';
-import { Trail } from 'src/app/model/trail';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { Photo } from '@trailence/model/photo';
+import { Trail } from '@trailence/model/trail';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 
 @Component({
     selector: 'app-export-popup',
     templateUrl: './export-popup.component.html',
     styleUrls: ['./export-popup.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [IonCheckbox, IonRadio, IonRadioGroup, IonContent, IonButtons, IonButton, IonFooter, IonLabel, IonTitle, IonToolbar, IonIcon, IonHeader, FormsModule]
 })
 export class ExportPopupComponent implements OnInit {

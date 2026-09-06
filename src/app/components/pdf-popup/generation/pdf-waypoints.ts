@@ -4,7 +4,7 @@ import { anchorBorderColor, anchorDepartureBorderColor, anchorDepartureFillColor
 import { addSvgToPdf } from './pdf-icon';
 import { generatePdfText } from './pdf-text';
 import { getWaypointData } from '../waypoints-utils';
-import { WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
+import { WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
 
 export async function generateWaypointsTextToPdf(ctx: PdfContext, y: number, horiz: HorizBounds) {
   const userLang = ctx.preferences.preferences.lang;

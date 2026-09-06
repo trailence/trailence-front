@@ -1,14 +1,15 @@
-import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { TrackEditToolContext } from '../tool.interface';
 import { IonIcon, IonButton, IonInput, IonItem, IonList } from "@ionic/angular";
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { combineLatest, of, Subscription } from 'rxjs';
-import { PointReference, RangeReference } from 'src/app/model/point-reference';
+import { PointReference, RangeReference } from '@trailence/model/point-reference';
 import { NgClass, NgTemplateOutlet } from '@angular/common';
 
 @Component({
   templateUrl: './selection.component.html',
   styleUrl: './selection.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonList, IonItem, IonInput, IonButton, IonIcon,
     NgClass,

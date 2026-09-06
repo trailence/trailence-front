@@ -1,18 +1,18 @@
 import { Injector } from '@angular/core';
 import { FetchSourcePlugin, TrailInfo } from './fetch-source.interfaces';
 import { HttpService } from '../http/http.service';
-import { environment } from 'src/environments/environment';
-import { SegmentDto } from 'src/app/model/dto/segment';
-import { WayPointDto } from 'src/app/model/dto/way-point';
+import { environment } from '@env/environment';
+import { SegmentDto } from '@trailence/model/dto/segment';
+import { WayPointDto } from '@trailence/model/dto/way-point';
 import { BehaviorSubject, firstValueFrom, map, Observable, switchMap } from 'rxjs';
-import { Trail } from 'src/app/model/trail';
-import { Track } from 'src/app/model/track';
+import { Trail } from '@trailence/model/trail';
+import { Track } from '@trailence/model/track';
 import { PreferencesService } from '../preferences/preferences.service';
-import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from '@trailence/model/snapshots';
 import { TrackDatabase } from '../database/track-database';
-import { PointDtoMapper } from 'src/app/model/point-dto-mapper';
+import { PointDtoMapper } from '@trailence/model/point-dto-mapper';
 import { OfflineMapService } from '../map/offline-map.service';
-import { WorkerService } from 'src/app/worker/web-app';
+import { WorkerService } from '@trailence/worker/web-app';
 import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
 import { NetworkService } from '../network/network.service';
 

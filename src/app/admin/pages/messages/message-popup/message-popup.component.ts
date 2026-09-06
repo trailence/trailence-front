@@ -1,12 +1,13 @@
-import { Component, Input } from '@angular/core';
-import { ContactMessageDto } from 'src/app/admin/model/contact-message';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { ContactMessageDto } from '@trailence/admin/model/contact-message';
 import { IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton, ModalController } from '@ionic/angular';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { MessagesService } from 'src/app/admin/services/messages.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { MessagesService } from '@trailence/admin/services/messages.service';
 
 @Component({
   templateUrl: './message-popup.component.html',
   styleUrl: './message-popup.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton
   ]

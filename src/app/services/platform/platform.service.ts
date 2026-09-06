@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import { SwUpdate } from '@angular/service-worker';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 import { I18nService } from '../i18n/i18n.service';
 import { filter, firstValueFrom } from 'rxjs';
 

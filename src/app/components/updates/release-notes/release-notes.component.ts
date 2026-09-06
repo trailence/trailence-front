@@ -1,9 +1,9 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { HttpService } from 'src/app/services/http/http.service';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { StringUtils } from 'src/app/utils/string-utils';
-import { environment } from 'src/environments/environment';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { HttpService } from '@trailence/services/http/http.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { StringUtils } from '@trailence/utils/string-utils';
+import { environment } from '@env/environment';
 import { IonSpinner } from "@ionic/angular";
 
 interface ReleaseLanguage {
@@ -24,6 +24,7 @@ interface ReleaseNote {
   selector: 'app-release-notes',
   templateUrl: './release-notes.component.html',
   styleUrl: './release-notes.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonSpinner,
   ]

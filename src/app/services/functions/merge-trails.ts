@@ -1,16 +1,16 @@
 import { Injector } from '@angular/core';
-import { Trail } from 'src/app/model/trail';
+import { Trail } from '@trailence/model/trail';
 import { TrackService } from '../database/track.service';
 import { combineLatest, first, map } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { PreferencesService } from '../preferences/preferences.service';
-import { Track } from 'src/app/model/track';
+import { Track } from '@trailence/model/track';
 import { I18nService } from '../i18n/i18n.service';
 import { TrailService } from '../database/trail.service';
 import { Router } from '@angular/router';
-import { copyPoint } from 'src/app/model/point-descriptor';
+import { copyPoint } from '@trailence/model/point-descriptor';
 import { OfflineMapService } from '../map/offline-map.service';
-import { WorkerService } from 'src/app/worker/web-app';
+import { WorkerService } from '@trailence/worker/web-app';
 import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
 import { NetworkService } from '../network/network.service';
 

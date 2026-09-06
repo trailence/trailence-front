@@ -1,5 +1,5 @@
 import * as C from 'chart.js';
-import { Color } from 'src/app/utils/color';
+import { Color } from '@trailence/utils/color';
 import { gradeColors, gradeLegend } from '../grade-values';
 
 const width = 20;

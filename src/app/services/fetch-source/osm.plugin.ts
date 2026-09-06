@@ -1,19 +1,19 @@
-import { Trail } from 'src/app/model/trail';
+import { Trail } from '@trailence/model/trail';
 import { PluginWithDb, TrailInfoBaseDto, TrailToStore } from './abstract-plugin-with-db';
 import { Injector } from '@angular/core';
 import { firstValueFrom, from, map, merge, Observable, switchMap } from 'rxjs';
-import { Track } from 'src/app/model/track';
+import { Track } from '@trailence/model/track';
 import { PreferencesService } from '../preferences/preferences.service';
 import { SearchResult } from './fetch-source.interfaces';
-import { TrackUtils } from 'src/app/utils/track-utils';
+import { TrackUtils } from '@trailence/utils/track-utils';
 import { I18nService } from '../i18n/i18n.service';
 import * as L from 'leaflet';
-import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
-import { Arrays } from 'src/app/utils/arrays';
-import { TrailSourceType } from 'src/app/model/dto/trail';
+import { filterItemsDefined } from '@trailence/utils/rxjs/filter-defined';
+import { Arrays } from '@trailence/utils/arrays';
+import { TrailSourceType } from '@trailence/model/dto/trail';
 import { OverpassClient } from '../geolocation/overpass-client.service';
 import { OfflineMapService } from '../map/offline-map.service';
-import { WorkerService } from 'src/app/worker/web-app';
+import { WorkerService } from '@trailence/worker/web-app';
 import { NetworkService } from '../network/network.service';
 import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
 

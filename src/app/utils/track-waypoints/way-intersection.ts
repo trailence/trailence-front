@@ -1,11 +1,11 @@
-import { Track } from 'src/app/model/track';
+import { Track } from '@trailence/model/track';
 import { TrackWayPoint, TrackWayPointElement } from './track-waypoint';
 import { OsmWayPointInfo, OsmWaysTrackPoint } from '../track-computed-data/match-osm-ways';
-import { Way } from 'src/app/services/map/way';
+import { Way } from '@trailence/services/map/way';
 import { distance, EarthPoint } from '../latlng';
 import { TrackPointReference } from '../track-computed-data/types';
-import { Point } from 'src/app/model/point';
-import { WayPoint } from 'src/app/model/way-point';
+import { Point } from '@trailence/model/point';
+import { WayPoint } from '@trailence/model/way-point';
 import { Maps } from '../maps';
 
 export interface IntersectionElement {

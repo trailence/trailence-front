@@ -1,6 +1,6 @@
 import { of } from 'rxjs';
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
-import { TrailService } from 'src/app/services/database/trail.service';
+import { TrailService } from '@trailence/services/database/trail.service';
 
 export class RemoveTime implements TrackEditTool {
 

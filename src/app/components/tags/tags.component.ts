@@ -1,16 +1,16 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonContent, IonFooter, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonButtons, ModalController, IonInput, IonCheckbox, AlertController } from "@ionic/angular";
 import { Subscription, combineLatest, debounceTime } from 'rxjs';
-import { Tag } from 'src/app/model/tag';
-import { Trail } from 'src/app/model/trail';
-import { TrailCollection } from 'src/app/model/trail-collection';
-import { TrailTag } from 'src/app/model/trail-tag';
-import { TagService } from 'src/app/services/database/tag.service';
-import { TranslatedString } from 'src/app/services/i18n/i18n-string';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { collection$items } from 'src/app/utils/rxjs/collection$items';
+import { Tag } from '@trailence/model/tag';
+import { Trail } from '@trailence/model/trail';
+import { TrailCollection } from '@trailence/model/trail-collection';
+import { TrailTag } from '@trailence/model/trail-tag';
+import { TagService } from '@trailence/services/database/tag.service';
+import { TranslatedString } from '@trailence/services/i18n/i18n-string';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { collection$items } from '@trailence/utils/rxjs/collection$items';
 
 export async function openTagsDialog(injector: Injector, trails: Trail[] | null, collection: TrailCollection) {
   const modal = await injector.get(ModalController).create({
@@ -48,6 +48,7 @@ class TagNode {
     selector: 'app-tags',
     templateUrl: './tags.component.html',
     styleUrls: ['./tags.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
       IonCheckbox, IonInput, IonButtons, IonButton, IonLabel, IonIcon, IonTitle, IonToolbar, IonFooter, IonContent, IonHeader,
       NgTemplateOutlet,

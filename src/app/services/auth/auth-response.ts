@@ -1,4 +1,4 @@
-import { AvatarDto } from 'src/app/model/dto/avatar';
+import { AvatarDto } from '@trailence/model/dto/avatar';
 import { Preferences } from '../preferences/preferences';
 import { UserQuotas } from './user-quotas';
 

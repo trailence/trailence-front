@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
   selector: 'app-box-title',
@@ -8,6 +8,7 @@ import { Component, Input } from '@angular/core';
     <div class="box-content"><ng-content></ng-content></div>
   </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: `
   :host {
     background-color: var(--ion-background-color);

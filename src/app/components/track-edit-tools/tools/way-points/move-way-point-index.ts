@@ -1,9 +1,9 @@
 import { combineLatest, map, Observable, of, switchMap } from 'rxjs';
 import { TrackEditToolContext } from '../tool.interface';
-import { TrackUtils } from 'src/app/utils/track-utils';
-import { MenuItem } from 'src/app/components/menus/menu-item';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';
+import { TrackUtils } from '@trailence/utils/track-utils';
+import { MenuItem } from '@trailence/components/menus/menu-item';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
 
 export class MoveWayPointIndexTool {
 

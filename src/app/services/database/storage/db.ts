@@ -2,10 +2,10 @@ import { Injector, NgZone } from '@angular/core';
 import { AuthService } from '../../auth/auth.service';
 import Dexie from 'dexie';
 import { BehaviorSubject, EMPTY, filter, from, map, Observable, of, Subject, Subscription, switchMap, tap } from 'rxjs';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 import { DbTable } from './db-table';
 import { LocalFilesService } from '../../local-files/local-files.service';
-import { trailenceAppVersionCode } from 'src/app/trailence-version';
+import { trailenceAppVersionCode } from '@trailence/trailence-version';
 import { DbRegistryService } from './db.registry.service';
 
 const INTERNAL_TABLE_NAME = 'internal';

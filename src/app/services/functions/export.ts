@@ -1,21 +1,21 @@
 import { Injector } from '@angular/core';
 import { catchError, defaultIfEmpty, EMPTY, first, firstValueFrom, forkJoin, map, Observable, of, switchMap, zip } from 'rxjs';
-import { Trail } from 'src/app/model/trail';
+import { Trail } from '@trailence/model/trail';
 import { PhotoService } from '../database/photo.service';
 import { ModalController } from '@ionic/angular';
-import { Photo } from 'src/app/model/photo';
+import { Photo } from '@trailence/model/photo';
 import { ProgressService } from '../progress/progress.service';
 import { AuthService } from '../auth/auth.service';
 import { I18nService } from '../i18n/i18n.service';
-import { Track } from 'src/app/model/track';
+import { Track } from '@trailence/model/track';
 import { TrackService } from '../database/track.service';
-import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
-import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
+import { firstTimeout } from '@trailence/utils/rxjs/first-timeout';
+import { filterItemsDefined } from '@trailence/utils/rxjs/filter-defined';
 import { TagService } from '../database/tag.service';
-import { GpxFormat } from 'src/app/utils/formats/gpx-format';
+import { GpxFormat } from '@trailence/utils/formats/gpx-format';
 import { FileService } from '../file/file.service';
-import { StringUtils } from 'src/app/utils/string-utils';
-import { BinaryContent } from 'src/app/utils/binary-content';
+import { StringUtils } from '@trailence/utils/string-utils';
+import { BinaryContent } from '@trailence/utils/binary-content';
 import { ModerationService } from '../moderation/moderation.service';
 
 export function exportTrails(injector: Injector, trails: Trail[]) {

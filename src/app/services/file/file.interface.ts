@@ -1,4 +1,4 @@
-import { BinaryContent } from "src/app/utils/binary-content";
+import { BinaryContent } from '@trailence/utils/binary-content';
 
 export interface IFileService {
 

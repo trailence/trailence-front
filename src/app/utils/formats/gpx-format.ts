@@ -2,17 +2,17 @@ import { Trail } from '../../model/trail';
 import { Track } from '../../model/track';
 import { PointDescriptor } from '../../model/point-descriptor';
 import { XmlUtils } from '../xml-utils';
-import { WayPoint } from 'src/app/model/way-point';
-import { TrailSourceType } from 'src/app/model/dto/trail';
+import { WayPoint } from '@trailence/model/way-point';
+import { TrailSourceType } from '@trailence/model/dto/trail';
 import { BinaryContent } from '../binary-content';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { Photo } from 'src/app/model/photo';
-import { PhotoDto } from 'src/app/model/dto/photo';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { Photo } from '@trailence/model/photo';
+import { PhotoDto } from '@trailence/model/dto/photo';
 import { GpxFormatRaw, ImportedTrackRaw } from './gpx-format-raw';
-import { OfflineMapService } from 'src/app/services/map/offline-map.service';
-import { WorkerService } from 'src/app/worker/web-app';
-import { TrackComputedDataCacheService } from 'src/app/services/database/track-computed-data-cache.service';
-import { NetworkService } from 'src/app/services/network/network.service';
+import { OfflineMapService } from '@trailence/services/map/offline-map.service';
+import { WorkerService } from '@trailence/worker/web-app';
+import { TrackComputedDataCacheService } from '@trailence/services/database/track-computed-data-cache.service';
+import { NetworkService } from '@trailence/services/network/network.service';
 import { distance } from '../latlng';
 
 export interface ImportedTrail {

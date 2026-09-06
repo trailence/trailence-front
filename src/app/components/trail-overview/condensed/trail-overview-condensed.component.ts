@@ -1,26 +1,27 @@
-import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, NgZone, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
-import { Trail } from 'src/app/model/trail';
+import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, NgZone, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Trail } from '@trailence/model/trail';
 import { IonIcon, IonButton, IonCheckbox, PopoverController } from '@ionic/angular';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { BrowserService } from 'src/app/services/browser/browser.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { BrowserService } from '@trailence/services/browser/browser.service';
 import { MenuContentComponent } from '../../menus/menu-content/menu-content.component';
-import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
+import { TrailMenuService } from '@trailence/services/database/trail-menu.service';
 import { Router } from '@angular/router';
-import { TrailService } from 'src/app/services/database/trail.service';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
+import { TrailService } from '@trailence/services/database/trail.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { Subscriptions } from '@trailence/utils/rxjs/subscription-utils';
 import { firstValueFrom, of, switchMap } from 'rxjs';
-import { TagService } from 'src/app/services/database/tag.service';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
-import { ChangesDetection } from 'src/app/utils/angular-helpers';
+import { TagService } from '@trailence/services/database/tag.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { TrailCollectionService } from '@trailence/services/database/trail-collection.service';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
+import { TrackMetadataSnapshot } from '@trailence/model/snapshots';
+import { ChangesDetection } from '@trailence/utils/angular-helpers';
 
 @Component({
   selector: 'app-trail-overview-condensed',
   templateUrl: './trail-overview-condensed.component.html',
   styleUrl: './trail-overview-condensed.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonIcon, IonButton, IonCheckbox,
   ]

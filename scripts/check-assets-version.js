@@ -42,7 +42,7 @@ function checkAssets(dir) {
 checkAssets('src/assets');
 if (!iconsVersion) throw 'Cannot find icons file';
 
-let file = fs.readFileSync('src/app/services/assets/assets.service.ts', 'utf-8');
+let file = fs.readFileSync('@trailence/services/assets/assets.service.ts', 'utf-8');
 if (file.indexOf("const ICONS_VERSION = '" + iconsVersion + "';") < 0) throw 'Invalid icons version in assets service';
 file = fs.readFileSync('server_pages/src/trail_page_template.html', 'utf-8');
 if (file.indexOf("const ICONS_VERSION = '" + iconsVersion + "';") < 0) throw 'Invalid icons version in trail_page_template.html';

@@ -1,10 +1,10 @@
-import { Component, Injector } from '@angular/core';
-import { AbstractComponent } from 'src/app/utils/component-utils';
+import { Component, Injector, ChangeDetectionStrategy } from '@angular/core';
+import { AbstractComponent } from '@trailence/utils/component-utils';
 import { StatsConfig } from './stats-config';
-import { AuthService } from 'src/app/services/auth/auth.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
 import { StatsConfigComponent } from "./config/stats-config.component";
 import { IonAccordionGroup, IonAccordion, IonItem, IonLabel, IonIcon } from "@ionic/angular";
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { GraphComponent } from '../graph/graph.component';
 import { GraphConfigSource, GraphProvider } from '../graph/graph-config';
 import { GraphBuilder } from './graph-builder';
@@ -13,6 +13,7 @@ import { GraphBuilder } from './graph-builder';
   selector: 'app-stats',
   templateUrl: './stats.component.html',
   styleUrl: './stats.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonIcon, StatsConfigComponent, GraphComponent, IonAccordionGroup, IonAccordion, IonItem, IonLabel]
 })
 export class StatsComponent extends AbstractComponent {

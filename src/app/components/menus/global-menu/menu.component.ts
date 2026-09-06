@@ -1,33 +1,34 @@
-import { ChangeDetectorRef, Component, Injector, NgZone, OnInit } from '@angular/core';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { ChangeDetectorRef, Component, Injector, NgZone, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { IonIcon, IonButton, MenuController, IonBadge, Platform, PopoverController } from "@ionic/angular";
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { TrailCollection } from 'src/app/model/trail-collection';
+import { TrailCollectionService } from '@trailence/services/database/trail-collection.service';
+import { TrailCollection } from '@trailence/model/trail-collection';
 import { combineLatest, concat, EMPTY, from, map, of, switchMap } from 'rxjs';
 import { Router } from '@angular/router';
-import { collection$items } from 'src/app/utils/rxjs/collection$items';
-import { Share } from 'src/app/model/share';
-import { ShareService } from 'src/app/services/database/share.service';
-import { AuthService } from 'src/app/services/auth/auth.service';
+import { collection$items } from '@trailence/utils/rxjs/collection$items';
+import { Share } from '@trailence/model/share';
+import { ShareService } from '@trailence/services/database/share.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
 import { List } from 'immutable';
-import { trailenceAppVersionName } from 'src/app/trailence-version';
+import { trailenceAppVersionName } from '@trailence/trailence-version';
 import { MenuContentComponent } from '../menu-content/menu-content.component';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { TrailService } from 'src/app/services/database/trail.service';
-import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
-import { isPublicationCollection, TrailCollectionType } from 'src/app/model/dto/trail-collection';
-import { ChangesDetection } from 'src/app/utils/angular-helpers';
-import { I18nPipe } from 'src/app/services/i18n/i18n-string';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { TrailService } from '@trailence/services/database/trail.service';
+import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
+import { isPublicationCollection, TrailCollectionType } from '@trailence/model/dto/trail-collection';
+import { ChangesDetection } from '@trailence/utils/angular-helpers';
+import { I18nPipe } from '@trailence/services/i18n/i18n-string';
 import { MenuItem } from '../menu-item';
-import { LiveGroupDto } from 'src/app/model/dto/live-group';
-import { MyPublicTrail } from 'src/app/model/dto/my-public-trail';
-import { ModerationCounters } from 'src/app/model/dto/moderation-counters';
-import { AppDownload } from 'src/app/services/update/common';
+import { LiveGroupDto } from '@trailence/model/dto/live-group';
+import { MyPublicTrail } from '@trailence/model/dto/my-public-trail';
+import { ModerationCounters } from '@trailence/model/dto/moderation-counters';
+import { AppDownload } from '@trailence/services/update/common';
 
 @Component({
     selector: 'app-menu',
     templateUrl: './menu.component.html',
     styleUrls: ['./menu.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
       IonBadge, IonButton, IonIcon, I18nPipe,
     ]
@@ -157,17 +158,17 @@ export class MenuComponent implements OnInit {
   }
 
   private deferedInit(refresh: () => void): void {
-    import('src/app/services/database/my-public-trails.service')
+    import('@trailence/services/database/my-public-trails.service')
     .then(module => this.injector.get(module.MyPublicTrailsService).myPublicTrails$.subscribe(list => {
       this.myPublicTrails = list;
       refresh();
     }));
-    import('src/app/services/database/my-selection.service')
+    import('@trailence/services/database/my-selection.service')
     .then(module => this.injector.get(module.MySelectionService).getMySelection().subscribe(list => {
       this.mySelectionCount = list.length;
       refresh();
     }));
-    import('src/app/services/live-group/live-group.service')
+    import('@trailence/services/live-group/live-group.service')
     .then(module => {
       const service = this.injector.get(module.LiveGroupService);
       service.groups$.pipe(
@@ -181,19 +182,19 @@ export class MenuComponent implements OnInit {
     this.authService.permissionsChanged$.pipe(
       switchMap(auth => {
         if (!auth || (!auth.admin && !auth.roles?.includes('moderator'))) return EMPTY;
-        return from(import('src/app/services/moderation/moderation.service'));
+        return from(import('@trailence/services/moderation/moderation.service'));
       }),
       switchMap(module => this.injector.get(module.ModerationService).counters$),
     ).subscribe(counters => {
       this.moderationCounters = counters;
       refresh();
     });
-    import('src/app/services/update/update.service')
+    import('@trailence/services/update/update.service')
     .then(module => this.injector.get(module.UpdateService).availableDownload$.subscribe(update => {
       this.update = update;
       refresh();
     }));
-    import('src/app/services/trace-recorder/trace-recorder.service')
+    import('@trailence/services/trace-recorder/trace-recorder.service')
     .then(module => this.injector.get(module.TraceRecorderService).current$.subscribe(recording => {
       const isRecording = !!recording;
       if (this.recording !== isRecording) {
@@ -216,7 +217,7 @@ export class MenuComponent implements OnInit {
   }
 
   goToRecordTrace(): void {
-    import('src/app/services/trace-recorder/trace-recorder.service')
+    import('@trailence/services/trace-recorder/trace-recorder.service')
     .then(module => {
       const service = this.injector.get(module.TraceRecorderService);
       const trace = service.current;
@@ -237,7 +238,7 @@ export class MenuComponent implements OnInit {
     .then(m => m.openCreateLiveGroupPopup(this.injector))
     .then(created => {
       if (created)
-        import('src/app/services/live-group/live-group.service')
+        import('@trailence/services/live-group/live-group.service')
         .then(module => this.injector.get(module.LiveGroupService).openLiveGroup(created));
     });
     this.close();
@@ -245,7 +246,7 @@ export class MenuComponent implements OnInit {
 
   liveGroupMenu($event: MouseEvent): void {
     $event.stopPropagation();
-    import('src/app/services/live-group/live-group.service')
+    import('@trailence/services/live-group/live-group.service')
     .then(module => {
       const liveGroupService = this.injector.get(module.LiveGroupService);
       const menu: MenuItem[] = [
@@ -359,7 +360,7 @@ export class MenuComponent implements OnInit {
     if (now - this.debugLastClick < 2000) {
       if (++this.debugClickCount >= 10) {
         this.debugClickCount = 0;
-        import('src/app/services/debug/debug.service')
+        import('@trailence/services/debug/debug.service')
         .then(module => this.injector.get(module.DebugService).openPopup());
       }
     }

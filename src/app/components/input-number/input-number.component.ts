@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { IonIcon, IonButton } from '@ionic/angular';
 
 @Component({
@@ -66,6 +66,7 @@ import { IonIcon, IonButton } from '@ionic/angular';
     }
   }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonIcon,
     IonButton,

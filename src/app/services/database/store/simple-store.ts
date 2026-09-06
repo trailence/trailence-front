@@ -2,7 +2,7 @@ import { BehaviorSubject, EMPTY, Observable, catchError, defaultIfEmpty, map, of
 import { Store, StoreSyncStatus } from "./store";
 import { Injector } from "@angular/core";
 import { ErrorService } from '../../progress/error.service';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 import { DbTable } from '../storage/db-table';
 
 export interface SimpleStoreItem<T> {

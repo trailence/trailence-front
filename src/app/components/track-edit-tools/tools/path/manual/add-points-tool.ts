@@ -1,12 +1,12 @@
-import { Track } from 'src/app/model/track';
+import { Track } from '@trailence/model/track';
 import { InteractiveToolContext, TrackEditTool, TrackEditToolContext } from '../../tool.interface';
-import { Segment } from 'src/app/model/segment';
-import { PointDescriptor } from 'src/app/model/point-descriptor';
-import { MapAnchor } from 'src/app/components/map/markers/map-anchor';
-import { MapComponent } from 'src/app/components/map/map.component';
+import { Segment } from '@trailence/model/segment';
+import { PointDescriptor } from '@trailence/model/point-descriptor';
+import { MapAnchor } from '@trailence/components/map/markers/map-anchor';
+import { MapComponent } from '@trailence/components/map/map.component';
 import { Injector } from '@angular/core';
-import { GeoService } from 'src/app/services/geolocation/geo.service';
-import { MenuItem } from 'src/app/components/menus/menu-item';
+import { GeoService } from '@trailence/services/geolocation/geo.service';
+import { MenuItem } from '@trailence/components/menus/menu-item';
 
 export abstract class AddPointsTool implements TrackEditTool {
 

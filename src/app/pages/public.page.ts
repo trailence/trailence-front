@@ -1,4 +1,4 @@
-import { Component, ElementRef, Injector } from '@angular/core';
+import { Component, ElementRef, Injector, ChangeDetectionStrategy } from '@angular/core';
 import { IonRouterOutlet, NavController } from '@ionic/angular';
 import { AbstractPage } from '../utils/component-utils';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -8,6 +8,7 @@ import { Console } from '../utils/console';
 
 @Component({
   template: `<ion-router-outlet></ion-router-outlet>`,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonRouterOutlet]
 })
 export class PublicPageRoute extends AbstractPage {
@@ -37,6 +38,7 @@ export class PublicPageRoute extends AbstractPage {
 }
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: '',
 })
 export class PublicPageWithoutLang {

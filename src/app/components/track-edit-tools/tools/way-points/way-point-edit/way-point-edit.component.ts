@@ -1,10 +1,11 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { WayPoint } from 'src/app/model/way-point';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { WayPoint } from '@trailence/model/way-point';
 import { IonContent, IonHeader, IonToolbar, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, IonIcon, ModalController, IonInput, IonTextarea } from "@ionic/angular";
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 
 @Component({
   templateUrl: './way-point-edit.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonTextarea, IonInput, IonIcon, IonButton, IonButtons, IonFooter, IonLabel, IonTitle, IonToolbar, IonHeader, IonContent, ]
 })
 export class WayPointEditModal implements OnInit {

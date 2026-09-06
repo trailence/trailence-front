@@ -1,24 +1,25 @@
-import { ChangeDetectorRef, Component, Injector } from '@angular/core';
-import { HeaderComponent } from 'src/app/components/header/header.component';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { ChangeDetectorRef, Component, Injector, ChangeDetectionStrategy } from '@angular/core';
+import { HeaderComponent } from '@trailence/components/header/header.component';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { IonInput, IonTextarea, IonSelect, IonSelectOption, IonButton, IonIcon, IonCheckbox, AlertController, Platform } from '@ionic/angular';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { CaptchaService } from 'src/app/services/captcha/captcha.service';
-import { Console } from 'src/app/utils/console';
-import { EMAIL_REGEX } from 'src/app/utils/string-utils';
-import { HttpService } from 'src/app/services/http/http.service';
-import { environment } from 'src/environments/environment';
-import { ApiError } from 'src/app/services/http/api-error';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { CaptchaService } from '@trailence/services/captcha/captcha.service';
+import { Console } from '@trailence/utils/console';
+import { EMAIL_REGEX } from '@trailence/utils/string-utils';
+import { HttpService } from '@trailence/services/http/http.service';
+import { environment } from '@env/environment';
+import { ApiError } from '@trailence/services/http/api-error';
 import { Subscription } from 'rxjs';
-import { NetworkService } from 'src/app/services/network/network.service';
+import { NetworkService } from '@trailence/services/network/network.service';
 import { FormsModule } from '@angular/forms';
 import { PublicPage } from '../public.page';
-import { trailenceAppVersionName } from 'src/app/trailence-version';
-import { DebugService } from 'src/app/services/debug/debug.service';
+import { trailenceAppVersionName } from '@trailence/trailence-version';
+import { DebugService } from '@trailence/services/debug/debug.service';
 
 @Component({
   templateUrl: './contact.page.html',
   styleUrl: './contact.page.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormsModule,
     HeaderComponent,

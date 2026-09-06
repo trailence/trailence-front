@@ -2,12 +2,12 @@ import { Injector } from '@angular/core';
 import { LocalFilesService } from '../../local-files/local-files.service';
 import { DbStatus, DbTable, DbTableMigration } from './db-table';
 import Dexie, { Table } from 'dexie';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 import { ProgressService } from '../../progress/progress.service';
 import { I18nService } from '../../i18n/i18n.service';
-import { BinaryContent } from 'src/app/utils/binary-content';
+import { BinaryContent } from '@trailence/utils/binary-content';
 import { map, Observable, switchMap, throwIfEmpty } from 'rxjs';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 
 export class DbTableWithBlob<DTO> extends DbTable<DTO> {
 

@@ -1,33 +1,34 @@
-import { Component, Injector, Input, ViewChild } from '@angular/core';
+import { Component, Injector, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, of, switchMap } from 'rxjs';
-import { HeaderComponent } from 'src/app/components/header/header.component';
-import { TrailComponent } from 'src/app/components/trail/trail.component';
-import { Trail } from 'src/app/model/trail';
-import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
-import { TrailService } from 'src/app/services/database/trail.service';
-import { Recording, TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
-import { AbstractPage } from 'src/app/utils/component-utils';
-import { MenuItem } from 'src/app/components/menus/menu-item';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { NetworkService } from 'src/app/services/network/network.service';
-import { Console } from 'src/app/utils/console';
-import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
-import { ReplayService } from 'src/app/services/replay/replay.service';
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { ModerationService } from 'src/app/services/moderation/moderation.service';
-import { ShareService } from 'src/app/services/database/share.service';
+import { HeaderComponent } from '@trailence/components/header/header.component';
+import { TrailComponent } from '@trailence/components/trail/trail.component';
+import { Trail } from '@trailence/model/trail';
+import { TrailMenuService } from '@trailence/services/database/trail-menu.service';
+import { TrailService } from '@trailence/services/database/trail.service';
+import { Recording, TraceRecorderService } from '@trailence/services/trace-recorder/trace-recorder.service';
+import { AbstractPage } from '@trailence/utils/component-utils';
+import { MenuItem } from '@trailence/components/menus/menu-item';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { NetworkService } from '@trailence/services/network/network.service';
+import { Console } from '@trailence/utils/console';
+import { firstTimeout } from '@trailence/utils/rxjs/first-timeout';
+import { ReplayService } from '@trailence/services/replay/replay.service';
+import { TrailCollectionService } from '@trailence/services/database/trail-collection.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { ModerationService } from '@trailence/services/moderation/moderation.service';
+import { ShareService } from '@trailence/services/database/share.service';
 import { ToastController, NavController, AlertController } from '@ionic/angular';
-import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { TrailLinkService } from 'src/app/services/database/link.service';
-import { SHARED_OWNER_PREFIX } from 'src/app/model/dto/trail-collection';
+import { FetchSourceService } from '@trailence/services/fetch-source/fetch-source.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { TrailLinkService } from '@trailence/services/database/link.service';
+import { SHARED_OWNER_PREFIX } from '@trailence/model/dto/trail-collection';
 
 @Component({
   selector: 'app-trail-page',
   templateUrl: './trail.page.html',
   styleUrls: ['./trail.page.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     HeaderComponent,
     TrailComponent,

@@ -1,21 +1,22 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
-import { TrailCollection } from 'src/app/model/trail-collection';
+import { Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { TrailCollection } from '@trailence/model/trail-collection';
 import { IonHeader, IonToolbar, IonIcon, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, ModalController, IonInput, IonToggle } from "@ionic/angular";
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { FormsModule } from '@angular/forms';
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { AuthService } from 'src/app/services/auth/auth.service';
+import { TrailCollectionService } from '@trailence/services/database/trail-collection.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
 import { Router } from '@angular/router';
 import { first } from 'rxjs';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { Console } from 'src/app/utils/console';
-import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
+import { Console } from '@trailence/utils/console';
+import { TrailCollectionType } from '@trailence/model/dto/trail-collection';
 import { EmailsValue, MultipleInputEmailComponent } from '../input-email/multiple-input-email.component';
 
 @Component({
     selector: 'app-collection-form-popup',
     templateUrl: './collection-form-popup.component.html',
     styleUrl: './collection-form-popup.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
       IonInput, IonButton, IonButtons, IonFooter, IonLabel, IonTitle, IonIcon, IonToolbar, IonHeader, IonToggle,
       FormsModule,

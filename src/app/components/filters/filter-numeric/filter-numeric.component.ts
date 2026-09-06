@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonRange, IonLabel } from "@ionic/angular";
 
@@ -13,6 +13,7 @@ export interface NumericFilterValueEvent {
     selector: 'app-filter-numeric',
     templateUrl: './filter-numeric.component.html',
     styleUrls: [],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [IonLabel, IonRange, FormsModule]
 })
 export class FilterNumericComponent {

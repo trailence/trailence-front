@@ -1,6 +1,6 @@
-import { Track } from 'src/app/model/track';
+import { Track } from '@trailence/model/track';
 import * as L from 'leaflet';
-import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
+import { SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
 import { EventEmitter } from '@angular/core';
 import { Subscription } from 'rxjs';
 

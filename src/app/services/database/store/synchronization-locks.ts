@@ -1,4 +1,4 @@
-import { Maps } from 'src/app/utils/maps';
+import { Maps } from '@trailence/utils/maps';
 
 export class SynchronizationLocks {
 

@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs';
 import { PageRequest } from '../paginator/page-request';
 import { PageResult } from '../paginator/page-result';
-import { ObjectUtils } from 'src/app/utils/object-utils';
+import { ObjectUtils } from '@trailence/utils/object-utils';
 
 export class TableSettings {
 

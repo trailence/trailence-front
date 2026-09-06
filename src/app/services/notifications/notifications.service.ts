@@ -3,8 +3,8 @@ import { HttpService } from '../http/http.service';
 import { NetworkService } from '../network/network.service';
 import { BehaviorSubject, debounceTime, EMPTY, map, Observable, of, switchMap, tap, timer } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
-import { environment } from 'src/environments/environment';
-import { Console } from 'src/app/utils/console';
+import { environment } from '@env/environment';
+import { Console } from '@trailence/utils/console';
 
 const PAGE_SIZE = 50;
 const REFRESH_SIZE = 5;

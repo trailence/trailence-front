@@ -1,24 +1,25 @@
-import { Component, Injector } from '@angular/core';
+import { Component, Injector, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { ApiError } from 'src/app/services/http/api-error';
-import { HttpService } from 'src/app/services/http/http.service';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { environment } from 'src/environments/environment';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { ApiError } from '@trailence/services/http/api-error';
+import { HttpService } from '@trailence/services/http/http.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { environment } from '@env/environment';
 import { IonIcon } from "@ionic/angular";
-import { ShareService } from 'src/app/services/database/share.service';
-import { collection$items } from 'src/app/utils/rxjs/collection$items';
+import { ShareService } from '@trailence/services/database/share.service';
+import { collection$items } from '@trailence/utils/rxjs/collection$items';
 import { map } from 'rxjs';
-import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
-import { Console } from 'src/app/utils/console';
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { SHARED_OWNER_PREFIX } from 'src/app/model/dto/trail-collection';
+import { firstTimeout } from '@trailence/utils/rxjs/first-timeout';
+import { Console } from '@trailence/utils/console';
+import { TrailCollectionService } from '@trailence/services/database/trail-collection.service';
+import { SHARED_OWNER_PREFIX } from '@trailence/model/dto/trail-collection';
 
 @Component({
     selector: 'app-link',
     templateUrl: './link.page.html',
     styleUrls: [],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [IonIcon]
 })
 export class LinkPage {

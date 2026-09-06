@@ -1,19 +1,19 @@
-import { ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonInput, IonContent, IonFooter, IonButtons, IonButton, ModalController, IonSpinner } from "@ionic/angular";
 import { Subscription, switchMap, throwError } from 'rxjs';
-import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
-import { Trail } from 'src/app/model/trail';
-import { TrackService } from 'src/app/services/database/track.service';
-import { TrailService } from 'src/app/services/database/trail.service';
-import { GeoService } from 'src/app/services/geolocation/geo.service';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { NetworkService } from 'src/app/services/network/network.service';
-import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
+import { SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
+import { Trail } from '@trailence/model/trail';
+import { TrackService } from '@trailence/services/database/track.service';
+import { TrailService } from '@trailence/services/database/trail.service';
+import { GeoService } from '@trailence/services/geolocation/geo.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { NetworkService } from '@trailence/services/network/network.service';
+import { firstTimeout } from '@trailence/utils/rxjs/first-timeout';
 import { BoxTitleComponent } from '../box-title/box-title.component';
 import { InputNumberComponent } from '../input-number/input-number.component';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { DistanceUnit } from 'src/app/services/preferences/preferences';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { DistanceUnit } from '@trailence/services/preferences/preferences';
 
 export async function openLocationDialog(injector: Injector, trail: Trail) {
   const modal = await injector.get(ModalController).create({
@@ -32,6 +32,7 @@ export async function openLocationDialog(injector: Injector, trail: Trail) {
     selector: 'app-location-popup',
     templateUrl: './location-popup.component.html',
     styleUrls: ['./location-popup.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [IonSpinner, IonButton, IonButtons, IonFooter, IonContent, IonInput, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, FormsModule, BoxTitleComponent, InputNumberComponent]
 })
 export class LocationPopupComponent implements OnInit, OnDestroy {

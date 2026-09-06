@@ -1,5 +1,5 @@
-import { Track } from 'src/app/model/track';
-import { Point } from 'src/app/model/point';
+import { Track } from '@trailence/model/track';
+import { Point } from '@trailence/model/point';
 
 export const ESTIMATED_SMALL_BREAK_EVERY = 60 * 60 * 1000;
 

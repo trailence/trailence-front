@@ -1,8 +1,8 @@
-import { ChangeDetectorRef, Component, Injector } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector, ChangeDetectionStrategy } from '@angular/core';
 import { distinctUntilChanged } from 'rxjs';
-import { HeaderComponent } from 'src/app/components/header/header.component';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { environment } from 'src/environments/environment';
+import { HeaderComponent } from '@trailence/components/header/header.component';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { environment } from '@env/environment';
 import { PublicPage } from '../public.page';
 import { HttpClient } from '@angular/common/http';
 
@@ -43,6 +43,7 @@ import { HttpClient } from '@angular/common/http';
   }
 }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     HeaderComponent
   ]

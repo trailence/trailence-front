@@ -1,9 +1,9 @@
 import { Directive, ElementRef, HostListener, Input, OnChanges, OnInit, SecurityContext, SimpleChanges } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { I18nString } from 'src/app/services/i18n/i18n-string';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { HtmlUtils } from 'src/app/utils/html-utils';
-import { Resubscribeables } from 'src/app/utils/rxjs/subscription-utils';
+import { I18nString } from '@trailence/services/i18n/i18n-string';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { HtmlUtils } from '@trailence/utils/html-utils';
+import { Resubscribeables } from '@trailence/utils/rxjs/subscription-utils';
 
 @Directive({
   selector: '[appTooltip]'

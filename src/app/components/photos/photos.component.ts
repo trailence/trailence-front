@@ -1,30 +1,30 @@
-import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { IonToolbar, IonIcon, IonLabel, IonButton, IonFooter, IonButtons, IonCheckbox, IonTextarea, AlertController, IonSegment, IonSegmentButton } from "@ionic/angular";
 import { BehaviorSubject, combineLatest, firstValueFrom, map, Observable, of, switchMap, tap } from 'rxjs';
-import { Photo } from 'src/app/model/photo';
-import { PhotoService } from 'src/app/services/database/photo.service';
-import { FileService } from 'src/app/services/file/file.service';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { Progress, ProgressService } from 'src/app/services/progress/progress.service';
+import { Photo } from '@trailence/model/photo';
+import { PhotoService } from '@trailence/services/database/photo.service';
+import { FileService } from '@trailence/services/file/file.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { Progress, ProgressService } from '@trailence/services/progress/progress.service';
 import { PhotoComponent } from '../photo/photo.component';
-import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { BrowserService } from 'src/app/services/browser/browser.service';
-import { CompositeOnDone } from 'src/app/utils/callback-utils';
-import { ErrorService } from 'src/app/services/progress/error.service';
-import { Console } from 'src/app/utils/console';
-import { TranslatedString } from 'src/app/services/i18n/i18n-string';
-import { TrackService } from 'src/app/services/database/track.service';
-import { TrackUtils } from 'src/app/utils/track-utils';
-import { Track } from 'src/app/model/track';
-import { Trail } from 'src/app/model/trail';
-import { TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
-import { CameraService } from 'src/app/services/camera/camera.service';
+import { Subscriptions } from '@trailence/utils/rxjs/subscription-utils';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { BrowserService } from '@trailence/services/browser/browser.service';
+import { CompositeOnDone } from '@trailence/utils/callback-utils';
+import { ErrorService } from '@trailence/services/progress/error.service';
+import { Console } from '@trailence/utils/console';
+import { TranslatedString } from '@trailence/services/i18n/i18n-string';
+import { TrackService } from '@trailence/services/database/track.service';
+import { TrackUtils } from '@trailence/utils/track-utils';
+import { Track } from '@trailence/model/track';
+import { Trail } from '@trailence/model/trail';
+import { TraceRecorderService } from '@trailence/services/trace-recorder/trace-recorder.service';
+import { CameraService } from '@trailence/services/camera/camera.service';
 import { NgClass, NgStyle } from '@angular/common';
-import { BinaryContent } from 'src/app/utils/binary-content';
-import { WorkerService } from 'src/app/worker/web-app';
-import { ConcurrentPromises } from 'src/app/utils/concurrency';
-import { SHARED_OWNER_PREFIX } from 'src/app/model/dto/trail-collection';
+import { BinaryContent } from '@trailence/utils/binary-content';
+import { WorkerService } from '@trailence/worker/web-app';
+import { ConcurrentPromises } from '@trailence/utils/concurrency';
+import { SHARED_OWNER_PREFIX } from '@trailence/model/dto/trail-collection';
 
 interface PhotoWithInfo {
   photo: Photo;
@@ -38,6 +38,7 @@ interface PhotoWithInfo {
   selector: 'app-photos',
   templateUrl: './photos.component.html',
   styleUrls: ['./photos.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonCheckbox, IonButtons, IonFooter, IonButton, IonLabel, IonIcon, IonToolbar, IonTextarea, IonSegment, IonSegmentButton,
     PhotoComponent,

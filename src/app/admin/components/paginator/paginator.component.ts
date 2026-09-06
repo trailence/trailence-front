@@ -1,13 +1,14 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { PageRequest } from './page-request';
 import { IonIcon, IonButton, IonSelect, IonSelectOption } from '@ionic/angular';
 import { PageResult } from './page-result';
-import { I18nPipe } from 'src/app/services/i18n/i18n-string';
+import { I18nPipe } from '@trailence/services/i18n/i18n-string';
 
 @Component({
   selector: 'app-paginator',
   templateUrl: './paginator.component.html',
   styleUrl: './paginator.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     I18nPipe,
     IonIcon, IonButton, IonSelect, IonSelectOption,

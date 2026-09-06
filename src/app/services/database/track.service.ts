@@ -1,12 +1,12 @@
 import { Injectable, Injector } from '@angular/core';
-import { Track } from 'src/app/model/track';
+import { Track } from '@trailence/model/track';
 import { EMPTY, map, Observable, of, switchMap } from 'rxjs';
 import { TrackDatabase } from './track-database';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { Progress } from '../progress/progress.service';
-import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
-import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
-import { OwnerUuid } from 'src/app/model/dto/owned';
+import { firstTimeout } from '@trailence/utils/rxjs/first-timeout';
+import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from '@trailence/model/snapshots';
+import { OwnerUuid } from '@trailence/model/dto/owned';
 
 @Injectable({
   providedIn: 'root'

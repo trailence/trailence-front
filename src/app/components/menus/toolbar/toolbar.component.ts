@@ -1,13 +1,14 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnChanges, OnInit, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { ComputedMenuItem, ComputedMenuItems, MenuItem } from '../menu-item';
 import { IonIcon, IonLabel, PopoverController, IonBadge, IonSpinner } from "@ionic/angular";
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { ChangesDetection } from 'src/app/utils/angular-helpers';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { ChangesDetection } from '@trailence/utils/angular-helpers';
 import { AsyncPipe, NgClass, NgStyle } from '@angular/common';
 
 @Component({
   selector: 'app-toolbar',
   templateUrl: './toolbar.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonBadge, IonLabel, IonIcon, IonSpinner,
     NgStyle, NgClass,

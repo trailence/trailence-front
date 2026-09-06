@@ -4,7 +4,7 @@ import { SRC_ICONS } from './src';
 const iconsVersion = '12';
 const srcPath = 'src/icons';
 const svgPath = 'src/assets/icons.' + iconsVersion + '.svg';
-const listPath = 'src/app/services/assets/icons.ts';
+const listPath = '@trailence/services/assets/icons.ts';
 const overviewPath = 'src/icons/mapping/overview.html';
 
 function getIconNames(filename: string): string[] {

@@ -1,22 +1,23 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { IonHeader, IonToolbar, IonContent, IonTitle, IonLabel, ModalController, IonFooter, IonButtons, IonButton } from '@ionic/angular'
-import { TrailService } from 'src/app/services/database/trail.service';
-import { collection$items } from 'src/app/utils/rxjs/collection$items';
-import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
-import { ProgressService } from 'src/app/services/progress/progress.service';
-import { NetworkService } from 'src/app/services/network/network.service';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { TrackService } from 'src/app/services/database/track.service';
+import { TrailService } from '@trailence/services/database/trail.service';
+import { collection$items } from '@trailence/utils/rxjs/collection$items';
+import { FetchSourceService } from '@trailence/services/fetch-source/fetch-source.service';
+import { ProgressService } from '@trailence/services/progress/progress.service';
+import { NetworkService } from '@trailence/services/network/network.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { TrackService } from '@trailence/services/database/track.service';
 import { combineLatest, firstValueFrom } from 'rxjs';
-import { PhotoService } from 'src/app/services/database/photo.service';
-import { populateWayPointInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
+import { PhotoService } from '@trailence/services/database/photo.service';
+import { populateWayPointInfo } from '@trailence/services/fetch-source/fetch-source.interfaces';
 import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'app-fetch-source-popup',
   templateUrl: './fetch-source-popup.component.html',
   styleUrls: [],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonHeader, IonToolbar, IonContent, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, AsyncPipe]
 })
 export class FetchSourcePopupComponent implements OnInit {

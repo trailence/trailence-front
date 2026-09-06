@@ -1,6 +1,6 @@
 import { NgZone } from '@angular/core';
 import { BehaviorSubject, combineLatest, filter, first, map, Observable, switchMap, tap } from 'rxjs';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 import { StoreLoadStatus, StoreSyncStatus } from './store';
 
 export class StoreOperations {

@@ -1,18 +1,19 @@
-import { Component, Input } from '@angular/core';
-import { UserKey, UserKeysComponent } from 'src/app/components/user-keys/user-keys.components';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { UserKey, UserKeysComponent } from '@trailence/components/user-keys/user-keys.components';
 import { UserDto } from '../../../model/user';
-import { HttpService } from 'src/app/services/http/http.service';
-import { environment } from 'src/environments/environment';
+import { HttpService } from '@trailence/services/http/http.service';
+import { environment } from '@env/environment';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonButton, IonFooter, IonButtons, IonCheckbox, ModalController, AlertController } from '@ionic/angular';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { UserQuotasComponent } from 'src/app/components/user-quotas/user-quotas.component';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { UserQuotasComponent } from '@trailence/components/user-quotas/user-quotas.component';
 import { UserSubscriptionsComponent } from "./user-subscriptions/user-subscriptions.component";
-import { UserQuotas } from 'src/app/services/auth/user-quotas';
-import { ErrorService } from 'src/app/services/progress/error.service';
+import { UserQuotas } from '@trailence/services/auth/user-quotas';
+import { ErrorService } from '@trailence/services/progress/error.service';
 
 @Component({
   templateUrl: './user.component.html',
   styleUrl: './user.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     UserKeysComponent, UserQuotasComponent, UserSubscriptionsComponent,
     IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonButton, IonFooter, IonButtons, IonCheckbox,

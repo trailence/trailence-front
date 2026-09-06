@@ -1,24 +1,25 @@
-import { AfterContentChecked, Component, ElementRef, Injector } from '@angular/core';
-import { HeaderComponent } from 'src/app/components/header/header.component';
+import { AfterContentChecked, Component, ElementRef, Injector, ChangeDetectionStrategy } from '@angular/core';
+import { HeaderComponent } from '@trailence/components/header/header.component';
 import { Platform } from '@ionic/angular';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { environment } from 'src/environments/environment';
-import { AuthService } from 'src/app/services/auth/auth.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { environment } from '@env/environment';
+import { AuthService } from '@trailence/services/auth/auth.service';
 import { PublicPage } from '../public.page';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
 import { Router } from '@angular/router';
 import { filter, first, firstValueFrom } from 'rxjs';
-import { HttpService } from 'src/app/services/http/http.service';
-import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
-import { Trail } from 'src/app/model/trail';
-import { TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
-import { TrailOverviewComponent } from 'src/app/components/trail-overview/trail-overview.component';
-import { NetworkService } from 'src/app/services/network/network.service';
+import { HttpService } from '@trailence/services/http/http.service';
+import { TrackMetadataSnapshot } from '@trailence/model/snapshots';
+import { Trail } from '@trailence/model/trail';
+import { TrailInfo } from '@trailence/services/fetch-source/fetch-source.interfaces';
+import { TrailOverviewComponent } from '@trailence/components/trail-overview/trail-overview.component';
+import { NetworkService } from '@trailence/services/network/network.service';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.page.html',
   styleUrl: './home.page.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     HeaderComponent,
     TrailOverviewComponent,

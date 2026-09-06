@@ -1,10 +1,11 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { IonIcon } from '@ionic/angular';
 
 @Component({
   selector: 'app-collapsable-section',
   templateUrl: './collapsable-section.component.html',
   styleUrl: './collapsable-section.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonIcon,
   ]

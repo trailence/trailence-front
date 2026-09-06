@@ -1,22 +1,23 @@
-import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
-import { Trail } from 'src/app/model/trail';
-import { Feedback, FeedbackService } from 'src/app/services/feedback/feedback.service';
-import { FetchSourceTrailComment, TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
-import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
+import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Trail } from '@trailence/model/trail';
+import { Feedback, FeedbackService } from '@trailence/services/feedback/feedback.service';
+import { FetchSourceTrailComment, TrailInfo } from '@trailence/services/fetch-source/fetch-source.interfaces';
+import { FetchSourceService } from '@trailence/services/fetch-source/fetch-source.service';
 import { RateComponent } from './rate/rate.component';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { I18nPipe } from 'src/app/services/i18n/i18n-string';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { I18nPipe } from '@trailence/services/i18n/i18n-string';
 import { ProgressBarComponent } from '../../progress-bar/progress-bar.component';
 import { IonButton, ModalController, IonSpinner, IonIcon, IonCheckbox } from "@ionic/angular";
-import { AuthService } from 'src/app/services/auth/auth.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
 import { FeedbackComponent } from './feedback/feedback.component';
 import { combineLatest, EMPTY, first, Subscription, switchMap } from 'rxjs';
-import { NetworkService } from 'src/app/services/network/network.service';
+import { NetworkService } from '@trailence/services/network/network.service';
 
 @Component({
   selector: 'app-rate-and-comments',
   templateUrl: './rate-and-comments.component.html',
   styleUrl: './rate-and-comments.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonIcon, IonSpinner, IonButton, IonCheckbox,
     RateComponent,

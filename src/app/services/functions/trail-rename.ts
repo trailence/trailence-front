@@ -1,5 +1,5 @@
 import { Injector } from '@angular/core';
-import { Trail } from 'src/app/model/trail';
+import { Trail } from '@trailence/model/trail';
 import { I18nService } from '../i18n/i18n.service';
 import { AlertController } from '@ionic/angular';
 import { TrailService } from '../database/trail.service';

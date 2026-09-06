@@ -1,6 +1,6 @@
 import { BehaviorSubject } from 'rxjs';
-import { AuthResponse } from 'src/app/services/auth/auth-response';
-import { AuthService } from 'src/app/services/auth/auth.service';
+import { AuthResponse } from '@trailence/services/auth/auth-response';
+import { AuthService } from '@trailence/services/auth/auth.service';
 
 export function provideAuthService(email: string) {
   const response: AuthResponse = {

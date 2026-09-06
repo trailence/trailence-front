@@ -1,11 +1,12 @@
-import { Component, ElementRef, Input, OnChanges } from '@angular/core';
-import { Track } from 'src/app/model/track';
+import { Component, ElementRef, Input, OnChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Track } from '@trailence/model/track';
 import * as L from 'leaflet';
 import { MapGenerator } from './map-generator';
 
 @Component({
   selector: 'app-trail-small-map',
   template: ``,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: []
 })
 export class TrailSmallMapComponent implements OnChanges {

@@ -1,6 +1,6 @@
-import { JsonLEvent, LocalFilesPlugin } from 'src/app/services/local-files/local-files.interface';
-import { LocalFilesPluginProvider, LocalFilesService } from 'src/app/services/local-files/local-files.service';
-import { BinaryContent } from 'src/app/utils/binary-content';
+import { JsonLEvent, LocalFilesPlugin } from '@trailence/services/local-files/local-files.interface';
+import { LocalFilesPluginProvider, LocalFilesService } from '@trailence/services/local-files/local-files.service';
+import { BinaryContent } from '@trailence/utils/binary-content';
 
 export function provideMockLocalFilesService() {
   return {

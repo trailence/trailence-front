@@ -1,4 +1,4 @@
-import { Route, Way, WayReference } from 'src/app/services/map/way';
+import { Route, Way, WayReference } from '@trailence/services/map/way';
 
 export async function parseWays(blob: Blob, south: number, west: number, north: number, east: number): Promise<{ways: Way[], references: WayReference[]}> {
   const ways: Way[] = [];

@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Platform } from '@ionic/angular';
-import { BinaryContent } from 'src/app/utils/binary-content';
+import { BinaryContent } from '@trailence/utils/binary-content';
 import LocalFiles from './local-files';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 import { JSONL_CHUNK_MAX_SIZE, JsonLEvent, LocalFilesPlugin } from './local-files.interface';
 
 type waitingOperation = {name: string, operation: () => Promise<any>, resolve: (result: any) => void, reject: (reason: any) => void};

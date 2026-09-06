@@ -1,9 +1,9 @@
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Observable } from 'rxjs';
 import { IonIcon, IonButton } from '@ionic/angular';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { AuthService } from 'src/app/services/auth/auth.service';
-import { StringUtils } from 'src/app/utils/string-utils';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
+import { StringUtils } from '@trailence/utils/string-utils';
 
 export interface UserKey {
   id: string;
@@ -17,6 +17,7 @@ export interface UserKey {
   selector: 'app-user-keys',
   templateUrl: './user-keys.components.html',
   styleUrl: './user-keys.components.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonIcon, IonButton,
   ]

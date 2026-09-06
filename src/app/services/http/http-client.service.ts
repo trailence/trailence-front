@@ -4,7 +4,7 @@ import { TrailenceHttpRequest } from './http-request';
 import { Observable, catchError, map, of } from 'rxjs';
 import { TrailenceHttpResponse } from './http-response';
 import { IHttpClient } from './http-client.interface';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 
 @Injectable({
   providedIn: 'root'

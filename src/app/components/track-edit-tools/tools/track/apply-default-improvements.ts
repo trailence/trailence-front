@@ -1,4 +1,4 @@
-import { TrackEditionService } from 'src/app/services/track-edition/track-edition.service';
+import { TrackEditionService } from '@trailence/services/track-edition/track-edition.service';
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
 import { of } from 'rxjs';
 

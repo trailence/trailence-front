@@ -1,34 +1,34 @@
-import { Component, Injector, Input, ViewChild } from '@angular/core';
-import { AbstractComponent } from 'src/app/utils/component-utils';
-import { Trail } from 'src/app/model/trail';
+import { Component, Injector, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { AbstractComponent } from '@trailence/utils/component-utils';
+import { Trail } from '@trailence/model/trail';
 import { TrailsListComponent } from '../trails-list/trails-list.component';
 import { BehaviorSubject, combineLatest, debounceTime, map, Observable, of, skip, Subscription, switchMap } from 'rxjs';
 import { IonSegment, IonSegmentButton, IonButton, IonIcon, IonSpinner } from "@ionic/angular";
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { MapComponent } from '../map/map.component';
 import { MapTrack } from '../map/track/map-track';
-import { TrackService } from 'src/app/services/database/track.service';
+import { TrackService } from '@trailence/services/database/track.service';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
 import { TrailOverviewComponent } from '../trail-overview/trail-overview.component';
 import { Router } from '@angular/router';
-import { CollectionMapper } from 'src/app/utils/arrays';
+import { CollectionMapper } from '@trailence/utils/arrays';
 import { List } from 'immutable';
-import { BrowserService } from 'src/app/services/browser/browser.service';
+import { BrowserService } from '@trailence/services/browser/browser.service';
 import * as L from 'leaflet';
 import { MapBubble } from '../map/bubble/map-bubble';
 import { SearchPlaceComponent } from '../search-place/search-place.component';
-import { Place } from 'src/app/services/geolocation/place';
+import { Place } from '@trailence/services/geolocation/place';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { MenuItem } from '../menus/menu-item';
-import { ModerationService } from 'src/app/services/moderation/moderation.service';
-import { NetworkService } from 'src/app/services/network/network.service';
-import { ANONYMOUS_USER, AuthService } from 'src/app/services/auth/auth.service';
-import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
+import { ModerationService } from '@trailence/services/moderation/moderation.service';
+import { NetworkService } from '@trailence/services/network/network.service';
+import { ANONYMOUS_USER, AuthService } from '@trailence/services/auth/auth.service';
+import { FetchSourceService } from '@trailence/services/fetch-source/fetch-source.service';
 import { TrackMetadataConfig } from '../track-metadata/track-metadata.component';
-import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
+import { SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
 import { AsyncPipe } from '@angular/common';
-import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
-import { Console } from 'src/app/utils/console';
+import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
+import { Console } from '@trailence/utils/console';
 import { MapElement } from '../map/map-element';
 import { MapToggleBubblesTool } from '../map/tools/toggle-bubbles-tool';
 
@@ -38,6 +38,7 @@ const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
     selector: 'app-trails-and-map',
     templateUrl: './trails-and-map.component.html',
     styleUrls: ['./trails-and-map.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
       IonIcon, IonButton, IonSegmentButton, IonSegment, IonSpinner,
       TrailsListComponent,

@@ -2,7 +2,7 @@ import { Injector } from '@angular/core';
 import { DbTable } from './db-table';
 import { LocalFilesService } from '../../local-files/local-files.service';
 import { catchError, concat, filter, first, forkJoin, from, last, map, Observable, switchMap, throwError, zip } from 'rxjs';
-import { BinaryContent } from 'src/app/utils/binary-content';
+import { BinaryContent } from '@trailence/utils/binary-content';
 import { Table } from 'dexie';
 import { ProgressService } from '../../progress/progress.service';
 import { I18nService } from '../../i18n/i18n.service';

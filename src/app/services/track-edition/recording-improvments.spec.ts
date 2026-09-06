@@ -1,10 +1,10 @@
-import { HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
-import { GpxFormat } from 'src/app/utils/formats/gpx-format';
+import { GpxFormat } from '@trailence/utils/formats/gpx-format';
 import { ImprovmentRecordingState, TrackEditionService } from './track-edition.service';
-import { Track } from 'src/app/model/track';
-import { copyPoint } from 'src/app/model/point-descriptor';
+import { Track } from '@trailence/model/track';
+import { copyPoint } from '@trailence/model/point-descriptor';
 import { PreferencesService } from '../preferences/preferences.service';
 
 describe('Test improvments while recording', () => {
@@ -14,7 +14,7 @@ describe('Test improvments while recording', () => {
   let preferencesService: PreferencesService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ imports: [], providers: [provideHttpClient(withInterceptorsFromDi())] });
+    TestBed.configureTestingModule({ imports: [], providers: [provideHttpClient(withXhr(), withInterceptorsFromDi())] });
     http = TestBed.inject(HttpClient);
     trackEdition = TestBed.inject(TrackEditionService);
     preferencesService = TestBed.inject(PreferencesService);

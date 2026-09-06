@@ -1,18 +1,19 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { HeaderComponent } from 'src/app/components/header/header.component';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { ChangeDetectorRef, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { HeaderComponent } from '@trailence/components/header/header.component';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { IonSpinner, IonIcon, IonButton, IonCheckbox } from '@ionic/angular';
-import { ModerationService } from 'src/app/services/moderation/moderation.service';
-import { Console } from 'src/app/utils/console';
+import { ModerationService } from '@trailence/services/moderation/moderation.service';
+import { Console } from '@trailence/utils/console';
 import { from, map, of, switchMap } from 'rxjs';
-import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
-import { Trail } from 'src/app/model/trail';
+import { FetchSourceService } from '@trailence/services/fetch-source/fetch-source.service';
+import { Trail } from '@trailence/model/trail';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   templateUrl: './moderation-remove-requests.page.html',
   styleUrl: './moderation-remove-requests.page.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     HeaderComponent,
     IonSpinner, IonIcon, IonButton, IonCheckbox,

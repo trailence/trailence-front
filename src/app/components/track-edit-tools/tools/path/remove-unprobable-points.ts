@@ -1,4 +1,4 @@
-import { removeUnprobablePointsOnTrack } from 'src/app/services/track-edition/path-analysis/remove-unprobable-points';
+import { removeUnprobablePointsOnTrack } from '@trailence/services/track-edition/path-analysis/remove-unprobable-points';
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
 import { of } from 'rxjs';
 

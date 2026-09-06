@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { GEOLOCATION_MAX_AGE, GEOLOCATION_TIMEOUT, GeolocationState, IGeolocationService } from './geolocation.interface';
-import { PointDto } from 'src/app/model/dto/point';
+import { PointDto } from '@trailence/model/dto/point';
 import { BehaviorSubject } from 'rxjs';
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 
 @Injectable({
   providedIn: 'root'

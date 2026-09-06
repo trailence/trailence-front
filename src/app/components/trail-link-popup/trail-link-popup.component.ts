@@ -1,14 +1,14 @@
-import { Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Injector, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { of, Subscription, switchMap } from 'rxjs';
-import { TrailLinkService } from 'src/app/services/database/link.service';
+import { TrailLinkService } from '@trailence/services/database/link.service';
 import { ModalController, IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonInput, IonSpinner, ToastController, Platform, AlertController } from '@ionic/angular';
-import { TrailLink } from 'src/app/model/dto/trail-link';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { environment } from 'src/environments/environment';
-import { NetworkService } from 'src/app/services/network/network.service';
+import { TrailLink } from '@trailence/model/dto/trail-link';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { environment } from '@env/environment';
+import { NetworkService } from '@trailence/services/network/network.service';
 import { AsyncPipe } from '@angular/common';
-import Trailence from 'src/app/services/trailence.service';
-import { AuthService } from 'src/app/services/auth/auth.service';
+import Trailence from '@trailence/services/trailence.service';
+import { AuthService } from '@trailence/services/auth/auth.service';
 
 export function openTrailLink(injector: Injector, trailOwner: string, trailUuid: string) {
   injector.get(ModalController).create({
@@ -27,6 +27,7 @@ export function openTrailLink(injector: Injector, trailOwner: string, trailUuid:
 @Component({
   templateUrl: './trail-link-popup.component.html',
   styleUrl: './trail-link-popup.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonInput, IonSpinner,
     AsyncPipe,

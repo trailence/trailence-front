@@ -1,4 +1,4 @@
-import { adjustUnprobableElevationToTrackBasedOnGrade } from 'src/app/services/track-edition/elevation/unprobable-elevation-with-grade';
+import { adjustUnprobableElevationToTrackBasedOnGrade } from '@trailence/services/track-edition/elevation/unprobable-elevation-with-grade';
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
 import { of } from 'rxjs';
 

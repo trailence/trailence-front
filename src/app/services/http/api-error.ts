@@ -1,4 +1,4 @@
-import { Console } from 'src/app/utils/console';
+import { Console } from '@trailence/utils/console';
 import { TrailenceHttpRequest } from './http-request';
 import { TrailenceHttpResponse } from './http-response';
 

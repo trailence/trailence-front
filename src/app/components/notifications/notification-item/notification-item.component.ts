@@ -1,17 +1,18 @@
-import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { Notification, NotificationsService } from 'src/app/services/notifications/notifications.service';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Notification, NotificationsService } from '@trailence/services/notifications/notifications.service';
 import { IonItem, IonLabel, IonNote } from "@ionic/angular";
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { TranslatedString } from 'src/app/services/i18n/i18n-string';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { TranslatedString } from '@trailence/services/i18n/i18n-string';
 import { RouterLink } from '@angular/router';
 import { RelativeDateComponent } from '../../relative-date/relative-date.component';
 import { skip, Subscription } from 'rxjs';
-import { ObjectUtils } from 'src/app/utils/object-utils';
+import { ObjectUtils } from '@trailence/utils/object-utils';
 
 @Component({
   selector: 'app-notification-item',
   templateUrl: './notification-item.component.html',
   styleUrl: './notification-item.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonNote, IonLabel, IonItem, RouterLink, RelativeDateComponent ]
 })
 export class NotificationItemComponent implements OnInit, OnDestroy {

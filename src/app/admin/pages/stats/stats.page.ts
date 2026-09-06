@@ -1,17 +1,18 @@
-import { Component, Injector } from '@angular/core';
-import { GraphConfigSource, GraphProvider } from 'src/app/components/graph/graph-config';
+import { Component, Injector, ChangeDetectionStrategy } from '@angular/core';
+import { GraphConfigSource, GraphProvider } from '@trailence/components/graph/graph-config';
 import { AdminStatsAggregation, AdminStatsConfig, AdminStatsType } from './config/admin-stats-config';
 import { BehaviorSubject } from 'rxjs';
-import { AbstractPage } from 'src/app/utils/component-utils';
+import { AbstractPage } from '@trailence/utils/component-utils';
 import { AdminStatsBuilder } from './config/admin-stats-builder';
-import { GraphComponent } from 'src/app/components/graph/graph.component';
+import { GraphComponent } from '@trailence/components/graph/graph.component';
 import { IonRadioGroup, IonRadio } from '@ionic/angular';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { CollapsableSectionComponent } from 'src/app/components/collapsable-section/collapsable-section.component';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { CollapsableSectionComponent } from '@trailence/components/collapsable-section/collapsable-section.component';
 
 @Component({
   templateUrl: './stats.page.html',
   styleUrl: './stats.page.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonRadioGroup, IonRadio,
     GraphComponent,

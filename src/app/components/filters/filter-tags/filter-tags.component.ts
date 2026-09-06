@@ -1,17 +1,18 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
 import { FilterTags } from '../filter';
-import { TagService } from 'src/app/services/database/tag.service';
-import { Tag } from 'src/app/model/tag';
+import { TagService } from '@trailence/services/database/tag.service';
+import { Tag } from '@trailence/model/tag';
 import { Subscription } from 'rxjs';
-import { collection$items } from 'src/app/utils/rxjs/collection$items';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { collection$items } from '@trailence/utils/rxjs/collection$items';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { IonButton, IonModal, IonIcon, IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonRadioGroup, IonRadio, IonCheckbox, IonButtons, IonFooter } from "@ionic/angular";
-import { IdGenerator } from 'src/app/utils/component-utils';
+import { IdGenerator } from '@trailence/utils/component-utils';
 
 @Component({
     selector: 'app-filter-tags',
     templateUrl: './filter-tags.component.html',
     styleUrls: [],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [IonFooter, IonButtons, IonCheckbox, IonRadio, IonRadioGroup, IonContent, IonLabel, IonTitle, IonToolbar, IonHeader, IonIcon, IonModal, IonButton]
 })
 export class FilterTagsComponent implements OnInit, OnDestroy {

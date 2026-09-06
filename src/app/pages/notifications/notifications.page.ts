@@ -1,18 +1,19 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { HeaderComponent } from 'src/app/components/header/header.component';
-import { NotificationItemComponent } from 'src/app/components/notifications/notification-item/notification-item.component';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { Notification, NotificationsService } from 'src/app/services/notifications/notifications.service';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { HeaderComponent } from '@trailence/components/header/header.component';
+import { NotificationItemComponent } from '@trailence/components/notifications/notification-item/notification-item.component';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { Notification, NotificationsService } from '@trailence/services/notifications/notifications.service';
 import { IonList, IonButton, IonSpinner, IonItem } from "@ionic/angular";
-import { ErrorService } from 'src/app/services/progress/error.service';
+import { ErrorService } from '@trailence/services/progress/error.service';
 import { combineLatest, Subscription } from 'rxjs';
-import { NetworkService } from 'src/app/services/network/network.service';
+import { NetworkService } from '@trailence/services/network/network.service';
 import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'app-notifications',
   templateUrl: './notifications.page.html',
   styleUrl: './notifications.page.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonButton, IonList, IonSpinner, IonItem,
     HeaderComponent,
