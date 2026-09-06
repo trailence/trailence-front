@@ -1,7 +1,7 @@
 import { Observable, of } from 'rxjs';
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
 import { TrackUtils } from 'src/app/utils/track-utils';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { WayPoint } from 'src/app/model/way-point';
 import { Track } from 'src/app/model/track';
 

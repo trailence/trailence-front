@@ -3,7 +3,7 @@ import { GeoService } from 'src/app/services/geolocation/geo.service';
 import { Point } from 'src/app/model/point';
 import { copyPoint, PointDescriptor } from 'src/app/model/point-descriptor';
 import { Observable, of, switchMap } from 'rxjs';
-import { AlertController } from '@ionic/angular/standalone';
+import { AlertController } from '@ionic/angular';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 
 export class CalibrateElevationWithProvider implements TrackEditTool {

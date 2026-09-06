@@ -1,5 +1,5 @@
 import { Directive, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
-import { Gesture, GestureController, GestureDetail } from '@ionic/angular/standalone';
+import { Gesture, GestureController, GestureDetail } from '@ionic/angular';
 
 @Directive({
   selector: '[horizontalGesture]'

@@ -1,6 +1,6 @@
 import { Component, Injector, Input, OnInit } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
-import { ModalController, IonContent, IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonFooter, IonButtons, IonButton, IonList, IonItem, IonRadio, IonCheckbox, IonRadioGroup } from '@ionic/angular/standalone';
+import { ModalController, IonContent, IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonFooter, IonButtons, IonButton, IonList, IonItem, IonRadio, IonCheckbox, IonRadioGroup } from '@ionic/angular';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { TrailActivitiesGroups, TrailActivity, TrailActivityGroup } from 'src/app/model/dto/trail-activity';

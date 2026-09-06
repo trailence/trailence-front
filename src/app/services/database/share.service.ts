@@ -12,7 +12,7 @@ import { AuthService } from '../auth/auth.service';
 import { TrailService } from './trail.service';
 import { MenuItem } from 'src/app/components/menus/menu-item';
 import { I18nService } from '../i18n/i18n.service';
-import { AlertController, ModalController } from '@ionic/angular/standalone';
+import { AlertController, ModalController } from '@ionic/angular';
 import { collection$items, collection$items$ } from 'src/app/utils/rxjs/collection$items';
 import { QuotaService } from '../auth/quota.service';
 import { Arrays } from 'src/app/utils/arrays';

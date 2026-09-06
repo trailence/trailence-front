@@ -3,7 +3,7 @@ import { AbstractComponent } from 'src/app/utils/component-utils';
 import { StatsConfig } from './stats-config';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { StatsConfigComponent } from "./config/stats-config.component";
-import { IonAccordionGroup, IonAccordion, IonItem, IonLabel, IonIcon } from "@ionic/angular/standalone";
+import { IonAccordionGroup, IonAccordion, IonItem, IonLabel, IonIcon } from "@ionic/angular";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { GraphComponent } from '../graph/graph.component';
 import { GraphConfigSource, GraphProvider } from '../graph/graph-config';

@@ -1,6 +1,6 @@
 import { NgStyle } from '@angular/common';
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
-import { GestureController, Gesture, GestureDetail } from '@ionic/angular/standalone';
+import { GestureController, Gesture, GestureDetail } from '@ionic/angular';
 
 export interface RangeValue {
   lower: number;

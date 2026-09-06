@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import { APK_PATH, AppDownload } from 'src/app/services/update/common';
-import { Platform, AlertController, ModalController } from '@ionic/angular/standalone';
+import { Platform, AlertController, ModalController } from '@ionic/angular';
 import { BehaviorSubject, catchError, first, map, Observable, of, switchMap } from 'rxjs';
 import { HttpService } from 'src/app/services/http/http.service';
 import { environment } from 'src/environments/environment';

@@ -3,7 +3,7 @@ import { UserKey, UserKeysComponent } from 'src/app/components/user-keys/user-ke
 import { UserDto } from '../../../model/user';
 import { HttpService } from 'src/app/services/http/http.service';
 import { environment } from 'src/environments/environment';
-import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonButton, IonFooter, IonButtons, IonCheckbox, ModalController, AlertController } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonButton, IonFooter, IonButtons, IonCheckbox, ModalController, AlertController } from '@ionic/angular';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { UserQuotasComponent } from 'src/app/components/user-quotas/user-quotas.component';
 import { UserSubscriptionsComponent } from "./user-subscriptions/user-subscriptions.component";

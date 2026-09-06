@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { AvailableLocales, LocaleKey } from 'src/app/services/i18n/available-locales';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { environment } from 'src/environments/environment';
-import { IonIcon, IonButton, IonPopover, IonList, IonItem, IonLabel } from '@ionic/angular/standalone';
+import { IonIcon, IonButton, IonPopover, IonList, IonItem, IonLabel } from '@ionic/angular';
 import { IdGenerator } from 'src/app/utils/component-utils';
 import { Router } from '@angular/router';
 

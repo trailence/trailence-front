@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { I18nService } from '../i18n/i18n.service';
 import { CompositeI18nString, TranslatedString } from '../i18n/i18n-string';
 import { ApiError } from '../http/api-error';

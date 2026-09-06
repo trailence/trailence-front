@@ -9,7 +9,7 @@ import { Console } from 'src/app/utils/console';
 import { HttpService } from 'src/app/services/http/http.service';
 import { StringUtils } from 'src/app/utils/string-utils';
 import { trailenceAppVersionCode } from 'src/app/trailence-version';
-import { AlertController } from '@ionic/angular/standalone';
+import { AlertController } from '@ionic/angular';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 
 @Injectable({

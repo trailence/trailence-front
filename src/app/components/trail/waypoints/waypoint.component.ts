@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output } from '@angular/core';
 import { TrailWaypoints, WayPointWithPhotos } from '../trail-waypoints';
-import { IonIcon, IonButton } from '@ionic/angular/standalone';
+import { IonIcon, IonButton } from '@ionic/angular';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { PhotosSliderComponent } from '../../photos-slider/photos-slider.component';
 import { WayPointFromTrack } from 'src/app/utils/track-waypoints/waypoints-from-track';

@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Injector } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
-import { IonCard, IonToolbar, IonLabel, IonCardContent, IonList, IonItem, IonInput, IonButton, IonSpinner, NavController } from "@ionic/angular/standalone";
+import { IonCard, IonToolbar, IonLabel, IonCardContent, IonList, IonItem, IonInput, IonButton, IonSpinner, NavController } from "@ionic/angular";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { FormsModule } from '@angular/forms';

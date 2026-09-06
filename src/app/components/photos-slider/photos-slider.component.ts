@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnChanges, O
 import { Photo } from 'src/app/model/photo';
 import { PhotoComponent } from '../photo/photo.component';
 import { BrowserService } from 'src/app/services/browser/browser.service';
-import { IonButton, IonIcon, GestureController, Gesture, GestureDetail } from "@ionic/angular/standalone";
+import { IonButton, IonIcon, GestureController, Gesture, GestureDetail } from "@ionic/angular";
 import { IdGenerator } from 'src/app/utils/component-utils';
 import { Subscription } from 'rxjs';
 import { NgClass, NgStyle } from '@angular/common';

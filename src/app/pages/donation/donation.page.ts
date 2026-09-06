@@ -1,5 +1,5 @@
 import { Component, Injector } from '@angular/core';
-import { IonIcon, IonButton } from '@ionic/angular/standalone';
+import { IonIcon, IonButton } from '@ionic/angular';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { DonationStatusDto } from './donation-status';
 import { HttpService } from 'src/app/services/http/http.service';

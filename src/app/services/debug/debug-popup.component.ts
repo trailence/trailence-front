@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { DebugService } from './debug.service';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 
 @Component({
   templateUrl: './debug-popup.component.html',

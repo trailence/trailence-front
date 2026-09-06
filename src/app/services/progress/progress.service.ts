@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { I18nService } from '../i18n/i18n.service';
-import { GestureController } from '@ionic/angular/standalone';
+import { GestureController } from '@ionic/angular';
 
 export class Progress {
 

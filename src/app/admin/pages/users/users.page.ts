@@ -7,7 +7,7 @@ import { PageResult } from '../../components/paginator/page-result';
 import { HorizontalAlignment, TableColumn, TableSettings } from '../../components/table/table-settings';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { UserDto } from '../../model/user';
-import { ModalController, IonSegment, IonSegmentButton } from '@ionic/angular/standalone';
+import { ModalController, IonSegment, IonSegmentButton } from '@ionic/angular';
 import { StringUtils } from 'src/app/utils/string-utils';
 
 @Component({

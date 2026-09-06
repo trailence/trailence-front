@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonButtons, IonFooter, IonButton, ModalController, IonInput } from "@ionic/angular/standalone";
+import { IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonButtons, IonFooter, IonButton, ModalController, IonInput } from "@ionic/angular";
 import { CodeInputModule } from 'angular-code-input';
 import { InputPasswordComponent } from 'src/app/components/input-password/input-password.component';
 import { AuthService } from 'src/app/services/auth/auth.service';

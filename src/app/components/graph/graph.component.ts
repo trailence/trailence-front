@@ -4,7 +4,7 @@ import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { combineLatest, concat, debounceTime, of, Subscription } from 'rxjs';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { IonButton, IonIcon, GestureController, Gesture } from "@ionic/angular/standalone";
+import { IonButton, IonIcon, GestureController, Gesture } from "@ionic/angular";
 import { NgStyle } from '@angular/common';
 import { GraphConfig, GraphConfigSource, GraphProvider } from './graph-config';
 import { ObserverHelper } from 'src/app/utils/observer-helper';

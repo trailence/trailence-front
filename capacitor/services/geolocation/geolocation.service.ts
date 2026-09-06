@@ -4,7 +4,7 @@ import { GEOLOCATION_MAX_AGE, GEOLOCATION_TIMEOUT, GeolocationState, IGeolocatio
 import { registerPlugin } from '@capacitor/core';
 import { BehaviorSubject } from 'rxjs';
 import { Console } from 'src/app/utils/console';
-import { AlertController } from '@ionic/angular/standalone';
+import { AlertController } from '@ionic/angular';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 
 interface WatcherOptions {

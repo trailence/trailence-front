@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Notification, NotificationsService } from 'src/app/services/notifications/notifications.service';
-import { IonItem, IonLabel, IonNote } from "@ionic/angular/standalone";
+import { IonItem, IonLabel, IonNote } from "@ionic/angular";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { RouterLink } from '@angular/router';

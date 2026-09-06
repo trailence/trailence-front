@@ -3,7 +3,7 @@ import { catchError, combineLatest, debounceTime, first, map, of } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import { TrackService } from '../database/track.service';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 
 export function openMapDownloadDialog(injector: Injector, trails: Trail[], bounds?: L.LatLngBounds, layer?: string) {
   const tracks$ = trails.length === 0 ? of([]) : combineLatest(trails.map(trail =>

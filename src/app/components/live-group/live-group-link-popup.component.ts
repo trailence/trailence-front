@@ -1,5 +1,5 @@
 import { Component, Injector, Input, OnInit } from '@angular/core';
-import { IonHeader, IonToolbar, IonIcon, IonLabel, IonButtons, IonButton, IonContent, IonFooter, IonTitle, IonInput, ModalController, Platform, ToastController } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonIcon, IonLabel, IonButtons, IonButton, IonContent, IonFooter, IonTitle, IonInput, ModalController, Platform, ToastController } from '@ionic/angular';
 import { LiveGroupDto } from 'src/app/model/dto/live-group';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import Trailence from 'src/app/services/trailence.service';

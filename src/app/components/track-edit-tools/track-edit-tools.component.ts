@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
-import { ToastController, AlertController } from "@ionic/angular/standalone";
+import { ToastController, AlertController } from "@ionic/angular";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { InteractiveToolContext, TrackEditTool, TrackEditToolContext } from './tools/tool.interface';
 import { RemoveUnprobableElevation } from './tools/elevation/remove-unprobable-elevation';

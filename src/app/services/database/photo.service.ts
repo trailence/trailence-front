@@ -12,7 +12,7 @@ import { TrailService } from './trail.service';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { Trail } from 'src/app/model/trail';
-import { ModalController, Platform } from '@ionic/angular/standalone';
+import { ModalController, Platform } from '@ionic/angular';
 import { PreferencesService } from '../preferences/preferences.service';
 import { DatabaseSubject } from './database-subject';
 import { DatabaseSubjectService } from './database-subject-service';

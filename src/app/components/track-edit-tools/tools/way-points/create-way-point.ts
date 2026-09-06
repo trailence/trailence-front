@@ -2,7 +2,7 @@ import { Observable } from 'rxjs';
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
 import { TrackUtils } from 'src/app/utils/track-utils';
 import { WayPoint } from 'src/app/model/way-point';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 
 export class CreateWayPointTool implements TrackEditTool {
 

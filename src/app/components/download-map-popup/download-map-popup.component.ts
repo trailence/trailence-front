@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonRange, IonFooter, IonButtons, IonButton, ModalController, IonSpinner } from "@ionic/angular/standalone";
+import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonRange, IonFooter, IonButtons, IonButton, ModalController, IonSpinner } from "@ionic/angular";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapLayerSelectionComponent } from '../map-layer-selection/map-layer-selection.component';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';

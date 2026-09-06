@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { MapAdditionsOptions } from 'src/app/services/map/map-additions.service';
-import { IonCheckbox, IonIcon, IonLabel, IonButton, ModalController } from '@ionic/angular/standalone';
+import { IonCheckbox, IonIcon, IonLabel, IonButton, ModalController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapLayer, MapLayersService } from 'src/app/services/map/map-layers.service';

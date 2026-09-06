@@ -5,7 +5,7 @@ import { BehaviorSubject } from 'rxjs';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { AdminStatsBuilder } from './config/admin-stats-builder';
 import { GraphComponent } from 'src/app/components/graph/graph.component';
-import { IonRadioGroup, IonRadio } from '@ionic/angular/standalone';
+import { IonRadioGroup, IonRadio } from '@ionic/angular';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CollapsableSectionComponent } from 'src/app/components/collapsable-section/collapsable-section.component';
 

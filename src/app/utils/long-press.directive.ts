@@ -1,5 +1,5 @@
 import { AfterViewInit, Directive, ElementRef, EventEmitter, Input, NgZone, Output } from '@angular/core';
-import { GestureController } from '@ionic/angular/standalone';
+import { GestureController } from '@ionic/angular';
 
 @Directive({
   selector: '[long-press]',

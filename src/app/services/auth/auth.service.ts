@@ -121,7 +121,7 @@ export class AuthService {
             localStorage.setItem(ANONYMOUS_TOAST_LAST_TIME_LOCAL_STORAGE_KEY, '' + Date.now());
             const i18n = injector.get(I18nService);
             i18n.texts$.pipe(filterDefined(), first()).subscribe(() => {
-              import('@ionic/angular/standalone').then(ionic => injector.get(ionic.ToastController).create({
+              import('@ionic/angular').then(ionic => injector.get(ionic.ToastController).create({
                 message: i18n.texts.toast_anonymous_account,
                 color: 'warning',
                 position: 'bottom',

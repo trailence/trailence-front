@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { WayPoint } from 'src/app/model/way-point';
-import { IonContent, IonHeader, IonToolbar, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, IonIcon, ModalController, IonInput, IonTextarea } from "@ionic/angular/standalone";
+import { IonContent, IonHeader, IonToolbar, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, IonIcon, ModalController, IonInput, IonTextarea } from "@ionic/angular";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 
 @Component({

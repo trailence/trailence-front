@@ -3,7 +3,7 @@ import { AbstractComponent } from 'src/app/utils/component-utils';
 import { Trail } from 'src/app/model/trail';
 import { TrailsListComponent } from '../trails-list/trails-list.component';
 import { BehaviorSubject, combineLatest, debounceTime, map, Observable, of, skip, Subscription, switchMap } from 'rxjs';
-import { IonSegment, IonSegmentButton, IonButton, IonIcon, IonSpinner } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonButton, IonIcon, IonSpinner } from "@ionic/angular";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapComponent } from '../map/map.component';
 import { MapTrack } from '../map/track/map-track';

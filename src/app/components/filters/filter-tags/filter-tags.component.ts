@@ -5,7 +5,7 @@ import { Tag } from 'src/app/model/tag';
 import { Subscription } from 'rxjs';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { IonButton, IonModal, IonIcon, IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonRadioGroup, IonRadio, IonCheckbox, IonButtons, IonFooter } from "@ionic/angular/standalone";
+import { IonButton, IonModal, IonIcon, IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonRadioGroup, IonRadio, IonCheckbox, IonButtons, IonFooter } from "@ionic/angular";
 import { IdGenerator } from 'src/app/utils/component-utils';
 
 @Component({

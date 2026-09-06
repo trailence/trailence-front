@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, NgZone, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
-import { IonIcon, IonButton, IonCheckbox, PopoverController } from '@ionic/angular/standalone';
+import { IonIcon, IonButton, IonCheckbox, PopoverController } from '@ionic/angular';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { MenuContentComponent } from '../../menus/menu-content/menu-content.component';

@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output } from '@angular/core';
-import { IonInput, IonTextarea, IonButton, IonSpinner, IonIcon, AlertController } from "@ionic/angular/standalone";
+import { IonInput, IonTextarea, IonButton, IonSpinner, IonIcon, AlertController } from "@ionic/angular";
 import { ModerationService } from 'src/app/services/moderation/moderation.service';
 import { Trail } from 'src/app/model/trail';
 import { FormsModule } from '@angular/forms';

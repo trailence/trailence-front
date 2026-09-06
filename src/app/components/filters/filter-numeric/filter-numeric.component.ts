@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { IonRange, IonLabel } from "@ionic/angular/standalone";
+import { IonRange, IonLabel } from "@ionic/angular";
 
 export interface NumericFilterValueEvent {
   valueMin: number;

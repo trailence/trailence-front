@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { PlanDto } from 'src/app/admin/model/plan';
-import { IonHeader, IonToolbar, IonTitle, IonLabel, IonInput, IonFooter, IonButtons, IonButton, ModalController, AlertController } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonTitle, IonLabel, IonInput, IonFooter, IonButtons, IonButton, ModalController, AlertController } from '@ionic/angular';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { HttpService } from 'src/app/services/http/http.service';

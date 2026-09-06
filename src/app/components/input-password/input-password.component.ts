@@ -1,5 +1,5 @@
 import { Component, ContentChild, Input, OnDestroy } from '@angular/core';
-import { IonInput, IonIcon } from '@ionic/angular/standalone';
+import { IonInput, IonIcon } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { COMPLEXITY_LEVELS, MIN_COMPLEXITY, PasswordUtils } from 'src/app/utils/password-utils';

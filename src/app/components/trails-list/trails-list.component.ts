@@ -5,7 +5,7 @@ import { TrailOverviewComponent } from '../trail-overview/trail-overview.compone
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup,
-  IonItem, IonCheckbox, IonList, IonSelectOption, IonSelect, IonInput, IonSpinner, PopoverController, AlertController } from "@ionic/angular/standalone";
+  IonItem, IonCheckbox, IonList, IonSelectOption, IonSelect, IonInput, IonSpinner, PopoverController, AlertController } from "@ionic/angular";
 import { BehaviorSubject, catchError, combineLatest, debounceTime, distinctUntilChanged, filter, first, map, Observable, of, skip, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';

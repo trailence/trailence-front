@@ -7,7 +7,7 @@ import { environment } from 'src/environments/environment';
 import { PageRequest } from '../../components/paginator/page-request';
 import { PageResult } from '../../components/paginator/page-result';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { IonSegment, IonSegmentButton, IonButton, ModalController } from '@ionic/angular/standalone';
+import { IonSegment, IonSegmentButton, IonButton, ModalController } from '@ionic/angular';
 import { TableComponent } from '../../components/table/table.component';
 import { DonationGoalsComponent } from './goals/donation-goals.component';
 import { DonationPage } from 'src/app/pages/donation/donation.page';

@@ -1,6 +1,6 @@
 import { AfterContentChecked, Component, ElementRef, Injector } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
-import { Platform } from '@ionic/angular/standalone';
+import { Platform } from '@ionic/angular';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { environment } from 'src/environments/environment';
 import { AuthService } from 'src/app/services/auth/auth.service';

@@ -1,5 +1,5 @@
 import { Component, Injector, Input } from '@angular/core';
-import { IonList, IonItem, IonIcon, IonLabel, PopoverController } from '@ionic/angular/standalone';
+import { IonList, IonItem, IonIcon, IonLabel, PopoverController } from '@ionic/angular';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapComponent } from '../../map.component';
 import { RotateMode } from '../../map-state';

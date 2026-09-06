@@ -3,7 +3,7 @@ import { Trail } from 'src/app/model/trail';
 import { TrackService } from '../database/track.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { first, of, timeout } from 'rxjs';
-import { Platform } from '@ionic/angular/standalone';
+import { Platform } from '@ionic/angular';
 
 export function goToDeparture(injector: Injector, trail: Trail): void {
   injector.get(TrackService).getSimplifiedTrack$(trail.currentTrackUuid, trail.owner).pipe(

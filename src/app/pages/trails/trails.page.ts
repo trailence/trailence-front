@@ -19,7 +19,7 @@ import { NetworkService } from 'src/app/services/network/network.service';
 import { AuthResponse } from 'src/app/services/auth/auth-response';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { ModerationService } from 'src/app/services/moderation/moderation.service';
-import { NavController } from '@ionic/angular/standalone';
+import { NavController } from '@ionic/angular';
 import { MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
 import { MySelectionService } from 'src/app/services/database/my-selection.service';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';

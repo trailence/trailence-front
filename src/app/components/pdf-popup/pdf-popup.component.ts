@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, EnvironmentInjector, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
-import { ModalController, IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonRadioGroup, IonRadio, IonCheckbox } from '@ionic/angular/standalone';
+import { ModalController, IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonRadioGroup, IonRadio, IonCheckbox } from '@ionic/angular';
 import { PdfModel, PdfOptions } from './generation/pdf-generator';
 import { environment } from 'src/environments/environment';
 import { IdGenerator } from 'src/app/utils/component-utils';

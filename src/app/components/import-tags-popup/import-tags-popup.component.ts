@@ -3,7 +3,7 @@ import { first, map, of, switchMap, zip } from 'rxjs';
 import { Tag } from 'src/app/model/tag';
 import { TagService } from 'src/app/services/database/tag.service';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
-import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonButton, ModalController } from "@ionic/angular/standalone";
+import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonButton, ModalController } from "@ionic/angular";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { Arrays } from 'src/app/utils/arrays';
 import { Progress, ProgressService } from 'src/app/services/progress/progress.service';

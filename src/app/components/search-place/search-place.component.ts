@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
-import { IonSearchbar, IonPopover, IonList, IonItem, IonLabel, IonSpinner } from "@ionic/angular/standalone";
+import { IonSearchbar, IonPopover, IonList, IonItem, IonLabel, IonSpinner } from "@ionic/angular";
 import { BehaviorSubject, catchError, debounceTime, filter, map, of, switchMap, tap } from 'rxjs';
 import { GeoService } from 'src/app/services/geolocation/geo.service';
 import { Place } from 'src/app/services/geolocation/place';

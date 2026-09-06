@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { IonToolbar, IonIcon, IonLabel, IonButton, IonFooter, IonButtons, IonCheckbox, IonTextarea, AlertController, IonSegment, IonSegmentButton } from "@ionic/angular/standalone";
+import { IonToolbar, IonIcon, IonLabel, IonButton, IonFooter, IonButtons, IonCheckbox, IonTextarea, AlertController, IonSegment, IonSegmentButton } from "@ionic/angular";
 import { BehaviorSubject, combineLatest, firstValueFrom, map, Observable, of, switchMap, tap } from 'rxjs';
 import { Photo } from 'src/app/model/photo';
 import { PhotoService } from 'src/app/services/database/photo.service';

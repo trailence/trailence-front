@@ -41,7 +41,7 @@ import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended'
 import { bearing, EarthPoint } from 'src/app/utils/latlng';
 import { MotionService } from 'src/app/services/motion/motion.service';
 import { FullScreenTool } from './tools/fullscreen-tool';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';

@@ -11,7 +11,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { LiveGroupService } from 'src/app/services/live-group/live-group.service';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { AbstractPage } from 'src/app/utils/component-utils';
-import { IonInput, IonCard, IonCardContent, IonToolbar, IonLabel, IonButton, IonSpinner } from '@ionic/angular/standalone';
+import { IonInput, IonCard, IonCardContent, IonToolbar, IonLabel, IonButton, IonSpinner } from '@ionic/angular';
 import { LAST_NAME_STORAGE_KEY_PREFIX } from '../../components/live-group/live-group-popup.component';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { FormsModule } from '@angular/forms';

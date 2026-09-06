@@ -7,7 +7,7 @@ import { HikingDifficulty, WaySurface, WayType, WayVisibility } from 'src/app/se
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { TrackOsmStatInfo, TrackOsmStats, TrackSection, trackSectionsComparator } from 'src/app/utils/track-computed-data/track-osm-stats';
 import { ProgressBarComponent } from '../../progress-bar/progress-bar.component';
-import { IonSpinner } from '@ionic/angular/standalone';
+import { IonSpinner } from '@ionic/angular';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 import { TrackPointReference } from 'src/app/utils/track-computed-data/types';
 import { computePercentagesWithoutDecimal } from 'src/app/utils/math-utils';

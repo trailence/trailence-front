@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { DonationDto } from 'src/app/admin/model/donation';
-import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonInput, ModalController } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonInput, ModalController } from '@ionic/angular';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { FormsModule } from '@angular/forms';
 import { HttpService } from 'src/app/services/http/http.service';

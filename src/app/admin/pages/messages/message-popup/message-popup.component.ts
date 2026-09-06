@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { ContactMessageDto } from 'src/app/admin/model/contact-message';
-import { IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton, ModalController } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton, ModalController } from '@ionic/angular';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MessagesService } from 'src/app/admin/services/messages.service';
 

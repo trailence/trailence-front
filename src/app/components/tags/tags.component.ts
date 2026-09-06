@@ -1,7 +1,7 @@
 import { NgClass, NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { IonHeader, IonContent, IonFooter, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonButtons, ModalController, IonInput, IonCheckbox, AlertController } from "@ionic/angular/standalone";
+import { IonHeader, IonContent, IonFooter, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonButtons, ModalController, IonInput, IonCheckbox, AlertController } from "@ionic/angular";
 import { Subscription, combineLatest, debounceTime } from 'rxjs';
 import { Tag } from 'src/app/model/tag';
 import { Trail } from 'src/app/model/trail';

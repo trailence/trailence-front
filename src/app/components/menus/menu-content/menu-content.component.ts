@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { ComputedMenuItem, ComputedMenuItems, MenuItem } from 'src/app/components/menus/menu-item';
-import { IonItem, IonIcon, IonLabel, IonList, IonListHeader, IonButton, PopoverController } from "@ionic/angular/standalone";
+import { IonItem, IonIcon, IonLabel, IonList, IonListHeader, IonButton, PopoverController } from "@ionic/angular";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { ToolbarComponent } from '../toolbar/toolbar.component';
 import { ChangesDetection } from 'src/app/utils/angular-helpers';

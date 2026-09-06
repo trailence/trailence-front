@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { IonSpinner, IonButton, IonIcon } from '@ionic/angular/standalone';
+import { IonSpinner, IonButton, IonIcon } from '@ionic/angular';
 import { ModerationService } from 'src/app/services/moderation/moderation.service';
 import { catchError, combineLatest, map, of, switchMap } from 'rxjs';
 import { AvatarComponent } from 'src/app/components/avatar/avatar.component';

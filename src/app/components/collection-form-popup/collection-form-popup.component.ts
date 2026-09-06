@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { TrailCollection } from 'src/app/model/trail-collection';
-import { IonHeader, IonToolbar, IonIcon, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, ModalController, IonInput, IonToggle } from "@ionic/angular/standalone";
+import { IonHeader, IonToolbar, IonIcon, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, ModalController, IonInput, IonToggle } from "@ionic/angular";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { FormsModule } from '@angular/forms';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';

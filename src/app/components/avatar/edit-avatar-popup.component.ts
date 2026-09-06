@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, Injector, OnDestroy, OnInit } from '@angular/core';
-import { ModalController, IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonCheckbox, IonIcon } from '@ionic/angular/standalone';
+import { ModalController, IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonCheckbox, IonIcon } from '@ionic/angular';
 import { map, of, switchMap } from 'rxjs';
 import { AVATAR_MAX_SIZE, AVATAR_MIN_SIZE, AvatarService } from 'src/app/services/avatar/avatar.service';
 import { FileService } from 'src/app/services/file/file.service';

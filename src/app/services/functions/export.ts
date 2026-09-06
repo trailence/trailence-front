@@ -2,7 +2,7 @@ import { Injector } from '@angular/core';
 import { catchError, defaultIfEmpty, EMPTY, first, firstValueFrom, forkJoin, map, Observable, of, switchMap, zip } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { PhotoService } from '../database/photo.service';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { Photo } from 'src/app/model/photo';
 import { ProgressService } from '../progress/progress.service';
 import { AuthService } from '../auth/auth.service';

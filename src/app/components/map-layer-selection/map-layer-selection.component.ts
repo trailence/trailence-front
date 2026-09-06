@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { MapLayer, MapLayersService } from 'src/app/services/map/map-layers.service';
 import * as L from 'leaflet';
-import { IonRadio, IonRadioGroup, IonCheckbox, IonHeader, IonToolbar, IonIcon, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, ModalController } from "@ionic/angular/standalone";
+import { IonRadio, IonRadioGroup, IonCheckbox, IonHeader, IonToolbar, IonIcon, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, ModalController } from "@ionic/angular";
 import { environment } from 'src/environments/environment';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { NgClass, NgTemplateOutlet } from '@angular/common';

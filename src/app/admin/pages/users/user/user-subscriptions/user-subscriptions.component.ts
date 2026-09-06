@@ -4,7 +4,7 @@ import { HttpService } from 'src/app/services/http/http.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { environment } from 'src/environments/environment';
-import { IonSelect, IonSelectOption, IonButton, IonIcon, AlertController } from '@ionic/angular/standalone';
+import { IonSelect, IonSelectOption, IonButton, IonIcon, AlertController } from '@ionic/angular';
 import { PlanDto } from 'src/app/admin/model/plan';
 import { map } from 'rxjs';
 import { PageResult } from 'src/app/admin/components/paginator/page-result';

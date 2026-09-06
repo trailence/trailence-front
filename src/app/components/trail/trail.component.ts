@@ -8,7 +8,7 @@ import { Track } from 'src/app/model/track';
 import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { AsyncPipe, NgClass, NgComponentOutlet, NgStyle, NgTemplateOutlet } from '@angular/common';
-import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonCheckbox, AlertController, IonSpinner, ModalController, ToastController, IonInput, IonBadge } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonCheckbox, AlertController, IonSpinner, ModalController, ToastController, IonInput, IonBadge } from "@ionic/angular";
 import { TrackMetadataComponent, TrackMetadataConfig } from '../track-metadata/track-metadata.component';
 import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';

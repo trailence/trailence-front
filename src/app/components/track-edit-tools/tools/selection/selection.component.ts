@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { TrackEditToolContext } from '../tool.interface';
-import { IonIcon, IonButton, IonInput, IonItem, IonList } from "@ionic/angular/standalone";
+import { IonIcon, IonButton, IonInput, IonItem, IonList } from "@ionic/angular";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { combineLatest, of, Subscription } from 'rxjs';
 import { PointReference, RangeReference } from 'src/app/model/point-reference';

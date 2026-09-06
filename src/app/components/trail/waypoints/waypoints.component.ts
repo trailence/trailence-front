@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnDestroy, O
 import { TrailsWaypoints, TrailWaypoints } from '../trail-waypoints';
 import { Subscription } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { IonCheckbox, IonSegment, IonSegmentButton, ModalController, AlertController } from '@ionic/angular/standalone';
+import { IonCheckbox, IonSegment, IonSegmentButton, ModalController, AlertController } from '@ionic/angular';
 import { TrackEditToolsComponent } from '../../track-edit-tools/track-edit-tools.component';
 import { ChangesDetection } from 'src/app/utils/angular-helpers';
 import { NgClass } from '@angular/common';

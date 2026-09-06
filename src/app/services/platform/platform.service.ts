@@ -17,7 +17,7 @@ export class PlatformService {
           Console.info('New version available');
           const i18n = await firstValueFrom(injector.get(I18nService).texts$.pipe(filter(t => !!t?.update)));
           await updates.activateUpdate();
-          const m = await import('@ionic/angular/standalone');
+          const m = await import('@ionic/angular');
           const t = await injector.get(m.ToastController).create({
             message: i18n.update.release_notes.popup.available,
             position: 'bottom',

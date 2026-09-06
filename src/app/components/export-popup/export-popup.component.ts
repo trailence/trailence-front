@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { IonHeader, IonIcon, IonToolbar, IonTitle, IonLabel, IonFooter, IonButton, IonButtons, ModalController, IonContent, IonRadioGroup, IonRadio, IonCheckbox } from "@ionic/angular/standalone";
+import { IonHeader, IonIcon, IonToolbar, IonTitle, IonLabel, IonFooter, IonButton, IonButtons, ModalController, IonContent, IonRadioGroup, IonRadio, IonCheckbox } from "@ionic/angular";
 import { Photo } from 'src/app/model/photo';
 import { Trail } from 'src/app/model/trail';
 import { I18nService } from 'src/app/services/i18n/i18n.service';

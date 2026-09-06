@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Injector, NgZone, OnInit } from '@angular/core';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { IonIcon, IonButton, MenuController, IonBadge, Platform, PopoverController } from "@ionic/angular/standalone";
+import { IonIcon, IonButton, MenuController, IonBadge, Platform, PopoverController } from "@ionic/angular";
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { combineLatest, concat, EMPTY, from, map, of, switchMap } from 'rxjs';

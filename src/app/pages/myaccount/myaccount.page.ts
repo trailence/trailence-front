@@ -4,7 +4,7 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 import { HttpService } from 'src/app/services/http/http.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { environment } from 'src/environments/environment';
-import { IonButton, ModalController } from "@ionic/angular/standalone";
+import { IonButton, ModalController } from "@ionic/angular";
 import { first, switchMap } from 'rxjs';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';

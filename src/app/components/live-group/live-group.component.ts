@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, Injector, Input, OnChanges, OnDestroy, On
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { LiveGroupService } from 'src/app/services/live-group/live-group.service';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { IonIcon, AlertController, IonButton } from '@ionic/angular/standalone';
+import { IonIcon, AlertController, IonButton } from '@ionic/angular';
 import { RelativeDateComponent } from '../relative-date/relative-date.component';
 import { MapComponent } from '../map/map.component';
 import { firstValueFrom, map, Observable, of, Subscription, switchMap } from 'rxjs';

@@ -1,5 +1,5 @@
 import { Component, ElementRef, Injector } from '@angular/core';
-import { IonRouterOutlet, NavController } from '@ionic/angular/standalone';
+import { IonRouterOutlet, NavController } from '@ionic/angular';
 import { AbstractPage } from '../utils/component-utils';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PreferencesService } from '../services/preferences/preferences.service';

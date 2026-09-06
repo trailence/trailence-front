@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, Injector } from '@angular/core';
-import { IonApp, IonRouterOutlet, IonContent, IonMenu } from '@ionic/angular/standalone';
+import { IonApp, IonRouterOutlet, IonContent, IonMenu } from '@ionic/angular';
 import { MenuComponent } from './components/menus/global-menu/menu.component';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { BehaviorSubject, catchError, combineLatest, filter, first, from, map, of, switchMap, tap, timeout } from 'rxjs';

@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { PhotosSliderComponent } from '../photos-slider/photos-slider.component';
 import { Photo } from 'src/app/model/photo';
-import { IonButton, IonIcon, ModalController } from "@ionic/angular/standalone";
+import { IonButton, IonIcon, ModalController } from "@ionic/angular";
 
 @Component({
     selector: 'app-photos-slider-popup',

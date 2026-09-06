@@ -3,7 +3,7 @@ import { AuthService } from './auth.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { UserQuotas } from './user-quotas';
 import { Console } from 'src/app/utils/console';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular';
 import { I18nService } from '../i18n/i18n.service';
 
 @Injectable({providedIn: 'root'})

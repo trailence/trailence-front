@@ -1,5 +1,5 @@
 import * as L from 'leaflet';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
 import { MapTool, MapToolContext } from './tool.interface';
 import { Observable } from 'rxjs';

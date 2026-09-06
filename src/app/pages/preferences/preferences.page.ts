@@ -1,7 +1,7 @@
 import { Component, Injector, NgZone, OnDestroy } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { IonIcon, IonSegment, IonSegmentButton, IonLabel, IonRange, IonButton, IonInput, IonSpinner, IonRadio, IonRadioGroup, IonToggle } from "@ionic/angular/standalone";
+import { IonIcon, IonSegment, IonSegmentButton, IonLabel, IonRange, IonButton, IonInput, IonSpinner, IonRadio, IonRadioGroup, IonToggle } from "@ionic/angular";
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { DateFormat, DistanceUnit, HourFormat, ThemeType } from 'src/app/services/preferences/preferences';
 import { FormsModule } from '@angular/forms';

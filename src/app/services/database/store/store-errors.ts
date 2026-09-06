@@ -1,6 +1,6 @@
 import { Injector } from '@angular/core';
 import { ApiError } from '../../http/api-error';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular';
 import { I18nService } from '../../i18n/i18n.service';
 
 interface ItemError {

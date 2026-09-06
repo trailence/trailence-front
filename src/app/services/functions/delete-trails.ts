@@ -1,7 +1,7 @@
 import { Injector } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
 import { I18nService } from '../i18n/i18n.service';
-import { AlertController } from '@ionic/angular/standalone';
+import { AlertController } from '@ionic/angular';
 import { ProgressService } from '../progress/progress.service';
 import { TrailService } from '../database/trail.service';
 import { Router } from '@angular/router';

@@ -1,7 +1,7 @@
 import { Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { of, Subscription, switchMap } from 'rxjs';
 import { TrailLinkService } from 'src/app/services/database/link.service';
-import { ModalController, IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonInput, IonSpinner, ToastController, Platform, AlertController } from '@ionic/angular/standalone';
+import { ModalController, IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonInput, IonSpinner, ToastController, Platform, AlertController } from '@ionic/angular';
 import { TrailLink } from 'src/app/model/dto/trail-link';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { environment } from 'src/environments/environment';

@@ -1,6 +1,6 @@
 import { NgStyle } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { IonToggle } from "@ionic/angular/standalone";
+import { IonToggle } from "@ionic/angular";
 
 @Component({
     selector: 'app-toggle-choice',

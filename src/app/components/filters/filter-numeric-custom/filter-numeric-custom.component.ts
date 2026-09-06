@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, ViewChild } from '@angular/core';
 import { FilterNumeric, NumericFilterCustomConfig } from '../filter';
-import { IonRange, IonLabel } from '@ionic/angular/standalone';
+import { IonRange, IonLabel } from '@ionic/angular';
 
 @Component({
   selector: 'app-filter-numeric-custom',

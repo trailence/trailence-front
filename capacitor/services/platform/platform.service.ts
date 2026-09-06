@@ -3,7 +3,7 @@ import Trailence from 'src/app/services/trailence.service';
 import { Console } from 'src/app/utils/console';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { first } from 'rxjs';
-import { IonHeader, IonContent, IonToolbar, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, ModalController, IonRadio, IonRadioGroup, Platform, NavController, AlertController } from "@ionic/angular/standalone";
+import { IonHeader, IonContent, IonToolbar, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, ModalController, IonRadio, IonRadioGroup, Platform, NavController, AlertController } from "@ionic/angular";
 import { Router } from '@angular/router';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { TrailCollection } from 'src/app/model/trail-collection';

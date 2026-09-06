@@ -18,7 +18,7 @@ import { TrailCollectionService } from 'src/app/services/database/trail-collecti
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { ModerationService } from 'src/app/services/moderation/moderation.service';
 import { ShareService } from 'src/app/services/database/share.service';
-import { ToastController, NavController, AlertController } from '@ionic/angular/standalone';
+import { ToastController, NavController, AlertController } from '@ionic/angular';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { TrailLinkService } from 'src/app/services/database/link.service';

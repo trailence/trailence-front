@@ -76,7 +76,7 @@ export class SearchTrailsService {
       .setIcon('radio-group').setI18nLabel('pages.trails.search.sources')
       .setVisible(() => this._availableSearchPlugins.length > 1)
       .setAction(() => {
-        import('@ionic/angular/standalone').then(ionic => this.injector.get(ionic.AlertController))
+        import('@ionic/angular').then(ionic => this.injector.get(ionic.AlertController))
         .then(alertController => alertController.create({
           header: this.i18n.texts.pages.trails.search.sources,
           inputs: this._availableSearchPlugins.map(plugin => ({

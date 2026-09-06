@@ -3,7 +3,7 @@ import * as L from 'leaflet';
 import { countMapAdditionsOptions, MapAdditionsOptions, MapAdditionsService } from 'src/app/services/map/map-additions.service';
 import { MapTool, MapToolContext } from './tool.interface';
 import { of } from 'rxjs';
-import { ModalController, ToastController } from '@ionic/angular/standalone';
+import { ModalController, ToastController } from '@ionic/angular';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
 import { BadgesConfig } from '../../menus/menu-item';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';

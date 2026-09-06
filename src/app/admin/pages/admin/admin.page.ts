@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Injector } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonRouterOutlet, IonSegment, IonSegmentButton } from '@ionic/angular/standalone';
+import { IonRouterOutlet, IonSegment, IonSegmentButton } from '@ionic/angular';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { I18nAdminService } from '../../services/i18n-admin.service';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';

@@ -12,7 +12,7 @@ import { POSITION_FACTOR } from 'src/app/model/point-dto-mapper';
 import { Router } from '@angular/router';
 import { Console } from 'src/app/utils/console';
 import { GeolocationState } from '../geolocation/geolocation.interface';
-import { AlertController } from '@ionic/angular/standalone';
+import { AlertController } from '@ionic/angular';
 import { LiveGroupDto } from 'src/app/model/dto/live-group';
 
 const LATEST_GROUPS_KEY_PREFIX = 'trailence.latest_live_groups.';

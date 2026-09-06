@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { Platform } from '@ionic/angular/standalone';
 import { FilePicker } from '@capawesome/capacitor-file-picker';
 import { IFileService, OpenFileRequest } from 'src/app/services/file/file.interface';
 import { BinaryContent } from 'src/app/utils/binary-content';
@@ -10,11 +9,6 @@ import Trailence from '../trailence.service';
   providedIn: 'root'
 })
 export class FileService implements IFileService {
-
-  constructor(
-    private platform: Platform
-  ) {
-  }
 
   public openFileDialog<P,T>(request: OpenFileRequest<P,T>): void {
     FilePicker.pickFiles({
@@ -36,7 +30,7 @@ export class FileService implements IFileService {
                 setTimeout(() => readNext(index + 1), 0);
               }
             };
-            const buffer = Uint8Array.from(atob(pickedFiles.files[index].data!), c => c.charCodeAt(0));
+            const buffer = Uint8Array.from(atob(pickedFiles.files[index].data!), c => c.charCodeAt(0)).buffer;
             request.onfileread(index, pickedFiles.files.length, fromStartReading, pickedFiles.files[index].name, buffer)
             .then(result => {
               results.push(result);

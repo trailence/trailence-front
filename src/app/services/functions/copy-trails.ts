@@ -15,7 +15,7 @@ import { ErrorService } from '../progress/error.service';
 import { IdGenerator } from 'src/app/utils/component-utils';
 import { TrailCollectionService } from '../database/trail-collection.service';
 import { DependenciesService } from '../database/dependencies.service';
-import { AlertController, ModalController } from '@ionic/angular/standalone';
+import { AlertController, ModalController } from '@ionic/angular';
 import { TrailDto } from 'src/app/model/dto/trail';
 import { ModerationService } from '../moderation/moderation.service';
 import { StoreService } from '../database/store/store.service';

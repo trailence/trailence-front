@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, Injector } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { IonInput, IonTextarea, IonSelect, IonSelectOption, IonButton, IonIcon, IonCheckbox, AlertController, Platform } from '@ionic/angular/standalone';
+import { IonInput, IonTextarea, IonSelect, IonSelectOption, IonButton, IonIcon, IonCheckbox, AlertController, Platform } from '@ionic/angular';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { CaptchaService } from 'src/app/services/captcha/captcha.service';
 import { Console } from 'src/app/utils/console';

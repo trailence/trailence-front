@@ -1,6 +1,6 @@
 import { Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { LiveGroupService } from 'src/app/services/live-group/live-group.service';
-import { IonHeader, IonToolbar, IonIcon, IonLabel, IonButtons, IonButton, IonContent, IonFooter, IonTitle, IonInput, ModalController, IonCheckbox } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonIcon, IonLabel, IonButtons, IonButton, IonContent, IonFooter, IonTitle, IonInput, ModalController, IonCheckbox } from '@ionic/angular';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { FormsModule } from '@angular/forms';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';

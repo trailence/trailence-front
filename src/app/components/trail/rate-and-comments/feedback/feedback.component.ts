@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild } 
 import { Feedback, FeedbackReply, FeedbackService } from 'src/app/services/feedback/feedback.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { RateComponent } from '../rate/rate.component';
-import { IonButton, AlertController, IonTextarea } from "@ionic/angular/standalone";
+import { IonButton, AlertController, IonTextarea } from "@ionic/angular";
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { FormsModule } from '@angular/forms';
 import { ErrorService } from 'src/app/services/progress/error.service';

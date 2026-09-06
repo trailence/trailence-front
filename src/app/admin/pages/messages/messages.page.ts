@@ -5,7 +5,7 @@ import { PageRequest } from '../../components/paginator/page-request';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TableComponent } from '../../components/table/table.component';
 import { ContactMessageDto } from '../../model/contact-message';
-import { IonButton, ModalController } from '@ionic/angular/standalone';
+import { IonButton, ModalController } from '@ionic/angular';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { Console } from 'src/app/utils/console';
 

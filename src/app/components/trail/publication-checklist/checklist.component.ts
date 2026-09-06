@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { IonHeader, IonToolbar, IonIcon, IonLabel, IonContent, IonInput, IonFooter, IonButtons, IonButton, ModalController, IonCheckbox, IonTextarea } from "@ionic/angular/standalone";
+import { IonHeader, IonToolbar, IonIcon, IonLabel, IonContent, IonInput, IonFooter, IonButtons, IonButton, ModalController, IonCheckbox, IonTextarea } from "@ionic/angular";
 import { PublicationChecklist } from './checklist';
 import { Trail } from 'src/app/model/trail';
 import { TrailService } from 'src/app/services/database/trail.service';

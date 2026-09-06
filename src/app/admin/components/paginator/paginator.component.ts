@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { PageRequest } from './page-request';
-import { IonIcon, IonButton, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
+import { IonIcon, IonButton, IonSelect, IonSelectOption } from '@ionic/angular';
 import { PageResult } from './page-result';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 

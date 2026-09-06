@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, Injector } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { IonCard, IonCardContent, IonInput, IonItem, IonList, IonButton, IonSpinner, IonLabel, ModalController, NavController, IonToolbar } from '@ionic/angular/standalone';
+import { IonCard, IonCardContent, IonInput, IonItem, IonList, IonButton, IonSpinner, IonLabel, ModalController, NavController, IonToolbar } from '@ionic/angular';
 import { catchError, combineLatest, filter, first, of, timeout } from 'rxjs';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { AuthService } from 'src/app/services/auth/auth.service';

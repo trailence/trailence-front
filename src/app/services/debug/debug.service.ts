@@ -1,5 +1,5 @@
 import { Injectable, Injector } from '@angular/core';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
 import { Console, ConsoleLevel } from 'src/app/utils/console';
 import Trailence from '../trailence.service';
 

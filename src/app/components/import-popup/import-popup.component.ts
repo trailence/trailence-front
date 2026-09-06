@@ -1,6 +1,6 @@
 import { Component, Injector, Input } from '@angular/core';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
-import { IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonInput, ModalController, Platform } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonInput, ModalController, Platform } from '@ionic/angular';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 import { Console } from 'src/app/utils/console';

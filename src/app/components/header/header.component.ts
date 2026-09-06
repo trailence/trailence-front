@@ -1,5 +1,5 @@
 import { Component, Injector, Input } from '@angular/core';
-import { IonHeader, IonToolbar, IonButtons, IonIcon, IonMenuButton, IonButton, IonPopover, IonContent, IonBadge, IonLabel, IonList, IonItem } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonButtons, IonIcon, IonMenuButton, IonButton, IonPopover, IonContent, IonBadge, IonLabel, IonList, IonItem } from '@ionic/angular';
 import { HeaderUserMenuComponent } from '../header-user-menu/header-user-menu.component';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { Router } from '@angular/router';

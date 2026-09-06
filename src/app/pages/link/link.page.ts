@@ -6,7 +6,7 @@ import { HttpService } from 'src/app/services/http/http.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { environment } from 'src/environments/environment';
-import { IonIcon } from "@ionic/angular/standalone";
+import { IonIcon } from "@ionic/angular";
 import { ShareService } from 'src/app/services/database/share.service';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { map } from 'rxjs';

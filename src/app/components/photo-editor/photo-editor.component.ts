@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { Photo } from 'src/app/model/photo';
-import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonFooter, IonButtons, ModalController, IonRange } from "@ionic/angular/standalone";
+import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonFooter, IonButtons, ModalController, IonRange } from "@ionic/angular";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { MenuItem } from '../menus/menu-item';

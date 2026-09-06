@@ -7,7 +7,7 @@ import { RateComponent } from './rate/rate.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 import { ProgressBarComponent } from '../../progress-bar/progress-bar.component';
-import { IonButton, ModalController, IonSpinner, IonIcon, IonCheckbox } from "@ionic/angular/standalone";
+import { IonButton, ModalController, IonSpinner, IonIcon, IonCheckbox } from "@ionic/angular";
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { FeedbackComponent } from './feedback/feedback.component';
 import { combineLatest, EMPTY, first, Subscription, switchMap } from 'rxjs';

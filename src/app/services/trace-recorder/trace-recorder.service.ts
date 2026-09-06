@@ -16,7 +16,7 @@ import { TrackService } from '../database/track.service';
 import { TrailService } from '../database/trail.service';
 import * as L from 'leaflet';
 import { GeolocationState } from '../geolocation/geolocation.interface';
-import { AlertController, ToastController } from '@ionic/angular/standalone';
+import { AlertController, ToastController } from '@ionic/angular';
 import { ImprovmentRecordingState, ImprovmentRecordingStateDto, TrackEditionService } from '../track-edition/track-edition.service';
 import { ProgressService } from '../progress/progress.service';
 import { ErrorService } from '../progress/error.service';

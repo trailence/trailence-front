@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Platform } from '@ionic/angular/standalone';
+import { Platform } from '@ionic/angular';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import LocalFiles from './local-files';
 import { Console } from 'src/app/utils/console';

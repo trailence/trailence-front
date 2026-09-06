@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Injector, Input } from '@angular/core';
 import { Track } from 'src/app/model/track';
 import { AbstractComponent } from 'src/app/utils/component-utils';
-import { DomController } from '@ionic/angular/standalone';
+import { DomController } from '@ionic/angular';
 import { BehaviorSubject, Observable, combineLatest, map, of, switchMap } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { AssetsService } from 'src/app/services/assets/assets.service';

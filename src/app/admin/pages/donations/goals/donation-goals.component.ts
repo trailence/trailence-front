@@ -4,7 +4,7 @@ import { HttpService } from 'src/app/services/http/http.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { environment } from 'src/environments/environment';
-import { IonFooter, IonToolbar, IonButtons, IonButton, IonIcon, IonLabel } from '@ionic/angular/standalone';
+import { IonFooter, IonToolbar, IonButtons, IonButton, IonIcon, IonLabel } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 
 @Component({

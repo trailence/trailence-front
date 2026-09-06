@@ -1,5 +1,5 @@
 import { Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { IonHeader, IonFooter, IonToolbar, IonTitle, IonButtons, IonButton, IonLabel, IonIcon, IonContent, IonRadioGroup, IonRadio, IonSelect, IonSelectOption, IonInput, IonPopover, IonList, IonItem, IonSpinner, ModalController } from '@ionic/angular/standalone';
+import { IonHeader, IonFooter, IonToolbar, IonTitle, IonButtons, IonButton, IonLabel, IonIcon, IonContent, IonRadioGroup, IonRadio, IonSelect, IonSelectOption, IonInput, IonPopover, IonList, IonItem, IonSpinner, ModalController } from '@ionic/angular';
 import { first, map, Observable, of, switchMap, zip } from 'rxjs';
 import { Track } from 'src/app/model/track';
 import { Trail } from 'src/app/model/trail';

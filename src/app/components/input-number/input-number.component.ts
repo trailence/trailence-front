@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { IonIcon, IonButton } from '@ionic/angular/standalone';
+import { IonIcon, IonButton } from '@ionic/angular';
 
 @Component({
   selector: 'app-input-number',

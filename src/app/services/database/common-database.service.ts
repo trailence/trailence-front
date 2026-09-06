@@ -77,7 +77,7 @@ export class CommonDatabaseService {
   private appUpdated(updatedFrom: number, injector: Injector): void {
     Promise.all([
       import('../../components/updates/release-notes-popup/release-notes-popup.component'),
-      import('@ionic/angular/standalone'),
+      import('@ionic/angular'),
     ]).then(([popupModule, ionic]) => injector.get(ionic.ModalController).create({
       component: popupModule.ReleaseNotesPopup,
       componentProps: { sinceVersion: updatedFrom, type: 'updated' },

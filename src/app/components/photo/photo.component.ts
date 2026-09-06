@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, NgZone, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { EMPTY, first, Subscription, switchMap, timer } from 'rxjs';
 import { Photo } from 'src/app/model/photo';
-import { IonSpinner, IonIcon } from "@ionic/angular/standalone";
+import { IonSpinner, IonIcon } from "@ionic/angular";
 import { PhotoService } from 'src/app/services/database/photo.service';
 import { Console } from 'src/app/utils/console';
 import { NetworkService } from 'src/app/services/network/network.service';

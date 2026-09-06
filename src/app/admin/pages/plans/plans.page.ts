@@ -6,7 +6,7 @@ import { PageResult } from '../../components/paginator/page-result';
 import { HttpService } from 'src/app/services/http/http.service';
 import { environment } from 'src/environments/environment';
 import { PlanDto } from '../../model/plan';
-import { IonButton, ModalController } from '@ionic/angular/standalone';
+import { IonButton, ModalController } from '@ionic/angular';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 
 @Component({

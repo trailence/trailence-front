@@ -13,7 +13,7 @@ import { TrailService } from '../database/trail.service';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { PhotoService } from '../database/photo.service';
 import { combineLatest, firstValueFrom, of, switchMap } from 'rxjs';
-import { ModalController, AlertController } from '@ionic/angular/standalone';
+import { ModalController, AlertController } from '@ionic/angular';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { TrailSourceType } from 'src/app/model/dto/trail';

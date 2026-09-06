@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { IonHeader, IonToolbar, IonContent, IonTitle, IonLabel, ModalController, IonFooter, IonButtons, IonButton } from '@ionic/angular/standalone'
+import { IonHeader, IonToolbar, IonContent, IonTitle, IonLabel, ModalController, IonFooter, IonButtons, IonButton } from '@ionic/angular'
 import { TrailService } from 'src/app/services/database/trail.service';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';

@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { IonSpinner, IonIcon, IonButton, IonCheckbox } from '@ionic/angular/standalone';
+import { IonSpinner, IonIcon, IonButton, IonCheckbox } from '@ionic/angular';
 import { ModerationService } from 'src/app/services/moderation/moderation.service';
 import { Console } from 'src/app/utils/console';
 import { from, map, of, switchMap } from 'rxjs';

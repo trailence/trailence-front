@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { MenuItem } from 'src/app/components/menus/menu-item';
 import { ANONYMOUS_USER, AuthService } from '../auth/auth.service';
-import { ModalController, AlertController, Platform } from '@ionic/angular/standalone';
+import { ModalController, AlertController, Platform } from '@ionic/angular';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { Router } from '@angular/router';
 import { Trail } from 'src/app/model/trail';
