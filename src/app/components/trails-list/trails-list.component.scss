@@ -120,6 +120,9 @@ app-toolbar {
 
 .filter-value {
   margin-bottom: 3px;
+  &.with-range {
+    margin-right: 8px;
+  }
 }
 
 .filter-checkbox {

@@ -14,6 +14,7 @@ import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.util.Base64;
+import android.util.Pair;
 
 import androidx.activity.result.ActivityResult;
 import androidx.annotation.NonNull;
@@ -44,6 +45,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -223,17 +225,14 @@ public class CameraPlugin extends Plugin {
                 try {
                     String appId = getAppId();
                     String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                    File storageDir = getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-                    File photoFile = new File(storageDir, timeStamp + ".jpg");
-                    if (!photoFile.createNewFile())
-                      photoFile = File.createTempFile(timeStamp + "_", ".jpg", storageDir);
-                    imageFileSavePath = photoFile.getAbsolutePath();
+                    Pair<File, Uri> pair = getSaveFile(timeStamp, appId);
+                    imageFileSavePath = pair.first.getAbsolutePath();
                     imageFilename = timeStamp;
-                    // TODO: Verify provider config exists
-                    imageFileUri = FileProvider.getUriForFile(getActivity(), appId + ".fileprovider", photoFile);
+                    imageFileUri = pair.second;
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageFileUri);
                     takePictureIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                 } catch (Exception ex) {
+                    Logger.error("Cannot save image", ex);
                     call.reject(IMAGE_FILE_SAVE_ERROR, ex);
                     return;
                 }
@@ -243,6 +242,28 @@ public class CameraPlugin extends Plugin {
                 call.reject(NO_CAMERA_ACTIVITY_ERROR);
             }
         }
+    }
+
+    private Pair<File, Uri> getSaveFile(String timeStamp, String appId) throws IOException {
+      try {
+        File storageDir = getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        try {
+          File photoFile = new File(storageDir, timeStamp + ".jpg");
+          if (photoFile.createNewFile()) return new Pair<>(photoFile, FileProvider.getUriForFile(getActivity(), appId + ".fileprovider", photoFile));
+        } catch (Exception e) { /* ignore */ }
+        File photoFile = File.createTempFile(timeStamp + "_", ".jpg", storageDir);
+        return new Pair<>(photoFile, FileProvider.getUriForFile(getActivity(), appId + ".fileprovider", photoFile));
+      } catch (Exception e) { /* ignore */ }
+      try {
+        File storageDir = getContext().getCacheDir();
+        try {
+          File photoFile = new File(storageDir, timeStamp + ".jpg");
+          if (photoFile.createNewFile()) return new Pair<>(photoFile, FileProvider.getUriForFile(getActivity(), appId + ".fileprovider", photoFile));
+        } catch (Exception e) { /* ignore */ }
+        File photoFile = File.createTempFile(timeStamp + "_", ".jpg", storageDir);
+        return new Pair<>(photoFile, FileProvider.getUriForFile(getActivity(), appId + ".fileprovider", photoFile));
+      } catch (Exception e) { /* ignore */ }
+      throw new IOException("Cannot create file");
     }
 
     @ActivityCallback

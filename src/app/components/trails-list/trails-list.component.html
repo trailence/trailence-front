@@ -201,7 +201,7 @@
           <ion-icon name="duration"></ion-icon>
           <div>{{ i18n.texts.pages.trails.filters.duration }}</div>
         </div>
-        <div class="filter-value">
+        <div class="filter-value with-range">
           <app-filter-numeric-custom
             class="compact"
             [config]="filterDurationConfig"
@@ -218,7 +218,7 @@
         <ion-icon name="chrono"></ion-icon>
         <div>{{ i18n.texts.pages.trails.filters.estimatedDuration }}</div>
       </div>
-      <div class="filter-value">
+      <div class="filter-value with-range">
         <app-filter-numeric-custom
           class="compact"
           [config]="filterDurationConfig"
@@ -234,7 +234,7 @@
         <ion-icon name="distance"></ion-icon>
         <div>{{ i18n.texts.pages.trails.filters.distance }}</div>
       </div>
-      <div class="filter-value">
+      <div class="filter-value with-range">
         <app-filter-numeric-custom
           class="compact"
           [config]="filterDistanceConfig"
@@ -250,7 +250,7 @@
         <ion-icon name="positive-elevation"></ion-icon>
         <div>{{ i18n.texts.pages.trails.filters.positive_elevation }}</div>
       </div>
-      <div class="filter-value">
+      <div class="filter-value with-range">
         <app-filter-numeric-custom
           class="compact"
           [config]="filterElevationConfig"
@@ -265,7 +265,7 @@
         <ion-icon name="negative-elevation"></ion-icon>
         <div>{{ i18n.texts.pages.trails.filters.negative_elevation }}</div>
       </div>
-      <div class="filter-value">
+      <div class="filter-value with-range">
         <app-filter-numeric-custom
           class="compact"
           [config]="filterElevationConfig"
@@ -282,7 +282,7 @@
           <ion-icon name="star-filled"></ion-icon>
           <div>{{ i18n.texts.pages.trails.filters.rate }}</div>
         </div>
-        <div class="filter-value">
+        <div class="filter-value with-range">
           <app-filter-numeric
             class="compact"
             [minValue]="0" [maxValue]="5" [step]="0.5"
