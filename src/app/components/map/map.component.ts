@@ -276,7 +276,8 @@ export class MapComponent extends AbstractComponent {
         (this._initZoomTimestamp && Date.now() - this._initZoomTimestamp < 2500)) {
       if (this._currentElements.length > 0) {
         this.fitElementsBounds(map, this._currentElements);
-        this._initZoomTimestamp = Date.now();
+        if (!this._initZoomTimestamp)
+          this._initZoomTimestamp = Date.now();
       } else if (!this._initZoomTimestamp) {
         const init = Date.now();
         this._initZoomTimestamp = init;

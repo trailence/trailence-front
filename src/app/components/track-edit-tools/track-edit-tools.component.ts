@@ -50,6 +50,7 @@ import { MoveWayPointTool } from './tools/way-points/move-way-point';
 import { WayPoint } from '@trailence/model/way-point';
 import { CalibrateElevationWithProvider } from './tools/elevation/calibrate';
 import { MoveWayPointIndexTool } from './tools/way-points/move-way-point-index';
+import { FollowOsmPath } from './tools/path/follow-osm-path';
 
 interface TrackEditToolsState {
   originalTrack?: Track;
@@ -168,6 +169,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         new MenuItem().setI18nLabel('track_edit_tools.categories.improvements').setTextColor('secondary').setSectionTitle(true),
         this.toMenuItem(new RemoveUnprobablePointsTool()),
         this.toMenuItem(new RemoveBreaksMovesTool()),
+        this.toMenuItem(new FollowOsmPath()),
       ]),
     this.interactiveToolsMarkerStart,
     this.interactiveToolsMarkerEnd,

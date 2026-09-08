@@ -1531,6 +1531,7 @@
       "arrival_to_start": "Das fehlende Ende erstellen, indem dem Hinweg zum Start gefolgt wird",
       "back_to_departure": "Eine Rückkehr zum Start über dieselbe Route erstellen",
       "back_to_original_track": "Zum Originaltrack ohne Verbesserungen zurückkehren",
+      "follow-osm-path": "Die Auswahl durch den nächstgelegenen OpenStreetMap-Weg ersetzen",
       "remove_time": "Zeitinformationen entfernen",
       "link_to_next_segment_with_line": "Mit dem nächsten Abschnitt durch eine gerade Linie verbinden",
       "link_to_next_segment_follow": "Mit dem nächsten Abschnitt entlang des Weges verbinden",

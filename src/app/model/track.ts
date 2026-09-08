@@ -317,6 +317,29 @@ export class Track extends Owned {
     return new PointReference(this, startSegment + lastSegment + 1, srcSegment.points.length - 1);
   }
 
+  public replaceWithPoints(startSegment: number, startPoint: number, endSegment: number, endPoint: number, newPoints: PointDescriptor[]) {
+    // remove
+    if (startSegment === endSegment) {
+      const segment = this.segments[startSegment];
+      segment.removeMany(segment.points.slice(startPoint, endPoint + 1));
+    } else {
+      let segment = this.segments[startSegment];
+      segment.removeMany(segment.points.slice(startPoint, segment.points.length));
+      for (let i = startSegment + 1; i < endSegment; ++i)
+        this.removeSegmentAt(startSegment + 1);
+      segment = this.segments[startSegment + 1];
+      segment.removeMany(segment.points.slice(0, endPoint + 1));
+    }
+    if (newPoints.length === 0) return undefined;
+    // insert
+    let dstSegment = this.segments[startSegment];
+    if (dstSegment.points.length === startPoint) {
+      dstSegment.appendMany(newPoints);
+    } else {
+      dstSegment.insertMany(startPoint, newPoints);
+    }
+  }
+
   public copy(email: string): Track {
     return new Track({
       ...this.toDto(),
