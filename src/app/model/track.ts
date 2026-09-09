@@ -147,9 +147,10 @@ export class Track extends Owned {
     this._segments.next(this._segments.value);
   }
 
-  public reverse(): Track {
+  public reverse(copyUuid = true): Track {
     return new Track({
       ...super.toDto(),
+      uuid: copyUuid ? this.uuid : undefined,
       s: this.segments.reverse().map(segment => segment.reverseDto()),
       wp: this.wayPoints.map(wp => wp.toDto()),
       sizeUsed: this.sizeUsed

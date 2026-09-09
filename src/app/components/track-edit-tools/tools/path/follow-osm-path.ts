@@ -1,7 +1,7 @@
-import { map, of } from 'rxjs';
+import { map } from 'rxjs';
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
 import { RangeReference } from '@trailence/model/point-reference';
-import { buildOsmSubTrack, buildOsmTrack } from '@trailence/utils/track-computed-data/build-osm-track';
+import { buildOsmSubTrack } from '@trailence/utils/track-computed-data/build-osm-track';
 
 export class FollowOsmPath implements TrackEditTool {
 

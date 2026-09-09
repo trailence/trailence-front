@@ -6,7 +6,6 @@ import { RemoveUnprobableElevation } from './tools/elevation/remove-unprobable-e
 import { MenuItem } from '@trailence/components/menus/menu-item';
 import { BehaviorSubject, combineLatest, debounceTime, defaultIfEmpty, first, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { Track } from '@trailence/model/track';
-import { AuthService } from '@trailence/services/auth/auth.service';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { SlopeThreshold } from './tools/elevation/slope-threshold/slope-threshold';
 import { TrackEditToolsStack } from './tools/track-edit-tools-stack';
@@ -51,6 +50,7 @@ import { WayPoint } from '@trailence/model/way-point';
 import { CalibrateElevationWithProvider } from './tools/elevation/calibrate';
 import { MoveWayPointIndexTool } from './tools/way-points/move-way-point-index';
 import { FollowOsmPath } from './tools/path/follow-osm-path';
+import { ReverseWay } from './tools/path/reverse-way';
 
 interface TrackEditToolsState {
   originalTrack?: Track;
@@ -160,6 +160,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         this.toMenuItem(new MergeSegementsTool()),
         this.toMenuItem(new AddFreePoints()),
         this.toMenuItem(new AddOsmPath()),
+        this.toMenuItem(new ReverseWay()),
         new MenuItem().setI18nLabel('track_edit_tools.categories.join_departure_and_arrival').setTextColor('secondary').setSectionTitle(true),
         this.toMenuItem(new JoinArrivalToDeparture()),
         this.toMenuItem(new JoinDepartureToArrival()),
@@ -197,7 +198,6 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
 
   constructor(
     public readonly i18n: I18nService,
-    private readonly auth: AuthService,
     private readonly toastController: ToastController,
     private readonly changesDetector: ChangeDetectorRef,
     private readonly injector: Injector,
@@ -213,6 +213,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
 
       modifyTrack: (trackModifier, mayNotChange, doNotNotifyIfNotChange) => this.modify(trackModifier, mayNotChange, doNotNotifyIfNotChange),
       modifySelectedRange: (trackModifier, mayNotChange, doNotNotifyIfNotChange) => this.modifySelectedRange(trackModifier, mayNotChange, doNotNotifyIfNotChange),
+      setTrack: (trackGenerator) => this.setTrack(trackGenerator),
       setBaseTrack: (track) => {
         this.selection.cancelSelection();
         this.pushHistory();
@@ -491,6 +492,22 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
           })
         );
       }),
+    );
+  }
+
+  public setTrack(trackGenerator: (track: Track) => Observable<Track | undefined>): Observable<Track | undefined> {
+    return this.getCurrentTrack().pipe(
+      switchMap(originalTrack => {
+        return trackGenerator(originalTrack).pipe(
+          defaultIfEmpty(undefined),
+          map(result => {
+            if (!result) return;
+            this.selection.cancelSelection();
+            this.trackModified(result);
+            return result;
+          })
+        );
+      })
     );
   }
 

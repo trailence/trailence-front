@@ -4,6 +4,9 @@ import { SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
 import { EventEmitter } from '@angular/core';
 import { Subscription } from 'rxjs';
 
+const BORDER_COLOR = '#FFFFFF80';
+const DEFAULT_COLOR = 'black';
+
 export class MapTrackArrowPath {
 
   constructor(
@@ -13,6 +16,7 @@ export class MapTrackArrowPath {
   }
 
   private _shown = false;
+  private _color: string | undefined = undefined;
   private _map?: L.Map;
   private _arrowsByZoom: {[key:number]: L.Polyline[]} = {};
   private _weight = 2;
@@ -60,12 +64,13 @@ export class MapTrackArrowPath {
     this._map = undefined;
   }
 
-  public show(show: boolean): void {
-    if (this._shown === show) return;
-    if (!show && this._currentZoomShown >= 0 && this._map)
+  public show(show: boolean, color?: string): void {
+    if (this._shown === show && this._color === color) return;
+    if (this._shown && this._currentZoomShown >= 0 && this._map)
       for (const polyline of this._arrowsByZoom[this._currentZoomShown])
         polyline.removeFrom(this._map);
     this._shown = show;
+    this._color = color;
     if (show && this._map)
       this.updateArrowsOnMap();
   }
@@ -100,8 +105,10 @@ export class MapTrackArrowPath {
 
     if (!this._arrowsByZoom[z])
       this._arrowsByZoom[z] = this.createArrows(this._map);
-    for (const polyline of this._arrowsByZoom[this._currentZoomShown])
+    for (const polyline of this._arrowsByZoom[this._currentZoomShown]) {
+      polyline.setStyle({color: this._color ?? DEFAULT_COLOR});
       polyline.addTo(this._map);
+    }
   }
 
   private createArrows(map: L.Map): L.Polyline[] {
@@ -133,9 +140,9 @@ export class MapTrackArrowPath {
           // it's ok !
           result.push(
             this.drawArrow(points, i, p, this._weight + 3, map)
-            .setStyle({color: '#FFFFFF80', weight: this._weight + 3, className: 'track-arrow-border'}),
+            .setStyle({color: BORDER_COLOR, weight: this._weight + 3, className: 'track-arrow-border'}),
             this.drawArrow(points, i, p, this._weight + 3, map)
-            .setStyle({color: 'black', weight: this._weight, className: 'track-arrow'}),
+            .setStyle({color: DEFAULT_COLOR, weight: this._weight, className: 'track-arrow'}),
           );
           arrows.push(p);
           lastArrow = p;

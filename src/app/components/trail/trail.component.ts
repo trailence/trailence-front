@@ -776,6 +776,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
               this.graphTrack1 = toolsModifiedTrack;
             toolsModifiedMapTrack = new MapTrack(undefined, toolsModifiedTrack, 'blue', 1, false, this.i18n, hideBaseTrack ? 3 : 2);
             toolsModifiedMapTrack.showDepartureAndArrivalAnchors();
+            toolsModifiedMapTrack.showArrowPath(true, hideBaseTrack ? undefined : '#4040FFC0');
             toolsModifiedMapTrack.showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
             toolsModifiedMapTrack.onWayPointClick = wp => this.highlightWayPoint(wp, true);
             mapElements.push(toolsModifiedMapTrack);
@@ -1966,6 +1967,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   public enableEditTools() {
     if (this.toolsEnabled) return;
     if (this.showOriginal$.value) this.showOriginal$.next(false);
+    if (this.reverseWay$.value) this.reverseWay$.next(false);
     this.toolsEnabled = true;
     this.changesDetection.detectChanges(() => {
       setTimeout(() => {

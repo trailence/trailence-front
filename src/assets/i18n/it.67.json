@@ -1532,6 +1532,7 @@
       "back_to_departure": "Crea un ritorno alla partenza seguendo lo stesso itinerario",
       "back_to_original_track": "Torna alla traccia originale senza miglioramenti",
       "follow-osm-path": "Sostituire la selezione con il sentiero OpenStreetMap più vicino",
+      "reverse_way": "Senso inverso",
       "remove_time": "Elimina le informazioni temporali",
       "link_to_next_segment_with_line": "Collega alla sezione successiva con una linea diretta",
       "link_to_next_segment_follow": "Collega alla sezione successiva seguendo il sentiero",

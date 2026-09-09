@@ -96,8 +96,8 @@ export class MapTrack implements MapElement {
     this._wayPoints.showGuideposts(shown);
   }
 
-  public showArrowPath(show: boolean = true): void {
-    this._arrowPath.show(show);
+  public showArrowPath(show: boolean = true, color?: string): void {
+    this._arrowPath.show(show, color);
   }
 
   public bringToFront(): void {

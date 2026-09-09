@@ -30,6 +30,7 @@ export interface TrackEditToolContext {
 
   modifyTrack(trackModifier: (track: Track) => Observable<any>, mayNotChange: boolean, doNotNotifyIfNotChange: boolean): Observable<any>;
   modifySelectedRange(trackModifier: (track: Track) => Observable<any>, mayNotChange: boolean, doNotNotifyIfNotChange: boolean): Observable<any>;
+  setTrack(trackGenerator: (track: Track) => Observable<Track | undefined>): Observable<Track | undefined>;
   setBaseTrack(track: Track): void;
   isBaseTrackShown(): boolean;
   setShowBaseTrack(show: boolean): void;
