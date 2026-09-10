@@ -82,6 +82,7 @@ import { MapElement } from '../map/map-element';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { TrackPointReference } from '@trailence/utils/track-computed-data/types';
 import { LiveGroupDto } from '@trailence/model/dto/live-group';
+import { PRIMARY_TRACK_ARROW_COLOR, PRIMARY_TRACK_COLOR, PRIMARY_TRACK_COLOR_DONE, SECONDARY_TRACK_ARROW_COLOR, SECONDARY_TRACK_COLOR, SELECTED_TRACK_SECTION_COLOR } from './trail-colors';
 
 interface TrailSource {
   isExternal: boolean;
@@ -712,8 +713,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           tracks.push(toolsBaseTrack);
           this.graphTrack1 = toolsBaseTrack;
           if (!hideBaseTrack || !toolsModifiedTrack) {
-            toolsBaseMapTrack = new MapTrack(undefined, toolsBaseTrack, 'red', 1, false, this.i18n);
-            toolsBaseMapTrack.showArrowPath();
+            toolsBaseMapTrack = new MapTrack(undefined, toolsBaseTrack, PRIMARY_TRACK_COLOR, 1, false, this.i18n);
+            toolsBaseMapTrack.showArrowPath(true, toolsModifiedTrack ? PRIMARY_TRACK_ARROW_COLOR : undefined);
             if (!toolsModifiedTrack) {
               toolsBaseMapTrack.onWayPointClick = wp => this.highlightWayPoint(wp, true);
               toolsBaseMapTrack.showDepartureAndArrivalAnchors();
@@ -733,6 +734,9 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
               mapTrack.onWayPointClick = wp => this.highlightWayPoint(wp, true);
               mapTrack.showDepartureAndArrivalAnchors();
               mapTrack.showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
+              mapTrack.showArrowPath();
+            } else {
+              mapTrack.showArrowPath(true, PRIMARY_TRACK_ARROW_COLOR);
             }
           }
           if (trail2.track) {
@@ -740,7 +744,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             tracks.push(trail2.track);
             this.graphTrack2 = trail2.track;
             if (trail2.mapTrack) {
-              trail2.mapTrack.color = 'blue';
+              trail2.mapTrack.color = SECONDARY_TRACK_COLOR;
               mapElements.push(trail2.mapTrack);
               trail2.mapTrack.onWayPointClick = wp => this.highlightWayPoint(wp, true);
               trail2.mapTrack.showDepartureAndArrivalAnchors();
@@ -756,7 +760,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             this.graphTrack2 = recordingWithTrack.track;
           else
             this.graphTrack1 = recordingWithTrack.track;
-          recordingMapTrack = new MapTrack(recordingWithTrack.recording.trail, recordingWithTrack.track, 'blue', 1, true, this.i18n);
+          recordingMapTrack = new MapTrack(recordingWithTrack.recording.trail, recordingWithTrack.track, SECONDARY_TRACK_COLOR, 1, true, this.i18n);
           recordingMapTrack.showDepartureAndArrivalAnchors();
           recordingMapTrack.showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
           recordingMapTrack.showArrowPath();
@@ -774,9 +778,9 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
               this.graphTrack2 = toolsModifiedTrack;
             else
               this.graphTrack1 = toolsModifiedTrack;
-            toolsModifiedMapTrack = new MapTrack(undefined, toolsModifiedTrack, 'blue', 1, false, this.i18n, hideBaseTrack ? 3 : 2);
+            toolsModifiedMapTrack = new MapTrack(undefined, toolsModifiedTrack, SECONDARY_TRACK_COLOR, 1, false, this.i18n, hideBaseTrack ? 3 : 2);
             toolsModifiedMapTrack.showDepartureAndArrivalAnchors();
-            toolsModifiedMapTrack.showArrowPath(true, hideBaseTrack ? undefined : '#4040FFC0');
+            toolsModifiedMapTrack.showArrowPath(true, hideBaseTrack ? undefined : SECONDARY_TRACK_ARROW_COLOR);
             toolsModifiedMapTrack.showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
             toolsModifiedMapTrack.onWayPointClick = wp => this.highlightWayPoint(wp, true);
             mapElements.push(toolsModifiedMapTrack);
@@ -784,7 +788,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         }
 
         for (const selectionTrack of selectionTracks) {
-          mapElements.push(new MapTrack(undefined, selectionTrack, '#E0E000C0', 1, false, this.i18n));
+          mapElements.push(new MapTrack(undefined, selectionTrack, SELECTED_TRACK_SECTION_COLOR, 1, false, this.i18n));
         }
         if (zoomOnSelection && selectionTracks.length > 0) {
           let bounds = undefined;
@@ -857,7 +861,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
               switchMap(([track, reverse]) => {
                 if (!track) return of({trail, track: undefined, mapTrack: undefined, osmTrack: undefined, osmMapTrack: undefined, osmMarkedTrails: undefined});
                 if (reverse) track = track.reverse();
-                const mapTrack = new MapTrack(trail, track, 'red', 1, false, this.i18n);
+                const mapTrack = new MapTrack(trail, track, PRIMARY_TRACK_COLOR, 1, false, this.i18n);
                 mapTrack.showArrowPath();
                 if (!includeOsmMatch) return of({trail, track, mapTrack, osmTrack: undefined, osmMapTrack: undefined, osmMarkedTrails: undefined});
                 return track.computed.osmWaysMatchPrependWithUndefined$().pipe(
@@ -873,7 +877,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
                         this.hasMapMarkedTrails = !!osmMarkedTrails;
                         if (!osm || !showOsm) return {trail, track, mapTrack, osmTrack: undefined, osmMapTrack: undefined, osmMarkedTrails};
                         const osmTrack = buildOsmTrack(track, osm.osmTrackPoints);
-                        const osmMapTrack = new MapTrack(trail, osmTrack, 'red', 1, false, this.i18n);
+                        const osmMapTrack = new MapTrack(trail, osmTrack, PRIMARY_TRACK_COLOR, 1, false, this.i18n);
                         osmMapTrack.showArrowPath();
                         return {trail, track, mapTrack, osmTrack, osmMapTrack, osmMarkedTrails};
                       })
@@ -1417,7 +1421,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
               polyline.setLatLngs(r.remaining!.getAllPositions());
             } else {
               polyline = L.polyline(r.remaining!.getAllPositions(), {
-                color: 'red',
+                color: PRIMARY_TRACK_COLOR,
                 smoothFactor: 1,
                 interactive: false,
                 weight: 3,
@@ -1433,7 +1437,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           this.remaining$.value.polyline.remove();
         }
         const baseMapTrack = this.mapElements$.value.find(mt => mt instanceof MapTrack && mt.track === r.track) as MapTrack | undefined;
-        if (baseMapTrack) baseMapTrack.color = r.remaining ? '#FF000080' : 'red';
+        if (baseMapTrack) baseMapTrack.color = r.remaining ? PRIMARY_TRACK_COLOR_DONE : PRIMARY_TRACK_COLOR;
         if (r.remaining) {
           this.remaining$.next({
             originalTime: r.remaining.metadata.duration,

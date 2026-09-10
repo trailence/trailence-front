@@ -51,6 +51,7 @@ import { CalibrateElevationWithProvider } from './tools/elevation/calibrate';
 import { MoveWayPointIndexTool } from './tools/way-points/move-way-point-index';
 import { FollowOsmPath } from './tools/path/follow-osm-path';
 import { ReverseWay } from './tools/path/reverse-way';
+import { SelectAreaTool } from './tools/selection/select-area';
 
 interface TrackEditToolsState {
   originalTrack?: Track;
@@ -101,6 +102,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
       .setVisible(() => !this.interactiveTool)
       .setChildren([
         new MenuItem().setIcon('selection').setI18nLabel('track_edit_tools.categories.selection').setTextColor('secondary'),
+        this.toMenuItem(new SelectAreaTool()),
         this.toMenuItem(new CloseSelectionTool()),
         new MenuItem(),
         this.toMenuItem(new LinkToNextSegment(false)),

@@ -131,41 +131,36 @@ describe('Edit tools', () => {
         origin = 'viewport';
         pos = await graph.getElement().$('canvas').getLocation();
       }
+      const start = 75;
+      const end = 125;
       // select a range on graph
       let action;
       if ((trial % 2) === 1) {
         action = browser.action('pointer')
-          .move({x: pos.x + 50, y: pos.y + 25, origin})
-          .pause(10)
+          .move({x: pos.x + start, y: pos.y + 25, origin})
+          .pause(10 * trial)
           .down()
-          .pause(10)
-          .move({x: pos.x + 100, y: pos.y + 25, origin})
-          .pause(10)
+          .pause(10 * trial)
+          .move({x: pos.x + end, y: pos.y + 25, origin})
+          .pause(10 * trial)
           .up()
           .pause(10);
       } else {
-        action =  browser.action('pointer')
-        .move({duration: 0, x: pos.x + 50, y: pos.y + 25 + trial, origin})
+        action = browser.action('pointer', {parameters: {pointerType: trial < 6 ? 'mouse' : 'touch'}})
+          .move({duration: 0, x: pos.x + start, y: pos.y + 25 + trial, origin})
           .pause(10 * trial)
           .down()
-          .pause(250)
-          .move({duration: 10, x: pos.x + 55, y: pos.y + 25 + trial, origin})
-          .move({duration: 10, x: pos.x + 60, y: pos.y + 25 + trial, origin})
-          .move({duration: 10, x: pos.x + 65, y: pos.y + 25 + trial, origin})
-          .move({duration: 10, x: pos.x + 70, y: pos.y + 25 + trial, origin})
-          .move({duration: 10, x: pos.x + 75, y: pos.y + 25 + trial, origin})
-          .move({duration: 10, x: pos.x + 80, y: pos.y + 25 + trial, origin})
-          .move({duration: 10, x: pos.x + 85, y: pos.y + 25 + trial, origin})
-          .move({duration: 10, x: pos.x + 90, y: pos.y + 25 + trial, origin})
-          .move({duration: 10, x: pos.x + 95, y: pos.y + 25 + trial, origin})
-          .move({duration: 10, x: pos.x + 100, y: pos.y + 25 + trial, origin})
+          .pause(250);
+        for (let i = start + 5; i <= end; i += 5)
+          action = action.move({duration: 10 + trial, x: pos.x + i, y: pos.y + 25 + trial, origin});
+        action = action
           .pause(250)
           .up()
           .pause(250);
       }
       await action.perform();
       // zoom button should be displayed
-      await browser.waitUntil(() => graph.zoomButton.isDisplayed(), {timeout: 5000});
+      await browser.waitUntil(() => graph.zoomButton.isDisplayed(), {timeout: 2500});
     }, 10, 100);
     await tools.waitSelectionTool();
     await tools.removeSelectedRangeAndReconnect();

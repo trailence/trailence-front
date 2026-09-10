@@ -594,6 +594,7 @@
         (mouseOverPoint)="mouseOverPointOnMap($event)"
         (mouseClickPoint)="mouseClickOnMap($event)"
         [rightTools]="mapToolbarRightItems"
+        [ngClass]="{'large-top-controls': toolsEnabled && isSmall && !positionningOnMap$.value}"
       >
         <div class="map-top-controls right">
           @if (!toolsEnabled && !positionningOnMap$.value) {

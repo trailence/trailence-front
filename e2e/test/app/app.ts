@@ -401,14 +401,17 @@ export class App {
     }, 2, 100);
   }
 
-  public static async synchronize(andLogout: boolean = false, maxSyncTrials: number = 10) {
-    const header = await TestUtils.retry(async () => {
+  public static async openUserMenu() {
+    return await TestUtils.retry(async () => {
       const page = await Page.getActivePageElement();
       const header = new HeaderComponent(page);
       await header.waitDisplayed(false, 5000);
-      return header;
+      return await header.openUserMenu();
     }, 2, 100);
-    const menu = await header.openUserMenu();
+  }
+
+  public static async synchronize(andLogout: boolean = false, maxSyncTrials: number = 10) {
+    const menu = await this.openUserMenu();
     const syncSuccess = await menu.synchronizeLocalChanges(maxSyncTrials);
     if (!syncSuccess) return;
     if (!andLogout) {
@@ -419,13 +422,7 @@ export class App {
   }
 
   public static async forceSyncronize() {
-    const header = await TestUtils.retry(async () => {
-      const page = await Page.getActivePageElement();
-      const header = new HeaderComponent(page);
-      await header.waitDisplayed(false, 5000);
-      return header;
-    }, 2, 100);
-    const menu = await header.openUserMenu();
+    const menu = await this.openUserMenu();
     const item = menu.getElement().$('>>>ion-item#item-synchro');
     try {
       await item.click();

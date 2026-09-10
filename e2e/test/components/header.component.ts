@@ -57,7 +57,6 @@ export class HeaderComponent extends Component {
       await menu.click();
       return await App.waitPopover(10000);
     }, 3, 100);
-    expect(popover).toBeDefined();
     const userMenu = new UserMenu(popover, 'ion-list');
     await userMenu.waitDisplayed();
     return userMenu;
@@ -148,13 +147,11 @@ export class UserMenu extends Component {
               result = true;
               break;
             } catch (_) {
-              await this.close();
-              const page = await Page.getActivePageElement();
-              const header = new HeaderComponent(page);
-              await header.waitDisplayed();
-              const menu = await header.openUserMenu();
-              return await menu.synchronizeLocalChanges(maxTrials, trial + 1, false);
+              // try to re-open the menu
             }
+            await this.close();
+            const menu = await App.openUserMenu();
+            return await menu.synchronizeLocalChanges(maxTrials, trial + 1, false);
           }
           await item.click();
           const popover = $('ion-app>ion-popover:not(.overlay-hidden).popover-nested');

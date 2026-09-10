@@ -17,6 +17,7 @@ import { WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-fr
 import { BreakPoint } from '@trailence/utils/track-waypoints/breakpoints';
 import { GuidepostWayPoint } from '@trailence/utils/track-waypoints/guideposts';
 import { OsmWayIntersection } from '@trailence/utils/track-waypoints/way-intersection';
+import { PRIMARY_TRACK_COLOR } from './trail-colors';
 
 export class TrailsWaypoints {
 
@@ -319,7 +320,7 @@ export class TrailWaypoints {
         });
         if (this.wayPointDepartureAndArrival)
           this.wayPointsImages.push(MapAnchor.createDataIcon(anchorArrivalBorderColor, this.trails.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor));
-        this.intersectionsImages = this.wayPoints.map(wp => wp.intersection?.toSvg('red'))
+        this.intersectionsImages = this.wayPoints.map(wp => wp.intersection?.toSvg(PRIMARY_TRACK_COLOR))
         this.onUpdated();
       }
     );

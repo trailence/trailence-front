@@ -123,6 +123,16 @@ app-map, div.map-full-screen {
     }
   }
 
+  &.large-top-controls {
+    div.map-right-controls-container, div.map-left-controls-container {
+      top: 45px;
+    }
+    div.map-top-controls-container {
+      left: 3px;
+      right: 3px;
+    }
+  }
+
   app-toolbar {
     background-color: #FFFFFF;
     border-radius: 5px;
@@ -258,6 +268,12 @@ body.dark-map {
     }
     path.track-arrow-border {
       stroke: #00000060;
+    }
+    path.track-arrow[stroke="#0000C0C0"] {
+      stroke: #8080FF;
+    }
+    path.track-arrow[stroke="#FF4040C0"] {
+      stroke: #FF8080;
     }
 
     app-toolbar {

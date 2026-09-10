@@ -1511,7 +1511,8 @@
         "close": "Cerrar la selección",
         "select_target_point": "Selecciona un punto en el mapa o en el gráfico de altimetría para ampliar la selección hasta ese punto",
         "remove_all_next_points": "Eliminar todos los puntos posteriores",
-        "remove_all_previous_points": "Eliminar todos los puntos anteriores"
+        "remove_all_previous_points": "Eliminar todos los puntos anteriores",
+        "rectangle": "Seleccionar un área"
       },
       "remove_selection": {
         "button_single_label": "Eliminar el punto seleccionado",

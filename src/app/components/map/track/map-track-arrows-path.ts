@@ -66,9 +66,11 @@ export class MapTrackArrowPath {
 
   public show(show: boolean, color?: string): void {
     if (this._shown === show && this._color === color) return;
-    if (this._shown && this._currentZoomShown >= 0 && this._map)
+    if (this._shown && this._currentZoomShown >= 0 && this._map) {
       for (const polyline of this._arrowsByZoom[this._currentZoomShown])
         polyline.removeFrom(this._map);
+      this._currentZoomShown = -1;
+    }
     this._shown = show;
     this._color = color;
     if (show && this._map)
@@ -106,7 +108,8 @@ export class MapTrackArrowPath {
     if (!this._arrowsByZoom[z])
       this._arrowsByZoom[z] = this.createArrows(this._map);
     for (const polyline of this._arrowsByZoom[this._currentZoomShown]) {
-      polyline.setStyle({color: this._color ?? DEFAULT_COLOR});
+      if (polyline.options.className !== 'track-arrow-border')
+        polyline.setStyle({color: this._color ?? DEFAULT_COLOR});
       polyline.addTo(this._map);
     }
   }

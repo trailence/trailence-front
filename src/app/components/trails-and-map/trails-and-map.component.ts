@@ -31,6 +31,7 @@ import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extend
 import { Console } from '@trailence/utils/console';
 import { MapElement } from '../map/map-element';
 import { MapToggleBubblesTool } from '../map/tools/toggle-bubbles-tool';
+import { HIGHLIGHTED_TRACK_COLOR, PRIMARY_TRACK_COLOR, PRIMARY_TRACK_COLOR_DONE } from '../trail/trail-colors';
 
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
@@ -88,7 +89,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     showSpeed: false,
   };
   mapTracksMapper = new CollectionMapper<{trail: Trail, data: SimplifiedTrackSnapshot}, MapTrack>(
-    trailAndTrack => new MapTrack(trailAndTrack.trail, trailAndTrack.data, 'red', 2, false, this.i18n),
+    trailAndTrack => new MapTrack(trailAndTrack.trail, trailAndTrack.data, PRIMARY_TRACK_COLOR, 2, false, this.i18n),
     (t1, t2) => t1.data === t2.data
   );
   mapElements$ = new BehaviorSubject<MapElement[]>([]);
@@ -406,7 +407,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
       if (!(mapTrack instanceof MapTrack)) continue;
       const highlighted = !!trail && trail.uuid === mapTrack.trail?.uuid && trail.owner === mapTrack.trail?.owner;
       const unhighlighted = !highlighted && !!this.highlightedTrail && this.highlightedTrail.uuid === mapTrack.trail?.uuid && this.highlightedTrail.owner === mapTrack.trail?.owner;
-      mapTrack.color = highlighted ? '#4040FF' : (trail ? '#FF000080' : 'red');
+      mapTrack.color = highlighted ? HIGHLIGHTED_TRACK_COLOR : (trail ? PRIMARY_TRACK_COLOR_DONE : PRIMARY_TRACK_COLOR);
       if (!highlighted && !unhighlighted) continue;
       mapTrack.showDepartureAndArrivalAnchors(highlighted);
       mapTrack.highlighted = highlighted;

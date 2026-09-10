@@ -1,7 +1,9 @@
-import { map } from 'rxjs';
+import { first, map } from 'rxjs';
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
 import { RangeReference } from '@trailence/model/point-reference';
 import { buildOsmSubTrack } from '@trailence/utils/track-computed-data/build-osm-track';
+import { filterTimeout } from '@trailence/utils/rxjs/filter-timeout';
+import { OsmWayMatchResponse } from '@trailence/utils/track-computed-data/track-computed-data';
 
 export class FollowOsmPath implements TrackEditTool {
 
@@ -22,6 +24,8 @@ export class FollowOsmPath implements TrackEditTool {
     if (!(sel instanceof RangeReference)) return;
     ctx.modifyTrack(track => {
       return track.computed.osmWaysMatch$.pipe(
+        filterTimeout(response => !!response, 5000, () => null as OsmWayMatchResponse | null),
+        first(),
         map(response => {
           if (!response) return false;
           const newPoints = buildOsmSubTrack(track, response.osmTrackPoints, sel);

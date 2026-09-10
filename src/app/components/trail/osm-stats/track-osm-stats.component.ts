@@ -11,7 +11,6 @@ import { IonSpinner } from '@ionic/angular';
 import { I18nPipe } from '@trailence/services/i18n/i18n-string';
 import { TrackPointReference } from '@trailence/utils/track-computed-data/types';
 import { computePercentagesWithoutDecimal } from '@trailence/utils/math-utils';
-import { Console } from '@trailence/utils/console';
 
 type Stat<T> = {value: T | 'unknown' | 'others', percent: number, distance: number, sections: TrackSection[]}
 

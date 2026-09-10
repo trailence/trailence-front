@@ -1511,7 +1511,8 @@
         "close": "Auswahl schließen",
         "select_target_point": "Wählen Sie einen Punkt auf der Karte oder im Höhenprofil, um die Auswahl bis zu diesem Punkt zu erweitern",
         "remove_all_next_points": "Alle Punkte danach entfernen",
-        "remove_all_previous_points": "Alle Punkte davor entfernen"
+        "remove_all_previous_points": "Alle Punkte davor entfernen",
+        "rectangle": "Bereich auswählen"
       },
       "remove_selection": {
         "button_single_label": "Ausgewählten Punkt löschen",
