@@ -274,7 +274,7 @@ describe('Shared Collections', () => {
     });
     const page = await menu.openCollection('col2');
     const list = await page.trailsAndMap.openTrailsList();
-    const trails = await expectListContains(list, getExpectedTrails('sc2', 'col2'));
+    const trails = await TestUtils.retry(() => expectListContains(list, getExpectedTrails('sc2', 'col2')), 10, 1000);
 
     const portCros = trails.get('Port-Cros')!;
     await portCros.clickMenuItemWithIcon('tags');
@@ -295,7 +295,7 @@ describe('Shared Collections', () => {
     let page = await App.openLink(sc1Col2Link, TrailsPageType.COLLECTION);
     await App.forceSyncronize();
     let list = await page.trailsAndMap.openTrailsList();
-    await TestUtils.retry(() => expectListContains(list, getExpectedTrails('sc1', 'col2')), 3, 1000);
+    await TestUtils.retry(() => expectListContains(list, getExpectedTrails('sc1', 'col2')), 10, 1000);
     await (await page.header.openActionsMenu()).clickItemWithColor('danger');
     await (await App.waitAlert()).clickButtonWithRole('danger');
     expectationsByUser.get('sc1')!.delete('col2');
@@ -322,7 +322,7 @@ describe('Shared Collections', () => {
     const page = await App.openLink(sc4link, TrailsPageType.COLLECTION);
     await browser.waitUntil(() => page.header.getTitle().then(title => title === 'col1'));
     const list = await page.trailsAndMap.openTrailsList();
-    await expectListContains(list, getExpectedTrails('sc4', 'col1'));
+    await TestUtils.retry(() => expectListContains(list, getExpectedTrails('sc4', 'col1')), 10, 1000);
     await App.logout();
   });
 

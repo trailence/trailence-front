@@ -14,7 +14,7 @@
     "appium": "^2.15.0",
     "appium-uiautomator2-driver": "^3.10.0",
     "appium-xcuitest-driver": "8.1.0",
-    "nyc": "^17.1.0"
+    "nyc": "^18.0.0"
   },
   "scripts": {
     "build": "tsc",
