@@ -26,7 +26,7 @@ export class TrailsList extends Component {
 
   public async getItemTrailOverview(item: WebdriverIO.Element) {
     if (!await item.isDisplayed()) {
-      await Component.scrollIntoView(item);
+      await Component.scrollElementIntoView(item);
     }
     const id = await item.$('app-trail-overview').getAttribute('id');
     return new TrailOverview(browser.$('#' + id));
@@ -116,7 +116,7 @@ export class TrailsList extends Component {
 
   public async getTrailId(trail: TrailOverview) {
     const parent = trail.getElement().parentElement();
-    let id = await parent.getAttribute('id');
+    let id = (await parent.getAttribute('id'))!;
     expect(id.startsWith('trail-list-id-')).toBeTrue();
     id = id.substring(14);
     let i = id.indexOf('-trail-');

@@ -28,20 +28,22 @@ export class CollectionModal extends ModalComponent {
   }
 
   public async addSharedWith(email: string) {
-    const elements = await TestUtils.waitFor(() => this.getElement().$('app-multiple-input-email').$$('>>>app-input-email ion-input').getElements(), async newElements => {
-      if (newElements.length === 0) throw new Error('No email input');
+    const elements = await TestUtils.waitFor(async () => this.getElement().$('app-multiple-input-email').$$('>>>app-input-email ion-input'), async newElements => {
+      if (await newElements.length === 0) throw new Error('No email input');
     }, 30, 100);
-    await new IonicInput(elements[elements.length - 1]).setValue(email);
+    const nbElements = await elements.length;
+    await new IonicInput(elements[nbElements - 1]).setValue(email);
     await TestUtils.waitFor(() => this.getElement().$('app-multiple-input-email').$$('>>>app-input-email ion-input').getElements(), async newElements => {
-      if (newElements.length !== elements.length + 1) throw new Error('Expected ' + (elements.length + 1) + ' email inputs, found ' + newElements.length);
+      if (newElements.length !== nbElements + 1) throw new Error('Expected ' + (nbElements + 1) + ' email inputs, found ' + newElements.length);
     }, 30, 100);
   }
 
   public async getEmails(): Promise<Set<string>> {
-    const elements = await this.getElement().$('app-multiple-input-email').$$('>>>app-input-email ion-input').getElements();
+    const elements = this.getElement().$('app-multiple-input-email').$$('>>>app-input-email ion-input');
     const emails = new Set<string>();
-    for (const element of elements) {
-      const email = (await new IonicInput(element).getValue()).trim();
+    const nbElements = await elements.length;
+    for (let i = 0; i < nbElements; ++i) {
+      const email = (await new IonicInput(elements[i]).getValue()).trim();
       if (email.length > 0) emails.add(email);
     }
     return emails;

@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
-        "moduleResolution": "node",
-        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "module": "es2022",
         "target": "es2022",
         "lib": [
             "es2022",

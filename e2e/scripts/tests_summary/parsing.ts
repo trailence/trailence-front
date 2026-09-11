@@ -75,13 +75,15 @@ function getCommandTime(file: string): number | undefined {
 function getTestsSpecs(filename: string, file: string): SpecFile[] {
   let pos = 0;
   const result: SpecFile[] = [];
-  while ((pos = file.indexOf('» /test/specs/', pos)) > 0) {
+  while ((pos = file.indexOf('» test/specs/', pos)) > 0) {
     let j = file.indexOf('\n', pos);
-    const specFile = file.substring(pos + 14, j).trim();
+    const specFile = file.substring(pos + 13, j).trim();
+    console.log('Spec file', specFile, 'found in', filename);
     let nextLine = getNextLine(file, j + 1);
     if (!nextLine) break;
     const suiteName = getTextAfter(nextLine.content, ']').trim();
     pos = nextLine.end + 1;
+    console.log('Suite', suiteName, 'found for file', specFile, 'in', filename);
     const tests: Test[] = [];
     do {
       nextLine = getNextLine(file, pos);
@@ -89,11 +91,13 @@ function getTestsSpecs(filename: string, file: string): SpecFile[] {
       pos = nextLine.end + 1;
       const success = getTextAfter(nextLine.content, '✓ ').trim();
       if (success.length > 0) {
+        console.log('Test success', success, 'in', filename);
         tests.push({name: success, success: true});
         continue;
       }
       const error = success.length > 0 ? '' : getTextAfter(nextLine.content, '✖ ');
       if (error.length > 0) {
+        console.log('Test error', success, 'in', filename);
         tests.push({name: error, success: false});
         continue;
       }
@@ -216,7 +220,10 @@ function extractErrorStackTrace(file: string, test: Test, line: Line): number {
     nextLine = getNextLine(file, nextLine.end + 1);
     if (!nextLine) break;
     let i = nextLine.content.indexOf('    at ');
-    if (i < 0) break;
+    if (i < 0) {
+      if (nextLine.content.indexOf('---') > 0) continue;
+      break;
+    }
     test.error!.push(nextLine.content.substring(i));
   } while (true);
   if (!nextLine) return -1;
