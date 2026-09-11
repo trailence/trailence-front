@@ -2,7 +2,6 @@
   "name": "e2e",
   "type": "module",
   "devDependencies": {
-    "@badisi/wdio-harness": "^4.4.0",
     "@types/gifencoder": "^2.0.3",
     "@types/jasmine": "^5.1.5",
     "@types/jsdom": "^21.1.7",

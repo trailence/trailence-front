@@ -147,8 +147,8 @@ export class MapComponent extends Component {
     const layerSelection = modal.$('>>>app-map-layer-selection');
     const layersContainers = await layerSelection.$$('div.layer').getElements();
     for (const layerContainer of layersContainers) {
-      await Component.scrollIntoView(layerContainer);
-      const layerClass = await layerContainer.getAttribute('class');
+      await Component.scrollElementIntoView(layerContainer);
+      const layerClass = (await layerContainer.getAttribute('class'))!;
       const layerName = layerClass.substring(layerClass.indexOf('layer-') + 6).trim();
       const layerCheckbox = new IonicCheckbox(layerContainer.$('ion-checkbox'));
       await layerCheckbox.setSelected(layers.includes(layerName))
