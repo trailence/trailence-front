@@ -9,7 +9,7 @@ import { Console } from '@trailence/utils/console';
 import { DomSanitizer } from '@angular/platform-browser';
 import { LocaleKey } from './available-locales';
 
-const TEXTS_VERSION = '67';
+const TEXTS_VERSION = '68';
 
 interface TextToLoad {
   filePath: string;

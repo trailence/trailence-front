@@ -29,7 +29,7 @@ child_process.execSync('npm version ' + versionStr + ' --allow-same-version=true
 
 console.log('Updating version in wep app');
 fs.writeFileSync(
-  '@trailence/trailence-version.ts',
+  'src/app/trailence-version.ts',
   'export const trailenceAppVersionName="' + versionStr + '";\n' +
   'export const trailenceAppVersionCode=' + versionCode + ';\n'
 );

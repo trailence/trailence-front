@@ -1,6 +1,6 @@
 {
   "name": "trailence",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "author": "Guillaume Le Cousin",
   "homepage": "https://www.trailence.org/",
   "scripts": {
@@ -22,6 +22,7 @@
     "check-release-note": "node --import=tsx ./scripts/check-release-note.ts",
     "notes-to-fastlane": "node --import=tsx ./scripts/notes-to-fastlane.ts",
     "release": "npm run check-i18n && npm run check-assets-version && npm run check-release-note -- %NEWVERSION% && npm run set-version -- %NEWVERSION% && ng build --configuration=production",
+    "with-env": "cross-env",
     "instrument": "nyc instrument www/browser www/browser --exclude-after-remap=false --complete-copy --in-place --exclude=**/polyfills*.js --exclude=**/scripts*.js --exclude=**/swipe-back*.js --exclude=**/shadow-css*.js --exclude=**/jszip*.js --exclude=**/ios.transition*.js --exclude=**/md.transition*.js --exclude=**/input-shims*.js --exclude=**/hardward-back-button*.js --exclude=**/focus-visible*.js --exclude=**/keyboard2*.js --exclude=**/status-tap*.js --exclude=**/*.mjs --exclude=**/assets/*.js",
     "analyze-bundle": "ng build --configuration=analyze-bundle --progress=false --stats-json > build.output && node ./scripts/extract-initial-bundle.js ./build.output",
     "generate-public-pages": "cd scripts && node --import=tsx generate-public-pages.ts && cd ..",

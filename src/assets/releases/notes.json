@@ -356,5 +356,37 @@
         "Outras melhorias e correções de erros"
       ]
     }
+  },
+  "020301": {
+    "fr": {
+      "items": [
+        "Quelques améliorations et corrections de bugs"
+      ]
+    },
+    "de": {
+      "items": [
+        "Einige Verbesserungen und Fehlerbehebungen"
+      ]
+    },
+    "en": {
+      "items": [
+        "Some improvements and bug fixes"
+      ]
+    },
+    "es": {
+      "items": [
+        "Algunas mejoras y correcciones de errores"
+      ]
+    },
+    "it": {
+      "items": [
+        "Alcuni miglioramenti e correzioni di bug"
+      ]
+    },
+    "pt": {
+      "items": [
+        "Algumas melhorias e correções de bugs"
+      ]
+    }
   }
 }
