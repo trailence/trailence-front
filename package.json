@@ -100,7 +100,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.2.0",
     "nyc": "^18.0.0",
-    "pdfjs-dist": "^5.4.449",
+    "pdfjs-dist": "^6.3.289",
     "pdfkit": "^0.17.2",
     "svg-to-pdfkit": "^0.1.8",
     "tsx": "^4.21.0",
