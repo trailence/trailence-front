@@ -52,6 +52,7 @@ import { MoveWayPointIndexTool } from './tools/way-points/move-way-point-index';
 import { FollowOsmPath } from './tools/path/follow-osm-path';
 import { ReverseWay } from './tools/path/reverse-way';
 import { SelectAreaTool } from './tools/selection/select-area';
+import { FillMissingElevationWithProvider } from './tools/elevation/fill-missing-with-provider';
 
 interface TrackEditToolsState {
   originalTrack?: Track;
@@ -151,6 +152,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         this.toMenuItem(new RemoveUnprobableElevation()),
         this.toMenuItem(new SlopeThreshold()),
         new MenuItem().setI18nLabel('track_edit_tools.categories.elevation_provider').setTextColor('secondary').setSectionTitle(true),
+        this.toMenuItem(new FillMissingElevationWithProvider()),
         this.toMenuItem(new ImproveElevationWithProvider()),
         this.toMenuItem(new ReplaceElevationWithProvider()),
         this.toMenuItem(new CalibrateElevationWithProvider()),

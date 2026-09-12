@@ -83,16 +83,22 @@ export class SelectionComponent implements OnInit, OnDestroy {
   // navigation
 
   canMoveBackward(point: PointReference): boolean {
-    return point.pointIndex > 0 || point.segmentIndex > 0;
+    if (point.pointIndex === 0 && point.segmentIndex === 0) return false;
+    if (point === this.point1) return true;
+    const previousPoint = this.getPreviousPoint(point);
+    if (previousPoint.pointIndex === this.point1?.pointIndex && previousPoint.segmentIndex === this.point1?.segmentIndex) return false;
+    return true;
+  }
+
+  private getPreviousPoint(point: PointReference): PointReference {
+    if (point.pointIndex === 0) {
+      return new PointReference(point.track, point.segmentIndex - 1, point.track.segments[point.segmentIndex - 1].points.length - 1);
+    }
+    return new PointReference(point.track, point.segmentIndex, point.pointIndex - 1);
   }
 
   moveBackward(point: PointReference): void {
-    let newPoint: PointReference;
-    if (point.pointIndex === 0) {
-      newPoint = new PointReference(point.track, point.segmentIndex - 1, point.track.segments[point.segmentIndex].points.length - 1);
-    } else {
-      newPoint = new PointReference(point.track, point.segmentIndex, point.pointIndex - 1);
-    }
+    const newPoint = this.getPreviousPoint(point);
     if (this.selection instanceof PointReference) {
       this.context.selection.selectPoint([newPoint]);
     } else if (point === this.point1) {
@@ -105,17 +111,22 @@ export class SelectionComponent implements OnInit, OnDestroy {
   }
 
   canMoveForward(point: PointReference): boolean {
-    return point.segmentIndex < point.track.segments.length - 1 ||
-      point.pointIndex < point.track.segments[point.segmentIndex].points.length - 1;
+    if (point.segmentIndex === point.track.segments.length - 1 && point.pointIndex === point.track.segments[point.segmentIndex].points.length - 1) return false;
+    if (point === this.point2) return true;
+    const nextPoint = this.getNextPoint(point);
+    if (nextPoint.pointIndex === this.point2?.pointIndex && nextPoint.segmentIndex === this.point2?.segmentIndex) return false;
+    return true;
+  }
+
+  private getNextPoint(point: PointReference): PointReference {
+    if (point.pointIndex === point.track.segments[point.segmentIndex].points.length - 1) {
+      return new PointReference(point.track, point.segmentIndex + 1, 0);
+    }
+    return new PointReference(point.track, point.segmentIndex, point.pointIndex + 1);
   }
 
   moveForward(point: PointReference): void {
-    let newPoint: PointReference;
-    if (point.pointIndex === point.track.segments[point.segmentIndex].points.length - 1) {
-      newPoint = new PointReference(point.track, point.segmentIndex + 1, 0);
-    } else {
-      newPoint = new PointReference(point.track, point.segmentIndex, point.pointIndex + 1);
-    }
+    const newPoint = this.getNextPoint(point);
     if (this.selection instanceof PointReference) {
       this.context.selection.selectPoint([newPoint]);
     } else if (point === this.point2) {

@@ -1524,6 +1524,7 @@
       },
       "replace_elevation_with_provider": "Replace altitudes",
       "improve_elevation_with_provider": "Improve altitudes",
+      "fill_missing_elevation_with_provider": "Fill in missing elevations",
       "calibrate_elevation": "Calibrate altitude",
       "calibrate_elevation_message": "The known altitude shows an average difference of {{1}} {{2}} compared to the altitude recorded on this trail.",
       "arrival_to_departure": "Finish at the departure point",

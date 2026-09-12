@@ -267,6 +267,7 @@ class RegisteredStore implements StoreRegistration {
   syncTimeout?: any;
   syncTimeoutDate = 0;
   syncAgain = false;
+  syncAgainCount = 0;
   inProgress$ = new BehaviorSubject<boolean>(false);
 
   constructor(
@@ -357,10 +358,22 @@ class RegisteredStore implements StoreRegistration {
               this.inProgress$.next(false);
               this.syncAgain = syncAgain;
               if (syncAgain) {
-                Console.info(this.name + ' needs to sync again to complete');
-                this.lastSync = Date.now() - MINIMUM_SYNC_INTERVAL + 1000;
-                this.syncTimeoutDate = Date.now() + 2000;
-                this.syncTimeout = setTimeout(() => this.fireSyncStatus(), 2000);
+                this.syncAgainCount++;
+                Console.info(this.name + ' needs to sync again to complete', this.syncAgainCount);
+                if (this.syncAgainCount < 20)
+                  this.lastSync = Date.now() - MINIMUM_SYNC_INTERVAL + 1000;
+                let timeout = 1000 + 1000 * this.syncAgainCount;
+                if (this.syncAgainCount > 10) timeout += 1000 * this.syncAgainCount;
+                if (this.syncAgainCount > 25) timeout += 1000 * this.syncAgainCount;
+                this.syncTimeoutDate = Date.now() + timeout;
+                if (this.syncTimeout) clearTimeout(this.syncTimeout);
+                this.syncTimeout = setTimeout(() => {
+                  this.syncTimeout = undefined;
+                  this.syncTimeoutDate = 0;
+                  this.fireSyncStatus();
+                }, timeout);
+              } else {
+                this.syncAgainCount = 0;
               }
             },
             complete: () => this.inProgress$.next(false),

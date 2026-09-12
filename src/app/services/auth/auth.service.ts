@@ -566,6 +566,7 @@ export class AuthService {
   }
 
   private addTrailenceVersionHeader(request: TrailenceHttpRequest): Observable<TrailenceHttpRequest> | TrailenceHttpRequest {
+    if (!request.url.startsWith(environment.apiBaseUrl + '/')) return request;
     request.headers['X-Trailence-Version'] = '' + trailenceAppVersionCode;
     return request;
   }

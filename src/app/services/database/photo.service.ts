@@ -473,9 +473,19 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> implements StoreWithCleanin
           });
           for (const photo of photos) {
             if (photo.createdAt > maxDate || photo.updatedAt > maxDate) continue;
-            if (trails.some(t => t.uuid === photo.trailUuid && t.owner === photo.owner)) continue;
+            const isAttached = trails.some(t => t.uuid === photo.trailUuid && t.owner === photo.owner);
+            let eligible: Promise<boolean> = Promise.resolve(!isAttached);
+            if (photo.isCreatedLocally()) {
+              if (isAttached)
+                eligible = firstValueFrom(this.injector.get(StoredFilesService).isStored$(photo.owner, 'photo', photo.uuid)).then(s => !s);
+            } else if (isAttached) {
+              continue;
+            }
             const d = ondone.add();
-            this.getLocalUpdate(photo).then(date => {
+            eligible.then(e => {
+              if (!e) return undefined;
+              return this.getLocalUpdate(photo);
+            }).then(date => {
               if (status.counter !== this._storeLoaded$.value?.counter) {
                 d();
                 return;

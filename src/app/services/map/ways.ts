@@ -49,7 +49,7 @@ export class Ways {
       injector.get(CleanupService).add({
         id: 'ways',
         name: 'ways cache',
-        every: 24 * 60 * 60 * 1000,
+        every: 7 * 24 * 60 * 60 * 1000,
         execute: () => this.clean(),
       });
     }, 1000));

@@ -233,7 +233,7 @@ public class CameraPlugin extends Plugin {
                     takePictureIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                 } catch (Exception ex) {
                     Logger.error("Cannot save image", ex);
-                    call.reject(IMAGE_FILE_SAVE_ERROR, ex);
+                    call.reject(IMAGE_FILE_SAVE_ERROR + ": " + ex.getMessage());
                     return;
                 }
 

@@ -171,7 +171,7 @@ export class OfflineMapService implements OnDestroy {
       service.add({
         id: 'offline-map-' + layer.name,
         name: 'Offline map ' + layer.displayName,
-        every: 24 * 60 * 60 * 1000,
+        every: 7 * 24 * 60 * 60 * 1000,
         execute: () => this.cleanExpiredLayer(layer.name)
       });
     }

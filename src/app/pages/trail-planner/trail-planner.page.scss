@@ -113,6 +113,7 @@
     right: 0;
     left: calc(var(--left-pane-button-width) + var(--bottom-tabs-width));
     height: var(--elevation-graph-height);
+    z-index: 2;
   }
 
   .bottom-pane {
