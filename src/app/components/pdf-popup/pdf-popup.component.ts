@@ -146,6 +146,10 @@ export class PdfPopup implements OnInit, OnDestroy {
       this.hasWayPoints = hasWaypointsContent(this.wayPoints, sourceLang, userLang);
       if (!this.hasWayPoints) this.options.includeWaypoints = false;
       this.photos = photos.length > 0 ? photos : undefined;
+      if (this.photos) {
+        const cover = this.photos.findIndex(p => p.isCover);
+        this.photoIndex = cover >= 0 ? cover : 0;
+      }
     });
     this.optionsChanged();
   }

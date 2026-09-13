@@ -2,11 +2,6 @@ const fs = require('fs');
 
 const dependencies = [
   {
-    module: 'blob-stream',
-    files: [
-      { name: 'blob-stream', src: '.js', dst: 'blob-stream.<version>.js' },
-    ]
-  }, {
     module: 'svg-to-pdfkit',
     files: [
       { name: 'svg-to-pdfkit', src: 'source.js', dst: 'svg-to-pdfkit.<version>.js' },

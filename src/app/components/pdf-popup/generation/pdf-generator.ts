@@ -56,8 +56,7 @@ export class PdfGenerator {
     // progress: 10% for resources
     const assetsService = injector.get(AssetsService);
     await Promise.all([
-      assetsService.loadJs(assetsDependencies['blob-stream']).then(() => percentDone(2)),
-      assetsService.loadJs(assetsDependencies['pdfkit']).then(() => percentDone(2)),
+      assetsService.loadJs(assetsDependencies['pdfkit']).then(() => percentDone(4)),
       assetsService.loadJs(assetsDependencies['svg-to-pdfkit']).then(() => percentDone(2)),
       globalThis.fetch(environment.assetsUrl + '/Roboto-Regular.ttf').then(r => r.arrayBuffer()).then(b => {roboto = b; percentDone(2);}),
       globalThis.fetch(environment.assetsUrl + '/Roboto-Bold.ttf').then(r => r.arrayBuffer()).then(b => {robotoBold = b; percentDone(2);}),
@@ -95,10 +94,11 @@ export class PdfGenerator {
     const doc = new (globalThis as any).PDFDocument(opts);
     doc.registerFont('Roboto', roboto!);
     doc.registerFont('Roboto-Bold', robotoBold!);
-    const stream = doc.pipe((globalThis as any).blobStream());
-    stream.on('finish', function() {
+    const chunks: Uint8Array[] = [];
+    doc.on('data', (chunk: Uint8Array) => chunks.push(chunk));
+    doc.on('end', () => {
       percentDone(2);
-      const blob = stream.toBlob('application/pdf');
+      const blob = new Blob(chunks as any, { type: 'application/pdf' });
       resolve(blob);
     });
     percentDone(2); // 17%
