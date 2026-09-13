@@ -271,7 +271,12 @@ export class PdfPopup implements OnInit, OnDestroy {
     await assets.loadJs(assetsDependencies['pdf-viewer'], 'module');
     progress(90);
     if (counter !== this.generationCounter) return;
-    this.pdfTask = (globalThis as any).pdfjsLib.getDocument(this.pdfUrl);
+    if (!(Promise as any)['try']) {
+      (Promise as any)['try'] = (fn: any, ...args: any) => new Promise((res, rej) => {
+        try { res(fn(...args)); } catch (e) { rej(e); }
+      });
+    }
+    this.pdfTask = (globalThis as any).pdfjsLib.getDocument({url: this.pdfUrl});
     progress(95);
     const pdf = await this.pdfTask.promise;
     if (counter !== this.generationCounter) return;
