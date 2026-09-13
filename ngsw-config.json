@@ -16,8 +16,7 @@
           "/assets/i18n/*.json",
           "/assets/*.js",
           "/assets/*.mjs",
-          "/assets/pdf-viewer/pdf-viewer.mjs",
-          "/assets/pdf-viewer/pdf-viewer.css"
+          "/assets/*.css"
         ]
       }
     },

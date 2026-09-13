@@ -22,6 +22,7 @@ import { BinaryContent } from '@trailence/utils/binary-content';
 import { PdfFixedColumnsLayout, pdfFullWidth, PdfSectionGenerator } from './pdf-layout-helper';
 import { generateDescriptionAndWaypoints } from './pdf-description-and-waypoints';
 import { computeWayPointsFromTrack, WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
+import { assetsDependencies } from '@trailence/assets-dependencies';
 
 export enum PdfModel {
   BIG_MAP = 'BIG_MAP',
@@ -55,9 +56,9 @@ export class PdfGenerator {
     // progress: 10% for resources
     const assetsService = injector.get(AssetsService);
     await Promise.all([
-      assetsService.loadJs('blob-stream.js').then(() => percentDone(2)),
-      assetsService.loadJs('pdfkit.standalone.js').then(() => percentDone(2)),
-      assetsService.loadJs('svg-to-pdfkit.js').then(() => percentDone(2)),
+      assetsService.loadJs(assetsDependencies['blob-stream']).then(() => percentDone(2)),
+      assetsService.loadJs(assetsDependencies['pdfkit']).then(() => percentDone(2)),
+      assetsService.loadJs(assetsDependencies['svg-to-pdfkit']).then(() => percentDone(2)),
       globalThis.fetch(environment.assetsUrl + '/Roboto-Regular.ttf').then(r => r.arrayBuffer()).then(b => {roboto = b; percentDone(2);}),
       globalThis.fetch(environment.assetsUrl + '/Roboto-Bold.ttf').then(r => r.arrayBuffer()).then(b => {robotoBold = b; percentDone(2);}),
     ]);

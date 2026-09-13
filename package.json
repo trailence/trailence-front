@@ -28,7 +28,7 @@
     "generate-public-pages": "cd scripts && node --import=tsx generate-public-pages.ts && cd ..",
     "generate-local-nginx": "cd docker/local && node --import=tsx generate-local-nginx.ts && cd ../..",
     "make-leaflet-esm": "node ./scripts/make-leaflet-esm.js",
-    "postinstall": "node ./scripts/make-leaflet-esm.js && cd ./node_modules/blob-stream && (cpy .js . --rename=blob-stream.js || cp .js blob-stream.js) && cd ../svg-to-pdfkit && (cpy source.js . --rename=svg-to-pdfkit.js || cp source.js svg-to-pdfkit.js)",
+    "postinstall": "node ./scripts/make-leaflet-esm.js && node ./scripts/copy-assets-dependencies.js",
     "build-assets": "node --import=tsx src/icons/mapping/build.ts",
     "build-doc": "cd doc && node build/build.js",
     "circle": "dpdm ./src/main.ts --ext .ts,.d.ts,.tsx,.mjs,.js,.jsx,.json --tsconfig ./tsconfig.json --tree false --ignore-skip-warning node_modules ./"

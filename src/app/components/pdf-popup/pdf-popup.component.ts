@@ -27,6 +27,7 @@ import { Photo } from '@trailence/model/photo';
 import { PhotosSliderComponent } from '../photos-slider/photos-slider.component';
 import { computeWayPointsFromTrack, WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
 import { AssetsService } from '@trailence/services/assets/assets.service';
+import { assetsDependencies } from '@trailence/assets-dependencies';
 
 export function openPdfPopup(injector: Injector, trail: Trail) {
   injector.get(ModalController).create({
@@ -259,11 +260,11 @@ export class PdfPopup implements OnInit, OnDestroy {
     this.pdfUrl = URL.createObjectURL(this.blob);
 
     const assets = this.injector.get(AssetsService);
-    assets.loadCss('/pdf-viewer/pdf_viewer.css');
-    await assets.loadJs('pdf.min.mjs', 'module');
+    assets.loadCss(assetsDependencies['pdf-viewer-css']);
+    await assets.loadJs(assetsDependencies['pdfjs'], 'module');
     progress(85);
-    (globalThis as any).pdfjsLib.GlobalWorkerOptions.workerSrc = environment.assetsUrl + '/pdf.worker.min.mjs';
-    await assets.loadJs('pdf-viewer/pdf_viewer.mjs', 'module');
+    (globalThis as any).pdfjsLib.GlobalWorkerOptions.workerSrc = environment.assetsUrl + '/' + assetsDependencies['pdfjs-worker'];
+    await assets.loadJs(assetsDependencies['pdf-viewer'], 'module');
     progress(90);
     if (counter !== this.generationCounter) return;
     this.pdfTask = (globalThis as any).pdfjsLib.getDocument(this.pdfUrl);

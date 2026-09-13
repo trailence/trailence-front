@@ -124,7 +124,7 @@ export class AssetsService {
     if (this._loadedCss.includes(name)) return;
     const style = document.createElement('LINK') as HTMLLinkElement;
     style.rel = "stylesheet";
-    style.href = environment.assetsUrl + name;
+    style.href = environment.assetsUrl + '/' + name;
     document.getElementsByTagName('HEAD')[0].appendChild(style);
     this._loadedCss.push(name);
   }
