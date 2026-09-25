@@ -577,6 +577,7 @@
       @if (!trail2 && trail1WithInfo?.source?.externalAppName && trail1WithInfo?.source?.externalAppName !== 'Trailence' && trail1WithInfo?.source?.isExternalOnly && trail1WithInfo?.source?.externalSafeUrl) {
         <ion-segment-button value="external">
           <div class="tab-segment-content">
+            <ion-icon name="web"></ion-icon>
             <div class="text">{{trail1WithInfo!.source!.externalAppName}}</div>
           </div>
         </ion-segment-button>
