@@ -32,6 +32,7 @@ import { OwnerUuid } from '@trailence/model/dto/owned';
 import { SHARED_OWNER_PREFIX, TrailCollectionType } from '@trailence/model/dto/trail-collection';
 import { Maps } from '@trailence/utils/maps';
 import { TrailCollectionService } from './trail-collection.service';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 
 interface MetadataItem extends TrackMetadataSnapshot {
   key: string;
@@ -662,10 +663,20 @@ export class TrackDatabase implements StoreWithCleaning {
   }
 
   private triggerSyncFromServer(): void {
-    if (this.syncStatus$.value && !this.syncStatus$.value.needsUpdateFromServer) {
-      this.syncStatus$.value.needsUpdateFromServer = true;
-      this.syncStatus$.next(this.syncStatus$.value);
-    }
+    this.ngZone.runOutsideAngular(() =>
+      this.syncStatus$.pipe(
+        filterDefined(),
+        first()
+      ).subscribe(() => {
+        this.operations.push('trigger sync from server', () => {
+          if (this.syncStatus$.value && !this.syncStatus$.value.needsUpdateFromServer) {
+            this.syncStatus$.value.needsUpdateFromServer = true;
+            this.syncStatus$.next(this.syncStatus$.value);
+          }
+          return Promise.resolve(true);
+        });
+      })
+    );
   }
 
   private sync(): Observable<boolean> {
