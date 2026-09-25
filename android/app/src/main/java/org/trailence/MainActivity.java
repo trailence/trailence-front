@@ -34,7 +34,7 @@ public class MainActivity extends BridgeActivity {
     WebView.setWebContentsDebuggingEnabled(true);
     ViewCompat.setOnApplyWindowInsetsListener(this.getBridge().getWebView(), (v, windowInsets) -> {
       try {
-        Insets insets = TrailencePlugin.getDeviceInsets(windowInsets, this, getApplicationContext());
+        Insets insets = TrailencePlugin.getDeviceInsets(windowInsets, this);
         String js =
           "document.documentElement.style.setProperty('--safe-area-inset-top', '" + insets.top + "px');" +
             "document.documentElement.style.setProperty('--safe-area-inset-bottom', '" + insets.bottom + "px');" +

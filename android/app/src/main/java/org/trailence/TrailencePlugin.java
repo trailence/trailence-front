@@ -342,11 +342,11 @@ public class TrailencePlugin extends Plugin {
 
   @PluginMethod
   public void getInsets(PluginCall call) {
-    Insets insets = getDeviceInsets(ViewCompat.getRootWindowInsets(this.getBridge().getWebView()), this.getActivity(), this.getContext());
+    Insets insets = getDeviceInsets(ViewCompat.getRootWindowInsets(this.getBridge().getWebView()), this.getActivity());
     call.resolve(new JSObject().put("top", insets.top).put("bottom", insets.bottom).put("left", insets.left).put("right", insets.right));
   }
 
-  public static Insets getDeviceInsets(WindowInsetsCompat windowInsets, AppCompatActivity activity, Context ctx) {
+  public static Insets getDeviceInsets(WindowInsetsCompat windowInsets, AppCompatActivity activity) {
     try {
       Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
       float density = activity.getResources().getDisplayMetrics().density;

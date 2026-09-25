@@ -38,9 +38,7 @@
 }
 
 app-root > ion-app > ion-content > ion-router-outlet {
-  margin-bottom: var(--keyboard-bottom-height, var(--safe-area-inset-bottom, 0px));
-  margin-left: var(--safe-area-inset-left, 0px);
-  margin-right: var(--safe-area-inset-right, 0px);
+  inset: 0 var(--safe-area-inset-right, 0px) var(--keyboard-bottom-height, var(--safe-area-inset-bottom, 0px)) var(--safe-area-inset-left, 0px);
   ion-toolbar {
     padding-right: 0;
     padding-left: 0;

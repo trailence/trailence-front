@@ -115,7 +115,7 @@ ion-modal ion-toolbar ion-title {
 
 ion-modal, ion-alert {
   --modal-area-margin-top: calc(max(var(--ion-safe-area-top, 0px), var(--safe-area-inset-top, 0px)));
-  --modal-area-margin-bottom: calc(max(var(--ion-safe-area-bottom, 0px), var(--safe-area-inset-bottom, 0px)) + var(--keyboard-bottom-height, 0px));
+  --modal-area-margin-bottom: var(--keyboard-bottom-height, calc(max(var(--ion-safe-area-bottom, 0px), var(--safe-area-inset-bottom, 0px))));
   --modal-area-margin-left: calc(max(var(--ion-safe-area-left, 0px), var(--safe-area-inset-left, 0px)));
   --modal-area-margin-right: calc(max(var(--ion-safe-area-right, 0px), var(--safe-area-inset-right, 0px)));
   --modal-area-margin-height: calc(var(--modal-area-margin-top) + var(--modal-area-margin-bottom));

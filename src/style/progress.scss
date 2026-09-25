@@ -10,7 +10,7 @@
 
   &.at-bottom {
     top: unset;
-    bottom: calc(10px + var(--move-y));
+    bottom: calc(10px + var(--move-y) + var(--keyboard-bottom-height, var(--safe-area-inset-bottom, 0px)));
     justify-content: flex-end;
   }
 
