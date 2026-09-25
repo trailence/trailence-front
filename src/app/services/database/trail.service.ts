@@ -444,7 +444,7 @@ class TrailStore extends OwnedStore<TrailDto, Trail> implements StoreWithCleanin
           for (const trail of trails) {
             if (trail.createdAt > maxDate || trail.updatedAt > maxDate) continue;
             if (trail.owner === status.email) {
-              if (collections.some(c => c.uuid === trail.collectionUuid && c.owner === status.email)) continue;
+              if (collections.some(c => c.uuid === trail.collectionUuid && c.owner === status.email && c.type !== TrailCollectionType.SHARED)) continue;
             } else if (trail.owner.startsWith(SHARED_OWNER_PREFIX)) {
               if (collections.some(c => c.type === TrailCollectionType.SHARED && c.getContentOwner() === trail.owner)) continue;
             } else {

@@ -43,7 +43,7 @@ export class AdminMessagesPage {
     ],
     (request: PageRequest) => this.messagesService.getMessages(request),
     'admin.messages.error'
-  ).withSelectable(() => true);
+  ).withSelectable(() => true).withDefaultSort('sentAt', false);
 
   async openMessage(message: ContactMessageDto) {
     const module = await import('./message-popup/message-popup.component')

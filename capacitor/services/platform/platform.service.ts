@@ -161,7 +161,7 @@ export class PlatformService {
               .then(imported => {
                 progress.done();
                 importer.finishImport(this.injector, imported, collection).then(
-                  () => imported.length === 1 ? this.injector.get(Router).navigateByUrl('/trail/' + collection.owner + '/' + imported[0].trailUuid) :
+                  () => imported.length === 1 ? this.injector.get(Router).navigateByUrl('/trail/' + collection.getContentOwner() + '/' + imported[0].trailUuid) :
                                                 this.injector.get(Router).navigateByUrl('/collection/' + collection.uuid)
                 );
               })
