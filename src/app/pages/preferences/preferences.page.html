@@ -471,51 +471,53 @@
     </div>
   </div>
 
-  <div class="preference">
-    <div class="icon">
-      <ion-icon name="database"></ion-icon>
-    </div>
-    <div class="preference-content">
-      <div class="title">{{i18n.texts.pages.preferences.photos_cache}}</div>
-      <div class="explaination" [innerHTML]="i18n.texts.pages.preferences.photos_cache_explaination"></div>
-      <div style="margin-top: 10px">{{i18n.texts.pages.preferences.photos_cache_max_days}}</div>
-      <div class="value">
-        <app-filter-numeric-custom
-          [config]="photoCacheDaysConfig"
-          [value]="preferences.preferences.photoCacheDays"
-          (valueChange)="setPhotoCacheDays($event)"
-        ></app-filter-numeric-custom>
+  @if (!isAnonymous) {
+    <div class="preference">
+      <div class="icon">
+        <ion-icon name="database"></ion-icon>
       </div>
-      <div class="value">
-        <table>
-          <tr>
-            <th>{{i18n.texts.pages.preferences.photos_cache_total}}</th>
-            <td id="{{id}}-photo-cache-size">
-              @if (photoCacheSize === undefined) {
-                <ion-spinner name="dots"></ion-spinner>
-              } @else {
-                {{i18n.sizeToString(photoCacheSize.total)}}
-              }
-            </td>
-          </tr>
-          <tr>
-            <th>{{i18n.texts.pages.preferences.photos_cache_expired}}</th>
-            <td>
-              {{i18n.sizeToString($safeNavigationMigration(photoCacheSize?.expired))}}
-            </td>
-          </tr>
-        </table>
-        <ion-button (click)="removeAllCachedPhotos()" [disabled]="!photoCacheSize?.total" id="button-remove-all-photos">
-          <ion-icon name="trash" slot="start"></ion-icon>
-          <ion-label>{{i18n.texts.pages.preferences.photos_cache_remove_all}}</ion-label>
-        </ion-button>
-        <ion-button (click)="removeExpiredPhotos()" [disabled]="!photoCacheSize?.expired">
-          <ion-icon name="cleaning" slot="start"></ion-icon>
-          <ion-label>{{i18n.texts.pages.preferences.photos_cache_remove_expired}}</ion-label>
-        </ion-button>
+      <div class="preference-content">
+        <div class="title">{{i18n.texts.pages.preferences.photos_cache}}</div>
+        <div class="explaination" [innerHTML]="i18n.texts.pages.preferences.photos_cache_explaination"></div>
+        <div style="margin-top: 10px">{{i18n.texts.pages.preferences.photos_cache_max_days}}</div>
+        <div class="value">
+          <app-filter-numeric-custom
+            [config]="photoCacheDaysConfig"
+            [value]="preferences.preferences.photoCacheDays"
+            (valueChange)="setPhotoCacheDays($event)"
+          ></app-filter-numeric-custom>
+        </div>
+        <div class="value">
+          <table>
+            <tr>
+              <th>{{i18n.texts.pages.preferences.photos_cache_total}}</th>
+              <td id="{{id}}-photo-cache-size">
+                @if (photoCacheSize === undefined) {
+                  <ion-spinner name="dots"></ion-spinner>
+                } @else {
+                  {{i18n.sizeToString(photoCacheSize.total)}}
+                }
+              </td>
+            </tr>
+            <tr>
+              <th>{{i18n.texts.pages.preferences.photos_cache_expired}}</th>
+              <td>
+                {{i18n.sizeToString($safeNavigationMigration(photoCacheSize?.expired))}}
+              </td>
+            </tr>
+          </table>
+          <ion-button (click)="removeAllCachedPhotos()" [disabled]="!photoCacheSize?.total" id="button-remove-all-photos">
+            <ion-icon name="trash" slot="start"></ion-icon>
+            <ion-label>{{i18n.texts.pages.preferences.photos_cache_remove_all}}</ion-label>
+          </ion-button>
+          <ion-button (click)="removeExpiredPhotos()" [disabled]="!photoCacheSize?.expired">
+            <ion-icon name="cleaning" slot="start"></ion-icon>
+            <ion-label>{{i18n.texts.pages.preferences.photos_cache_remove_expired}}</ion-label>
+          </ion-button>
+        </div>
       </div>
     </div>
-  </div>
+  }
 
   <div style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
     <ion-button (click)="resetAll()">

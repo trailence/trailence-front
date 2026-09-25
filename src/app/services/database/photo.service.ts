@@ -28,6 +28,7 @@ import { CommonDatabaseService } from './common-database.service';
 import { StoreWithCleaning } from './store/store.service';
 import { WorkerService } from '@trailence/worker/web-app';
 import { SHARED_OWNER_PREFIX } from '@trailence/model/dto/trail-collection';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable({providedIn: 'root'})
 export class PhotoService {
@@ -506,7 +507,8 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> implements StoreWithCleanin
     return firstValueFrom(photosCleant$.pipe(
       switchMap(references => {
         if (!references) return of('0');
-        return this.injector.get(StoredFilesService).cleanExpiredFiles('photo', Date.now() - (this.injector.get(PreferencesService).preferences.photoCacheDays * 24 * 60 * 60 * 1000)).pipe(
+        const cleanExpired = this.injector.get(AuthService).auth?.isAnonymous ? of(0) : this.injector.get(StoredFilesService).cleanExpiredFiles('photo', Date.now() - (this.injector.get(PreferencesService).preferences.photoCacheDays * 24 * 60 * 60 * 1000));
+        return cleanExpired.pipe(
           switchMap(() => this.injector.get(StoredFilesService).cleanUnreferencedFiles('photo', references, Date.now() - 3 * 24 * 60 * 60 * 1000)),
         );
       })
