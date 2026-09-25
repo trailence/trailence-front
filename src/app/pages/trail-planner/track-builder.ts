@@ -29,6 +29,7 @@ import { Way, WayPermission } from '@trailence/services/map/way';
 import { WorkerService } from '@trailence/worker/web-app';
 import { TrackComputedDataCacheService } from '@trailence/services/database/track-computed-data-cache.service';
 import { NetworkService } from '@trailence/services/network/network.service';
+import { TrailCollection } from '@trailence/model/trail-collection';
 
 export const WAY_MAPTRACK_DEFAULT_COLOR = '#0000FF80'
 export const WAY_MAPTRACK_HIGHLIGHTED_COLOR = '#000080FF'
@@ -103,19 +104,21 @@ export class TrackBuilder {
     this.deleteFromLocalStorage();
   }
 
-  save(collectionUuid: string, trailName: string): Trail {
+  save(collection: TrailCollection, trailName: string): Trail {
+    const user = this.track!.owner;
+    const track = this.track!.owner !== collection.getContentOwner() ? this.track!.copy(collection.getContentOwner()) : this.track!;
     const trail = new Trail({
-      owner: this.track!.owner,
-      collectionUuid: collectionUuid,
+      owner: track.owner,
+      collectionUuid: collection.uuid,
       name: trailName,
-      originalTrackUuid: this.track!.uuid,
-      currentTrackUuid: this.track!.uuid,
+      originalTrackUuid: track.uuid,
+      currentTrackUuid: track.uuid,
       sourceType: TrailSourceType.TRAILENCE_PLANNER,
-      source: this.track!.owner,
+      source: user,
       sourceDate: Date.now(),
     });
-    this.injector.get(TrackEditionService).computeFinalMetadata(trail, this.track!);
-    this.injector.get(TrackService).create(this.track!);
+    this.injector.get(TrackEditionService).computeFinalMetadata(trail, track);
+    this.injector.get(TrackService).create(track);
     this.injector.get(TrailService).create(trail);
     return trail;
   }

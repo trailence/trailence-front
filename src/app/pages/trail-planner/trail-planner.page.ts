@@ -205,7 +205,9 @@ export class TrailPlannerPage extends AbstractPage {
   }
 
   save(): void {
-    const trail = this.trackBuilder!.save(this.collectionUuid!, this.trailName);
+    const collection = this.collections.find(c => c.uuid === this.collectionUuid);
+    if (!collection) return;
+    const trail = this.trackBuilder!.save(collection, this.trailName);
     this.doReset();
     this.injector.get(Router).navigateByUrl('/trail/' + encodeURIComponent(trail.owner) + '/' + encodeURIComponent(trail.uuid));
     this.injector.get(ModalController).dismiss(null, 'ok');
