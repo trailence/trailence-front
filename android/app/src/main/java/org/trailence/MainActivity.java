@@ -2,6 +2,7 @@ package org.trailence;
 
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.Logger;
+import com.getcapacitor.WebViewListener;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -39,11 +40,19 @@ public class MainActivity extends BridgeActivity {
             "document.documentElement.style.setProperty('--safe-area-inset-bottom', '" + insets.bottom + "px');" +
             "document.documentElement.style.setProperty('--safe-area-inset-left', '" + insets.left + "px');" +
             "document.documentElement.style.setProperty('--safe-area-inset-right', '" + insets.right + "px');";
+        Logger.info("Apply insets " + insets);
         bridge.getWebView().evaluateJavascript(js, null);
       } catch (Exception e) {
         Logger.error("Error setting insets", e);
       }
       return WindowInsetsCompat.CONSUMED;
+    });
+    this.getBridge().addWebViewListener(new WebViewListener() {
+      @Override
+      public void onPageCommitVisible(WebView view, String url) {
+        super.onPageCommitVisible(view, url);
+        getBridge().getWebView().requestApplyInsets();
+      }
     });
   }
 
