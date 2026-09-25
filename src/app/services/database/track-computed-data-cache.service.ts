@@ -12,6 +12,7 @@ import { CleanupService } from './cleanup/cleanup.service';
 import { TrackService } from './track.service';
 import { POI } from '../map/poi';
 import { PoisResponse } from '../map/pois';
+import { TrackPointReference } from '@trailence/utils/track-computed-data/types';
 
 export interface CacheItem {
   key: string;
@@ -37,6 +38,7 @@ export interface OsmStatsItem extends CacheItem {
   surface: Map<WaySurface, TrackOsmStatInfo>;
   hikingDifficulty: Map<HikingDifficulty, TrackOsmStatInfo>;
   visibility: Map<WayVisibility, TrackOsmStatInfo>;
+  missingOsmData: TrackPointReference[] | undefined;
 }
 
 export interface GuidepostsItem extends CacheItem {
@@ -175,6 +177,7 @@ export class TrackComputedDataCacheService implements OnDestroy {
       surface: stats.surface,
       hikingDifficulty: stats.hikingDifficulty,
       visibility: stats.visibility,
+      missingOsmData: stats.missingOsmData,
     })
   }
 

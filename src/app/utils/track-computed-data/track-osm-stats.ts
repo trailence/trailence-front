@@ -15,9 +15,11 @@ export interface TrackOsmStats {
   surface: Map<WaySurface, TrackOsmStatInfo>;
   hikingDifficulty: Map<HikingDifficulty, TrackOsmStatInfo>;
   visibility: Map<WayVisibility, TrackOsmStatInfo>;
+  missingOsmData: TrackPointReference[];
 }
 
 export function getTrackOsmStats(ways: Map<string, Way>, osmTrackPoints: OsmWaysTrackPoint[][], isPartial: boolean, osmDataVersion: number | undefined): TrackOsmStats {
+  const missingOsmData: TrackPointReference[] = [];
   const stats: TrackOsmStats = {
     osmDataVersion,
     osmTotalDistanceMeters: 0,
@@ -26,11 +28,13 @@ export function getTrackOsmStats(ways: Map<string, Way>, osmTrackPoints: OsmWays
     hikingDifficulty: new Map<HikingDifficulty, TrackOsmStatInfo>(),
     visibility: new Map<WayVisibility, TrackOsmStatInfo>(),
     isPartial,
+    missingOsmData,
   };
   for (const segment of osmTrackPoints) {
     for (let pi = 0; pi < segment.length; ++pi) {
       const point = segment[pi];
       if (!point.osm) {
+        if (point.originalTrackPoint) stats.missingOsmData.push(point.originalTrackPoint);
         continue;
       }
       let pi2 = pi + 1;

@@ -184,6 +184,7 @@ export class TrackComputedData {
             surface: fromCache.surface,
             hikingDifficulty: fromCache.hikingDifficulty,
             visibility: fromCache.visibility,
+            missingOsmData: fromCache.missingOsmData ?? [],
           });
         if (fromCache && !server)
           return concat(
@@ -195,6 +196,7 @@ export class TrackComputedData {
               surface: fromCache.surface,
               hikingDifficulty: fromCache.hikingDifficulty,
               visibility: fromCache.visibility,
+              missingOsmData: fromCache.missingOsmData ?? [],
             }),
             this.networkService.server$.pipe(
               filterDefined(),

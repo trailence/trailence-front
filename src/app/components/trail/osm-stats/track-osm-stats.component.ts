@@ -81,6 +81,14 @@ export class TrackOsmStatsComponent extends AbstractComponent {
       this.message = 'osm_stats.messages.partial_data';
     else
       this.message = undefined;
+    if (this.track && stats.missingOsmData.length > 1) {
+      let missingDistance = 0;
+      for (const ref of stats.missingOsmData) {
+        missingDistance += this.track.getPoint(ref).distanceFromPreviousPoint
+      }
+      if (missingDistance > 100 && missingDistance > stats.osmTotalDistanceMeters / 20)
+        stats.osmTotalDistanceMeters += missingDistance;
+    }
     return {
       wayType: this.mapToStat(stats, stats.wayType, new Map()),
       surface: this.mapToStat(stats, stats.surface, new Map([[3, 2], [4, 5]])),
