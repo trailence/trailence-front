@@ -5,7 +5,7 @@ app-map, div.map-full-screen {
 
     div.leaflet-tile-pane .leaflet-tile {
       background: repeating-linear-gradient(-45deg,rgba(0, 0, 0, 0.2),rgba(0, 0, 0, 0.2) 10px,rgba(0, 0, 0, 0.3) 10px,rgba(0, 0, 0, 0.3) 20px);
-      &.map-tile-loading {
+      &.map-tile-loading, &.leaflet-tile-loaded:not(.map-tile-not-available) {
         background: transparent;
       }
       &.map-tile-error {

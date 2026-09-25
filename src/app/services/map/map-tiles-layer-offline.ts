@@ -92,6 +92,7 @@ export function handleMapOffline(name: string, displayName: string, tiles: L.Til
           + '</svg>';
         img.src = 'data:image/svg+xml;base64,' + btoa(svg);
         img.classList.remove('map-tile-loading');
+        img.classList.add('map-tile-not-available');
         done(undefined, img);
         return;
       }
