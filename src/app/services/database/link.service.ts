@@ -2,13 +2,15 @@ import { Injectable, Injector } from '@angular/core';
 import { SimpleStoreWithoutUpdate } from './store/simple-store-without-update';
 import { TrailLink } from '@trailence/model/dto/trail-link';
 import { HttpService } from '../http/http.service';
-import { catchError, concatAll, EMPTY, from, map, Observable, switchMap, toArray } from 'rxjs';
+import { catchError, concatAll, EMPTY, first, firstValueFrom, from, map, Observable, switchMap, toArray, zip } from 'rxjs';
 import { environment } from '@env/environment';
 import { Console } from '@trailence/utils/console';
 import { TrailService } from './trail.service';
 import { AuthService } from '../auth/auth.service';
 import { CommonDatabaseService } from './common-database.service';
-import { StoreService } from './store/store.service';
+import { StoreService, StoreWithCleaning } from './store/store.service';
+import { collection$items } from '@trailence/utils/rxjs/collection$items';
+import { CompositeOnDone } from '@trailence/utils/callback-utils';
 
 @Injectable({providedIn: 'root'})
 export class TrailLinkService {
@@ -47,7 +49,7 @@ export class TrailLinkService {
 
 }
 
-class TrailLinkStore extends SimpleStoreWithoutUpdate<TrailLink, TrailLink> {
+class TrailLinkStore extends SimpleStoreWithoutUpdate<TrailLink, TrailLink> implements StoreWithCleaning {
 
   constructor(
     injector: Injector,
@@ -137,6 +139,43 @@ class TrailLinkStore extends SimpleStoreWithoutUpdate<TrailLink, TrailLink> {
 
   public triggerSyncNow(): void {
     this.injector.get(StoreService).triggerStoreSync(this.table.name);
+  }
+
+  cleaningDependencies(): string[] {
+    return ['trails'];
+  }
+
+  doCleaning(): Promise<string> {
+    const status = this._storeLoaded$.value;
+    if (!status) return Promise.resolve('not loaded');
+    return firstValueFrom(zip([
+      this.getAll$().pipe(collection$items()),
+      this.injector.get(TrailService).getAll$().pipe(collection$items()),
+    ]).pipe(
+      first(),
+      switchMap(([links, trails]) => {
+        return new Observable<string>(subscriber => {
+          if (!this.isStillValid(status)) {
+            subscriber.next('database changed, cancelled');
+            subscriber.complete();
+            return;
+          }
+          const maxDate = Date.now() - 24 * 60 * 60 * 1000;
+          let count = 0;
+          const ondone = new CompositeOnDone(() => {
+            subscriber.next('' + count);
+            subscriber.complete();
+          });
+          for (const link of links) {
+            if (link.createdAt > maxDate) continue;
+            if (trails.some(t => t.uuid === link.trailUuid && t.owner === link.trailOwner)) continue;
+            count++;
+            this.delete(link, ondone.add());
+          }
+          ondone.start();
+        });
+      })
+    ));
   }
 
 }
