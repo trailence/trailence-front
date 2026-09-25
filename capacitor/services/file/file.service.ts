@@ -12,7 +12,7 @@ export class FileService implements IFileService {
 
   public openFileDialog<P,T>(request: OpenFileRequest<P,T>): void {
     FilePicker.pickFiles({
-      types: request.types.map(t => t.mime),
+      //types: request.types.map(t => t.mime),
       limit: request.multiple ? 0 : 1,
       readData: true
     }).then(pickedFiles => {
