@@ -288,6 +288,7 @@ class RegisteredStore implements StoreRegistration {
   }
 
   start(): void {
+    Console.info('Store started', this.name);
     const ngZone = this.service.injector.get(NgZone);
     ngZone.runOutsideAngular(() => {
       combineLatest([
@@ -356,8 +357,10 @@ class RegisteredStore implements StoreRegistration {
           if (this.syncTimeout) clearTimeout(this.syncTimeout);
           this.syncTimeout = undefined;
           this.syncTimeoutDate = 0;
+          let hasNext = false;
           this.doSync().subscribe({
             next: syncAgain => {
+              hasNext = true;
               this.inProgress$.next(false);
               this.syncAgain = syncAgain;
               if (syncAgain) {
@@ -380,14 +383,23 @@ class RegisteredStore implements StoreRegistration {
               }
             },
             complete: () => {
-              Console.info('Store closed', this.name);
-              this.inProgress$.next(false);
+              if (!hasNext) {
+                Console.warn('Store sync did not emit a value', this.name);
+                this.inProgress$.next(false);
+              }
             },
             error: e => {
-              Console.error('Store error', e);
-              this.inProgress$.next(false);
+              Console.error('Store sync error', e);
+              if (!hasNext)
+                this.inProgress$.next(false);
             },
           });
+        },
+        complete: () => {
+          Console.info('Store closed', this.name);
+        },
+        error: e => {
+          Console.error('Store error', e);
         }
       });
       // monitoring
