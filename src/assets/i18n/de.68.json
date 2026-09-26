@@ -1276,6 +1276,10 @@
       "title": "GPS deaktiviert",
       "message": "Ihr GPS ist derzeit deaktiviert. Bitte aktivieren Sie es, um eine Aufzeichnung starten zu können."
     },
+    "denied_popup": {
+      "title": "Standortzugriff nicht erlaubt",
+      "message": "Der Standortzugriff ist für Trailence nicht erlaubt. Bitte erlauben Sie den Zugriff in den Einstellungen Ihres Geräts, um die Standortfunktionen zu nutzen."
+    },
     "confirm_popup": {
       "resume_message": "Bitte bestätigen Sie das Fortsetzen der Tour",
       "pause_message": "Bitte bestätigen Sie das Pausieren der Tour",

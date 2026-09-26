@@ -1276,6 +1276,10 @@
       "title": "GPS desativado",
       "message": "O seu GPS está atualmente desativado. Ative-o para poder iniciar um traçado."
     },
+    "denied_popup": {
+      "title": "Localização não autorizada",
+      "message": "O acesso à localização não está autorizado para o Trailence. Autorize-o nas definições do seu dispositivo para utilizar as funcionalidades de localização."
+    },
     "confirm_popup": {
       "resume_message": "Confirme a retoma do percurso",
       "pause_message": "Confirme a pausa do percurso",

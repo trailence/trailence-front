@@ -68,7 +68,12 @@ export class MapGeolocationService {
         }
         if (!this.watching) {
           this.watching = true;
-          this.geolocationService.watchPosition(this.i18n.texts.trace_recorder.notif_message, this.watcher);
+          this.geolocationService.needsPermission()
+          .then(() => this.geolocationService.watchPosition(this.i18n.texts.trace_recorder.notif_message, this.watcher))
+          .catch(() => {
+            this.watching = false;
+            this._showPosition.next(false);
+          });
         }
         if (!watch) return undefined;
         Console.info('new position received on map', watch);

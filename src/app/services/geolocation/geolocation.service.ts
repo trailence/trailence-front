@@ -1,13 +1,15 @@
 import { Injectable } from '@angular/core';
-import { GEOLOCATION_MAX_AGE, GEOLOCATION_TIMEOUT, GeolocationState, IGeolocationService } from './geolocation.interface';
+import { GEOLOCATION_MAX_AGE, GEOLOCATION_TIMEOUT, GeolocationState, AbstractGeolocationService } from './geolocation.interface';
 import { PointDto } from '@trailence/model/dto/point';
 import { BehaviorSubject } from 'rxjs';
 import { Console } from '@trailence/utils/console';
+import { I18nService } from '../i18n/i18n.service';
+import { AlertController } from '@ionic/angular';
 
 @Injectable({
   providedIn: 'root'
 })
-export class GeolocationService implements IGeolocationService {
+export class GeolocationService extends AbstractGeolocationService {
 
   private readonly _waitingForGps$ = new BehaviorSubject<boolean>(false);
   private readonly _lastKnownPosition$ = new BehaviorSubject<{position: PointDto, timestamp: number} | undefined>(undefined);
@@ -22,14 +24,27 @@ export class GeolocationService implements IGeolocationService {
     timeout: GEOLOCATION_TIMEOUT
   }
 
-  constructor() { }
-
   public readonly isNative = false;
   public get waitingForGps$() { return this._waitingForGps$; }
   public get waitingForGps() { return this._waitingForGps$.value; }
   public get lastKnownPosition$() { return this._lastKnownPosition$; }
   public get lastKnownPosition() { return this._lastKnownPosition$.value; }
   public get watched$() { return this._watched$; }
+
+  constructor(
+    i18n: I18nService,
+    alertController: AlertController,
+  ) {
+    super(i18n, alertController);
+  }
+
+  override canRequestPermission(): boolean {
+    return false;
+  }
+
+  override requestPermissions(): Promise<boolean> {
+    return Promise.resolve(false);
+  }
 
   getState(): Promise<GeolocationState> {
     return globalThis.navigator.permissions.query({name: 'geolocation'})

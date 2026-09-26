@@ -1276,6 +1276,10 @@
       "title": "GPS disabled",
       "message": "Your GPS is disabled, please enable it to start a track."
     },
+    "denied_popup": {
+      "title": "Location access not allowed",
+      "message": "Location access is not allowed for Trailence. Please allow it in your device settings to use location features."
+    },
     "confirm_popup": {
       "resume_message": "Please confirm you want to resume the trail",
       "pause_message": "Please confirm you want to pause the trail",

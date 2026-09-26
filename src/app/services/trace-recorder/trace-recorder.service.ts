@@ -15,7 +15,6 @@ import { PreferencesService } from '../preferences/preferences.service';
 import { TrackService } from '../database/track.service';
 import { TrailService } from '../database/trail.service';
 import * as L from 'leaflet';
-import { GeolocationState } from '../geolocation/geolocation.interface';
 import { AlertController, ToastController } from '@ionic/angular';
 import { ImprovmentRecordingState, ImprovmentRecordingStateDto, TrackEditionService } from '../track-edition/track-edition.service';
 import { ProgressService } from '../progress/progress.service';
@@ -342,70 +341,40 @@ export class TraceRecorderService {
   private _geolocationListener?: (position: PointDto) => void;
 
   private startRecording(recording: Recording): Promise<Recording> {
-    if (!this.i18n.texts) {
-      return firstValueFrom(this.i18n.texts$.pipe(filterDefined())).then(() => this.startRecording(recording));
-    }
-    return this.geolocation.getState()
-    .then(state => {
-      if (state === GeolocationState.DISABLED) {
-        return new Promise((resolve, reject) => {
-          this.alertController.create({
-            header: this.i18n.texts.trace_recorder.disabled_popup.title,
-            message: this.i18n.texts.trace_recorder.disabled_popup.message,
-            backdropDismiss: false,
-            buttons: [{
-              text: this.i18n.texts.buttons.retry,
-              role: 'ok',
-              handler: () => {
-                this.alertController.dismiss();
-                this.startRecording(recording).then(resolve).catch(reject);
-              }
-            }, {
-              text: this.i18n.texts.buttons.cancel,
-              role: 'cancel',
-              handler: () => {
-                this.alertController.dismiss();
-                reject('Geolocation disabled');
-              }
-            }]
-          }).then(alert => alert.present());
-        });
-      } else if (state === GeolocationState.DENIED) {
-        throw new Error('Geolocation access denied by user');
-      } else {
-        Console.info('Start recording');
-        this._recording$.next(recording);
-        this._changesSubscription = this.ngZone.runOutsideAngular(() =>
-          combineLatest([
-            concat(of(true), recording.trail.changes$),
-            concat(of(true), recording.track.changes$),
-            recording.photos$,
-          ])
-          .pipe(skip(1), debounceTimeExtended(1000, 5000, 25))
-          .subscribe(() => this.save(recording))
-        );
-        this._geolocationListener = (position: PointDto) => {
-          this.ngZone.runOutsideAngular(() => this.newPositionReceived(position, recording));
-        }
-        this.geolocation.watchPosition(this.i18n.texts.trace_recorder.notif_message, this._geolocationListener);
-        this.screenLockService.set(true);
-        if (!this.geolocation.isNative && recording.rawTrack.metadata.distance === 0) {
-          this.toastController.create({
-            message: this.i18n.texts.trace_recorder.not_native_message,
-            color: 'warning',
-            position: 'bottom',
-            duration: 60000,
-            swipeGesture: "vertical",
-            mode: "ios",
-            layout: "stacked",
-            buttons: [{
-              text: this.i18n.texts.buttons.close,
-              role: 'cancel',
-            }]
-          }).then(t => t.present());
-        }
-        return recording;
+    return this.geolocation.needsPermission()
+    .then(() => {
+      Console.info('Start recording');
+      this._recording$.next(recording);
+      this._changesSubscription = this.ngZone.runOutsideAngular(() =>
+        combineLatest([
+          concat(of(true), recording.trail.changes$),
+          concat(of(true), recording.track.changes$),
+          recording.photos$,
+        ])
+        .pipe(skip(1), debounceTimeExtended(1000, 5000, 25))
+        .subscribe(() => this.save(recording))
+      );
+      this._geolocationListener = (position: PointDto) => {
+        this.ngZone.runOutsideAngular(() => this.newPositionReceived(position, recording));
       }
+      this.geolocation.watchPosition(this.i18n.texts.trace_recorder.notif_message, this._geolocationListener);
+      this.screenLockService.set(true);
+      if (!this.geolocation.isNative && recording.rawTrack.metadata.distance === 0) {
+        this.toastController.create({
+          message: this.i18n.texts.trace_recorder.not_native_message,
+          color: 'warning',
+          position: 'bottom',
+          duration: 60000,
+          swipeGesture: "vertical",
+          mode: "ios",
+          layout: "stacked",
+          buttons: [{
+            text: this.i18n.texts.buttons.close,
+            role: 'cancel',
+          }]
+        }).then(t => t.present());
+      }
+      return recording;
     });
   }
 

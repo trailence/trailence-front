@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { PointDto } from '@trailence/model/dto/point';
-import { GEOLOCATION_MAX_AGE, GEOLOCATION_TIMEOUT, GeolocationState, IGeolocationService } from '@trailence/services/geolocation/geolocation.interface';
+import { GEOLOCATION_MAX_AGE, GEOLOCATION_TIMEOUT, GeolocationState, AbstractGeolocationService } from '@trailence/services/geolocation/geolocation.interface';
 import { registerPlugin } from '@capacitor/core';
 import { BehaviorSubject } from 'rxjs';
 import { Console } from '@trailence/utils/console';
@@ -63,7 +63,7 @@ const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>("Backg
 @Injectable({
   providedIn: 'root'
 })
-export class GeolocationService implements IGeolocationService {
+export class GeolocationService extends AbstractGeolocationService {
 
   private readonly _waitingForGps$ = new BehaviorSubject<boolean>(false);
   private readonly _lastKnownPosition$ = new BehaviorSubject<{position: PointDto, timestamp: number} | undefined>(undefined);
@@ -79,9 +79,11 @@ export class GeolocationService implements IGeolocationService {
   }
 
   constructor(
-    private readonly alertController: AlertController,
-    private readonly i18n: I18nService,
-  ) { }
+    i18n: I18nService,
+    alertController: AlertController,
+  ) {
+    super(i18n, alertController);
+  }
 
   public readonly isNative = true;
   public get waitingForGps$() { return this._waitingForGps$; }
@@ -97,6 +99,14 @@ export class GeolocationService implements IGeolocationService {
       Console.error('checkPermissions error', error);
       return Promise.resolve(GeolocationState.DISABLED);
     })
+  }
+
+  override canRequestPermission(): boolean {
+    return true;
+  }
+
+  override requestPermissions(): Promise<boolean> {
+    return BackgroundGeolocation.requestPermissions().then(r => r.location === 'granted');
   }
 
   private handlePermissions(status: PermissionStatus): Promise<GeolocationState> {

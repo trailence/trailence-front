@@ -1276,6 +1276,10 @@
       "title": "GPS disattivato",
       "message": "Il tuo GPS è attualmente disattivato, attivalo per poter avviare una registrazione."
     },
+    "denied_popup": {
+      "title": "Accesso alla posizione non autorizzato",
+      "message": "L'accesso alla posizione non è autorizzato per Trailence. Autorizzalo nelle impostazioni del dispositivo per utilizzare le funzioni di localizzazione."
+    },
     "confirm_popup": {
       "resume_message": "Conferma la ripresa del percorso",
       "pause_message": "Conferma la messa in pausa del percorso",
