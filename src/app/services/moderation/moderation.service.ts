@@ -557,19 +557,26 @@ export class ModerationService {
   private listenCounters(): void {
     this.injector.get(AuthService).permissionsChanged$.pipe(
       // only admin or moderator
-      filter(auth => !!auth && (auth.admin || !!auth.roles?.find(r => r === 'moderator'))),
-      // only network available
-      switchMap(() => this.injector.get(NetworkService).server$),
-      filter(net => !!net),
-      // stable for at least 5 seconds
-      debounceTime(5000),
-      // refresh requested or timer every 10 minutes
-      switchMap(() => combineLatest([this._refreshCounters$, timer(0, 10 * 60 * 1000)])),
-      switchMap(() => this.http.get<ModerationCounters>(environment.apiBaseUrl + '/moderation/v1/counters'))
+      switchMap(auth => {
+        if (!auth || (!auth.admin && !auth.roles?.find(r => r === 'moderator'))) return of(undefined);
+        return this.injector.get(NetworkService).server$.pipe(
+          // only network available
+          filter(net => !!net),
+          // stable for at least 5 seconds
+          debounceTime(5000),
+          // refresh requested or timer every 10 minutes
+          switchMap(() => combineLatest([this._refreshCounters$, timer(0, 10 * 60 * 1000)])),
+          switchMap(() => this.http.get<ModerationCounters>(environment.apiBaseUrl + '/moderation/v1/counters')),
+        )
+      }),
+      catchError(error => {
+        Console.error('Error getting moderation counters', error);
+        return of(undefined);
+      })
     ).subscribe(counters => {
       const current = this._counters$.value;
-      if (current?.trails !== counters.trails || current.comments !== counters.comments || current.commentReplies !== counters.commentReplies ||
-        current.removeRequests !== counters.removeRequests || current.avatars !== counters.avatars)
+      if (current?.trails !== counters?.trails || current?.comments !== counters?.comments || current?.commentReplies !== counters?.commentReplies ||
+        current?.removeRequests !== counters?.removeRequests || current?.avatars !== counters?.avatars)
         this._counters$.next(counters);
     });
   }

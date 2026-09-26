@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { NetworkService } from '../network/network.service';
-import { BehaviorSubject, catchError, combineLatest, debounceTime, defaultIfEmpty, EMPTY, filter, interval, map, Observable, Subscription, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, debounceTime, defaultIfEmpty, EMPTY, filter, first, interval, map, Observable, of, Subscription, switchMap, tap, timer } from 'rxjs';
 import { environment } from '@env/environment';
 import { GeolocationService } from '../geolocation/geolocation.service';
 import { AuthService } from '../auth/auth.service';
@@ -14,6 +14,7 @@ import { Console } from '@trailence/utils/console';
 import { GeolocationState } from '../geolocation/geolocation.interface';
 import { AlertController } from '@ionic/angular';
 import { LiveGroupDto } from '@trailence/model/dto/live-group';
+import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
 
 const LATEST_GROUPS_KEY_PREFIX = 'trailence.latest_live_groups.';
 
@@ -44,31 +45,39 @@ export class LiveGroupService {
   }
 
   private init(): void {
-    combineLatest([this.network.server$, this.authService.userChanged$]).pipe(
-      switchMap(([connected, auth]) => {
+    this.authService.userChanged$.pipe(
+      map(auth => {
         const newId = auth && !auth.isAnonymous ? auth.email : 'anonymous$' + deviceId();
         if (newId !== this._currentId) {
           this._currentId = newId;
           this.stopListening();
           this._groups$.next(undefined);
         }
-        if (!connected) {
-          const key = LATEST_GROUPS_KEY_PREFIX + (this.authService.email || '$');
-          const stored = localStorage.getItem(key);
-          if (stored) {
-            try {
-              const groups = JSON.parse(stored) as LiveGroupDto[];
-              this.updateGroups(groups);
-            } catch (e) { /* ignore */ }
-          }
-          return EMPTY;
-        }
-        return this.http.get<LiveGroupDto[]>(environment.apiBaseUrl + '/live-group/v1' + (newId.includes('@') ? '' : '?id=' + newId));
+        return newId;
       }),
-      catchError(e => {
-        Console.warn("Error getting live groups", e);
-        return EMPTY;
-      })
+      switchMap(id => this.network.server$.pipe(
+        switchMap(connected => {
+          if (!connected) {
+            const key = LATEST_GROUPS_KEY_PREFIX + (this.authService.email || '$');
+            const stored = localStorage.getItem(key);
+            if (stored) {
+              try {
+                const groups = JSON.parse(stored) as LiveGroupDto[];
+                this.updateGroups(groups);
+              } catch (e) { /* ignore */ }
+            }
+            return EMPTY;
+          }
+          return of(id);
+        }),
+        first(),
+        switchMap(id => this.http.get<LiveGroupDto[]>(environment.apiBaseUrl + '/live-group/v1' + (id.includes('@') ? '' : '?id=' + id))),
+        catchError(e => {
+          Console.warn("Error getting live groups", e);
+          timer(30000).subscribe(() => this.init());
+          return EMPTY;
+        }),
+      ))
     ).subscribe(groups => this.updateGroups(this.decodeGroups(groups)));
   }
 
