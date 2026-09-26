@@ -1,6 +1,7 @@
 export async function configureWindow() {
   const jsdomModule = await import('jsdom');
   const urlModule = await import('node:url');
+  /*
   const bufferModule = await import('node:buffer');
   class CustomResourceLoader extends jsdomModule.ResourceLoader {
     override fetch(url: string, options: any) {
@@ -11,6 +12,8 @@ export async function configureWindow() {
     }
   }
   const jsdom = new jsdomModule.JSDOM('',{resources: new CustomResourceLoader()});
+  */
+  const jsdom = new jsdomModule.JSDOM('');
   (global as any).jsdom = jsdom;
   global.window = jsdom.window as any;
   global.document = window.document;

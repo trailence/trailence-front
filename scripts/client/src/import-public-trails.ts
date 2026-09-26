@@ -17,11 +17,12 @@ for (const arg of process.argv) {
 }
 
 const mode = args['mode'];
-if (!mode) throw new Error('Missing --mode');
-if (mode !== 'local' && mode !== 'prod') throw new Error('Invalid --mode=' + mode);
+if (!mode) throw new Error('Missing --mode: should be --mode=prod or --mode=local');
+if (mode !== 'local' && mode !== 'prod') throw new Error('Invalid --mode=' + mode + ' expected is prod or local');
 
 let requestedRemote: string | undefined = args['remote'];
-if (requestedRemote.length === 0 || requestedRemote === '%npm_config_remote%') requestedRemote = undefined;
+if (!requestedRemote) throw new Error('Missing --remote: should be --remote=all or --remote=<remote-name> where <remote-name> is one of the config/*.json');
+if (requestedRemote === 'all') requestedRemote = undefined;
 
 const config = new Config(mode);
 

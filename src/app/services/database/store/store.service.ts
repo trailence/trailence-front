@@ -345,7 +345,10 @@ class RegisteredStore implements StoreRegistration {
       )
       .subscribe({
         next: () => {
-          if (this.inProgress$.value) return;
+          if (this.inProgress$.value) {
+            Console.warn('Store update triggered but still in progress', this.name);
+            return;
+          }
           this.inProgress$.next(true);
           Console.info('Trigger store updates: ', this.name);
           this.syncAgain = false;
@@ -359,12 +362,12 @@ class RegisteredStore implements StoreRegistration {
               this.syncAgain = syncAgain;
               if (syncAgain) {
                 this.syncAgainCount++;
-                Console.info(this.name + ' needs to sync again to complete', this.syncAgainCount);
                 if (this.syncAgainCount < 20)
                   this.lastSync = Date.now() - MINIMUM_SYNC_INTERVAL + 1000;
                 let timeout = 1000 + 1000 * this.syncAgainCount;
                 if (this.syncAgainCount > 10) timeout += 1000 * this.syncAgainCount;
                 if (this.syncAgainCount > 25) timeout += 1000 * this.syncAgainCount;
+                Console.info(this.name + ' needs to sync again to complete', this.syncAgainCount, timeout);
                 this.syncTimeoutDate = Date.now() + timeout;
                 if (this.syncTimeout) clearTimeout(this.syncTimeout);
                 this.syncTimeout = setTimeout(() => {
@@ -376,8 +379,14 @@ class RegisteredStore implements StoreRegistration {
                 this.syncAgainCount = 0;
               }
             },
-            complete: () => this.inProgress$.next(false),
-            error: () => this.inProgress$.next(false),
+            complete: () => {
+              Console.info('Store closed', this.name);
+              this.inProgress$.next(false);
+            },
+            error: e => {
+              Console.error('Store error', e);
+              this.inProgress$.next(false);
+            },
           });
         }
       });
