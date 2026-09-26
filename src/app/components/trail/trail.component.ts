@@ -982,7 +982,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           src.push(of(new TranslatedString('pages.trail.source.with_date', [new DateTimeI18nString(trail.sourceDate)])));
         if (trail.source && trail.source !== this.auth.email)
           src.push(of(new TranslatedString('pages.trail.source.with_owner', [trail.source])));
-        if (trail.followedUuid && trail.followedOwner && trail.followedOwner.indexOf('@') > 0) {
+        if (trail.followedUuid && trail.followedOwner && trail.followedOwner.includes('@')) {
           src.push(this.trailService.getTrail$(trail.followedUuid, trail.followedOwner).pipe(
             map(followedTrail => followedTrail ?
               new TranslatedString('pages.trail.source.following', ['/trail/' + trail.followedOwner + '/' + trail.followedUuid, followedTrail.name])

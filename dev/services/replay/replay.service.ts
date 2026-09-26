@@ -42,9 +42,18 @@ export class ReplayService {
   }
 
   private startReplay(track: Track, following: Trail | undefined, speed: number, approximative: boolean, originalTime: boolean): void {
+    const originalPermissionsQuery = window.navigator.permissions.query;
     const originalGetCurrentPosition = window.navigator.geolocation.getCurrentPosition;
     const originalWatchPosition = window.navigator.geolocation.watchPosition;
     const originalClearWatch = window.navigator.geolocation.clearWatch;
+
+    window.navigator.permissions.query = function(desc) {
+      if (desc.name === 'geolocation') return Promise.resolve({
+        name: 'geolocation',
+        state: 'granted',
+      } as PermissionStatus);
+      return originalPermissionsQuery(desc);
+    }
 
     window.navigator.geolocation.getCurrentPosition = function(success, error) {
       if (error) error({code: GeolocationPositionError.POSITION_UNAVAILABLE, message: 'Fake!'} as GeolocationPositionError);

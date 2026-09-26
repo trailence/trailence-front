@@ -669,7 +669,7 @@ export class TrackDatabase implements StoreWithCleaning {
         first()
       ).subscribe(() => {
         this.operations.push('trigger sync from server', () => {
-          if (this.syncStatus$.value && !this.syncStatus$.value.needsUpdateFromServer) {
+          if (this.syncStatus$.value) {
             this.syncStatus$.value.needsUpdateFromServer = true;
             this.syncStatus$.next(this.syncStatus$.value);
           }
