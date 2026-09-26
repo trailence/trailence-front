@@ -1,5 +1,5 @@
-import { PointDescriptor } from '@front/model/point-descriptor';
-import { WayPoint } from '@front/model/way-point';
+import { PointDescriptor } from '@trailence/model/point-descriptor';
+import { WayPoint } from '@trailence/model/way-point';
 import { distance } from './crs';
 
 interface PointReference {

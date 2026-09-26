@@ -21,11 +21,6 @@
       "dom"
     ],
     "types": ["node"],
-    "useDefineForClassFields": false,
-    "paths": {
-      "@scripts/*": ["./src/*"],
-      "@trailence/*": ["../../src/app/*"],
-      "@env/*": ["../../src/environments/*"]
-    }
+    "useDefineForClassFields": false
   }
 }

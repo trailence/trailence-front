@@ -1,12 +1,12 @@
-import { PointDescriptor } from '@front/model/point-descriptor';
+import { PointDescriptor } from '@trailence/model/point-descriptor';
 import { TrailenceClient } from '@scripts/trailence/trailence-client';
-import { TrailDto } from '@front/model/dto/trail';
-import { TrackDto } from '@front/model/dto/track';
-import { WayPoint } from '@front/model/way-point.js';
-import { SegmentDto } from '@front/model/dto/segment';
+import { TrailDto } from '@trailence/model/dto/trail';
+import { TrackDto } from '@trailence/model/dto/track';
+import { WayPoint } from '@trailence/model/way-point.js';
+import { SegmentDto } from '@trailence/model/dto/segment';
 import { FakePreferencesService } from '@scripts/trailence/preferences';
 import { Config } from '@scripts/config/config';
-import { Photo } from '@front/model/photo';
+import { Photo } from '@trailence/model/photo';
 import { ConsoleProgress } from '@scripts/utils/progress';
 
 export abstract class Importer {
@@ -35,8 +35,8 @@ export abstract class Importer {
 
     if (!trail.loopType) {
       console.log('Detecting loop type');
-      const loopTypeDetectionModule = await import('@front/services/track-edition/path-analysis/loop-type-detection.js');
-      const trackModule = await import('@front/model/track.js');
+      const loopTypeDetectionModule = await import('@trailence/services/track-edition/path-analysis/loop-type-detection.js');
+      const trackModule = await import('@trailence/model/track.js');
       const fakePreferencesService = new FakePreferencesService();
       trail.loopType = loopTypeDetectionModule.detectLoopType(new trackModule.Track(trackDto, false, fakePreferencesService as any, undefined as any, undefined as any, undefined as any, undefined as any));
     }
@@ -66,7 +66,7 @@ export abstract class Importer {
   }
 
   protected async segmentToDto(segment: PointDescriptor[]): Promise<SegmentDto> {
-    const mapperModule = await import('@front/model/point-dto-mapper');
+    const mapperModule = await import('@trailence/model/point-dto-mapper');
     const nb = segment.length;
     const dto: SegmentDto = {p: new Array(nb)};
     let previousPoint: PointDescriptor | undefined = undefined;
@@ -79,12 +79,12 @@ export abstract class Importer {
   }
 
   protected async readTrackDto(track: TrackDto): Promise<{segments: PointDescriptor[][], wayPoints: WayPoint[]}> {
-    const mapperModule = await import('@front/model/point-dto-mapper');
+    const mapperModule = await import('@trailence/model/point-dto-mapper');
     const segments: PointDescriptor[][] = [];
     for (const segment of track.s!) {
       segments.push(mapperModule.PointDtoMapper.toPoints(segment.p!));
     }
-    const wayPointModule = await import('@front/model/way-point');
+    const wayPointModule = await import('@trailence/model/way-point');
     const wayPoints: WayPoint[] = [];
     if (track.wp) {
       for (const wp of track.wp) {
@@ -110,7 +110,7 @@ export abstract class Importer {
     trail.publishedFromUuid = trail.uuid;
     trail.uuid = crypto.randomUUID();
     if (photos.length > 0) {
-      const module = await import('@front/model/photo.js');
+      const module = await import('@trailence/model/photo.js');
       for (const p of photos) {
         p.photo = new module.Photo({...p.photo.toDto(), uuid: crypto.randomUUID(), trailUuid: trail.uuid});
       }

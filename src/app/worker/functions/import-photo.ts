@@ -71,7 +71,7 @@ export async function importPhoto( // NOSONAR
       latitude,
       longitude,
       dateTaken: dateTaken ?? info?.dateTaken,
-      isCover: isCover ?? false,
+      cover: isCover ?? false,
     }
   };
 }

@@ -1,12 +1,12 @@
 import * as crypto from 'node:crypto';
-import { TrailCollectionDto } from '@front/model/dto/trail-collection';
-import { TrailDto } from '@front/model/dto/trail';
+import { TrailCollectionDto } from '@trailence/model/dto/trail-collection';
+import { TrailDto } from '@trailence/model/dto/trail';
 import { Config } from '@scripts/config/config';
-import { TrackDto } from '@front/model/dto/track';
-import { PhotoDto } from '@front/model/dto/photo';
-import { AuthResponse } from '@front/services/auth/auth-response';
-import { Preferences } from '@front/services/preferences/preferences';
-import { PublicTrack, PublicTrail } from '@front/services/fetch-source/trailence.plugin';
+import { TrackDto } from '@trailence/model/dto/track';
+import { PhotoDto } from '@trailence/model/dto/photo';
+import { AuthResponse } from '@trailence/services/auth/auth-response';
+import { Preferences } from '@trailence/services/preferences/preferences';
+import { PublicTrack, PublicTrail } from '@trailence/services/fetch-source/trailence.plugin';
 
 export class TrailenceClient {
 

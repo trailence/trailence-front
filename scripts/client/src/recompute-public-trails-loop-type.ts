@@ -1,4 +1,4 @@
-import { TrackDto } from '@front/model/dto/track';
+import { TrackDto } from '@trailence/model/dto/track';
 import { Config } from '@scripts/config/config';
 import { TrailenceClient } from '@scripts/trailence/trailence-client';
 import { ConsoleProgress } from '@scripts/utils/progress';
@@ -27,8 +27,8 @@ await configureWindow();
 const config = new Config(mode);
 const trailenceClient = new TrailenceClient(config, 'admin');
 const preferencesService = new FakePreferencesService();
-const loopTypeDetectionModule = await import('@front/services/track-edition/path-analysis/loop-type-detection.js');
-const trackModule = await import('@front/model/track.js');
+const loopTypeDetectionModule = await import('@trailence/services/track-edition/path-analysis/loop-type-detection.js');
+const trackModule = await import('@trailence/model/track.js');
 
 const nbTrails = await trailenceClient.countTotalPublicTrails();
 console.log('Found ' + nbTrails + ' public trails');

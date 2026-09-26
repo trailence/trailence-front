@@ -159,6 +159,24 @@ jobs:
           path: ./coverage/app/lcov.info
           if-no-files-found: error
           retention-days: 5
+  compile-scripts:
+    name: Compile Scripts
+    needs:
+      - prepare-e2e-web-app # to prioritize only
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+      - name: Compile Scripts
+        run: |
+          npm ci --ignore-scripts
+          npm run compile-scripts
   e2e-tests-web-app:
     strategy:
       fail-fast: false
