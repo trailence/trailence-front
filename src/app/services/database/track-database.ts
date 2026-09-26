@@ -1,7 +1,7 @@
 import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, first, firstValueFrom, forkJoin, from, map, of, switchMap, tap, throwError, toArray, zip } from "rxjs";
 import { TrackDto } from '@trailence/model/dto/track';
 import { Track } from '@trailence/model/track';
-import { StoreLoadStatus, StoreSyncStatus } from "./store/store";
+import { StoreLoadStatus, StoreSyncStatus, SyncAgain } from "./store/store";
 import { RequestLimiter } from '@trailence/utils/request-limiter';
 import { environment } from '@env/environment';
 import { HttpService } from "../http/http.service";
@@ -679,13 +679,13 @@ export class TrackDatabase implements StoreWithCleaning {
     );
   }
 
-  private sync(): Observable<boolean> {
+  private sync(): Observable<SyncAgain> {
     const status = this.loaded$.value;
     if (!status) return EMPTY;
     return this.operations.requestSync(() => this.doSync(status));
   }
 
-  private doSync(status: StoreLoadStatus): Observable<boolean> {
+  private doSync(status: StoreLoadStatus): Observable<SyncAgain> {
     return this.ngZone.runOutsideAngular(() => {
       if (status.counter !== this.loaded$.value?.counter) {
         Console.info('Store tracks was reloaded: cancel sync');
@@ -694,40 +694,44 @@ export class TrackDatabase implements StoreWithCleaning {
       this.syncStatus$.value!.inProgress = true;
       this.syncStatus$.next(this.syncStatus$.value);
       Console.info("Store tracks sync start: ", this.syncStatus$.value, this.operations.pendingOperations);
-      const nextStep = (name: string, previousComplete: boolean, nextOp: () => Observable<boolean>) => {
+      const nextStep = (name: string, previousResult: SyncAgain, nextOp: () => Observable<SyncAgain>) => {
         Console.info('Store tracks sync: ' + name);
         if (status.counter !== this.loaded$.value?.counter) return EMPTY;
-        if (!previousComplete || this.operations.pendingOperations > 0) return of(false);
+        if (previousResult) return of(previousResult);
+        if (this.operations.pendingOperations > 0) return of('operations-pending' as SyncAgain);
         return nextOp();
       };
       return this.syncCreatedLocally(status).pipe(
         switchMap(r => nextStep('delete', r, () => this.syncDeletedLocally(status))),
         switchMap(r => nextStep('updates from server', r, () => this.syncUpdatesFromServer(status))),
         switchMap(r => nextStep('updates to server', r, () => this.syncUpdatesToServer(status))),
-        switchMap(r => status.counter === this.loaded$.value?.counter ? this.getLocalChanges().pipe(map(l => ([l, r] as [{create: boolean, update: boolean, delete: boolean}, boolean]))) : EMPTY),
+        switchMap(r => {
+          if (status.counter !== this.loaded$.value?.counter) return EMPTY;
+          return this.getLocalChanges().pipe(map(l => ({localChanges: l, syncAgain: r})));
+        }),
         catchError(error => {
           // should never happen
           Console.error('Error synchronizing tracks', error);
           return EMPTY;
         }),
-        defaultIfEmpty([undefined, false] as [{create: boolean, update: boolean, delete: boolean} | undefined, boolean]),
-        map(([hasLocalChanges, syncComplete]) => {
+        defaultIfEmpty({localChanges: undefined, syncAgain: undefined}),
+        map(result => {
           const sync = this.syncStatus$.value!;
-          if (!hasLocalChanges || status.counter !== this.loaded$.value?.counter) {
+          if (!result.localChanges || status.counter !== this.loaded$.value?.counter) {
             sync.inProgress = false;
             this.syncStatus$.next(sync);
-            return false;
+            return undefined;
           }
-          sync.hasLocalCreates = hasLocalChanges.create;
-          sync.hasLocalUpdates = hasLocalChanges.update;
-          sync.hasLocalDeletes = hasLocalChanges.delete;
+          sync.hasLocalCreates = result.localChanges.create;
+          sync.hasLocalUpdates = result.localChanges.update;
+          sync.hasLocalDeletes = result.localChanges.delete;
           sync.quotaReached = this.isQuotaReached();
           sync.inProgress = false;
-          sync.needsUpdateFromServer = !syncComplete;
-          sync.lastUpdateFromServer = syncComplete ? Date.now() : 0;
-          Console.info("Store tracks sync done: ", sync, this.operations.pendingOperations);
+          sync.needsUpdateFromServer = result.syncAgain !== undefined;
+          sync.lastUpdateFromServer = result.syncAgain === undefined ? Date.now() : 0;
+          Console.info("Store tracks sync done: ", sync, this.operations.pendingOperations, result);
           this.syncStatus$.next(sync);
-          return !syncComplete;
+          return result.syncAgain;
         })
       );
     });
@@ -761,12 +765,12 @@ export class TrackDatabase implements StoreWithCleaning {
     );
   }
 
-  private syncCreatedLocally(status: StoreLoadStatus): Observable<boolean> {
+  private syncCreatedLocally(status: StoreLoadStatus): Observable<SyncAgain> {
     return this.tableFullTrack.getWhere$(new DbTableWhereEquals('version', 0), 50).pipe(
       switchMap(items => {
         if (status.counter !== this.loaded$.value?.counter) return EMPTY;
         const toCreate = items.filter(item => this._errors.canProcess(item.uuid + '#' + item.owner, true));
-        if (toCreate.length === 0) return of(true);
+        if (toCreate.length === 0) return of(undefined);
         return this.filterReadyToSave$(toCreate).pipe(
           switchMap(ready => {
             Console.info('' + ready.length + ' tracks to be created on server (+' + (toCreate.length - ready.length) + ' not ready)');
@@ -776,15 +780,22 @@ export class TrackDatabase implements StoreWithCleaning {
               const request = this.createItemRequest(status, item);
               requests.push(limiter.add(request));
             }
-            if (requests.length === 0) return of(true);
-            return zip(requests).pipe(map(() => items.length < 50 && ready.length === toCreate.length), defaultIfEmpty(true));
+            if (requests.length === 0) return of('not-ready' as SyncAgain);
+            return zip(requests).pipe(
+              map(() => {
+                if (ready.length < toCreate.length) return 'not-ready' as SyncAgain;
+                if (items.length === 50) return 'rate-limiting' as SyncAgain;
+                return undefined;
+              }),
+              defaultIfEmpty(undefined)
+            );
           })
         )
       }),
       catchError(error => {
         // should not happen
         Console.error('error creating tracks on server', error);
-        return of(true);
+        return of(undefined);
       })
     );
   }
@@ -819,11 +830,11 @@ export class TrackDatabase implements StoreWithCleaning {
     };
   }
 
-  private syncDeletedLocally(status: StoreLoadStatus): Observable<any> {
+  private syncDeletedLocally(status: StoreLoadStatus): Observable<SyncAgain> {
     return this.tableFullTrack.getWhere$(new DbTableWhereEquals('version', -1), 50).pipe(
       switchMap(items => {
         if (status.counter !== this.loaded$.value?.counter) return EMPTY;
-        if (items.length === 0) return of(true);
+        if (items.length === 0) return of(undefined);
         Console.info('' + items.length + ' tracks deleted locally');
         const uuidsByOwner = new Map<string, string[]>();
         for (const item of items) {
@@ -836,7 +847,7 @@ export class TrackDatabase implements StoreWithCleaning {
             const keys = uuids.map(uuid => uuid + '#' + owner);
             Console.info('' + uuids.length + ' tracks to be deleted on server for ' + owner);
             return (uuids.length > 0 ? this.injector.get(HttpService).post<void>(environment.apiBaseUrl + '/track/v1/_bulkDelete' + (owner.startsWith(SHARED_OWNER_PREFIX) ? '/' + encodeURIComponent(owner) : ''), uuids) : EMPTY).pipe(
-              defaultIfEmpty(true),
+              defaultIfEmpty(undefined),
               switchMap(() => {
                 if (status.counter !== this.loaded$.value?.counter) return EMPTY;
                 if (!owner.startsWith(SHARED_OWNER_PREFIX)) // TODO if user is owner of the shared collection, his quotas are used
@@ -844,23 +855,23 @@ export class TrackDatabase implements StoreWithCleaning {
                     q.tracksUsed -= uuids.length;
                     q.tracksSizeUsed -= items.filter(item => item.owner === status.email).reduce((p,n) => p + (n.track?.sizeUsed ?? 0), 0);
                   });
-                return this.tableFullTrack.deleteMany$(keys).pipe(map(() => uuids.length < 50));
+                return this.tableFullTrack.deleteMany$(keys).pipe(map(() => uuids.length < 50 ? undefined : 'rate-limiting'));
               }),
               catchError(error => {
                 this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_tracks', []);
                 Console.error('Error deleting tracks from the server', error);
-                return of(true);
+                return of(undefined);
               })
             );
           }),
           toArray(),
-          map(all => all.every(Boolean)),
+          map(all => all.includes('rate-limiting') ? 'rate-limiting' : undefined),
         );
       })
     );
   }
 
-  private syncUpdatesFromServer(status: StoreLoadStatus): Observable<any> {
+  private syncUpdatesFromServer(status: StoreLoadStatus): Observable<SyncAgain> {
     return this.tableFullTrack.getWhereMapping$(new DbTableWhereGreaterThan('version', 0), item => ({uuid: item.uuid, owner: item.owner, version: item.version})).pipe(
       switchMap(known => {
         if (status.counter !== this.loaded$.value?.counter) return EMPTY;
@@ -908,29 +919,29 @@ export class TrackDatabase implements StoreWithCleaning {
                 operations$ = operations$.pipe(
                   switchMap(() => (requests.length === 0 ? of([]) : zip(requests)).pipe(
                     switchMap(responses => this.updatesFromServer(status, responses.filter(t => !!t), [])),
-                    map(() => true),
+                    map(() => undefined),
                   ))
                 );
               }
             }
-            return operations$;
+            return operations$.pipe(map(() => undefined));
           }),
           catchError(error => {
             // should never happen
             Console.error('error getting track updates from server', error);
-            return of(true);
+            return of(undefined);
           })
         );
       })
     );
   }
 
-  private syncUpdatesToServer(status: StoreLoadStatus): Observable<boolean> {
+  private syncUpdatesToServer(status: StoreLoadStatus): Observable<SyncAgain> {
     return this.tableFullTrack.getWhere$(new DbTableWhereEquals('updatedLocally', 1), 50).pipe(
       switchMap(items => {
         if (status.counter !== this.loaded$.value?.counter) return EMPTY;
         const toUpdate = items.filter(item => this._errors.canProcess(item.uuid + '#' + item.owner, false));
-        if (toUpdate.length === 0) return of(true);
+        if (toUpdate.length === 0) return of(undefined);
         Console.info('' + toUpdate.length + ' tracks to be updated on server');
         const limiter = new RequestLimiter(2);
         const requests: Observable<TrackDto>[] = [];
@@ -954,14 +965,17 @@ export class TrackDatabase implements StoreWithCleaning {
         }
         return (requests.length === 0 ? of([]) : zip(requests)).pipe(
           switchMap(responses => this.updatesFromServer(status, responses, [])),
-          map(() => items.length < 50),
-          defaultIfEmpty(true),
+          map(() => {
+            if (items.length === 50) return 'rate-limiting';
+            return undefined;
+          }),
+          defaultIfEmpty(undefined),
         );
       }),
       catchError(error => {
         // should never happen
         Console.error('error sending tracks updates', error);
-        return of(true);
+        return of(undefined);
       })
     );
   }

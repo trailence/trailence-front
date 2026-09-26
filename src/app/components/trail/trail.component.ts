@@ -989,7 +989,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
               : null
             ),
             map(s => {
-              if (!trail.followedUrl) return s;
+              if (!trail.followedUrl) return s || new TranslatedString('pages.trail.source.following_a_deleted_track');
               const plugin = this.injector.get(FetchSourceService).getPluginBySource(trail.followedUrl);
               if (!plugin) return s;
               const url = plugin.getTrailenceUrlFromUrl(trail.followedUrl) || trail.followedUrl;

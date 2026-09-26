@@ -1,11 +1,10 @@
 import { Injectable, Injector, NgZone } from '@angular/core';
-import { BehaviorSubject, catchError, combineLatest, debounceTime, defaultIfEmpty, distinctUntilChanged, EMPTY, filter, map, Observable, of, Subscription, switchMap, tap, timeout } from 'rxjs';
-import { StoreLoadStatus, StoreSyncStatus } from './store';
+import { BehaviorSubject, catchError, combineLatest, debounceTime, defaultIfEmpty, distinctUntilChanged, filter, map, Observable, of, Subscription, switchMap, tap, timeout } from 'rxjs';
+import { StoreLoadStatus, StoreSyncStatus, SyncAgain } from './store';
 import { Console } from '@trailence/utils/console';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
 import { NetworkService } from '../../network/network.service';
 import { AuthService } from '../../auth/auth.service';
-import { DbStatus } from '../storage/db-table';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { CleanupService } from '../cleanup/cleanup.service';
 
@@ -21,7 +20,7 @@ export interface StoreRegistration {
   hasPendingOperations$: Observable<boolean>;
   syncFromServer: () => void;
   fireSyncStatus: () => void;
-  doSync: () => Observable<boolean>;
+  doSync: () => Observable<SyncAgain>;
   resetErrors: () => void;
   hardDelete: () => Observable<any>;
 }
@@ -259,7 +258,7 @@ class RegisteredStore implements StoreRegistration {
   hasPendingOperations$: Observable<boolean>;
   syncFromServer: () => void;
   fireSyncStatus: () => void;
-  doSync: () => Observable<boolean>;
+  doSync: () => Observable<SyncAgain>;
   resetErrors: () => void;
   hardDelete: () => Observable<any>;
 
@@ -362,15 +361,29 @@ class RegisteredStore implements StoreRegistration {
             next: syncAgain => {
               hasNext = true;
               this.inProgress$.next(false);
-              this.syncAgain = syncAgain;
+              this.syncAgain = !!syncAgain;
               if (syncAgain) {
                 this.syncAgainCount++;
-                if (this.syncAgainCount < 20)
+                let timeout: number;
+                if (syncAgain === 'not-ready') {
+                  if (this.syncAgainCount < 10) {
+                    this.lastSync = Date.now() - MINIMUM_SYNC_INTERVAL + 1000;
+                    timeout = 5000;
+                  } else if (this.syncAgainCount > 25)
+                    timeout = 20000 * (this.syncAgainCount - 25);
+                  else
+                    timeout = 1000 * this.syncAgainCount;
+                } else if (syncAgain === 'operations-pending') {
                   this.lastSync = Date.now() - MINIMUM_SYNC_INTERVAL + 1000;
-                let timeout = 1000 + 1000 * this.syncAgainCount;
-                if (this.syncAgainCount > 10) timeout += 1000 * this.syncAgainCount;
-                if (this.syncAgainCount > 25) timeout += 1000 * this.syncAgainCount;
-                Console.info(this.name + ' needs to sync again to complete', this.syncAgainCount, timeout);
+                  timeout = 1000;
+                } else if (syncAgain === 'rate-limiting') {
+                  this.lastSync = Date.now() - MINIMUM_SYNC_INTERVAL + 1000;
+                  timeout = 5000;
+                } else {
+                  this.lastSync = Date.now() - MINIMUM_SYNC_INTERVAL + 1000;
+                  timeout = 15000;
+                }
+                Console.info(this.name + ' needs to sync again to complete', syncAgain, this.syncAgainCount, timeout);
                 this.syncTimeoutDate = Date.now() + timeout;
                 if (this.syncTimeout) clearTimeout(this.syncTimeout);
                 this.syncTimeout = setTimeout(() => {

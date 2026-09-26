@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, catchError, EMPTY, filter, first, map, Observable, of, switchMap } from 'rxjs';
 import { Extension } from '@trailence/model/extension';
-import { StoreLoadStatus, StoreSyncStatus } from './store/store';
+import { StoreLoadStatus, StoreSyncStatus, SyncAgain } from './store/store';
 import { HttpService } from '../http/http.service';
 import { environment } from '@env/environment';
 import { Arrays } from '@trailence/utils/arrays';
@@ -130,7 +130,7 @@ export class ExtensionsService {
     this._syncStatus$.next(this._syncStatus$.value);
   }
 
-  private sync(): Observable<boolean> {
+  private sync(): Observable<SyncAgain> {
     const status = this._loaded$.value;
     if (!status) return EMPTY;
     return this._pendingOperation$.pipe(
@@ -140,7 +140,7 @@ export class ExtensionsService {
     );
   }
 
-  private doSync(status: StoreLoadStatus): Observable<boolean> {
+  private doSync(status: StoreLoadStatus): Observable<SyncAgain> {
     if (status.counter !== this._loaded$.value?.counter) return EMPTY;
     this._syncStatus$.value.inProgress = true;
     this._syncStatus$.next(this._syncStatus$.value);
@@ -151,7 +151,7 @@ export class ExtensionsService {
         if (status.counter !== this._loaded$.value?.counter) return EMPTY;
         if (Arrays.sameContent(list, this._extensions$.value, (i1, i2) => i1.extension === i2.extension && i1.version === i2.version)) {
           Console.info('Extensions sync without change', list.length);
-          return of(true);
+          return of(undefined);
         }
         Console.info('Extension(s) received from server: ', list.length);
         const extensions = list.map(item => new Extension(item.version, item.extension, item.data));
@@ -175,20 +175,20 @@ export class ExtensionsService {
         );
       }),
       map(() => { // NOSONAR
-        if (status.counter !== this._loaded$.value?.counter) return false;
+        if (status.counter !== this._loaded$.value?.counter) return undefined;
         this._syncStatus$.value.inProgress = false;
         this._syncStatus$.value.needsUpdateFromServer = false;
         this._syncStatus$.value.lastUpdateFromServer = Date.now();
         this._syncStatus$.value.hasLocalChanges = false;
         this._syncStatus$.next(this._syncStatus$.value);
-        return false;
+        return undefined;
       }),
       catchError(e => {
         if (status.counter !== this._loaded$.value?.counter) return EMPTY;
         Console.error('Error loading extensions', e);
         this._syncStatus$.value.inProgress = false;
         this._syncStatus$.next(this._syncStatus$.value);
-        return of(false);
+        return of(undefined);
       })
     );
   }

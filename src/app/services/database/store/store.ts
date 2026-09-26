@@ -30,6 +30,8 @@ export interface StoreLoadStatus {
   isNewDb: boolean;
 }
 
+export type SyncAgain = 'not-ready' | 'rate-limiting' | 'operations-pending' | undefined;
+
 export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncStatus> {
 
   protected ngZone: NgZone;
@@ -188,7 +190,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   protected abstract areSame(item1: STORE_ITEM, item2: STORE_ITEM): boolean;
   protected abstract getKey(item: STORE_ITEM): string;
 
-  protected abstract sync(): Observable<boolean>;
+  protected abstract sync(): Observable<SyncAgain>;
 
   private _loadingCounter = -1;
 

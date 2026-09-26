@@ -33,7 +33,7 @@ export class StoreOperations {
   public get hasPendingOperations$() { return combineLatest([this._inProgress$, this._queue$]).pipe(map(([progress, queue]) => progress || queue.length > 0)); }
   public get pendingOperations() { return this._queue$.value.length; }
 
-  public requestSync(onready: () => Observable<boolean>): Observable<boolean> {
+  public requestSync<T>(onready: () => Observable<T>): Observable<T> {
     return this._inProgress$.pipe(
       filter(p => {
         if (p) Console.info('Store ' + this.name + ' waiting for ' + this._queue$.value.length + ' operations to finish before sync');
