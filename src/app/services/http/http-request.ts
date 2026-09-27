@@ -11,12 +11,17 @@ export enum ResponseType {
   BLOB = 'blob'
 }
 
+export interface HttpRequestOptions {
+  custom?: {[key: string]: any};
+}
+
 export class TrailenceHttpRequest {
 
   constructor(
     public method: HttpMethod,
     public url: string,
     public headers: { [header: string]: string } = {},
+    public options?: HttpRequestOptions,
     public body?: any,
     public responseType: ResponseType = ResponseType.JSON
   ) {}

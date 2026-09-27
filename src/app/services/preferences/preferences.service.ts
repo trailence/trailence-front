@@ -54,6 +54,7 @@ const defaultPreferences: {[key in LocaleKey]: Preferences} = {
 const LOCALSTORAGE_PREFERENCES_KEY = 'trailence.preferences';
 const LOCALSTORAGE_LARGER_TOUCH_TARGETS = 'trailence.larger_touch_targets';
 const LOCALSTORAGE_LARGER_TEXTS = 'trailence.larger_texts';
+const LOCALSTORAGE_TO_SAVE_KEY = 'trailence.preferences.tosave';
 
 const DEFAULT_TRACE_MIN_METERS = 3;
 const DEFAULT_TRACE_MIN_MILLIS = 5000;
@@ -78,7 +79,7 @@ export class PreferencesService implements OnDestroy {
   private readonly _prefs$: BehaviorSubject<Preferences>;
   private readonly _computed$: BehaviorSubject<ComputedPreferences>;
   private readonly _systemTheme: 'DARK' | 'LIGHT';
-  private readonly _saveNeeded$ = new BehaviorSubject<string | undefined>(undefined);
+  private readonly _saveNeeded$ = new BehaviorSubject<PreferenceToSave[]>([]);
   private destroyed = false;
   private subscription?: Subscription;
   private device = 'web';
@@ -129,6 +130,19 @@ export class PreferencesService implements OnDestroy {
     this._computed$ = new BehaviorSubject<ComputedPreferences>(this.compute(this._prefs$.value));
     Console.info('Initial preferences: ', this._computed$.value);
     this.initDevice();
+    try {
+      const stored = localStorage.getItem(LOCALSTORAGE_TO_SAVE_KEY);
+      if (stored) {
+        let toSave = JSON.parse(stored);
+        if (Array.isArray(toSave)) {
+          toSave = toSave.filter(p => {
+            if (!p['email']) return false;
+            return true;
+          });
+          this._saveNeeded$.next(toSave);
+        }
+      }
+    } catch (e) {} // NOSONAR
     setTimeout(() => this.init(), 1);
   }
 
@@ -196,14 +210,58 @@ export class PreferencesService implements OnDestroy {
         this._prefs$.next(prefs);
       }
     });
-    this.subscription = combineLatest([this.injector.get(NetworkService).server$, this.injector.get(AuthService).auth$, this._saveNeeded$]).subscribe(
+    this.subscription = combineLatest([this.injector.get(NetworkService).server$, this.injector.get(AuthService).auth$, this._saveNeeded$])
+    .pipe(
+      debounceTime(1000),
+    )
+    .subscribe(
       ([connected, auth, saveNeeded]) => {
-        if (connected && auth?.preferences && saveNeeded === auth?.email && !auth?.isAnonymous) {
-          const body = {...auth.preferences};
-          this.injector.get(HttpService).put(environment.apiBaseUrl + '/preferences/v1', body).subscribe(() => {
-            Console.info('Preferences saved for user', body);
+        if (!connected) return;
+        if (!auth || auth.isAnonymous) return;
+        if (saveNeeded.length === 0) return;
+        const forUser: PreferenceToSave[] = [];
+        const forOthers: PreferenceToSave[] = [];
+        for (const p of saveNeeded) {
+          if (p.email === auth.email) forUser.push(p);
+          // cancel preferences for other users older than 1 month
+          else if (p.setAt < Date.now() - 31 * 24 * 60 * 60 * 1000) forOthers.push(p);
+        }
+        if (forUser.length === 0) return;
+        let prefs = auth.preferences ?? {};
+        let changed = false;
+        for (const p of forUser) {
+          if (p.field === undefined) {
+            // reset
+            prefs = {};
+            changed = true;
+          } else {
+            const currentValue = (prefs as any)[p.field];
+            if (currentValue === p.previousValue || currentValue === p.newValue) {
+              (prefs as any)[p.field] = p.newValue;
+              changed = true;
+            }
+          }
+        }
+        if (changed) {
+          const body = {...prefs};
+          Console.info('Saving user preferences', body);
+          auth.preferences = prefs;
+          this.injector.get(AuthService).preferencesUpdated();
+          this._prefs$.next(prefs);
+          this.injector.get(HttpService).put(environment.apiBaseUrl + '/preferences/v1', body, undefined, {custom: {errorIfRenewAuth: () => new Error('auth renewed => save preferences delayed')}}).subscribe({
+            complete: () => {
+              Console.info('Preferences saved for user', body);
+            },
+            error: e => {
+              Console.warn('Cannot save preferences', e);
+              forOthers.push(...forUser);
+              this.storeToSave(forOthers);
+              this._saveNeeded$.next(forOthers);
+            }
           });
         }
+        this.storeToSave(forOthers);
+        this._saveNeeded$.next(forOthers);
       }
     );
   }
@@ -280,9 +338,11 @@ export class PreferencesService implements OnDestroy {
     const auth = authService.auth;
     if (auth && auth.preferences?.lang !== lang) {
       auth.preferences ??= {};
+      const previous = auth.preferences.lang;
       auth.preferences.lang = lang;
       authService.preferencesUpdated();
-      this._saveNeeded$.next(auth.email);
+      if (!auth.isAnonymous)
+        this.save(auth.email, 'lang', previous ?? undefined, lang);
     }
     if (this._prefs$.value.lang !== lang) {
       this._prefs$.value.lang = lang;
@@ -389,21 +449,24 @@ export class PreferencesService implements OnDestroy {
   }
 
   private setPreference(field: string, value: any): void {
+    const current = {...this._prefs$.value} as any;
     const authService = this.injector.get(AuthService);
     const auth = authService.auth;
     if (auth) {
       const currentValue = auth?.preferences ? (auth.preferences as any)[field] : undefined;
+      console.log('auth', currentValue);
       if (currentValue !== value) {
         auth.preferences ??= {};
         (auth.preferences as any)[field] = value;
         authService.preferencesUpdated();
         if (!auth.isAnonymous)
-          this._saveNeeded$.next(auth.email);
+          this.save(auth.email, field, currentValue ?? undefined, value ?? undefined);
       }
     }
-    if ((this._prefs$.value as any)[field] !== value) {
-      (this._prefs$.value as any)[field] = value;
-      this._prefs$.next(this._prefs$.value);
+    if (current[field] !== value) {
+      const newPrefs = {...current};
+      newPrefs[field] = value;
+      this._prefs$.next(newPrefs);
     }
   }
 
@@ -414,7 +477,7 @@ export class PreferencesService implements OnDestroy {
       auth.preferences = {};
       authService.preferencesUpdated();
       if (!auth.isAnonymous)
-        this._saveNeeded$.next(auth.email);
+        this.save(auth.email, undefined, undefined, undefined);
     }
     this._prefs$.next({});
   }
@@ -427,4 +490,30 @@ export class PreferencesService implements OnDestroy {
     }
   }
 
+  private save(email: string, field: string | undefined, previousValue: string | undefined, newValue: string | undefined): void {
+    let toSave = this._saveNeeded$.value;
+    toSave = toSave.filter(p => {
+      if (p.email !== email) return true;
+      if (field === undefined) return false;
+      if (p.field === field) return false;
+      return true;
+    });
+    toSave.push({email, field, previousValue, newValue, setAt: Date.now()});
+    this.storeToSave(toSave);
+    this._saveNeeded$.next(toSave);
+  }
+
+  private storeToSave(toSave: PreferenceToSave[]): void {
+    Console.info('Preferences to save', toSave);
+    localStorage.setItem(LOCALSTORAGE_TO_SAVE_KEY, JSON.stringify(toSave));
+  }
+
+}
+
+interface PreferenceToSave {
+  email: string;
+  field: string | undefined;
+  previousValue: string | undefined;
+  newValue: string | undefined;
+  setAt: number;
 }

@@ -716,7 +716,8 @@ export class TrackDatabase implements StoreWithCleaning {
         }),
         defaultIfEmpty({localChanges: undefined, syncAgain: undefined}),
         map(result => {
-          const sync = this.syncStatus$.value!;
+          const sync = this.syncStatus$.value;
+          if (!sync) return undefined;
           if (!result.localChanges || status.counter !== this.loaded$.value?.counter) {
             sync.inProgress = false;
             this.syncStatus$.next(sync);

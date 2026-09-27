@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClientService } from './http-client.service';
-import { HttpMethod, TrailenceHttpRequest, ResponseType } from './http-request';
+import { HttpMethod, TrailenceHttpRequest, ResponseType, HttpRequestOptions } from './http-request';
 import { Observable, of, switchMap, throwError } from 'rxjs';
 import { TrailenceHttpResponse } from './http-response';
 import { ApiError } from './api-error';
@@ -29,32 +29,32 @@ export class HttpService {
     this.responseInterceptors.push(interceptor);
   }
 
-  public get<T>(url: string): Observable<T> {
-    return this.send(new TrailenceHttpRequest(HttpMethod.GET, url, {}, null, ResponseType.JSON));
+  public get<T>(url: string, options?: HttpRequestOptions): Observable<T> {
+    return this.send(new TrailenceHttpRequest(HttpMethod.GET, url, {}, options, null, ResponseType.JSON));
   }
 
-  public getString(url: string): Observable<string> {
-    return this.send(new TrailenceHttpRequest(HttpMethod.GET, url, {}, null, ResponseType.TEXT));
+  public getString(url: string, options?: HttpRequestOptions): Observable<string> {
+    return this.send(new TrailenceHttpRequest(HttpMethod.GET, url, {}, options, null, ResponseType.TEXT));
   }
 
-  public post<T>(url: string, body: any, headers?: any): Observable<T> {
-    return this.send(new TrailenceHttpRequest(HttpMethod.POST, url, headers ?? {}, body, ResponseType.JSON));
+  public post<T>(url: string, body: any, headers?: any, options?: HttpRequestOptions): Observable<T> {
+    return this.send(new TrailenceHttpRequest(HttpMethod.POST, url, headers ?? {}, options, body, ResponseType.JSON));
   }
 
-  public postString(url: string, body: any, headers?: any): Observable<string> {
-    return this.send(new TrailenceHttpRequest(HttpMethod.POST, url, headers ?? {}, body, ResponseType.TEXT));
+  public postString(url: string, body: any, headers?: any, options?: HttpRequestOptions): Observable<string> {
+    return this.send(new TrailenceHttpRequest(HttpMethod.POST, url, headers ?? {}, options, body, ResponseType.TEXT));
   }
 
-  public put<T>(url: string, body: any, headers?: any): Observable<T> {
-    return this.send(new TrailenceHttpRequest(HttpMethod.PUT, url, headers ?? {}, body, ResponseType.JSON));
+  public put<T>(url: string, body: any, headers?: any, options?: HttpRequestOptions): Observable<T> {
+    return this.send(new TrailenceHttpRequest(HttpMethod.PUT, url, headers ?? {}, options, body, ResponseType.JSON));
   }
 
-  public delete<T>(url: string): Observable<T> {
-    return this.send(new TrailenceHttpRequest(HttpMethod.DELETE, url, {}, null, ResponseType.JSON));
+  public delete<T>(url: string, options?: HttpRequestOptions): Observable<T> {
+    return this.send(new TrailenceHttpRequest(HttpMethod.DELETE, url, {}, options, null, ResponseType.JSON));
   }
 
-  public getBlob(url: string): Observable<Blob> {
-    return this.send(new TrailenceHttpRequest(HttpMethod.GET, url, {}, null, ResponseType.BLOB));
+  public getBlob(url: string, options?: HttpRequestOptions): Observable<Blob> {
+    return this.send(new TrailenceHttpRequest(HttpMethod.GET, url, {}, options, null, ResponseType.BLOB));
   }
 
   public sendRaw(request: TrailenceHttpRequest): Observable<TrailenceHttpResponse<any>> {

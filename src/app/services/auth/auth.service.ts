@@ -400,12 +400,12 @@ export class AuthService {
     return from(logout$);
   }
 
-  private requireAuth(): Observable<AuthResponse | null> {
+  private requireAuth(): Observable<{auth: AuthResponse | null, isRenewed: boolean}> {
     return this._auth$.pipe(
       filter(auth => auth !== undefined),
       switchMap(auth => {
-        if (!auth || auth.expires - Date.now() - RENEW_TOKEN_BEFORE_EXPIRATION > 0) return of(auth);
-        return this.renewAuth();
+        if (!auth || auth.expires - Date.now() - RENEW_TOKEN_BEFORE_EXPIRATION > 0) return of({auth, isRenewed: false});
+        return this.renewAuth().pipe(map(auth => ({auth, isRenewed: true})));
       }),
       first()
     );
@@ -560,11 +560,13 @@ export class AuthService {
         Console.warn('[AUTH] Request cancelled because no authentication', request.url);
         return false; // cancel request if not authenticated
       }),
-      map(auth => {
-        if (auth?.accessToken && auth.expires > Date.now() && !auth.isAnonymous) {
-          request.headers['Authorization'] = 'Bearer ' + auth.accessToken;
+      switchMap(authRenew => {
+        if (authRenew.auth?.accessToken && authRenew.auth.expires > Date.now() && !authRenew.auth.isAnonymous) {
+          if (authRenew.isRenewed && request.options?.custom?.['errorIfRenewAuth'])
+            return throwError(() => request.options!.custom!['errorIfRenewAuth']());
+          request.headers['Authorization'] = 'Bearer ' + authRenew.auth.accessToken;
         }
-        return request;
+        return of(request);
       })
     );
   }

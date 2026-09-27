@@ -210,6 +210,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       this._errors.reset();
       this._locks = new SynchronizationLocks();
       this._storeLoaded$.next(undefined);
+      if (this._syncProgress$.value) this._syncProgress$.next(undefined);
       const items = this._store.value;
       this._store.next([]);
       this._createdLocally = [];
