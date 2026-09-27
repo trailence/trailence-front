@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { Console, ConsoleLevel } from '@trailence/utils/console';
 import Trailence from '../trailence.service';
+import { ConsoleLevel, getLogHistory, LogLine } from '@trailence/utils/console';
 
 @Injectable({providedIn: 'root'})
 export class DebugService {
@@ -13,20 +13,22 @@ export class DebugService {
   openPopup(): void {
     import('./debug-popup.component')
     .then(c => this.injector.get(ModalController).create({
-      component: c.DebugPopup
+      component: c.DebugPopup,
+      cssClass: 'full-screen'
     }))
     .then(m => m.present());
   }
 
-  getAllLogs(): Promise<string> {
-    let logs = Console.getHistoryLines();
+  getAllLogs(): Promise<LogLine[]> {
+    let logs = getLogHistory();
     let previousDate: number | undefined;
-    return new Promise<string>((resolve) => {
+    return new Promise<LogLine[]>((resolve) => {
       Trailence.getLogs(msg => {
         for (const line of msg.lines) {
           let s = line;
           let level: ConsoleLevel = ConsoleLevel.INFO;
           let date: number | undefined = previousDate;
+          let logger = '';
           let i = s.indexOf(' ');
           if (i > 0) {
             i = s.indexOf(' ', i + 1);
@@ -48,12 +50,17 @@ export class DebugService {
             }
             if (i > 0) s = s.substring(i + 1);
           }
-          logs.push({log: line, date: date || 0, level});
+          i = s.indexOf(': ');
+          if (i > 0) {
+            logger = s.substring(0, i);
+            s = s.substring(i + 2);
+          }
+          logs.push({log: s, context: {date: date || 0, level, logger}});
           previousDate = date;
         }
         if (msg.end) {
-          logs.sort((l1, l2) => l1.date - l2.date);
-          resolve(logs.map(l => l.log).join('\n'));
+          logs.sort((l1, l2) => l1.context.date - l2.context.date);
+          resolve(logs);
         }
       });
     });

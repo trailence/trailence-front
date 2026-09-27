@@ -2,9 +2,11 @@ import { Injectable } from '@angular/core';
 import { GEOLOCATION_MAX_AGE, GEOLOCATION_TIMEOUT, GeolocationState, AbstractGeolocationService } from './geolocation.interface';
 import { PointDto } from '@trailence/model/dto/point';
 import { BehaviorSubject } from 'rxjs';
-import { Console } from '@trailence/utils/console';
 import { I18nService } from '../i18n/i18n.service';
 import { AlertController } from '@ionic/angular';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('geolocation.service');
 
 @Injectable({
   providedIn: 'root'
@@ -49,23 +51,23 @@ export class GeolocationService extends AbstractGeolocationService {
   getState(): Promise<GeolocationState> {
     return globalThis.navigator.permissions.query({name: 'geolocation'})
     .then(status => {
-      Console.info('geolocation permission', status, status.state);
+      logger.info('geolocation permission', status, status.state);
       if (status.state === 'granted') {
         return GeolocationState.ENABLED;
       }
       if (status.state === 'prompt') {
-        Console.info('geolocation permission must be prompt');
+        logger.info('geolocation permission must be prompt');
         return new Promise((resolve, error) => {
           let done = false;
           const check = () => {
             this.getCurrentPosition().then(p => {
-              Console.info('getCurrentPosition returned a position => consider it as enabled', p);
+              logger.info('getCurrentPosition returned a position => consider it as enabled', p);
               done = true;
               resolve(GeolocationState.ENABLED);
             });
           };
           const listener = () => {
-            Console.info('geolocation permission status changed', status, status.state);
+            logger.info('geolocation permission status changed', status, status.state);
             if (done) {
               status.removeEventListener('change', listener);
               return;
@@ -114,12 +116,12 @@ export class GeolocationService extends AbstractGeolocationService {
       listener(pos);
     })
     .catch(e => {
-      Console.warn('Geolocation error', e);
+      logger.warn('Geolocation error', e);
       if (onerror) onerror(e);
     });
     this.watchListeners.push({listener, onerror});
     if (!this.watchId) {
-      Console.info('start watching geolocation');
+      logger.info('start watching geolocation');
       this.watchId = globalThis.navigator.geolocation.watchPosition(pos => this.emitPosition(pos), err => this.emitError(err), this.options);
     }
   }
@@ -129,7 +131,7 @@ export class GeolocationService extends AbstractGeolocationService {
     if (index >= 0) {
       this.watchListeners.splice(index, 1);
       if (this.watchListeners.length === 0) {
-        Console.info('stop watching geolocation');
+        logger.info('stop watching geolocation');
         globalThis.navigator.geolocation.clearWatch(this.watchId!);
         this.watchId = undefined;
         this._waitingForGps$.next(false);
@@ -162,7 +164,7 @@ export class GeolocationService extends AbstractGeolocationService {
   }
 
   private emitError(err: any): void {
-    Console.warn('Geolocation error', err);
+    logger.warn('Geolocation error', err);
     this._waitingForGps$.next(true);
     for (const l of this.watchListeners)
       if (l.onerror) l.onerror(err);

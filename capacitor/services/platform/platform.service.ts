@@ -1,6 +1,5 @@
 import { ChangeDetectorRef, Component, Injectable, Injector, Input } from '@angular/core';
 import Trailence from '@trailence/services/trailence.service';
-import { Console } from '@trailence/utils/console';
 import { AuthService } from '@trailence/services/auth/auth.service';
 import { first } from 'rxjs';
 import { IonHeader, IonContent, IonToolbar, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, ModalController, IonRadio, IonRadioGroup, Platform, NavController, AlertController } from "@ionic/angular";
@@ -15,6 +14,9 @@ import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { TrailCollectionType } from '@trailence/model/dto/trail-collection';
 import { TrailSourceType } from '@trailence/model/dto/trail';
 import { Keyboard } from '@capacitor/keyboard';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('platform.service');
 
 @Injectable({providedIn: 'root'})
 export class PlatformService {
@@ -37,7 +39,7 @@ export class PlatformService {
   private handleKeyboard(): void {
     if (!this.platform.is('android')) return;
     Keyboard.addListener('keyboardDidShow', info => {
-      Console.info('Keyboard shown', info);
+      logger.info('Keyboard shown', info);
       const height = info.keyboardHeight;
       if (height) {
         document.documentElement.style.setProperty('--keyboard-bottom-height', height + 'px');
@@ -47,7 +49,7 @@ export class PlatformService {
       }
     });
     Keyboard.addListener('keyboardWillHide', () => {
-      Console.info('Keyboard hidden');
+      logger.info('Keyboard hidden');
       document.documentElement.style.setProperty('--keyboard-bottom-height', '');
     });
   }
@@ -104,11 +106,11 @@ export class PlatformService {
     Trailence.listenToImportedFiles((message) => {
       if (message.chunks !== undefined) {
         files.set(message.fileId, {nbChunks: message.chunks, chunks: new Array(message.chunks), filename: message.filename});
-        Console.info('Start receiving new file from device with ' + message.chunks + ' chunks and name: ' + message.filename);
+        logger.info('Start receiving new file from device with ' + message.chunks + ' chunks and name: ' + message.filename);
       } else if (message.chunkIndex !== undefined && message.data !== undefined) {
         const file = files.get(message.fileId);
         if (!file) {
-          Console.error('Received a chunk of data from device for an unknown file id', message.fileId);
+          logger.error('Received a chunk of data from device for an unknown file id', message.fileId);
           return;
         }
         file.chunks[message.chunkIndex] = message.data;
@@ -119,9 +121,9 @@ export class PlatformService {
             break;
           }
         }
-        Console.info('new chunk of data received from device', message.fileId, message.chunkIndex, file.nbChunks);
+        logger.info('new chunk of data received from device', message.fileId, message.chunkIndex, file.nbChunks);
         if (done) {
-          Console.info('End on file from device', message.fileId);
+          logger.info('End on file from device', message.fileId);
           files.delete(message.fileId);
           this.importGpx(file.chunks, file.filename);
         }
@@ -130,7 +132,7 @@ export class PlatformService {
   }
 
   private importGpx(chunks: string[], filename?: string): void {
-    Console.info('Received GPX data to import from device');
+    logger.info('Received GPX data to import from device');
     this.injector.get(AuthService).auth$.pipe(
       filterDefined(),
       first(),

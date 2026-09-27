@@ -1,5 +1,7 @@
+import { getLogger } from '@trailence/utils/console';
 import { Observable, Subscriber } from 'rxjs';
-import { Console } from '@trailence/utils/console';
+
+const logger = getLogger('database-subject');
 
 export class DatabaseSubject<T> {
 
@@ -56,7 +58,7 @@ export class DatabaseSubject<T> {
 
   private itemError(error: any): void {
     if (!this.loading) return;
-    Console.warn('error loading', this.type, error);
+    logger.warn('error loading', this.type, error);
     this.loading = false;
     const subscribers = [...this.observers];
     this.observers = [];

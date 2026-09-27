@@ -11,12 +11,14 @@ import { Track } from '@trailence/model/track';
 import { PreferencesService } from '../preferences/preferences.service';
 import { Arrays } from '@trailence/utils/arrays';
 import { TrailSourceType } from '@trailence/model/dto/trail';
-import { Console } from '@trailence/utils/console';
 import { TrackMetadataSnapshot } from '@trailence/model/snapshots';
 import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from '@trailence/worker/web-app';
 import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
 import { NetworkService } from '../network/network.service';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('outdoor.plugin');
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   id: string;
@@ -77,7 +79,7 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
   public override fetchTrailByUrl(url: string): Promise<Trail | null> {
     const id = this.idFromUrl(url);
     if (!id) {
-      Console.info('Outdoor active: cannot determine ID from url: ', url);
+      logger.info('Outdoor active: cannot determine ID from url: ', url);
       return Promise.resolve(null);
     }
     return this.tableTrails.get(id)
@@ -205,7 +207,7 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
         return infos.map((info, index) => ({trail: prepared[index].trail, metadata: prepared[index].currentMetadata ?? prepared[index].originalMetadata, info: info.info}));
       }),
       catchError(e => {
-        Console.error('Error retrieving trails from Outdoor Active', e);
+        logger.error('Error retrieving trails from Outdoor Active', e);
         return of([]);
       })
     );

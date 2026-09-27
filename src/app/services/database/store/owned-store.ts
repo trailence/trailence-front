@@ -4,7 +4,6 @@ import { OwnedDto } from '@trailence/model/dto/owned';
 import { Store, StoreSyncStatus, SyncAgain } from './store';
 import { Injector } from '@angular/core';
 import { ErrorService } from '../../progress/error.service';
-import { Console } from '@trailence/utils/console';
 import { DependenciesService } from '../dependencies.service';
 import { DbTable } from '../storage/db-table';
 import { Maps } from '@trailence/utils/maps';
@@ -278,7 +277,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         switchMap(r => nextStep(r, () => this.syncUpdateToServer(stillValid))),
         catchError(error => {
           // should never happen
-          Console.error('Error synchronizing ' + this.table.name, error);
+          this.logger.error('Error synchronizing', error);
           return of(undefined);
         }),
         defaultIfEmpty(undefined),
@@ -292,7 +291,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           status.inProgress = false;
           status.needsUpdateFromServer = false;
           status.lastUpdateFromServer = Date.now();
-          Console.info('Store ' + this.table.name + ' sync: ' + (status.hasLocalChanges ? 'still ' + this._createdLocally.length + ' to create, ' + this._deletedLocally.length + ' to delete, ' + this._updatedLocally.length + ' to update' : 'no more local changes'))
+          this.logger.info('Sync: ' + (status.hasLocalChanges ? 'still ' + this._createdLocally.length + ' to create, ' + this._deletedLocally.length + ' to delete, ' + this._updatedLocally.length + ' to update' : 'no more local changes'))
           this._syncStatus$.next(status);
           if (!stillValid()) return EMPTY;
           if (result) return of(result);
@@ -335,12 +334,12 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           });
         }
         if (readyEntities.length === 0) {
-          Console.info('Nothing ready to create on server among ' + toCreate.length + ' element(s) of ' + this.table.name);
+          this.logger.info('Nothing ready to create on server among ' + toCreate.length + ' element(s) of ' + this.table.name);
           return of('not-ready' as SyncAgain);
         }
         return this.createOnServer(readyEntities.map(entity => this.toDTO(entity))).pipe(
           switchMap(result => {
-            Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.table.name + ' element(s) created on server, ' + (notReady.length + partial) + ' waiting');
+            this.logger.info('' + result.length + '/' + readyEntities.length + ' ' + this.table.name + ' element(s) created on server, ' + (notReady.length + partial) + ' waiting');
             if (!stillValid()) return of(undefined);
             return this.updatedDtosFromServer(result).pipe(map(() => {
               if (notReady.length > 0) return 'not-ready' as SyncAgain;
@@ -349,7 +348,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
             }));
           }),
           catchError(error => {
-            Console.error('Error creating ' + readyEntities.length + ' element(s) of ' + this.table.name + ' on server', error);
+            this.logger.error('Error creating ' + readyEntities.length + ' element(s) of ' + this.table.name + ' on server', error);
             this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.create_items', [this.table.name]);
             this._errors.itemsError(readyEntities.map(e => e.uuid + '#' + e.owner), error);
             return of(undefined);
@@ -368,11 +367,11 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     return this.getUpdatesFromServer(known).pipe(
       switchMap(result => {
         if (!stillValid()) return of(false);
-        Console.info('Server updates for ' + this.table.name + ': sent ' + known.length + ' known element(s), received ' + result.deleted.length + ' deleted, ' + result.updated.length + ' updated, ' + result.created.length + ' created');
+        this.logger.info('Server updates for ' + this.table.name + ': sent ' + known.length + ' known element(s), received ' + result.deleted.length + ' deleted, ' + result.updated.length + ' updated, ' + result.created.length + ' created');
         return this.updatedDtosFromServer([...result.updated, ...result.created], result.deleted);
       }),
       catchError(error => {
-        Console.error('Error requesting updates from server with ' + known.length + ' known element(s) of ' + this.table.name, error);
+        this.logger.error('Error requesting updates from server with ' + known.length + ' known element(s) of ' + this.table.name, error);
         this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.get_updates', [this.table.name]);
         return of(false);
       })
@@ -383,7 +382,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     return this.getUpdatesFromServer([]).pipe(
       switchMap(result => {
         if (!stillValid()) return of(false);
-        Console.info('Force update from server: received ' + result.created.length + ' items of ' + this.table.name);
+        this.logger.info('Force update from server: received ' + result.created.length + ' items of ' + this.table.name);
         const dtosToUpdate: StoredItem<DTO>[] = [];
         for (const dto of result.created) {
           const key = dto.uuid + '#' + dto.owner;
@@ -398,7 +397,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         return this.table.setMany$(dtosToUpdate).pipe(map(() => true));
       }),
       catchError(error => {
-        Console.error('Error requesting all updates from server for ' + this.table.name, error);
+        this.logger.error('Error requesting all updates from server for ' + this.table.name, error);
         this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.get_updates', [this.table.name]);
         return of(false);
       })
@@ -424,13 +423,13 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         const notReady = toUpdate.filter(item => !readyEntities.some(entity => entity.uuid === item.uuid && entity.owner === item.owner));
         for (const item of notReady) this._locks.syncDone(item.uuid + '#' + item.owner);
         if (readyEntities.length === 0) {
-          Console.info('Nothing ready to update on server among ' + toUpdate.length + ' element(s) of ' + this.table.name + ', ' + notReady.length + ' waiting');
+          this.logger.info('Nothing ready to update on server among ' + toUpdate.length + ' element(s) of ' + this.table.name + ', ' + notReady.length + ' waiting');
           return of('not-ready' as SyncAgain);
         }
         return this.sendUpdatesToServer(readyEntities.map(entity => this.toDTO(entity))).pipe(
           switchMap(result => {
             if (!stillValid()) return of(undefined);
-            Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.table.name + ' element(s) updated on server');
+            this.logger.info('' + result.length + '/' + readyEntities.length + ' ' + this.table.name + ' element(s) updated on server');
             const notUpdatedDtos: StoredItem<DTO>[] = [];
             let notUpdated: string[] = [];
             for (const entity of readyEntities) {
@@ -458,7 +457,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
             );
           }),
           catchError(error => {
-            Console.error('Error updating ' + readyEntities.length + ' element(s) of ' + this.table.name + ' on server', error);
+            this.logger.error('Error updating ' + readyEntities.length + ' element(s) of ' + this.table.name + ' on server', error);
             this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.send_updates', [this.table.name]);
             this._errors.itemsError(readyEntities.map(item => item.uuid + '#' + item.owner), error);
             return of(undefined);
@@ -478,10 +477,10 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     return from(this.injector.get(DependenciesService).canDo(this.table.name, 'delete', toDelete.map(item => item.uuid + '#' + item.owner))).pipe(
       switchMap(canDelete => {
         if (canDelete.length === 0) {
-          Console.info('Nothing ready to be deleted among ' + toDelete.length + ' element(s) of ' + this.table.name);
+          this.logger.info('Nothing ready to be deleted among ' + toDelete.length + ' element(s) of ' + this.table.name);
           return of('not-ready' as SyncAgain);
         }
-        Console.info(canDelete.length + ' element(s) of ' + this.table.name + ' ready to be deleted on server');
+        this.logger.info(canDelete.length + ' element(s) of ' + this.table.name + ' ready to be deleted on server');
         const uuidsByOwner = new Map<string, string[]>();
         for (const key of canDelete) {
           const i = key.indexOf('#');
@@ -495,11 +494,11 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
               defaultIfEmpty(true),
               switchMap(() => {
                 if (!stillValid()) return of(true);
-                Console.info('' + entry[1].length + ' element(s) of ' + this.table.name + ' deleted on server with owner ' + entry[0]);
+                this.logger.info('' + entry[1].length + ' element(s) of ' + this.table.name + ' deleted on server with owner ' + entry[0]);
                 return this.updatedDtosFromServer([], entry[1].map(uuid => ({uuid, owner: entry[0]})));
               }),
               catchError(error => {
-                Console.error('Error deleting element(s) of ' + this.table.name + ' on server', error);
+                this.logger.error('Error deleting element(s) of ' + this.table.name + ' on server', error);
                 this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_items', [this.table.name]);
                 this._errors.itemsError(entry[1].map(uuid => uuid + '#' + entry[0]), error);
                 return of(true);

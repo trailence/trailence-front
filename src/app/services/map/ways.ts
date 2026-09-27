@@ -7,11 +7,13 @@ import { Injector, NgZone } from '@angular/core';
 import { catchError, debounceTime, filter, first, firstValueFrom, forkJoin, from, map, Observable, of, Subscriber, switchMap, tap } from 'rxjs';
 import { environment } from '@env/environment';
 import { ApiError } from '../http/api-error';
-import { Console } from '@trailence/utils/console';
 import { Way } from './way';
 import { DbTableWhereLessThan } from '../database/storage/db-table';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { CleanupService } from '../database/cleanup/cleanup.service';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('ways');
 
 const CACHE_EXPIRATION = 90 * 24 * 60 * 60 * 1000;
 const CACHE_NULL = -CACHE_EXPIRATION + 3 * 60 * 60 * 1000;
@@ -138,7 +140,7 @@ export class Ways {
         return of({blob: this.used(dto).blob, version: dto.version});
       }),
       catchError(e => {
-        Console.warn('Error getting way tile', tile, e);
+        logger.warn('Error getting way tile', tile, e);
         return of(undefined);
       })
     );
@@ -175,7 +177,7 @@ export class Ways {
             }).subscribe();
             return of(null);
           }
-          Console.error('Error getting tile', tile, e);
+          logger.error('Error getting tile', tile, e);
           return of(undefined);
         })
       ))

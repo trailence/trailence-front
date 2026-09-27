@@ -1,4 +1,4 @@
-import { Console } from '../utils/console';
+import { getLogger } from '@trailence/utils/console';
 import { matchOsmWays } from '../utils/track-computed-data/match-osm-ways';
 import { getTrackOsmStats } from '../utils/track-computed-data/track-osm-stats';
 import { convertToJpeg } from './functions/image-to-jpeg';
@@ -7,6 +7,8 @@ import { parsePois } from './functions/parse-pois';
 import { parseWays } from './functions/parse-ways';
 import { simplifyTrack } from './functions/simplify-track';
 import { WorkerMessage, WorkerRequest, WorkerResponse } from './worker-request';
+
+const logger = getLogger('worker');
 
 export function processWorkerMessage(request: WorkerMessage): Promise<{response: WorkerResponse, transferable: Transferable[]}> {
   let result: Promise<{result: any, transferable: Transferable[]}>;
@@ -63,11 +65,11 @@ export function processWorkerMessage(request: WorkerMessage): Promise<{response:
   return result
   .then(response => {
     const time = Date.now() - start;
-    Console.info('[WORKER] request ' + request.request + ' (id ' + request.id + ') processed in ' + time + 'ms.');
+    logger.info('request ' + request.request + ' (id ' + request.id + ') processed in ' + time + 'ms.');
     return {response: {id: request.id, success: true, payload: response.result, error: undefined}, transferable: response.transferable};
   })
   .catch(e => {
-    Console.error('Error processing request', request, e);
+    logger.error('Error processing request', request, e);
     return {response: {id: request.id, success: false, payload: undefined, error: e}, transferable: []};
   });
 }

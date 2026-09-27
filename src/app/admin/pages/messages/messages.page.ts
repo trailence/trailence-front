@@ -7,7 +7,9 @@ import { TableComponent } from '../../components/table/table.component';
 import { ContactMessageDto } from '../../model/contact-message';
 import { IonButton, ModalController } from '@ionic/angular';
 import { ErrorService } from '@trailence/services/progress/error.service';
-import { Console } from '@trailence/utils/console';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('admin/messages.page');
 
 @Component({
   templateUrl: './messages.page.html',
@@ -77,7 +79,7 @@ export class AdminMessagesPage {
         this.table?.refreshData();
       },
       error: e => {
-        Console.error(e);
+        logger.error(e);
         this.errorService.addNetworkError(e, 'admin.messages.error', []);
       }
     });
@@ -89,7 +91,7 @@ export class AdminMessagesPage {
         this.table?.refreshData();
       },
       error: e => {
-        Console.error(e);
+        logger.error(e);
         this.errorService.addNetworkError(e, 'admin.messages.error', []);
       }
     });

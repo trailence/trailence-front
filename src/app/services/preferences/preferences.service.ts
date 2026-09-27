@@ -6,11 +6,13 @@ import { HttpService } from '../http/http.service';
 import { environment } from '@env/environment';
 import { NetworkService } from '../network/network.service';
 import { StringUtils } from '@trailence/utils/string-utils';
-import { Console } from '@trailence/utils/console';
 import Trailence from '../trailence.service';
 import { I18nService } from '../i18n/i18n.service';
 import { FiltersUtils } from '@trailence/components/trails-list/filters';
 import { DEFAULT_LOCALE_KEY, LocaleKey, toLocaleKey } from '../i18n/available-locales';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('preferences.service');
 
 const defaultPreferences: {[key in LocaleKey]: Preferences} = {
   'de': {
@@ -128,7 +130,7 @@ export class PreferencesService implements OnDestroy {
     } catch (e) {} // NOSONAR
     this._prefs$ = new BehaviorSubject<Preferences>(prefs);
     this._computed$ = new BehaviorSubject<ComputedPreferences>(this.compute(this._prefs$.value));
-    Console.info('Initial preferences: ', this._computed$.value);
+    logger.info('Initial preferences: ', this._computed$.value);
     this.initDevice();
     try {
       const stored = localStorage.getItem(LOCALSTORAGE_TO_SAVE_KEY);
@@ -195,7 +197,7 @@ export class PreferencesService implements OnDestroy {
     this._prefs$.pipe(debounceTime(10)).subscribe(p => {
       localStorage.setItem(LOCALSTORAGE_PREFERENCES_KEY, JSON.stringify(p));
       const computed = this.compute(p);
-      Console.info('Preferences: ', computed);
+      logger.info('Preferences: ', computed);
       globalThis.document.body.classList.remove('dark-theme', 'light-theme');
       const theme = computed.theme === 'SYSTEM' ? this._systemTheme : computed.theme;
       globalThis.document.body.classList.add(theme.toLowerCase() + '-theme');
@@ -204,7 +206,7 @@ export class PreferencesService implements OnDestroy {
     });
     this.injector.get(AuthService).auth$.subscribe(auth => {
       if (auth?.preferences) {
-        Console.info("Preferences from login", auth.preferences);
+        logger.info("Preferences from login", auth.preferences);
         const prefs = {...auth.preferences};
         this.complete(prefs, this._prefs$.value);
         this._prefs$.next(prefs);
@@ -244,16 +246,16 @@ export class PreferencesService implements OnDestroy {
         }
         if (changed) {
           const body = {...prefs};
-          Console.info('Saving user preferences', body);
+          logger.info('Saving user preferences', body);
           auth.preferences = prefs;
           this.injector.get(AuthService).preferencesUpdated();
           this._prefs$.next(prefs);
           this.injector.get(HttpService).put(environment.apiBaseUrl + '/preferences/v1', body, undefined, {custom: {errorIfRenewAuth: () => new Error('auth renewed => save preferences delayed')}}).subscribe({
             complete: () => {
-              Console.info('Preferences saved for user', body);
+              logger.info('Preferences saved for user', body);
             },
             error: e => {
-              Console.warn('Cannot save preferences', e);
+              logger.warn('Cannot save preferences', e);
               forOthers.push(...forUser);
               this.storeToSave(forOthers);
               this._saveNeeded$.next(forOthers);
@@ -454,7 +456,6 @@ export class PreferencesService implements OnDestroy {
     const auth = authService.auth;
     if (auth) {
       const currentValue = auth?.preferences ? (auth.preferences as any)[field] : undefined;
-      console.log('auth', currentValue);
       if (currentValue !== value) {
         auth.preferences ??= {};
         (auth.preferences as any)[field] = value;
@@ -504,7 +505,7 @@ export class PreferencesService implements OnDestroy {
   }
 
   private storeToSave(toSave: PreferenceToSave[]): void {
-    Console.info('Preferences to save', toSave);
+    logger.info('Preferences to save', toSave);
     localStorage.setItem(LOCALSTORAGE_TO_SAVE_KEY, JSON.stringify(toSave));
   }
 

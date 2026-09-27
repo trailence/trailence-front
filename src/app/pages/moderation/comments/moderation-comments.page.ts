@@ -2,10 +2,12 @@ import { ChangeDetectorRef, Component, OnInit, ChangeDetectionStrategy } from '@
 import { HeaderComponent } from '@trailence/components/header/header.component';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { FeedbackToReview, ModerationService } from '@trailence/services/moderation/moderation.service';
-import { Console } from '@trailence/utils/console';
 import { IonSpinner, IonButton, IonIcon } from "@ionic/angular";
 import { RouterLink } from '@angular/router';
 import { FeedbackComponent } from '@trailence/components/trail/rate-and-comments/feedback/feedback.component';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('moderation-comments.page');
 
 @Component({
   selector: 'app-comments-moderation',
@@ -48,7 +50,7 @@ export class ModerationCommentsPage implements OnInit {
       },
       error: e => {
         this.loading = false;
-        Console.error('Error loading comments to review', e);
+        logger.error('Error loading comments to review', e);
         this.changeDetector.detectChanges();
       },
     });

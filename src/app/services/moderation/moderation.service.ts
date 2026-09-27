@@ -18,7 +18,6 @@ import { estimateTimeForTrack } from '../track-edition/time/time-estimation';
 import { ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
 import { ErrorService } from '../progress/error.service';
-import { Console } from '@trailence/utils/console';
 import { TrackUtils } from '@trailence/utils/track-utils';
 import { TypeUtils } from '@trailence/utils/type-utils';
 import { PointDtoMapper } from '@trailence/model/point-dto-mapper';
@@ -31,6 +30,9 @@ import { WorkerService } from '@trailence/worker/web-app';
 import { detectLongBreaksFromTrack } from '../track-edition/time/break-detection';
 import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
 import { ModerationCounters } from '@trailence/model/dto/moderation-counters';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('moderation.service');
 
 @Injectable({providedIn: 'root'})
 export class ModerationService {
@@ -291,7 +293,7 @@ export class ModerationService {
         return photo;
       }),
       catchError(e => {
-        Console.error('error saving photo on server', photo.toDto(), e);
+        logger.error('error saving photo on server', photo.toDto(), e);
         this.injector.get(ErrorService).addNetworkError(e, 'errors.stores.save_photo', [photo.description]);
         return of(null);
       })
@@ -466,7 +468,7 @@ export class ModerationService {
         });
       },
       error: e => {
-        Console.error('Error publishing', e);
+        logger.error('Error publishing', e);
         this.injector.get(ErrorService).addNetworkError(e, 'publications.moderation.error_publishing', []);
         progress.done();
         if (ondone) ondone(false);
@@ -570,7 +572,7 @@ export class ModerationService {
         )
       }),
       catchError(error => {
-        Console.error('Error getting moderation counters', error);
+        logger.error('Error getting moderation counters', error);
         return of(undefined);
       })
     ).subscribe(counters => {

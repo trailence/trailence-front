@@ -3,7 +3,9 @@ import { map, Observable, reduce, tap } from 'rxjs';
 import { Db } from './storage/db';
 import { DbTableWithBlob } from './storage/db-table-with-blob';
 import { Arrays } from '@trailence/utils/arrays';
-import { Console } from '@trailence/utils/console';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('stored-files.service');
 
 export interface StoredFileDto {
   key: string;
@@ -41,8 +43,8 @@ export class StoredFilesService {
     const key = this.getKey(owner, type, uuid);
     return this.table.addOne$({key, blob, dateStored: Date.now()}).pipe(
       tap({
-        next: () => Console.info('File stored', key),
-        error: e => Console.error('Error storing file', key, e)
+        next: () => logger.info('File stored', key),
+        error: e => logger.error('Error storing file', key, e)
       })
     );
   }
@@ -51,8 +53,8 @@ export class StoredFilesService {
     const key = this.getKey(owner, type, uuid);
     return this.table.deleteOne$(key).pipe(
       tap({
-        next: r => Console.info('File removed', key, r),
-        error: e => Console.error('Error deleting file', key, e)
+        next: r => logger.info('File removed', key, r),
+        error: e => logger.error('Error deleting file', key, e)
       })
     );
   }
@@ -61,8 +63,8 @@ export class StoredFilesService {
     const keys = toDelete.map(d => this.getKey(d.owner, type, d.uuid));
     return this.table.deleteMany$(keys).pipe(
       tap({
-        next: r => Console.info('Files removed', keys, r),
-        error: e => Console.error('Error deleting files', keys, e)
+        next: r => logger.info('Files removed', keys, r),
+        error: e => logger.error('Error deleting files', keys, e)
       })
     );
   }
@@ -84,7 +86,7 @@ export class StoredFilesService {
   public cleanExpiredFiles(type: string, maxDateStored: number, filter$?: (items: Partial<StoredFileDto>[]) => Promise<Partial<StoredFileDto>[]>): Observable<number> {
     return this.table.deleteWhen$(25, k => k.indexOf('#' + type + '#') > 0, dto => {
       const canDelete = !dto.dateStored || dto.dateStored < maxDateStored
-      if (canDelete) Console.info('Expired file eligible to remove', dto.key, dto.dateStored, maxDateStored);
+      if (canDelete) logger.info('Expired file eligible to remove', dto.key, dto.dateStored, maxDateStored);
       return canDelete;
     }, filter$);
   }
@@ -93,7 +95,7 @@ export class StoredFilesService {
     const keys = Arrays.mapToSet(references, r => this.getKey(r.owner, type, r.uuid));
     return this.table.deleteWhen$(25, k => !keys.has(k) && k.indexOf('#' + type + '#') > 0, dto => !!dto.dateStored && dto.dateStored < maxDateStored)
     .pipe(map(nb => {
-      Console.info('Cleant unreferenced files', nb);
+      logger.info('Cleant unreferenced files', nb);
       return '' + nb;
     }));
   }

@@ -5,13 +5,15 @@ import { HttpService } from '../http/http.service';
 import { NetworkService } from '../network/network.service';
 import { PendingRequests } from '@trailence/utils/pending-requests';
 import { environment } from '@env/environment';
-import { Console } from '@trailence/utils/console';
 import { ApiError } from '../http/api-error';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
 import { DbTableWhereLessThan } from '../database/storage/db-table';
 import { WorkerService } from '@trailence/worker/web-app';
 import { POI, POIType } from './poi';
 import { CleanupService } from '../database/cleanup/cleanup.service';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('pois');
 
 const CACHE_EXPIRATION = 90 * 24 * 60 * 60 * 1000;
 const CACHE_NULL = -CACHE_EXPIRATION + 3 * 60 * 60 * 1000;
@@ -84,7 +86,7 @@ export class Pois {
         return of({blob: this.used(dto).blob, version: dto.version});
       }),
       catchError(e => {
-        Console.warn('Error getting poi tile', tile, e);
+        logger.warn('Error getting poi tile', tile, e);
         return of(undefined);
       })
     );
@@ -121,7 +123,7 @@ export class Pois {
             }).subscribe();
             return of(null);
           }
-          Console.error('Error getting tile', tile, e);
+          logger.error('Error getting tile', tile, e);
           return of(undefined);
         })
       ))

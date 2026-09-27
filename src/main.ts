@@ -7,19 +7,21 @@ import { routes } from './app/routes/routes';
 import { AppComponent } from './app/app.component';
 import { environment } from './environments/environment';
 import { provideHttpClient, withXhr } from '@angular/common/http';
-import { Console } from './app/utils/console';
 import { provideServiceWorker } from '@angular/service-worker';
+import { getLogger } from '@trailence/utils/console';
 
-Console.info('App loading: start framework after ', Date.now() - ((globalThis as any)._trailenceStart || 0));
+const logger = getLogger('main');
+
+logger.info('App loading: start framework after ', Date.now() - ((globalThis as any)._trailenceStart || 0));
 
 globalThis.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
-    Console.error('Unhandled error at ' + url + ' line ' + lineNumber + ': ', errorMsg);
+    logger.error('Unhandled error at ' + url + ' line ' + lineNumber + ': ', errorMsg);
     return false;
 }
 
 class MyErrorHandler implements ErrorHandler {
   handleError(error: any): void {
-    Console.error('Angular error', error);
+    logger.error('Angular error', error);
   }
 }
 
@@ -42,4 +44,4 @@ bootstrapApplication(AppComponent, {
   ],
 });
 
-Console.info('App loading: framework started after ', Date.now() - ((globalThis as any)._trailenceStart || 0));
+logger.info('App loading: framework started after ', Date.now() - ((globalThis as any)._trailenceStart || 0));

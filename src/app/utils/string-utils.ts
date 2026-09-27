@@ -20,6 +20,13 @@ export class StringUtils {
     return s;
   }
 
+  public static padRight(s: string, minLength: number, pad: string): string {
+    while (s.length < minLength) {
+      s += pad;
+    }
+    return s;
+  }
+
   public static isWordChar(c: string): boolean {
     return !!wordRe.exec(c);
   }

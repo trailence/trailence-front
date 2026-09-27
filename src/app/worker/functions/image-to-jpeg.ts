@@ -1,11 +1,13 @@
-import { Console } from '@trailence/utils/console';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('image-to-jpeg');
 
 export async function convertToJpeg(image: Blob, maxWidth?: number, maxHeight?: number, quality?: number, minWidth?: number, minHeight?: number): Promise<{jpeg: ArrayBuffer, width: number, height: number}> {
   let img: ImageBitmap;
   try {
     img = await createImageBitmap(image);
   } catch (e) {
-    Console.warn('Error loading photo', e);
+    logger.warn('Error loading photo', e);
     throw {i18nKey: 'errors.invalid_format'};
   }
   const width = img.width;

@@ -3,12 +3,14 @@ import { HeaderComponent } from '@trailence/components/header/header.component';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { IonSpinner, IonIcon, IonButton, IonCheckbox } from '@ionic/angular';
 import { ModerationService } from '@trailence/services/moderation/moderation.service';
-import { Console } from '@trailence/utils/console';
 import { from, map, of, switchMap } from 'rxjs';
 import { FetchSourceService } from '@trailence/services/fetch-source/fetch-source.service';
 import { Trail } from '@trailence/model/trail';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('moderation-remove-requests.page');
 
 @Component({
   templateUrl: './moderation-remove-requests.page.html',
@@ -61,7 +63,7 @@ export class ModerationRemoveRequestsPage implements OnInit {
       },
       error: e => {
         this.loading = false;
-        Console.error('Error loading remove requests', e);
+        logger.error('Error loading remove requests', e);
         this.changeDetector.detectChanges();
       },
     });
@@ -76,7 +78,7 @@ export class ModerationRemoveRequestsPage implements OnInit {
     this.moderationService.declineRemoveRequests(this.getSelection()).subscribe({
       complete: () => this.load(),
       error: e => {
-        Console.error('Error declining remove requests', e);
+        logger.error('Error declining remove requests', e);
         this.loading = false;
       }
     });
@@ -86,7 +88,7 @@ export class ModerationRemoveRequestsPage implements OnInit {
     this.moderationService.acceptRemoveRequests(this.getSelection()).subscribe({
       complete: () => this.load(),
       error: e => {
-        Console.error('Error accepting remove requests', e);
+        logger.error('Error accepting remove requests', e);
         this.loading = false;
       }
     });

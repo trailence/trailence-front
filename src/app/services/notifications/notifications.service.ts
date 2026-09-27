@@ -4,7 +4,9 @@ import { NetworkService } from '../network/network.service';
 import { BehaviorSubject, debounceTime, EMPTY, map, Observable, of, switchMap, tap, timer } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { environment } from '@env/environment';
-import { Console } from '@trailence/utils/console';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('notification.service');
 
 const PAGE_SIZE = 50;
 const REFRESH_SIZE = 5;
@@ -65,7 +67,7 @@ export class NotificationsService {
     if (this._loaded) return;
     const email = this._email;
     this.http.get<Notification[]>(environment.apiBaseUrl + '/notifications/v1?page=0&size=' + PAGE_SIZE).subscribe(list => {
-      Console.info('Received ' + list.length + ' notifications from page 0');
+      logger.info('Received ' + list.length + ' notifications from page 0');
       this._lastNb = list.length;
       this._loaded = true;
       this.notifications$.next(list.map(n => this.toDto(n, email)));
@@ -77,7 +79,7 @@ export class NotificationsService {
     const size = Math.min(200, REFRESH_SIZE * nb);
     this.http.get<Notification[]>(environment.apiBaseUrl + '/notifications/v1?page=0&size=' + size).subscribe(list => {
       const newItems = list.filter(n => !this.notifications$.value.some(i => i.uuid === n.uuid));
-      Console.info('Received ' + list.length + ' notifications from page 0 refresh ' + REFRESH_SIZE + ': ' + newItems.length + ' new items');
+      logger.info('Received ' + list.length + ' notifications from page 0 refresh ' + REFRESH_SIZE + ': ' + newItems.length + ' new items');
       if (newItems.length > 0) {
         this.notifications$.next([...newItems.map(n => this.toDto(n, email)), ...this.notifications$.value]);
         this.refreshNotifications(nb + 1);
@@ -90,7 +92,7 @@ export class NotificationsService {
     const page = Math.floor(this.notifications$.value.length / PAGE_SIZE);
     return this.http.get<Notification[]>(environment.apiBaseUrl + '/notifications/v1?page=' + page + '&size=' + PAGE_SIZE).pipe(
       tap(list => {
-        Console.info('Received ' + list.length + ' notifications from page ' + page);
+        logger.info('Received ' + list.length + ' notifications from page ' + page);
         this._lastNb = list.length;
         const newItems = list.filter(n => !this.notifications$.value.some(i => i.uuid === n.uuid));
         if (newItems.length > 0) {

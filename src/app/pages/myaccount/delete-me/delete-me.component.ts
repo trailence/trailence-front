@@ -5,8 +5,10 @@ import { AuthService } from '@trailence/services/auth/auth.service';
 import { HttpService } from '@trailence/services/http/http.service';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { PreferencesService } from '@trailence/services/preferences/preferences.service';
-import { Console } from '@trailence/utils/console';
 import { environment } from '@env/environment';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('delete-me.component');
 
 @Component({
   templateUrl: './delete-me.component.html',
@@ -45,7 +47,7 @@ export class DeleteMeComponent {
         this.page = 2;
       },
       error: e => {
-        Console.error(e);
+        logger.error(e);
         this.pending = false;
       }
     });
@@ -60,7 +62,7 @@ export class DeleteMeComponent {
         this.page = 3;
       },
       error: e => {
-        Console.error(e);
+        logger.error(e);
         this.pending = false;
       }
     });

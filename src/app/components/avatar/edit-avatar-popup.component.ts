@@ -7,9 +7,11 @@ import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { Subscriptions } from '@trailence/utils/rxjs/subscription-utils';
 import { PhotoEditorComponent } from '../photo-editor/photo-editor.component';
 import { BinaryContent } from '@trailence/utils/binary-content';
-import { Console } from '@trailence/utils/console';
 import { ErrorService } from '@trailence/services/progress/error.service';
 import { WorkerService } from '@trailence/worker/web-app';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('edit-avatar-popup');
 
 export async function openEditAvatarPopup(injector: Injector) {
   const modal = await injector.get(ModalController).create({
@@ -166,11 +168,11 @@ export class EditAvatarPopup implements OnDestroy, OnInit {
                     const base64 = canvas.toDataURL('image/jpeg', 1);
                     BinaryContent.fromDataURL(base64).toBlob().then(b => resolve(b)).
                     catch(e => {
-                      Console.warn('Error converting data URL to blob', e);
+                      logger.warn('Error converting data URL to blob', e);
                       reject('Unable to generate JPEG');
                     });
                   } catch (e) {
-                    Console.warn('Error converting blob to JPEG data URL', e);
+                    logger.warn('Error converting blob to JPEG data URL', e);
                     reject('Unable to generate JPEG');
                   }
                 }
@@ -183,7 +185,7 @@ export class EditAvatarPopup implements OnDestroy, OnInit {
             1
           )
         } catch (e) {
-          Console.warn('Error converting photo', e);
+          logger.warn('Error converting photo', e);
           reject('Error converting photo');
         }
       };

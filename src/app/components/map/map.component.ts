@@ -29,7 +29,6 @@ import { MapAdditionsService } from '@trailence/services/map/map-additions.servi
 import { GoBackTool } from './tools/go-back-tool';
 import { ScreenLockService } from '@trailence/services/screen-lock/screen-lock.service';
 import { HttpService } from '@trailence/services/http/http.service';
-import { Console } from '@trailence/utils/console';
 import { SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
 import { AdditionsTool } from './tools/additions-tool';
 import { BoundsBuilder } from '@trailence/utils/leaflet-utils';
@@ -43,6 +42,9 @@ import { MotionService } from '@trailence/services/motion/motion.service';
 import { FullScreenTool } from './tools/fullscreen-tool';
 import { ToastController } from '@ionic/angular';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('map.component');
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -284,7 +286,7 @@ export class MapComponent extends AbstractComponent {
         this.injector.get(HttpService).get('https://free.freeipapi.com/api/json')
         .subscribe((response: any) => {
           if (response && response['latitude'] && response['longitude'] && this._initZoomTimestamp === init && this._currentElements.length === 0) { // NOSONAR
-            Console.info('Move map to user position', response, this._initZoomTimestamp, this._currentElements.length, this._mapState);
+            logger.info('Move map to user position', response, this._initZoomTimestamp, this._currentElements.length, this._mapState);
             this._map$.value?.setView({lat: response['latitude'], lng: response['longitude']}, 10);
           }
         });

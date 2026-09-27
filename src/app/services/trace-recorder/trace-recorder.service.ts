@@ -19,7 +19,6 @@ import { AlertController, ToastController } from '@ionic/angular';
 import { ImprovmentRecordingState, ImprovmentRecordingStateDto, TrackEditionService } from '../track-edition/track-edition.service';
 import { ProgressService } from '../progress/progress.service';
 import { ErrorService } from '../progress/error.service';
-import { Console } from '@trailence/utils/console';
 import { Segment } from '@trailence/model/segment';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { ScreenLockService } from '../screen-lock/screen-lock.service';
@@ -36,6 +35,9 @@ import { WorkerService } from '@trailence/worker/web-app';
 import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
 import { NetworkService } from '../network/network.service';
 import { TAKE_PHOTO_CANCELLED_ERROR } from '../camera/camera.interface';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('trace-recorder.service');
 
 @Injectable({
   providedIn: 'root'
@@ -86,7 +88,7 @@ export class TraceRecorderService {
 
   private closeDb() {
     if (this._db) {
-      Console.info('Closing trace recorder DB');
+      logger.info('Closing trace recorder DB');
       this._changesSubscription?.unsubscribe();
       this._changesSubscription = undefined;
       if (this._geolocationListener) this.geolocation.stopWatching(this._geolocationListener);
@@ -104,7 +106,7 @@ export class TraceRecorderService {
   private openDb(email: string) {
     if (this._email === email) return;
     this.closeDb();
-    Console.info('Open trace recorder DB for user ' + email);
+    logger.info('Open trace recorder DB for user ' + email);
     this._email = email;
     this._db = new Dexie('trailence_record_' + email);
     const storesV1: any = {};
@@ -115,13 +117,13 @@ export class TraceRecorderService {
     .then(dto => {
       const recording = dto ? Recording.fromDto(dto as RecordingDto, this.preferencesService, this.mapService, this.workerService, this.trackCacheService, this.networkService) : null;
       if (recording) {
-        Console.info('Trace in progress found in DB, start it');
+        logger.info('Trace in progress found in DB, start it');
         this._recording$.next(recording);
         if (!recording.paused) this.startRecording(recording);
       }
     })
     .catch(e => {
-      Console.error('Error loading current trace', e);
+      logger.error('Error loading current trace', e);
       this._recording$.next(null);
     });
   }
@@ -201,7 +203,7 @@ export class TraceRecorderService {
     const recording = this._recording$.value;
     if (!recording) return of(null);
     this.stopRecording(recording);
-    Console.info('Recording stopped');
+    logger.info('Recording stopped');
     this._recording$.next(null);
     if (!save) {
       if (this._table) this._table.clear();
@@ -288,7 +290,7 @@ export class TraceRecorderService {
       defaultIfEmpty(null),
       tap(() => { if (this._table) this._table.clear(); }),
       catchError(e => {
-        Console.error('Error saving recorded trail', e);
+        logger.error('Error saving recorded trail', e);
         this.errorService.addError(e);
         progress.done();
         return of (null);
@@ -301,7 +303,7 @@ export class TraceRecorderService {
     this.cameraService.takePhoto(location?.pos?.lat, location?.pos?.lng)
       .then(photo => this.addPhoto(photo))
       .catch(e => {
-        Console.error('Error taking photo', e);
+        logger.error('Error taking photo', e);
         try {
           if (e['message'] === TAKE_PHOTO_CANCELLED_ERROR) return;
         } catch (_) { /* ignore */ }
@@ -343,7 +345,7 @@ export class TraceRecorderService {
   private startRecording(recording: Recording): Promise<Recording> {
     return this.geolocation.needsPermission()
     .then(() => {
-      Console.info('Start recording');
+      logger.info('Start recording');
       this._recording$.next(recording);
       this._changesSubscription = this.ngZone.runOutsideAngular(() =>
         combineLatest([
@@ -485,14 +487,14 @@ export class TraceRecorderService {
   }
 
   private addRawPoint(recording: Recording, position: PointDto, reason: string): RecordingPoint {
-    Console.info('new raw position', position, reason);
+    logger.info('new raw position', position, reason);
     const point = this.addPointToTrack(position, recording.rawTrack);
     const angle = angleBetween(point, recording.status.latestRawPoint?.point);
     return { point, angle };
   }
 
   private addImprovedPoint(recording: Recording, position: PointDto, reason: string): RecordingPoint {
-    Console.info('new improved position', position, reason);
+    logger.info('new improved position', position, reason);
     const point = this.addPointToTrack(position, recording.track);
     const lastSegment = recording.track.segments.at(-1)!;
     if (lastSegment.points.length > 5 && (lastSegment.points.length % 10) === 0) {
@@ -533,7 +535,7 @@ export class TraceRecorderService {
     }
     if (updated || (position.t !== undefined && point.point.time === undefined))
       point.point.time = position.t;
-    Console.info('update ' + pointType + ' position', position, reason, updated);
+    logger.info('update ' + pointType + ' position', position, reason, updated);
   }
 
   private isBetterAccuracy(newAccuracy: number | undefined, previousAccuracy: number | undefined): boolean {
@@ -543,7 +545,7 @@ export class TraceRecorderService {
   }
 
   private stopRecording(recording: Recording): void {
-    Console.info('Stop recording');
+    logger.info('Stop recording');
     this._changesSubscription?.unsubscribe();
     this._changesSubscription = undefined;
     if (this._geolocationListener) this.geolocation.stopWatching(this._geolocationListener);

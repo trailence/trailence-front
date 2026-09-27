@@ -7,11 +7,13 @@ import { Photo } from '@trailence/model/photo';
 import { firstTimeout } from '@trailence/utils/rxjs/first-timeout';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { filterTimeout } from '@trailence/utils/rxjs/filter-timeout';
-import { Console } from '@trailence/utils/console';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from '@trailence/model/snapshots';
 import { NetworkService } from '../network/network.service';
 import { ApiError } from '../http/api-error';
 import { TrailencePlugin } from './trailence.plugin';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('fetch-source.service');
 
 @Injectable({providedIn: 'root'})
 export class FetchSourceService {
@@ -40,7 +42,7 @@ export class FetchSourceService {
       }
       this.plugins$.next(newPlugins);
       this.ready$.next(true);
-      Console.info('Fetch plugins loaded', newPlugins.map(p => p.name));
+      logger.info('Fetch plugins loaded', newPlugins.map(p => p.name));
     });
   }
 
@@ -189,7 +191,7 @@ export class FetchSourceService {
             return {trails: result.trails, end: end.length === list.length, tooManyResults: tooMany};
           }),
           catchError(e => {
-            Console.error('Error searching trails on ', plugin.name, e);
+            logger.error('Error searching trails on ', plugin.name, e);
             return of({trails: [], end: true, tooManyResults: false});
           })
         )
@@ -222,10 +224,10 @@ export class FetchSourceService {
       this.retryPromise(description, promise, shouldRetry, onerror, subscriber, trial + 1);
     })
     .catch(e => {
-      Console.warn('Cannot fetch ' + description + ' (try ' + trial + '/5)');
+      logger.warn('Cannot fetch ' + description + ' (try ' + trial + '/5)');
       subscriber.next(onerror());
       if (trial >= 5 || (e instanceof ApiError && e.httpCode >= 400)) {
-        Console.error('Fetch ' + description + ' failed after ' + trial + ' attempts', e);
+        logger.error('Fetch ' + description + ' failed after ' + trial + ' attempts', e);
         subscriber.complete();
         return;
       }

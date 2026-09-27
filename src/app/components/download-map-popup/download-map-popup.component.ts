@@ -13,7 +13,9 @@ import { AsyncPipe } from '@angular/common';
 import { Arrays } from '@trailence/utils/arrays';
 import { BehaviorSubject, debounceTime, switchMap, tap } from 'rxjs';
 import { calculateTilesFromBounds, calculateTilesFromPaths } from '@trailence/services/map/calculate-tiles';
-import { Console } from '@trailence/utils/console';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('download-map-popup');
 
 @Component({
     selector: 'app-download-map-popup',
@@ -192,7 +194,7 @@ export class DownloadMapPopupComponent implements OnInit, OnChanges {
     for (const layer of selection) {
       const toDownload = computed.get(layer.layer.name);
       if (toDownload) {
-        Console.info('Launch download of offline map layer', layer.layer.name, 'zooms', Array.from(toDownload.entries()).map(e => 'zoom ' + e[0] + '=' + e[1].length));
+        logger.info('Launch download of offline map layer', layer.layer.name, 'zooms', Array.from(toDownload.entries()).map(e => 'zoom ' + e[0] + '=' + e[1].length));
         this.offlineMap.save(layer.layer, L.CRS.EPSG3857, layer.tiles, toDownload);
       }
     }

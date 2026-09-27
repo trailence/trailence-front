@@ -6,7 +6,6 @@ import { MenuItem } from '@trailence/components/menus/menu-item';
 import { NetworkService } from '../network/network.service';
 import { I18nService } from '../i18n/i18n.service';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
-import { Console } from '@trailence/utils/console';
 import * as L from 'leaflet';
 import { List } from 'immutable';
 import { Trail } from '@trailence/model/trail';
@@ -16,6 +15,9 @@ import { FiltersUtils } from '@trailence/components/trails-list/filters';
 import { ErrorService } from '../progress/error.service';
 import { PreferencesService } from '../preferences/preferences.service';
 import { Filters } from '../preferences/preferences';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('search-trails.service');
 
 @Injectable({providedIn: 'root'})
 export class SearchTrailsService {
@@ -40,7 +42,7 @@ export class SearchTrailsService {
   ) {
     // available plugins
     pluginService.getAllowedPlugins$().subscribe(list => {
-      Console.info('Allowed search plugins: ', list.map(p => p.name));
+      logger.info('Allowed search plugins: ', list.map(p => p.name));
       this._availableSearchPlugins = list.filter(p => p.canSearchByArea());
       this.mapTopToolbar$.next([...this.mapTopToolbar$.value]);
     });
@@ -184,7 +186,7 @@ export class SearchTrailsService {
     this._searchFiltersSubscription = undefined;
     const fillResults = (result: SearchResult) => {
       if (firstResult) this._bubbles$.next([]);
-      Console.info('search result', result.trails.length, result.end, result.tooManyResults);
+      logger.info('search result', result.trails.length, result.end, result.tooManyResults);
       const newTrails = result.trails.map(t => of(t));
       const newList = List(firstResult ? newTrails : [...(this._trails$.value ?? []), ...newTrails]);
       firstResult = false;
@@ -198,11 +200,11 @@ export class SearchTrailsService {
       if (result.trails.length > 0) this._hasSearchResult = true;
     };
     const plugins = this._selectedSearchPlugins;
-    Console.info('Start search on bounds ', this.searchBounds, 'using plugins', plugins);
+    logger.info('Start search on bounds ', this.searchBounds, 'using plugins', plugins);
     this.pluginService.searchByArea(this.searchBounds!, 200, plugins).subscribe({ // NOSONAR
       next: result => fillResults(result),
       error: e => {
-        Console.error('Error searching trails on ' + plugins.join(',') + ' with bounds', this.searchBounds, 'error', e);
+        logger.error('Error searching trails on ' + plugins.join(',') + ' with bounds', this.searchBounds, 'error', e);
         this.injector.get(ErrorService).addNetworkError(e, 'pages.trails.search.error', []);
         this._searching$.next(false);
         this.setSearchBounds(this.searchBounds, this.searchZoom, true);
@@ -224,7 +226,7 @@ export class SearchTrailsService {
     const zoom = this.searchZoom;
     const plugin = this.pluginService.getPluginByName(this._selectedSearchPlugins[0])!;
     let searchCount = 0;
-    Console.info('Start search bubbles on bounds ', bounds, 'zoom', zoom, 'using plugin', plugin.name);
+    logger.info('Start search bubbles on bounds ', bounds, 'zoom', zoom, 'using plugin', plugin.name);
     this._searchFiltersSubscription = this._filters$?.pipe(
       debounceTimeExtended(0, 1000),
       switchMap(filters => {
@@ -232,7 +234,7 @@ export class SearchTrailsService {
         this._searching$.next(true);
         return (plugin?.searchBubbles(bounds, zoom, filters ?? FiltersUtils.createEmpty(), this.injector.get(PreferencesService).preferences.lang) ?? of({trailsByTile: [], uuids: undefined})).pipe(
           catchError(e => {
-            Console.error('Error searching bubbles on ' + plugin?.name + ' with bounds', bounds, 'and zoom', zoom, 'error', e);
+            logger.error('Error searching bubbles on ' + plugin?.name + ' with bounds', bounds, 'and zoom', zoom, 'error', e);
             this.injector.get(ErrorService).addNetworkError(e, 'pages.trails.search.error', []);
             if (searchCount === count) {
               this._searching$.next(false);
@@ -246,11 +248,11 @@ export class SearchTrailsService {
     ).subscribe(([result, count]) => {
       if (searchCount !== count) return;
       this._bubbles$.next(result.trailsByTile.map(r => this.searchBubbleResultToMapBubble(r, zoom)));
-      Console.info('Search bubbles found', result.trailsByTile.length);
+      logger.info('Search bubbles found', result.trailsByTile.length);
       if (result.uuids?.length) {
         plugin.getTrails(result.uuids)
         .catch(e => {
-          Console.error('Get trails by uuids error', e);
+          logger.error('Get trails by uuids error', e);
           return [] as Trail[];
         })
         .then(trails => {

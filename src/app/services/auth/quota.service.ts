@@ -2,9 +2,11 @@ import { Injectable, Injector } from '@angular/core';
 import { AuthService } from './auth.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { UserQuotas } from './user-quotas';
-import { Console } from '@trailence/utils/console';
 import { ToastController } from '@ionic/angular';
 import { I18nService } from '../i18n/i18n.service';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('quota.service');
 
 @Injectable({providedIn: 'root'})
 export class QuotaService {
@@ -16,7 +18,7 @@ export class QuotaService {
     private readonly injector: Injector,
   ) {
     auth.auth$.subscribe(a => this._quotas$.next(a?.quotas));
-    this._quotas$.subscribe(q => Console.info('New quotas', this.quotaToString(q)));
+    this._quotas$.subscribe(q => logger.info('New quotas', this.quotaToString(q)));
   }
 
   private quotaToString(q: UserQuotas | undefined): string {

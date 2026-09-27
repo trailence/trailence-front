@@ -4,7 +4,6 @@ import { MenuComponent } from './components/menus/global-menu/menu.component';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { BehaviorSubject, catchError, combineLatest, filter, first, from, map, of, switchMap, tap, timeout } from 'rxjs';
 import { filterDefined } from './utils/rxjs/filter-defined';
-import { Console } from './utils/console';
 import { NetworkService } from './services/network/network.service';
 import { I18nService } from './services/i18n/i18n.service';
 import { BrowserService } from './services/browser/browser.service';
@@ -12,8 +11,11 @@ import { AssetsService } from './services/assets/assets.service';
 import { PlatformService } from './services/platform/platform.service';
 import { AuthService } from './services/auth/auth.service';
 import { QuotaService } from './services/auth/quota.service';
+import { getLogger } from './utils/console';
 
-Console.info('App loading: main component loaded ', Date.now() - ((globalThis as any)._trailenceStart || 0));
+const logger = getLogger('STARTUP');
+
+logger.info('App loading: main component loaded ', Date.now() - ((globalThis as any)._trailenceStart || 0));
 
 @Component({
     selector: 'app-root',
@@ -44,7 +46,7 @@ export class AppComponent {
   constructor(
     private readonly injector: Injector,
   ) {
-    Console.info('App loading: main component init ', Date.now() - ((globalThis as any)._trailenceStart || 0));
+    logger.info('App loading: main component init ', Date.now() - ((globalThis as any)._trailenceStart || 0));
     // start network service as soon as possible
     injector.get(NetworkService);
     // then I18nService
@@ -58,14 +60,14 @@ export class AppComponent {
     // init auth and quotas
     const auth = injector.get(AuthService);
     injector.get(QuotaService);
-    Console.info('App loading: main services init ', Date.now() - ((globalThis as any)._trailenceStart || 0));
+    logger.info('App loading: main services init ', Date.now() - ((globalThis as any)._trailenceStart || 0));
 
     combineLatest([
       injector.get(Router).events.pipe(
         filter(e => e instanceof NavigationEnd),
         first(),
         switchMap(e => {
-          Console.info('App loading: first navigation done ', Date.now() - ((globalThis as any)._trailenceStart || 0));
+          logger.info('App loading: first navigation done ', Date.now() - ((globalThis as any)._trailenceStart || 0));
           if (e.url.startsWith('/link/')) return of(null);
           return auth.auth$.pipe(
             filter(a => a !== undefined),
@@ -83,7 +85,7 @@ export class AppComponent {
         first(),
       ),
     ]).subscribe(([a, t]) => {
-      Console.info('App loading: auth and i18n loaded ', Date.now() - ((globalThis as any)._trailenceStart || 0));
+      logger.info('App loading: auth and i18n loaded ', Date.now() - ((globalThis as any)._trailenceStart || 0));
       const startup = document.getElementById('startup')!;
       startup.style.opacity = '0.75';
       document.getElementById('root')!.style.display = '';
@@ -94,7 +96,7 @@ export class AppComponent {
           from(this.loadServices()).pipe(
             timeout(10000),
             catchError(e => {
-              Console.error('Error loading services', e);
+              logger.error('Error loading services', e);
               return of(true);
             })
           )
@@ -160,7 +162,7 @@ export class AppComponent {
       setTimeout(() => this.ready(startup), 10);
       return;
     }
-    Console.info('-- Starting app: ready in ' + (Date.now() - (globalThis as any)._trailenceStart) + 'ms. --------------------------------');
+    logger.info('-- Starting app: ready in ' + (Date.now() - (globalThis as any)._trailenceStart) + 'ms. --------------------------------');
     const startupContent = document.getElementById('startup-content');
     startupContent?.remove();
     startup.style.opacity = '0';

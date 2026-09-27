@@ -23,6 +23,9 @@ import { LiveGroupDto } from '@trailence/model/dto/live-group';
 import { MyPublicTrail } from '@trailence/model/dto/my-public-trail';
 import { ModerationCounters } from '@trailence/model/dto/moderation-counters';
 import { AppDownload } from '@trailence/services/update/common';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('menu.component');
 
 @Component({
     selector: 'app-menu',
@@ -288,7 +291,7 @@ export class MenuComponent implements OnInit {
 
   async close(trial: number = 1) {
     if (!await this.menuController.close()) {
-      console.log('App Menu not closed ! trial ', trial);
+      logger.warn('App Menu not closed ! trial ', trial);
       if (trial <= 5)
         setTimeout(() => this.close(trial + 1), 200);
     }

@@ -5,7 +5,9 @@ import { NetworkService } from '@trailence/services/network/network.service';
 import { BinaryContent } from '@trailence/utils/binary-content';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { I18nService } from '../i18n/i18n.service';
-import { Console } from '@trailence/utils/console';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('map-tiles-layer-offline');
 
 export function handleMapOffline(name: string, displayName: string, tiles: L.TileLayer, getTileUrl: (layer: L.TileLayer, coords: L.Coords, crs?: L.CRS) => string, network: NetworkService, offlineMap: OfflineMapService, i18n: I18nService): L.TileLayer {
   (tiles as any)['createTile'] = function(coords: L.Coords, done: L.DoneCallback) {
@@ -81,7 +83,7 @@ export function handleMapOffline(name: string, displayName: string, tiles: L.Til
         });
       }
       if (r.status === 404) {
-        Console.warn('Tile not found', url);
+        logger.warn('Tile not found', url);
         const svg = '<svg width="800px" height="800px" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">'
           + '<text x="960" y="650" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="100px">'
           + i18n.texts.mapNotAvailable
@@ -102,7 +104,7 @@ export function handleMapOffline(name: string, displayName: string, tiles: L.Til
       return undefined;
     })
     .catch(_ => {
-      Console.error('Cannot fetch tile', url);
+      logger.error('Cannot fetch tile', url);
       img.onload = () => {
         img.classList.remove('map-tile-loading');
         done(undefined, img);

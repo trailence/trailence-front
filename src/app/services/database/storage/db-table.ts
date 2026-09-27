@@ -1,9 +1,11 @@
 import { EventEmitter, Injector, NgZone } from '@angular/core';
 import Dexie, { Collection, Table } from 'dexie';
 import { BehaviorSubject, debounceTime, first, firstValueFrom, from, map, MonoTypeOperatorFunction, Observable, of, switchMap } from 'rxjs';
-import { Console } from '@trailence/utils/console';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { Db, DbReady } from './db';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('db-table');
 
 export interface DbStatus<DTO> {
   counter: number;
@@ -53,10 +55,10 @@ export class DbTable<DTO> {
     let version = previousTableVersion;
     for (const migration of this.migrations) {
       if (version < migration.version) {
-        Console.info('Migration of table ' + dexie.name + '/' + this.name + ': ' + migration.name + ' (to version ' + migration.version + ')');
+        logger.info('Migration of table ' + dexie.name + '/' + this.name + ': ' + migration.name + ' (to version ' + migration.version + ')');
         await migration.migration(this.injector, dexie, table, localDir);
         version = migration.version;
-        Console.info('Migration done for table ' + dexie.name + '/' + this.name + ': ' + migration.name + ' (to version ' + migration.version + ')');
+        logger.info('Migration done for table ' + dexie.name + '/' + this.name + ': ' + migration.name + ' (to version ' + migration.version + ')');
       }
     }
     this.onMigrationsDone();

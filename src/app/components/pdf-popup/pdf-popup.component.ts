@@ -19,7 +19,6 @@ import { PreferencesService } from '@trailence/services/preferences/preferences.
 import { hasWaypointsContent } from './waypoints-utils';
 import { MapLayersService } from '@trailence/services/map/map-layers.service';
 import { TypeUtils } from '@trailence/utils/type-utils';
-import { Console } from '@trailence/utils/console';
 import { FetchSourceService } from '@trailence/services/fetch-source/fetch-source.service';
 import { AvatarService } from '@trailence/services/avatar/avatar.service';
 import { PhotoService } from '@trailence/services/database/photo.service';
@@ -28,6 +27,9 @@ import { PhotosSliderComponent } from '../photos-slider/photos-slider.component'
 import { computeWayPointsFromTrack, WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
 import { AssetsService } from '@trailence/services/assets/assets.service';
 import { assetsDependencies } from '@trailence/assets-dependencies';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('pdf-popup');
 
 export function openPdfPopup(injector: Injector, trail: Trail) {
   injector.get(ModalController).create({
@@ -106,7 +108,7 @@ export class PdfPopup implements OnInit, OnDestroy {
           mapLayer: (json.mapLayer ? this.mapLayerService.layers.find(l => l.name === json.mapLayer) : undefined) ?? this.mapLayerService.layers.find(l => l.name === this.mapLayerService.getDefaultLayer())!,
         }
       } catch (e) {
-        Console.error('Cannot parse saved pdf options', e);
+        logger.error('Cannot parse saved pdf options', e);
         // ignore
       }
     }
@@ -193,7 +195,6 @@ export class PdfPopup implements OnInit, OnDestroy {
   }
 
   photoIndexChanged(index: number): void {
-    console.log('index', index);
     if (index === this.photoIndex) return;
     this.photoIndex = index;
     this.optionsChanged();

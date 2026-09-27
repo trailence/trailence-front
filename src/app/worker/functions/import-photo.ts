@@ -2,8 +2,10 @@ import { PhotoDto } from '@trailence/model/dto/photo';
 import { ComputedPreferences } from '@trailence/services/preferences/preferences';
 import { ImageInfo } from '@trailence/utils/image-utils';
 import { extractInfos } from './extract-image-infos';
-import { Console } from '@trailence/utils/console';
 import { convertToJpeg } from './image-to-jpeg';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('import-photo');
 
 export async function importPhoto( // NOSONAR
   owner: string, trailUuid: string,
@@ -27,31 +29,31 @@ export async function importPhoto( // NOSONAR
         if (info) info.dateTaken = date; else info = {dateTaken: date};
       }
     }
-    Console.info('extracted info from image', info);
+    logger.info('extracted info from image', info);
   }
   const nextConvert: (s:number,q:number) => Promise<ArrayBuffer> = (currentMaxSize: number, currentMaxQuality: number) => {
-    Console.info('Converting image (size ' + arr.byteLength + ') to JPEG with maximum size', currentMaxSize, 'and quality', currentMaxQuality);
+    logger.info('Converting image (size ' + arr.byteLength + ') to JPEG with maximum size', currentMaxSize, 'and quality', currentMaxQuality);
     return convertToJpeg(new Blob([arr]), currentMaxSize, currentMaxSize, currentMaxQuality)
     .then(jpeg => {
       if (jpeg.jpeg.byteLength <= preferences.photoMaxSizeKB * 1024) return jpeg.jpeg;
-      Console.info('Photo larger than', preferences.photoMaxSizeKB, 'KB: ', Math.floor(jpeg.jpeg.byteLength / 1024));
+      logger.info('Photo larger than', preferences.photoMaxSizeKB, 'KB: ', Math.floor(jpeg.jpeg.byteLength / 1024));
       if (currentMaxQuality > preferences.photoMaxQuality - 0.25) {
-        Console.info('Try reducing quality to', currentMaxQuality - 0.05);
+        logger.info('Try reducing quality to', currentMaxQuality - 0.05);
         return nextConvert(currentMaxSize, currentMaxQuality - 0.05);
       }
       if (currentMaxSize > 400) {
-        Console.info('Try reducing size to', currentMaxSize - 100);
+        logger.info('Try reducing size to', currentMaxSize - 100);
         return nextConvert(currentMaxSize - 100, preferences.photoMaxQuality / 100);
       }
       if (currentMaxQuality > 0.25) {
-        Console.info('Try reducing quality to', currentMaxQuality - 0.05);
+        logger.info('Try reducing quality to', currentMaxQuality - 0.05);
         return nextConvert(currentMaxSize, currentMaxQuality - 0.05);
       }
       if (currentMaxSize > 100) {
-        Console.info('Try reducing size to', currentMaxSize - 50);
+        logger.info('Try reducing size to', currentMaxSize - 50);
         return nextConvert(currentMaxSize - 50, preferences.photoMaxQuality / 100);
       }
-      Console.info('Cannot reduce more...');
+      logger.info('Cannot reduce more...');
       return jpeg.jpeg;
     });
   };

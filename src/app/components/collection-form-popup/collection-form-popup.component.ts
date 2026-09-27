@@ -8,9 +8,11 @@ import { AuthService } from '@trailence/services/auth/auth.service';
 import { Router } from '@angular/router';
 import { first } from 'rxjs';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
-import { Console } from '@trailence/utils/console';
 import { TrailCollectionType } from '@trailence/model/dto/trail-collection';
 import { EmailsValue, MultipleInputEmailComponent } from '../input-email/multiple-input-email.component';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('collection-form-popup');
 
 @Component({
     selector: 'app-collection-form-popup',
@@ -117,7 +119,7 @@ export class CollectionFormPopupComponent implements OnInit, OnChanges {
             this.router.navigateByUrl('/trails/collection/' + col.uuid);
         },
         error: e => {
-          Console.error(e);
+          logger.error(e);
           this.applying = false;
         }
       });

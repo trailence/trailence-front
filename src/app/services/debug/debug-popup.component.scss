@@ -23,14 +23,11 @@ div.header {
 }
 div.content {
   flex: 1 1 100%;
-  textarea {
-    width: 100%;
-    height: 100%;
+  overflow: auto;
+  div.logs {
     white-space: pre;
     background-color: var(--ion-background-color);
     color: var(--ion-text-color);
-    font-size: 12px;
-    font-family: monospace;
   }
 }
 div.footer {
@@ -40,9 +37,19 @@ div.footer {
   display: flex;
   flex-direction: row;
   align-items: center;
+  flex-wrap: wrap;
+  font-size: 13px;
 
-  span.button {
-    cursor: pointer;
-    font-size: 13px;
+  > *:not(:first-child) {
+    margin-left: 5px;
+  }
+
+  ion-select {
+    max-width: calc(min(250px, 66%));
+    min-height: 24px;
+  }
+  ion-input {
+    min-height: 24px;
+    max-width: calc(min(250px, 66%));
   }
 }

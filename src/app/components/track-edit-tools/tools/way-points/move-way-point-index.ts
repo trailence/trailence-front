@@ -45,7 +45,6 @@ export class MoveWayPointIndexTool {
               ctx.modifyTrack(track => {
                 const wp = track.wayPoints[currentIndex];
                 const newPos = track.segments[newPossibility.segmentIndex].points[newPossibility.pointIndex];
-                console.log('move', currentIndex, newIndex, wp.point.pos, newPos.pos, newPossibility)
                 wp.point.pos = {...newPos.pos};
                 wp.point.ele = newPos.ele;
                 track.moveWayPointAt(currentIndex, newIndex);

@@ -4,12 +4,14 @@ import { PreferencesService } from '@trailence/services/preferences/preferences.
 import { DonationStatusDto } from './donation-status';
 import { HttpService } from '@trailence/services/http/http.service';
 import { environment } from '@env/environment';
-import { Console } from '@trailence/utils/console';
 import { NetworkService } from '@trailence/services/network/network.service';
 import { HeaderComponent } from '@trailence/components/header/header.component';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { PublicPage } from '../public.page';
 import { NgStyle } from '@angular/common';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('donation.page');
 
 interface Goal {
   type: string;
@@ -72,7 +74,7 @@ export class DonationPage extends PublicPage {
         this.refreshTimeout();
       },
       error: e => {
-        Console.error(e);
+        logger.error(e);
         this.refreshTimeout();
       }
     });

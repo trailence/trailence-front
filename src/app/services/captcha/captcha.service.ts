@@ -3,7 +3,9 @@ import { BehaviorSubject, combineLatest, filter, first, map, Observable, of } fr
 import { HttpService } from '../http/http.service';
 import { environment } from '@env/environment';
 import { IdGenerator } from '@trailence/utils/component-utils';
-import { Console } from '@trailence/utils/console';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('captcha.service');
 
 interface ConfigFromServer {
   provider: string;
@@ -81,7 +83,7 @@ export class CaptchaService {
       this.node.async = true;
       this.node.defer = true;
       this.node.onerror = function(err: any) {
-        Console.error('Error loading captcha', err);
+        logger.error('Error loading captcha', err);
       };
       document.getElementsByTagName('head')[0].appendChild(this.node);
     });
@@ -96,7 +98,7 @@ export class CaptchaService {
     return this.http.get<ConfigFromServer>(environment.apiBaseUrl + '/auth/v1/captcha')
     .pipe(
       map(config => {
-        Console.info('Captcha config', config);
+        logger.info('Captcha config', config);
         let c: CaptchaConfig;
         if (config.provider === 'recaptcha' && config.clientKey.length > 0) {
           c = {
@@ -129,7 +131,7 @@ export class CaptchaService {
             enabled: false,
             scriptUrl: '',
             render: (elementId, onsuccess) => {
-              Console.info('Captcha is disabled');
+              logger.info('Captcha is disabled');
               onsuccess('disabled');
             },
           }

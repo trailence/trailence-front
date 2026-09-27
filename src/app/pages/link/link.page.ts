@@ -11,9 +11,11 @@ import { ShareService } from '@trailence/services/database/share.service';
 import { collection$items } from '@trailence/utils/rxjs/collection$items';
 import { map } from 'rxjs';
 import { firstTimeout } from '@trailence/utils/rxjs/first-timeout';
-import { Console } from '@trailence/utils/console';
 import { TrailCollectionService } from '@trailence/services/database/trail-collection.service';
 import { SHARED_OWNER_PREFIX } from '@trailence/model/dto/trail-collection';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('link.page');
 
 @Component({
     selector: 'app-link',
@@ -36,14 +38,14 @@ export class LinkPage {
   ionViewDidEnter() {
     let token = globalThis.location.pathname;
     if (!token.startsWith('/link/')) {
-      Console.warn('Invalid link', token);
+      logger.warn('Invalid link', token);
       this.router.navigateByUrl('/');
       return;
     }
     token = decodeURIComponent(token.substring(6));
     const i = token.indexOf('.');
     if (i <= 0) {
-      Console.warn('Invalid token', token);
+      logger.warn('Invalid token', token);
       this.router.navigateByUrl('/');
       return;
     }
@@ -51,11 +53,11 @@ export class LinkPage {
       const json = atob(token.substring(0, i));
       const payload = JSON.parse(json);
       if (!payload) {
-        Console.warn('Invalid token payload', token);
+        logger.warn('Invalid token payload', token);
         this.router.navigateByUrl('/');
         return;
       }
-      Console.info('payload', payload);
+      logger.info('payload', payload);
       if (payload.type === 'stop_change_password') {
         this.message = this.i18n.texts.pages.link.stop_change_password.in_progress;
         this.injector.get(HttpService).delete(environment.apiBaseUrl + '/user/v1/changePassword?token=' + encodeURIComponent(token)).subscribe(
@@ -87,20 +89,20 @@ export class LinkPage {
             let lang = globalThis.location.search;
             if (lang.startsWith('?lang=')) {
               lang = lang.substring(6);
-              Console.info('Switch language from share link to', lang);
+              logger.info('Switch language from share link to', lang);
               this.injector.get(PreferencesService).setLanguageIfKnown(lang);
             }
             let i = payload.data.indexOf('/');
             const uuid = payload.data.substring(0, i);
             const owner = payload.data.substring(i + 1);
             if (owner.startsWith(SHARED_OWNER_PREFIX)) {
-              Console.info('Opening shared collection id', uuid, 'from', owner);
+              logger.info('Opening shared collection id', uuid, 'from', owner);
               this.injector.get(TrailCollectionService).getAllCollectionsReady$().pipe(
                 map(collections => collections.find(col => col.uuid === uuid)),
                 firstTimeout(col => !!col, 10000, () => null as any)
               ).subscribe(() => this.router.navigateByUrl('/trails/collection/' + uuid));
             } else {
-              Console.info('Opening share id', uuid, 'from', owner);
+              logger.info('Opening share id', uuid, 'from', owner);
               this.injector.get(ShareService).getAll$().pipe(
                 collection$items(),
                 map(shares => shares.find(share => share.uuid === uuid && share.owner === owner)),
@@ -109,7 +111,7 @@ export class LinkPage {
             }
           },
           error: error => {
-            Console.error(error);
+            logger.error(error);
             if (error instanceof ApiError && error.httpCode === 403) {
               this.router.navigateByUrl('/login?email=' + encodeURIComponent(payload.email));
             }
@@ -119,7 +121,7 @@ export class LinkPage {
         });
       }
     } catch (e) {
-      Console.error('Error decoding token', token, e);
+      logger.error('Error decoding token', token, e);
       this.router.navigateByUrl('/');
       return;
     }

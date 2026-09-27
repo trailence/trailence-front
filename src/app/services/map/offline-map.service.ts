@@ -9,7 +9,6 @@ import { BinaryContent } from '@trailence/utils/binary-content';
 import { PreferencesService } from '../preferences/preferences.service';
 import { ErrorService } from '../progress/error.service';
 import { I18nError, TranslatedString } from '../i18n/i18n-string';
-import { Console } from '@trailence/utils/console';
 import { Db } from '../database/storage/db';
 import { BlobDto, DbTablesMetaBlob } from '../database/storage/db-tables-meta-blob';
 import { DbTable, DbTableWhereLessThan } from '../database/storage/db-table';
@@ -18,6 +17,9 @@ import { AssetsService } from '../assets/assets.service';
 import { Ways } from './ways';
 import { POI_TYPES, POIType } from './poi';
 import { CleanupService } from '../database/cleanup/cleanup.service';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('offline-map.service');
 
 interface TileMetadata {
   key: string;
@@ -127,7 +129,7 @@ export class OfflineMapService implements OnDestroy {
           result.items += layer.items;
           result.size += layer.size;
         }
-        Console.info('Offline map counters computed in ' + (Date.now() - startTime) + 'ms.', result);
+        logger.info('Offline map counters computed in ' + (Date.now() - startTime) + 'ms.', result);
         return result;
       })
     );
@@ -294,7 +296,7 @@ class Saver {
                 blob: response.blob!,
               });
             } else {
-              Console.error('Error loading map tile', response.error);
+              logger.error('Error loading map tile', response.error);
               const errors = this.errorsByZoom.get(zoomLevel);
               if (errors) errors.push(response.tile);
               else this.errorsByZoom.set(zoomLevel, [response.tile]);
@@ -303,7 +305,7 @@ class Saver {
           return metadata.length === 0 ? of(bunch.length) : this.table.setMany$(metadata, tiles).pipe(
             map(() => bunch.length),
             catchError(e => {
-              Console.error('Error storing map tiles', e);
+              logger.error('Error storing map tiles', e);
               const errors = this.errorsByZoom.get(zoomLevel);
               if (errors) errors.push(...bunch.map(r => r.tile));
               else this.errorsByZoom.set(zoomLevel, bunch.map(r => r.tile));

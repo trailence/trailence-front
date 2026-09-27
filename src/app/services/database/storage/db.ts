@@ -2,11 +2,13 @@ import { Injector, NgZone } from '@angular/core';
 import { AuthService } from '../../auth/auth.service';
 import Dexie from 'dexie';
 import { BehaviorSubject, EMPTY, filter, from, map, Observable, of, Subject, Subscription, switchMap, tap } from 'rxjs';
-import { Console } from '@trailence/utils/console';
 import { DbTable } from './db-table';
 import { LocalFilesService } from '../../local-files/local-files.service';
 import { trailenceAppVersionCode } from '@trailence/trailence-version';
 import { DbRegistryService } from './db.registry.service';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('db');
 
 const INTERNAL_TABLE_NAME = 'internal';
 const INTERNAL_KEY = 'key';
@@ -121,7 +123,7 @@ export class Db {
   private async _open(email: string | undefined, counter: number) {
     const dbName = this.dbName + (email ? '_' + email : '');
     const start = Date.now();
-    Console.info('[DB] Opening ' + dbName);
+    logger.info('Opening ' + dbName);
     const stillValid = () => this._openCounter === counter && (!email || email === this.injector.get(AuthService).email);
 
     let dbExists = await Dexie.exists(dbName);
@@ -130,7 +132,7 @@ export class Db {
     if (!dbExists) {
       for (const hook of this.hooksBeforeCreatingDb) {
         dbExists = await hook(email).catch(e => {
-          Console.error('Error in DB hook before creation', e);
+          logger.error('Error in DB hook before creation', e);
           return false;
         });
         if (dbExists) break;
@@ -150,14 +152,14 @@ export class Db {
     for (const table of this.tables) schema[table.name] = table.schema;
     schema[INTERNAL_TABLE_NAME] = INTERNAL_KEY;
     db.version(1).stores(schema);
-    Console.info('[DB] ' + dbName + ' opened after ' + (Date.now() - start));
+    logger.info(dbName + ' opened after ' + (Date.now() - start));
 
     // restore backups
     if (!dbExists) {
       try {
         dbExists = await this.restoreBackups(db, openStatus.localDir, stillValid);
       } catch (e) {
-        Console.error('Error restoring backups for DB ' + dbName, e);
+        logger.error('Error restoring backups for DB ' + dbName, e);
       }
       if (!stillValid()) return;
     }
@@ -167,7 +169,7 @@ export class Db {
     if (!stillValid()) return;
     const initialVersion = dbExists ? 1100 : trailenceAppVersionCode;
     const appVersion: number | undefined = versions?.appVersion;
-    Console.info('[DB] Database ' + this.dbName + ': current version is ' + trailenceAppVersionCode + ', stored =', versions, 'start time', Date.now() - start);
+    logger.info('Database ' + this.dbName + ': current version is ' + trailenceAppVersionCode + ', stored =', versions, 'start time', Date.now() - start);
     if (dbExists && appVersion && appVersion < trailenceAppVersionCode) openStatus.updatedFrom = appVersion;
     const newVersions: any = versions ? { ...versions } : {};
     newVersions[INTERNAL_KEY] = INTERNAL_VERSION_KEY;
@@ -181,7 +183,7 @@ export class Db {
           await db.table(INTERNAL_TABLE_NAME).put(newVersions, INTERNAL_VERSION_KEY);
         }
       } catch (e) {
-        Console.error('Error during migration of table ' + this.dbName + '/' + table.name, e);
+        logger.error('Error during migration of table ' + this.dbName + '/' + table.name, e);
       }
     }
     if (!stillValid()) return;
@@ -192,13 +194,13 @@ export class Db {
     }
 
     // ready
-    Console.info('[DB]', dbName, 'ready after', Date.now() - start);
+    logger.info(dbName, 'ready after', Date.now() - start);
     this.ready$.next(openStatus);
     for (const table of this.tables) {
       await table.start(this, openStatus, db.table(table.name), openStatus.localDir + '/' + table.name, stillValid);
       if (!stillValid()) return;
     }
-    Console.info('[DB]', dbName, 'ready and all tables started after', Date.now() - start);
+    logger.info(dbName, 'ready and all tables started after', Date.now() - start);
 
     // backups
     this.registerBackups(openStatus);
@@ -215,7 +217,7 @@ export class Db {
   private async _close(): Promise<any> {
     const ready = this.ready$.value;
     if (!ready) return;
-    Console.info('[DB] Closing', ready.db.name);
+    logger.info('Closing', ready.db.name);
     this._openCounter++;
     this.ready$.next(undefined);
     for (const s of this.tableChangedSubscriptions.values()) s.unsubscribe();
@@ -223,7 +225,7 @@ export class Db {
     for (const table of this.tables)
       await table.shutdown();
     ready.db.close();
-    Console.info('[DB] Closed', ready.db.name);
+    logger.info('Closed', ready.db.name);
     this._closed$.next({email: ready.email});
   }
 
@@ -243,7 +245,7 @@ export class Db {
           if (!stillValid()) return false;
           await this.restoreTable(db, tableName, localFiles, localDir);
         } catch (e) {
-          Console.error('Error restoring backup from ' + this.dbName + '/' + tableName, e);
+          logger.error('Error restoring backup from ' + this.dbName + '/' + tableName, e);
         }
       }
     }
@@ -251,7 +253,7 @@ export class Db {
   }
 
   private async restoreTable(db: Dexie, tableName: string, localFiles: LocalFilesService, localDir: string) {
-    Console.info('Restoring table ' + tableName + ' for DB ' + this.dbName);
+    logger.info('Restoring table ' + tableName + ' for DB ' + this.dbName);
     const table = db.table(tableName);
     await localFiles.readJsonl(localDir, tableName + '.jsonl', async (lines: string[]) => {
       const json = lines
@@ -260,14 +262,14 @@ export class Db {
         .map(l => {
           try { return JSON.parse(l); }
           catch (e) {
-            Console.error('Error parsing backup from ' + this.dbName + '/' + tableName + ': line = ', l, 'error', e);
+            logger.error('Error parsing backup from ' + this.dbName + '/' + tableName + ': line = ', l, 'error', e);
             return undefined;
           }
         })
         .filter(l => !!l)
         ;
       if (json.length === 0) {
-        Console.info('Table ' + tableName + ' in DB ' + this.dbName + ' successfully restored.');
+        logger.info('Table ' + tableName + ' in DB ' + this.dbName + ' successfully restored.');
         return;
       }
       await table.bulkAdd(json);
@@ -295,7 +297,7 @@ export class Db {
             table.triggerChanged('replay due to pending backup: ' + latestChange);
             return of(undefined);
           } else {
-            Console.info('Start backuping table ' + table.name + ', trigger = ' + latestChange);
+            logger.info('Start backuping table ' + table.name + ', trigger = ' + latestChange);
             pending = true;
             return from(this.backupTable(ready, localFiles, table.name, table.backupLinesBunch, false)).pipe(tap(() => pending = false));
           }
@@ -308,7 +310,7 @@ export class Db {
 
   private async backupTable(ready: DbReady, localFiles: LocalFilesService, tableName: string, chunkSize: number, onClose: boolean) {
     if (!onClose && this.ready$.value !== ready) return;
-    Console.info('Backuping DB table ' + ready.db.name + '/' + tableName);
+    logger.info('Backuping DB table ' + ready.db.name + '/' + tableName);
     const start = Date.now();
     const t = ready.db.table(tableName);
     const filename = tableName + '.jsonl';
@@ -327,9 +329,9 @@ export class Db {
         },
         chunkSize,
       );
-      Console.info('Backup done for DB table to', ready.localDir + '/' + filename, 'in', (Date.now() - start), 'ms.');
+      logger.info('Backup done for DB table to', ready.localDir + '/' + filename, 'in', (Date.now() - start), 'ms.');
     } catch (e) {
-      Console.error('Error storing backup to ' + ready.localDir + '/' + filename, e);
+      logger.error('Error storing backup to ' + ready.localDir + '/' + filename, e);
       this.injector.get(LocalFilesService).deleteFile(ready.localDir, filename);
     }
   }

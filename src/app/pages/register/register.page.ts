@@ -5,7 +5,6 @@ import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { NetworkService } from '@trailence/services/network/network.service';
 import { FormsModule } from '@angular/forms';
 import { CaptchaService } from '@trailence/services/captcha/captcha.service';
-import { Console } from '@trailence/utils/console';
 import { CodeInputModule } from 'angular-code-input';
 import { EMAIL_REGEX } from '@trailence/utils/string-utils';
 import { HttpService } from '@trailence/services/http/http.service';
@@ -16,6 +15,9 @@ import { PublicPage } from '../public.page';
 import { NgClass } from '@angular/common';
 import { PasswordUtils } from '@trailence/utils/password-utils';
 import { InputPasswordComponent } from '@trailence/components/input-password/input-password.component';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('register.page');
 
 @Component({
   templateUrl: './register.page.html',
@@ -84,7 +86,7 @@ export class RegisterPage extends PublicPage {
             this.inprogress = false;
           },
           error: e => {
-            Console.error(e);
+            logger.error(e);
             this.error = this.i18n.texts.pages.register.errors.network;
             this.inprogress = false;
             this.initCaptcha();
@@ -108,7 +110,7 @@ export class RegisterPage extends PublicPage {
                 this.navController.navigateRoot('/trails/collection/my_trails');
               },
               error: e => {
-                Console.error(e);
+                logger.error(e);
                 this.error = this.i18n.texts.pages.register.errors.network;
                 this.inprogress = false;
                 this.step = 1;
@@ -116,7 +118,7 @@ export class RegisterPage extends PublicPage {
             });
           },
           error: e => {
-            Console.error(e);
+            logger.error(e);
             this.error = this.i18n.texts.pages.register.errors.network;
             this.inprogress = false;
             this.step = 1;
@@ -170,7 +172,7 @@ export class RegisterPage extends PublicPage {
         this.changeDetector.detectChanges();
       },
       error => {
-        Console.error('Captcha error', error);
+        logger.error('Captcha error', error);
       });
     }, 0);
   }

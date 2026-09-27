@@ -3,9 +3,11 @@ import { PdfContext } from './pdf-context';
 import { MapAnchor } from '../../map/markers/map-anchor';
 import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorDABorderColor, anchorDATextColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor } from '../../map/track/map-track-way-points';
 import { addSvgToPdf } from './pdf-icon';
-import { Console } from '@trailence/utils/console';
 import { ErrorService } from '@trailence/services/progress/error.service';
 import * as L from 'leaflet';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('pdf-map');
 
 export async function generatePdfMap(ctx: PdfContext, x: number, y: number, width: number, height: number, includeWaypoints: boolean) {
   const trackBounds = ctx.track.metadata.bounds;
@@ -30,7 +32,7 @@ export async function generatePdfMap(ctx: PdfContext, x: number, y: number, widt
           { width: MapGenerator.tileSize / ratio, height: MapGenerator.tileSize / ratio }
         );
       } catch (e) {
-        Console.error('Error loading tile for PDF', url, e);
+        logger.error('Error loading tile for PDF', url, e);
         ctx.injector.get(ErrorService).addTechnicalError(e, 'pages.pdf_popup.error_downloading_tile', []);
         break;
       }

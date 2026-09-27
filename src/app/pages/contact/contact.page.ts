@@ -4,7 +4,6 @@ import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { IonInput, IonTextarea, IonSelect, IonSelectOption, IonButton, IonIcon, IonCheckbox, AlertController, Platform } from '@ionic/angular';
 import { AuthService } from '@trailence/services/auth/auth.service';
 import { CaptchaService } from '@trailence/services/captcha/captcha.service';
-import { Console } from '@trailence/utils/console';
 import { EMAIL_REGEX } from '@trailence/utils/string-utils';
 import { HttpService } from '@trailence/services/http/http.service';
 import { environment } from '@env/environment';
@@ -15,6 +14,9 @@ import { FormsModule } from '@angular/forms';
 import { PublicPage } from '../public.page';
 import { trailenceAppVersionName } from '@trailence/trailence-version';
 import { DebugService } from '@trailence/services/debug/debug.service';
+import { getLogger, logLineToDisplay } from '@trailence/utils/console';
+
+const logger = getLogger('contact.page');
 
 @Component({
   templateUrl: './contact.page.html',
@@ -91,8 +93,9 @@ export class ContactPage extends PublicPage {
     this.error = false;
     this.retryWithCaptcha = false;
     this.injector.get(DebugService).getAllLogs().then(logs => {
-      if (logs.length > 1500000) logs = logs.substring(logs.length - 1500000);
-      this.data = ' --- Technical data ---\nVersion: ' + trailenceAppVersionName + '\nPlatform: ' + globalThis.navigator.userAgent + ' / ' + this.platform.platforms().join() + '\n --- Logs ---\n' + logs;
+      let result = logs.map(l => logLineToDisplay(l)).join('\n');
+      if (result.length > 1500000) result = result.substring(result.length - 1500000);
+      this.data = ' --- Technical data ---\nVersion: ' + trailenceAppVersionName + '\nPlatform: ' + globalThis.navigator.userAgent + ' / ' + this.platform.platforms().join() + '\n --- Logs ---\n' + result;
     });
   }
 
@@ -116,7 +119,7 @@ export class ContactPage extends PublicPage {
         this.changeDetector.detectChanges();
       },
       error => {
-        Console.error('Captcha error', error);
+        logger.error('Captcha error', error);
       });
     }, 0);
   }
@@ -157,7 +160,7 @@ export class ContactPage extends PublicPage {
         this.sent = true;
       },
       error: e => {
-        Console.error(e);
+        logger.error(e);
         if (e instanceof ApiError && e.errorCode === 'captcha-needed') {
           this.captchaNeeded = true;
           if (!this.captchaInit && this.networkAvailable) {
@@ -179,6 +182,8 @@ export class ContactPage extends PublicPage {
       cssClass: 'large',
       inputs: [{
         type: 'textarea',
+        attributes: {readonly: 'true'},
+        cssClass: 'logs',
         value: this.data,
       }],
       buttons: [{

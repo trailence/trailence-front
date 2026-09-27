@@ -3,10 +3,12 @@ import { FetchSourceService } from '@trailence/services/fetch-source/fetch-sourc
 import { IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonInput, ModalController, Platform } from '@ionic/angular';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { I18nPipe } from '@trailence/services/i18n/i18n-string';
-import { Console } from '@trailence/utils/console';
 import { firstValueFrom } from 'rxjs';
 import { Trail } from '@trailence/model/trail';
 import { TrailCollection } from '@trailence/model/trail-collection';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('import-popup');
 
 @Component({
   templateUrl: './import-popup.component.html',
@@ -71,7 +73,7 @@ export class ImportPopupComponent {
     let found = false;
     let url: string | undefined = undefined;
     for (const item of items) {
-      Console.info('Item found in clipboard', item.types);
+      logger.info('Item found in clipboard', item.types);
       if (item.types.includes('text/html')) {
         try {
           const html = await item.getType('text/html').then(html => html.text());
@@ -86,7 +88,7 @@ export class ImportPopupComponent {
             break;
           }
         } catch(e) {
-          Console.error('Error reading html from clipboard', e);
+          logger.error('Error reading html from clipboard', e);
           this.clipboardMessage = this.i18n.texts.pages.import_popup.nothing_found_in_clipboard;
         };
       } else if (item.types.includes('text/plain') && !url) {

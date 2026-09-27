@@ -14,7 +14,6 @@ import { collection$items$ } from '@trailence/utils/rxjs/collection$items';
 import { ShareService } from '@trailence/services/database/share.service';
 import { Share } from '@trailence/model/share';
 import { List } from 'immutable';
-import { Console } from '@trailence/utils/console';
 import { NetworkService } from '@trailence/services/network/network.service';
 import { AuthResponse } from '@trailence/services/auth/auth-response';
 import { firstTimeout } from '@trailence/utils/rxjs/first-timeout';
@@ -42,6 +41,9 @@ import { FetchSourceService } from '@trailence/services/fetch-source/fetch-sourc
 import { TranslatedString } from '@trailence/services/i18n/i18n-string';
 import { NULL_UUID } from '@trailence/utils/string-utils';
 import { Filters } from '@trailence/services/preferences/preferences';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('trails.page');
 
 @Component({
   selector: 'app-trails-page',
@@ -527,7 +529,7 @@ export class TrailsPage extends AbstractPage {
       ]).pipe(
         switchMap(([loaded, visible, connected, item]) => {
           if (item === null && (!connected || (loaded && visible))) {
-            Console.warn('Item not found, redirecting to home');
+            logger.warn('Item not found, redirecting to home');
             this.ngZone.run(() => this.injector.get(NavController).navigateRoot('/'));
           }
           return EMPTY;

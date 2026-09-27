@@ -10,11 +10,12 @@ import { I18nService } from '../i18n/i18n.service';
 import { PointDto } from '@trailence/model/dto/point';
 import { POSITION_FACTOR } from '@trailence/model/point-dto-mapper';
 import { Router } from '@angular/router';
-import { Console } from '@trailence/utils/console';
 import { GeolocationState } from '../geolocation/geolocation.interface';
 import { AlertController } from '@ionic/angular';
 import { LiveGroupDto } from '@trailence/model/dto/live-group';
-import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('live-group.service');
 
 const LATEST_GROUPS_KEY_PREFIX = 'trailence.latest_live_groups.';
 
@@ -73,7 +74,7 @@ export class LiveGroupService {
         first(),
         switchMap(id => this.http.get<LiveGroupDto[]>(environment.apiBaseUrl + '/live-group/v1' + (id.includes('@') ? '' : '?id=' + id))),
         catchError(e => {
-          Console.warn("Error getting live groups", e);
+          logger.warn("Error getting live groups", e);
           timer(30000).subscribe(() => this.init());
           return EMPTY;
         }),
@@ -101,7 +102,7 @@ export class LiveGroupService {
             positionAt: hasPos ? tim : undefined,
           }).pipe(
             catchError(e => {
-              Console.warn("Error listening to live groups", e);
+              logger.warn("Error listening to live groups", e);
               return EMPTY;
             })
           )
@@ -133,12 +134,12 @@ export class LiveGroupService {
             role: 'cancel',
             handler: () => {
               alertController.dismiss();
-              Console.info('User cancel GPS: cannot watch for live groups');
+              logger.info('User cancel GPS: cannot watch for live groups');
             }
           }]
         }).then(alert => alert.present());
       } else if (state === GeolocationState.DENIED) {
-        Console.error('Geolocation access denied by user: cannot watch for live groups');
+        logger.error('Geolocation access denied by user: cannot watch for live groups');
       } else {
         this.watching = true;
         this.geolocation.watchPosition(this.i18n.texts.trace_recorder.notif_message, this._geolocationListener);

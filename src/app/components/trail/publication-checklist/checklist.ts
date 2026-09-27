@@ -1,7 +1,9 @@
 import { Track } from '@trailence/model/track';
 import { Trail } from '@trailence/model/trail';
 import { TrailService } from '@trailence/services/database/trail.service';
-import { Console } from '@trailence/utils/console';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('publication-checklist');
 
 export class PublicationChecklist {
 
@@ -46,7 +48,7 @@ export class PublicationChecklist {
         const json = JSON.parse(s);
         p = new PublicationChecklist(trail.uuid, trail.owner, json);
       } catch (e) {
-        Console.warn('Cannot parse checklist for trail', trail.uuid, trail.owner, e);
+        logger.warn('Cannot parse checklist for trail', trail.uuid, trail.owner, e);
         p = new PublicationChecklist(trail.uuid, trail.owner, {});
       }
     } else {

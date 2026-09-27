@@ -29,7 +29,6 @@ import { MapPhoto } from '../map/markers/map-photo';
 import { BinaryContent } from '@trailence/utils/binary-content';
 import { TrackUtils } from '@trailence/utils/track-utils';
 import * as L from 'leaflet';
-import { Console } from '@trailence/utils/console';
 import { FetchSourceService } from '@trailence/services/fetch-source/fetch-source.service';
 import { estimateSimilarity } from '@trailence/services/track-edition/path-analysis/similarity';
 import { CompositeI18nString, DateTimeI18nString, I18nPipe, I18nString, TranslatedString } from '@trailence/services/i18n/i18n-string';
@@ -83,6 +82,9 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { TrackPointReference } from '@trailence/utils/track-computed-data/types';
 import { LiveGroupDto } from '@trailence/model/dto/live-group';
 import { PRIMARY_TRACK_ARROW_COLOR, PRIMARY_TRACK_COLOR, PRIMARY_TRACK_COLOR_DONE, SECONDARY_TRACK_ARROW_COLOR, SECONDARY_TRACK_COLOR, SELECTED_TRACK_SECTION_COLOR } from './trail-colors';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('trail.component');
 
 interface TrailSource {
   isExternal: boolean;
@@ -1593,7 +1595,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   }
   setTabString(tab: string): void {
     if (!this.allowedTabs().includes(tab)) {
-      Console.error('Invalid tab value', tab);
+      logger.error('Invalid tab value', tab);
       return;
     }
     this.setTab(tab as TAB_TYPE);
@@ -2263,7 +2265,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         .then(toast => toast.present());
       },
       error: e => {
-        Console.error('Error sending remove request for public trail', e);
+        logger.error('Error sending remove request for public trail', e);
         this.injector.get(ErrorService).addNetworkError(e, 'publications.remove_publication_error', []);
       }
     });

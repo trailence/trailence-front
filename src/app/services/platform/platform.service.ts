@@ -1,8 +1,10 @@
 import { Injectable, Injector } from '@angular/core';
 import { SwUpdate } from '@angular/service-worker';
-import { Console } from '@trailence/utils/console';
 import { I18nService } from '../i18n/i18n.service';
 import { filter, firstValueFrom } from 'rxjs';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('platform.service');
 
 @Injectable({providedIn: 'root'})
 export class PlatformService {
@@ -10,11 +12,11 @@ export class PlatformService {
     injector: Injector,
     updates: SwUpdate,
   ) {
-    Console.info('PWA updates: ', updates.isEnabled);
+    logger.info('PWA updates: ', updates.isEnabled);
     if (updates.isEnabled) {
       updates.versionUpdates.subscribe(async event => {
         if (event.type === 'VERSION_READY') {
-          Console.info('New version available');
+          logger.info('New version available');
           const i18n = await firstValueFrom(injector.get(I18nService).texts$.pipe(filter(t => !!t?.update)));
           await updates.activateUpdate();
           const m = await import('@ionic/angular');

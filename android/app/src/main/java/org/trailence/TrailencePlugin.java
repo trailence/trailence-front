@@ -426,7 +426,7 @@ public class TrailencePlugin extends Plugin {
   public void getLogs(PluginCall call) {
     call.setKeepAlive(true);
     try {
-      Process process = Runtime.getRuntime().exec("logcat -d -t 50000 -v year -v time *:E System.out:D Capacitor:D");
+      Process process = Runtime.getRuntime().exec("logcat -d -t 50000 -v year -v time *:E System.out:D Capacitor:D Capacitor/Console:S");
       BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
       JSONArray lines = new JSONArray();
       String line;

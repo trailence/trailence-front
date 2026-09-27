@@ -1,12 +1,14 @@
 import { Injectable, Injector, NgZone } from '@angular/core';
 import { BehaviorSubject, catchError, combineLatest, debounceTime, defaultIfEmpty, distinctUntilChanged, filter, map, Observable, of, Subscription, switchMap, tap, timeout } from 'rxjs';
 import { StoreLoadStatus, StoreSyncStatus, SyncAgain } from './store';
-import { Console } from '@trailence/utils/console';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
 import { NetworkService } from '../../network/network.service';
 import { AuthService } from '../../auth/auth.service';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { CleanupService } from '../cleanup/cleanup.service';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('store.service');
 
 const AUTO_UPDATE_FROM_SERVER_EVERY = 30 * 60 * 1000;
 const MINIMUM_SYNC_INTERVAL = 15 * 1000;
@@ -50,7 +52,7 @@ export class StoreService {
     // launch update from server every AUTO_UPDATE_FROM_SERVER_EVERY
     injector.get(NgZone).runOutsideAngular(() => {
       setInterval(() => {
-        Console.info('trigger updates from server interval');
+        logger.info('trigger updates from server interval');
         for (const store of this._stores.value) {
           store.syncFromServer();
         }
@@ -62,7 +64,7 @@ export class StoreService {
       setInterval(() => {
         const inProgress = this._stores.value.filter(s => s.inProgress$.value);
         if (inProgress.length === 0) return;
-        Console.info('' + inProgress.length + ' stores in progress: ' + inProgress.map(s => s.name + ' (' + JSON.stringify(s.getStatus()) + ')'));
+        logger.info('' + inProgress.length + ' stores in progress: ' + inProgress.map(s => s.name + ' (' + JSON.stringify(s.getStatus()) + ')'));
       }, 60000);
     });
 
@@ -103,14 +105,14 @@ export class StoreService {
   private readonly _pauses: number[] = [];
   public pauseSync(): number {
     const id = ++this._pauseCounter;
-    Console.info('Pause sync', id);
+    logger.info('Pause sync', id);
     this._pauses.push(id);
     this.storeInterface.syncPaused = Date.now();
     return id;
   }
 
   public resumeSync(id: number): void {
-    Console.info('Resume sync', id, 'current pauses', this._pauses.length, this._pauses);
+    logger.info('Resume sync', id, 'current pauses', this._pauses.length, this._pauses);
     const index = this._pauses.indexOf(id);
     if (index >= 0) this._pauses.splice(index, 1);
     if (this._pauses.length === 0) {
@@ -122,7 +124,7 @@ export class StoreService {
   }
 
   public keepPauseSync(id: number): void {
-    if (this._pauses.indexOf(id) >= 0) this.storeInterface.syncPaused = Date.now();
+    if (this._pauses.includes(id)) this.storeInterface.syncPaused = Date.now();
   }
 
   public get allLoaded$(): Observable<boolean> {
@@ -287,7 +289,7 @@ class RegisteredStore implements StoreRegistration {
   }
 
   start(): void {
-    Console.info('Store started', this.name);
+    logger.info('Store started', this.name);
     const ngZone = this.service.injector.get(NgZone);
     ngZone.runOutsideAngular(() => {
       combineLatest([
@@ -334,7 +336,7 @@ class RegisteredStore implements StoreRegistration {
                 this.syncTimeoutDate = 0;
                 this.fireSyncStatus();
               }, nextTimeout);
-              Console.info('Will trigger store update', this.name, nextTimeout);
+              logger.info('Will trigger store update', this.name, nextTimeout);
             }
           });
           return false;
@@ -346,11 +348,11 @@ class RegisteredStore implements StoreRegistration {
       .subscribe({
         next: () => {
           if (this.inProgress$.value) {
-            Console.warn('Store update triggered but still in progress', this.name);
+            logger.warn('Store update triggered but still in progress', this.name);
             return;
           }
           this.inProgress$.next(true);
-          Console.info('Trigger store updates: ', this.name);
+          logger.info('Trigger store updates: ', this.name);
           this.syncAgain = false;
           this.lastSync = Date.now();
           if (this.syncTimeout) clearTimeout(this.syncTimeout);
@@ -383,7 +385,7 @@ class RegisteredStore implements StoreRegistration {
                   this.lastSync = Date.now() - MINIMUM_SYNC_INTERVAL + 1000;
                   timeout = 15000;
                 }
-                Console.info(this.name + ' needs to sync again to complete', syncAgain, this.syncAgainCount, timeout);
+                logger.info(this.name + ' needs to sync again to complete', syncAgain, this.syncAgainCount, timeout);
                 this.syncTimeoutDate = Date.now() + timeout;
                 if (this.syncTimeout) clearTimeout(this.syncTimeout);
                 this.syncTimeout = setTimeout(() => {
@@ -397,28 +399,28 @@ class RegisteredStore implements StoreRegistration {
             },
             complete: () => {
               if (!hasNext) {
-                Console.warn('Store sync did not emit a value', this.name);
+                logger.warn('Store sync did not emit a value', this.name);
                 this.inProgress$.next(false);
               }
             },
             error: e => {
-              Console.error('Store sync error', e);
+              logger.error('Store sync error', e);
               if (!hasNext)
                 this.inProgress$.next(false);
             },
           });
         },
         complete: () => {
-          Console.info('Store closed', this.name);
+          logger.info('Store closed', this.name);
         },
         error: e => {
-          Console.error('Store error', e);
+          logger.error('Store error', e);
         }
       });
       // monitoring
       ngZone.runOutsideAngular(() => {
         this.status$.pipe(map(s => !!(s?.inProgress)), debounceTime(60000), filter(progress => progress)).subscribe(() => {
-          Console.warn('Store ' + this.name + ' is in progress since more than 1 minute !');
+          logger.warn('Store ' + this.name + ' is in progress since more than 1 minute !');
         });
         this.service.injector.get(AuthService).userChanged$.pipe(
           filterDefined(),
@@ -427,8 +429,8 @@ class RegisteredStore implements StoreRegistration {
             timeout({first: 20000}),
           )),
         ).subscribe({
-          error: e => Console.warn('Store ' + this.name + ' is still not loaded after 20 seconds !', e),
-          next: () => { Console.info('Store loaded: ' + this.name); }
+          error: e => logger.warn('Store ' + this.name + ' is still not loaded after 20 seconds !', e),
+          next: () => { logger.info('Store loaded: ' + this.name); }
         });
       });
     });
@@ -441,7 +443,7 @@ class RegisteredStore implements StoreRegistration {
       filter(status => !!status),
       switchMap(() => this.hardDelete()),
       catchError(e => {
-        Console.error('Error resetting store', this.name, e);
+        logger.error('Error resetting store', this.name, e);
         return of(false);
       }),
       defaultIfEmpty(true),

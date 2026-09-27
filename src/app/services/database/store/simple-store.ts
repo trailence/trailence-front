@@ -2,7 +2,6 @@ import { BehaviorSubject, EMPTY, Observable, catchError, defaultIfEmpty, map, of
 import { Store, StoreSyncStatus, SyncAgain } from "./store";
 import { Injector } from "@angular/core";
 import { ErrorService } from '../../progress/error.service';
-import { Console } from '@trailence/utils/console';
 import { DbTable } from '../storage/db-table';
 
 export interface SimpleStoreItem<T> {
@@ -244,7 +243,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
         }),
         catchError(error => {
           // should never happen
-          Console.error(error);
+          this.logger.error(error);
           return of(undefined);
         }),
       );
@@ -261,12 +260,12 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
     return ready$.pipe(
       switchMap(readyEntities => {
         if (readyEntities.length === 0) {
-          Console.info('Nothing ready to create on server among ' + toCreate.length + ' element(s) of ' + this.table.name);
+          this.logger.info('Nothing ready to create on server among ' + toCreate.length + ' element(s) of ' + this.table.name);
           return of('not-ready' as SyncAgain);
         }
         return this.createOnServer(readyEntities.map(entity => this.toDTO(entity))).pipe(
           switchMap(result => {
-            Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.table.name + ' element(s) created on server, ' + (toCreate.length - readyEntities.length) + ' additional pending');
+            this.logger.info('' + result.length + '/' + readyEntities.length + ' ' + this.table.name + ' element(s) created on server, ' + (toCreate.length - readyEntities.length) + ' additional pending');
             if (!stillValid()) return of(undefined);
             for (const created of result) {
               const entity = this.fromDTO(created);
@@ -281,7 +280,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
             }));
           }),
           catchError(error => {
-            Console.error('Error creating ' + readyEntities.length + ' element(s) of ' + this.table.name + ' on server', error);
+            this.logger.error('Error creating ' + readyEntities.length + ' element(s) of ' + this.table.name + ' on server', error);
             this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.create_items', [this.table.name]);
             this._errors.itemsError(readyEntities.map(e => this.getKey(e)), error);
             return of(undefined);
@@ -306,11 +305,11 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
           this._errors.itemSuccess(this.getKey(entity));
         }
         this._syncStatus$.value.localDeletes = this._deletedLocally.length !== 0;
-        Console.info('' + toDelete.length + ' element(s) of ' + this.table.name + ' deleted on server');
+        this.logger.info('' + toDelete.length + ' element(s) of ' + this.table.name + ' deleted on server');
         return this.saveStore().pipe(map(() => undefined));
       }),
       catchError(error => {
-        Console.error('Error deleting ' + toDelete.length + ' element(s) of ' + this.table.name + ' on server', error);
+        this.logger.error('Error deleting ' + toDelete.length + ' element(s) of ' + this.table.name + ' on server', error);
         this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_items', [this.table.name]);
         this._errors.itemsError(toDelete.map(e => this.getKey(e)), error);
         return of(undefined);
@@ -329,12 +328,12 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
     return ready$.pipe(
       switchMap(readyEntities => {
         if (readyEntities.length === 0) {
-          Console.info('Nothing ready to update on server among ' + entities.length + ' element(s) of ' + this.table.name);
+          this.logger.info('Nothing ready to update on server among ' + entities.length + ' element(s) of ' + this.table.name);
           return of('not-ready' as SyncAgain);
         }
         return this.updateToServer(readyEntities.map(entity => this.toDTO(entity))).pipe(
           switchMap(result => {
-            Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.table.name + ' element(s) updated on server, ' + (entities.length - readyEntities.length) + ' additional pending');
+            this.logger.info('' + result.length + '/' + readyEntities.length + ' ' + this.table.name + ' element(s) updated on server, ' + (entities.length - readyEntities.length) + ' additional pending');
             if (!stillValid()) return of(undefined);
             const updatedEntities = result.map(dto => this.fromDTO(dto));
             for (const previousEntity of readyEntities) {
@@ -354,7 +353,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
             }));
           }),
           catchError(error => {
-            Console.error('Error updating ' + readyEntities.length + ' element(s) of ' + this.table.name + ' on server', error);
+            this.logger.error('Error updating ' + readyEntities.length + ' element(s) of ' + this.table.name + ' on server', error);
             this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.send_updates', [this.table.name]);
             this._errors.itemsError(readyEntities.map(e => this.getKey(e)), error);
             return of(undefined);
@@ -403,7 +402,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
             added.push(new BehaviorSubject<ENTITY | null>(e));
           }
         }
-        Console.info('Server updates for ' + this.table.name + ': ' + added.length + ' new items, ' + deleted.length + ' deleted items, ' + (returnedFromServer - added.length) + ' known items');
+        this.logger.info('Server updates for ' + this.table.name + ': ' + added.length + ' new items, ' + deleted.length + ' deleted items, ' + (returnedFromServer - added.length) + ' known items');
         if (deleted.length > 0 || added.length > 0 || updated) {
           for (const item$ of deleted) {
             const index = this._store.value.indexOf(item$);
@@ -416,7 +415,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
         return of(true);
       }),
       catchError(error => {
-        Console.error('Error getting updates from server for ' + this.table.name, error);
+        this.logger.error('Error getting updates from server for ' + this.table.name, error);
         this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.get_updates', [this.table.name]);
         return of(false);
       })

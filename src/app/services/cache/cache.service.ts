@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
+import { getLogger } from '@trailence/utils/console';
 import Dexie from 'dexie';
-import { Console } from '@trailence/utils/console';
+
+const logger = getLogger('cache.service');
 
 @Injectable({providedIn: 'root'})
 export class CacheService {
@@ -20,7 +22,7 @@ export class CacheService {
   // getDb will open it on first usage
   private getDb(): Dexie {
     if (!this.db) {
-      Console.info('Opening cache DB');
+      logger.info('Opening cache DB');
       this.db = new Dexie('trailence_cache');
       const storesV1: any = {};
       storesV1[TIMEOUT_CACHE_TABLE] = '&full_key, name, key';

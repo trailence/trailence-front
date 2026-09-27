@@ -3,7 +3,9 @@ import { ICameraService } from '@trailence/services/camera/camera.interface';
 import { Camera, CameraResultType, CameraSource, ImageOptions } from '@capacitor/camera';
 import { BinaryContent } from '@trailence/utils/binary-content';
 import Trailence from '../trailence.service';
-import { Console } from '@trailence/utils/console';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('camera.service');
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +21,7 @@ export class CameraService implements ICameraService {
   canTakePhoto(): Promise<boolean> {
     if (this._canTakePhoto !== undefined) return Promise.resolve(this._canTakePhoto);
     return Trailence.canTakePhoto({}).then(result => {
-      Console.info('Device can take photo = ', result.canTakePhoto);
+      logger.info('Device can take photo = ', result.canTakePhoto);
       this._canTakePhoto = result.canTakePhoto;
       return this._canTakePhoto;
     });

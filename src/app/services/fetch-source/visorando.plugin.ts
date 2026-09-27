@@ -8,7 +8,6 @@ import { Trail } from '@trailence/model/trail';
 import { from, map, Observable, of, switchMap, zip } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { environment } from '@env/environment';
-import { Console } from '@trailence/utils/console';
 import { filterItemsDefined } from '@trailence/utils/rxjs/filter-defined';
 import { PluginWithDb, TrailInfoBaseDto } from './abstract-plugin-with-db';
 import { TrailDto, TrailSourceType } from '@trailence/model/dto/trail';
@@ -18,6 +17,9 @@ import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from '@trailence/worker/web-app';
 import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
 import { NetworkService } from '../network/network.service';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('visorando.plugin');
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   keyNumber: string;
@@ -59,7 +61,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
       const doc = parser.parseFromString(text, "text/html");
       return this.fetchTrailInfoByContent(doc);
     }))).catch(e => {
-      Console.warn('Error parsing Visorando page', e);
+      logger.warn('Error parsing Visorando page', e);
       throw e;
     });
   }
@@ -165,7 +167,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
           continue;
         }
         result.photos ??= [];
-        Console.info('Photo found from main page', photoUrl, photo.alt);
+        logger.info('Photo found from main page', photoUrl, photo.alt);
         result.photos.push({
           url: photoUrl,
           description: photo.alt
@@ -187,7 +189,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
             continue;
           }
           result.photos ??= [];
-          Console.info('Photo found from main page newlook', photoUrl, photo.alt);
+          logger.info('Photo found from main page newlook', photoUrl, photo.alt);
           result.photos.push({
             url: photoUrl,
             description: photo.alt
@@ -316,7 +318,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
             const photoUrl = photo.src.replace('/thumbnail/t-', '/inter/m-');
             result.photos ??= [];
             if (!result.photos.some(p => p.url === photoUrl || p.url.startsWith(photoUrl) || photoUrl.startsWith(p.url))) {
-              Console.info('Photo found from photos.html', photoUrl, photo.alt);
+              logger.info('Photo found from photos.html', photoUrl, photo.alt);
               result.photos.push({
                 url: photoUrl,
                 description: photo.alt
@@ -326,12 +328,12 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
         }
       })
       .catch(e => {
-        Console.warn('Error fetching photos from visorando ' + url, e);
+        logger.warn('Error fetching photos from visorando ' + url, e);
         return true;
       })
     )
     .then(() => {
-      Console.info('Trail fetch from Visorando', url, result, 'key', keyNumber);
+      logger.info('Trail fetch from Visorando', url, result, 'key', keyNumber);
 
       if (keyNumber.length === 0) throw new Error('Cannot find Visorando data on page ' + url);
 
@@ -364,7 +366,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
           zip(...urlsToFetch
             .map(url => from(this.fetchTrailByUrl(url)
               .catch(e => {
-                Console.error('Error fetching trail', e);
+                logger.error('Error fetching trail', e);
                 return undefined;
               })
             ))
@@ -417,7 +419,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
 
   private fetchTrailByGpx(idTrail: string, idGpx: string, info: TrailInfo) {
     if (idGpx.length === 0) {
-      Console.warn('No GPX id for', idTrail, info.externalUrl);
+      logger.warn('No GPX id for', idTrail, info.externalUrl);
       return Promise.reject();
     }
     return this.tableTrails.get(idTrail).then(t => t ?? this.fetchGpx(idTrail, idGpx, info));
@@ -457,7 +459,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
       const doc = parser.parseFromString(text, "text/html");
       return this.fetchTrailsByContent(doc);
     }).catch(e => {
-      Console.warn('Error parsing Visorando page', e);
+      logger.warn('Error parsing Visorando page', e);
       return [];
     });
   }
@@ -505,7 +507,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
         }
       }
     }
-    Console.info('Found links on Visorando page', validLinks);
+    logger.info('Found links on Visorando page', validLinks);
     const promises = [];
     for (const link of validLinks) promises.push(this.fetchTrailByUrl(link));
     return Promise.all(promises).then(list => filterItemsDefined(list));

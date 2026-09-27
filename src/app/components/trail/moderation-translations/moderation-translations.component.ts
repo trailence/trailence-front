@@ -4,13 +4,15 @@ import { ModerationService } from '@trailence/services/moderation/moderation.ser
 import { Trail } from '@trailence/model/trail';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
-import { Console } from '@trailence/utils/console';
 import { Track } from '@trailence/model/track';
 import { TrailService } from '@trailence/services/database/trail.service';
 import { ErrorService } from '@trailence/services/progress/error.service';
 import { AvailableLocales } from '@trailence/services/i18n/available-locales';
 import { WayPoint } from '@trailence/model/way-point';
 import { Subscription, timer } from 'rxjs';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('moderation-translations.component');
 
 @Component({
   selector: 'app-moderation-translations',
@@ -242,7 +244,7 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges, OnDes
           this.saveDone();
         },
         error: e => {
-          Console.error('Error updating track from moderation', e);
+          logger.error('Error updating track from moderation', e);
           this.errorService.addNetworkError(e, 'publications.moderation.error_updating_trail', []);
           this.saveDone();
         }

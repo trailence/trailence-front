@@ -28,10 +28,12 @@ import { TrackMetadataConfig } from '../track-metadata/track-metadata.component'
 import { SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
 import { AsyncPipe } from '@angular/common';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
-import { Console } from '@trailence/utils/console';
 import { MapElement } from '../map/map-element';
 import { MapToggleBubblesTool } from '../map/tools/toggle-bubbles-tool';
 import { HIGHLIGHTED_TRACK_COLOR, PRIMARY_TRACK_COLOR, PRIMARY_TRACK_COLOR_DONE } from '../trail/trail-colors';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('trails-and-map.component');
 
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
@@ -238,7 +240,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
       trailsAndTracks.map(t => this.trackService.getMetadata$(t.trackUuid, t.trail.owner).pipe(
         debounceTimeExtended(0, 1000, undefined, (p,n) => !!n),
         map(meta => {
-          if (!meta) Console.warn('Track not found after 1s for trail', t.trail.owner, t.trail.uuid, t.trail.name);
+          if (!meta) logger.warn('Track not found after 1s for trail', t.trail.owner, t.trail.uuid, t.trail.name);
           return {trail: t.trail, meta};
         })
       ))
@@ -266,7 +268,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
       .pipe(
         debounceTimeExtended(v => v ? 0 : 1000, 1000, undefined, (p,n) => !!n),
         map(track => {
-          if (!track) Console.warn('Track not found after 1s for trail', t.trail.owner, t.trail.uuid, t.trail.name);
+          if (!track) logger.warn('Track not found after 1s for trail', t.trail.owner, t.trail.uuid, t.trail.name);
           return {trail: t.trail, track};
         }),
       )

@@ -4,6 +4,7 @@ const config: CapacitorConfig = {
   appId: 'org.trailence',
   appName: 'Trailence',
   webDir: 'www/browser',
+  loggingBehavior: 'production',
   server: {
     hostname: 'trailence.org',
     androidScheme: 'https',

@@ -4,13 +4,15 @@ import { TrailLink } from '@trailence/model/dto/trail-link';
 import { HttpService } from '../http/http.service';
 import { catchError, concatAll, EMPTY, first, firstValueFrom, from, map, Observable, switchMap, toArray, zip } from 'rxjs';
 import { environment } from '@env/environment';
-import { Console } from '@trailence/utils/console';
 import { TrailService } from './trail.service';
 import { AuthService } from '../auth/auth.service';
 import { CommonDatabaseService } from './common-database.service';
 import { StoreService, StoreWithCleaning } from './store/store.service';
 import { collection$items } from '@trailence/utils/rxjs/collection$items';
 import { CompositeOnDone } from '@trailence/utils/callback-utils';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('link.service');
 
 @Injectable({providedIn: 'root'})
 export class TrailLinkService {
@@ -79,7 +81,7 @@ class TrailLinkStore extends SimpleStoreWithoutUpdate<TrailLink, TrailLink> impl
       map(item =>
         this.http.post<TrailLink>(environment.apiBaseUrl + '/trail-link/v2', {trailOwner: item.trailOwner, trailUuid: item.trailUuid}).pipe(
           catchError(e => {
-            Console.error('Error creating trail link', item, e);
+            logger.error('Error creating trail link', item, e);
             return EMPTY;
           })
         )
@@ -94,7 +96,7 @@ class TrailLinkStore extends SimpleStoreWithoutUpdate<TrailLink, TrailLink> impl
       map(item =>
         this.http.delete(environment.apiBaseUrl + '/trail-link/v2/' + (item.trailOwner ?? this.injector.get(AuthService).email!) + '/' + item.trailUuid).pipe(
           catchError(e => {
-            Console.error('Error creating trail link', item, e);
+            logger.error('Error creating trail link', item, e);
             return EMPTY;
           })
         )

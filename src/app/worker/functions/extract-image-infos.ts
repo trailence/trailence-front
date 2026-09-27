@@ -1,6 +1,8 @@
-import { Console } from '@trailence/utils/console';
+import { getLogger } from '@trailence/utils/console';
 import { convertDMSToDD } from '@trailence/utils/coordinates-parser';
 import { ImageInfo, ImageUtils } from '@trailence/utils/image-utils';
+
+const logger = getLogger('extract-image-infos');
 
 export function extractInfos(image: Uint8Array): ImageInfo | undefined {
   if (ImageUtils.isJpeg(image)) {
@@ -14,7 +16,7 @@ function extractInfosFromJpeg(image: Uint8Array): ImageInfo | undefined {
   let offset = 2;
   while (offset < image.length) {
     if (image[offset] !== 0xFF) {
-      Console.warn('Unexpected byte ' + image[offset] + ' at ' + offset + ': expected is 0xFF');
+      logger.warn('Unexpected byte ' + image[offset] + ' at ' + offset + ': expected is 0xFF');
       break;
     }
     if (++offset >= image.length) {
@@ -60,7 +62,7 @@ function extractInfosFromJpeg(image: Uint8Array): ImageInfo | undefined {
         return extractInfosFromExif(image, offset + 2, data);
       }
       default: {
-        Console.warn("Unknown JPEG Marker "+ image[offset - 1] + " at " + (offset - 1));
+        logger.warn("Unknown JPEG Marker "+ image[offset - 1] + " at " + (offset - 1));
         // let's do like we know this tag
         if (offset + 2 > image.length) {
           offset += 2;

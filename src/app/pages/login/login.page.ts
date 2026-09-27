@@ -10,11 +10,13 @@ import { TrailCollectionService } from '@trailence/services/database/trail-colle
 import { ApiError } from '@trailence/services/http/api-error';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { NetworkService } from '@trailence/services/network/network.service';
-import { Console } from '@trailence/utils/console';
 import { PublicPage } from '../public.page';
 import { PreferencesService } from '@trailence/services/preferences/preferences.service';
 import { NgStyle } from '@angular/common';
 import { StoreService } from '@trailence/services/database/store/store.service';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('login.page');
 
 @Component({
     selector: 'app-login',
@@ -76,7 +78,7 @@ export class LoginPage extends PublicPage {
     });
     this.whenVisible.subscribe(auth.auth$, a => {
       if (this.inprogress || !a) return;
-      Console.debug('[LOGIN] Authenticated, routing to', this.returnUrl);
+      logger.debug('Authenticated, routing to', this.returnUrl);
       this.injector.get(NavController).navigateRoot(this.returnUrl);
     });
   }
@@ -130,7 +132,7 @@ export class LoginPage extends PublicPage {
             ).subscribe(() => {
               this.inprogress = false;
             });
-            Console.debug('[LOGIN] login done, routing to', this.returnUrl);
+            logger.debug('login done, routing to', this.returnUrl);
             this.injector.get(NavController).navigateRoot(this.returnUrl);
           } else {
             this.inprogress = false;
@@ -138,7 +140,7 @@ export class LoginPage extends PublicPage {
         });
       },
       error: error => {
-        Console.warn('Login error', error);
+        logger.warn('Login error', error);
         if (error instanceof ApiError && error.httpCode === 403) {
           if (error.errorCode === 'captcha-needed') {
             this.captchaNeeded = true;
@@ -152,7 +154,7 @@ export class LoginPage extends PublicPage {
               this.changeDetector.detectChanges();
             },
             error => {
-              Console.error('Captcha error', error);
+              logger.error('Captcha error', error);
             });
           } else if (error.errorCode === 'locked') {
             this.locked = true;

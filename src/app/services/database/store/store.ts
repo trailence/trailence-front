@@ -1,7 +1,7 @@
 import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, debounceTime, defaultIfEmpty, filter, first, forkJoin, map, of, switchMap, timeout } from "rxjs";
 import { Injector, NgZone } from "@angular/core";
 import { SynchronizationLocks } from './synchronization-locks';
-import { Console } from '@trailence/utils/console';
+import { getLogger, Logger } from '@trailence/utils/console';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { StoreErrors } from './store-errors';
 import { StoreOperations } from './store-operations';
@@ -34,6 +34,8 @@ export type SyncAgain = 'not-ready' | 'rate-limiting' | 'operations-pending' | u
 
 export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncStatus> {
 
+  protected readonly logger: Logger;
+
   protected ngZone: NgZone;
 
   protected _store = new BehaviorSubject<BehaviorSubject<STORE_ITEM | null>[]>([]);
@@ -57,12 +59,13 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     protected readonly injector: Injector,
     initialStatus: SYNCSTATUS,
   ) {
+    this.logger = getLogger('store/' + table.name);
     this.ngZone = injector.get(NgZone);
     this._errors = new StoreErrors(injector, table.name, () => this.isQuotaReached());
     this._syncStatus$ = new BehaviorSubject(initialStatus);
     this.operations = new StoreOperations(table.name, this._storeLoaded$, this._syncStatus$, this.ngZone);
     this._syncProgress$.subscribe(p => {
-      Console.debug('Store ' + table.name + ' -- sync: ', p);
+      this.logger.debug('sync progress: ', p);
     });
   }
 
@@ -117,7 +120,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   protected startSync(): void {
     if (this._syncProgress$.value) {
-      Console.warn('Store start a sync while already in progress', this.table.name, this._syncProgress$.value);
+      this.logger.warn('Start a sync while already in progress', this._syncProgress$.value);
     }
     this._syncProgress$.next({
       step: 'Starting',
@@ -128,7 +131,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   protected syncStep(step: string): void {
     if (!this._syncProgress$.value) {
-      Console.warn('Store indicates a progress, but there is no progress !!', step);
+      this.logger.warn('Store indicates a progress, but there is no progress !!', step);
       return;
     }
     this._syncProgress$.next({
@@ -142,7 +145,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     if (this._syncProgress$.value) {
       this._syncProgress$.next(undefined);
     } else {
-      Console.warn('Store indicates the end of sync, but there is no progress !!');
+      this.logger.warn('Store indicates the end of sync, but there is no progress !!');
     }
   }
 
@@ -225,7 +228,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     this._loadingCounter = status.counter;
     this.ngZone.runOutsideAngular(() => {
       this._locks = new SynchronizationLocks();
-      Console.info('Loading data from store', this.table.name);
+      this.logger.info('Loading data');
       this.table.getAll$().subscribe({
         next: items => {
           if (this._loadingCounter !== status.counter) return;
@@ -240,13 +243,13 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
               newStore.push(item$);
             }
           }
-          Console.info('Data loaded from store', this.table.name);
+          this.logger.info('Data loaded');
           this._store.next(newStore);
           this.beforeEmittingStoreLoaded();
           this._storeLoaded$.next({counter: status.counter, email: status.email!, isNewDb: status.isNewDb});
         },
         error: e => {
-          Console.error('Error loading store ' + this.table.name, e);
+          this.logger.error('Error loading store', e);
         }
       });
     });
@@ -282,7 +285,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
         storeUpdater();
         tableUpdate = tableUpdater(status);
       } catch (e) {
-        Console.error('Error updating store', e);
+        this.logger.error('Error updating store', e);
         if (ondone) ondone();
         resolve(true);
         return;
@@ -295,7 +298,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
         try {
           statusUpdated = statusUpdater(status);
         } catch (e) {
-          Console.error('Error updating status', e);
+          this.logger.error('Error updating status', e);
         }
         if (statusUpdated) {
           this.syncStatus = status;
@@ -513,7 +516,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   public updateWithLock(item: STORE_ITEM, updater: (latestVersion: STORE_ITEM) => void, ondone?: (item: STORE_ITEM) => void) {
     this.lockItem(item, (locked, unlock) => {
       if (!locked) {
-        Console.warn('Cannot get lock on', this.table.name, item);
+        this.logger.warn('Cannot get lock on', this.table.name, item);
         if (ondone) ondone(item);
         return;
       }

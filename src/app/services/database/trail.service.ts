@@ -16,7 +16,6 @@ import { collection$items } from '@trailence/utils/rxjs/collection$items';
 import { ShareService } from './share.service';
 import { AuthService } from '../auth/auth.service';
 import { PhotoService } from './photo.service';
-import { Console } from '@trailence/utils/console';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { QuotaService } from '../auth/quota.service';
 import { ModerationService } from '../moderation/moderation.service';
@@ -33,6 +32,9 @@ import { isPublicationCollection, SHARED_OWNER_PREFIX, TrailCollectionType } fro
 import { CommonDatabaseService } from './common-database.service';
 import { StoreService, StoreWithCleaning } from './store/store.service';
 import { TrailCollection } from '@trailence/model/trail-collection';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('trail.service');
 
 @Injectable({
   providedIn: 'root'
@@ -102,7 +104,7 @@ export class TrailService {
           if (ondone) ondone(t);
         },
         error: e => {
-          Console.error('Error update trail from moderation', e);
+          logger.error('Error update trail from moderation', e);
           this.injector.get(ErrorService).addNetworkError(e, 'publications.moderation.error_updating_trail', []);
           if (ondone) ondone(trail);
         }

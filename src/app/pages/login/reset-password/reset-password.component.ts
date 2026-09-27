@@ -9,8 +9,10 @@ import { I18nPipe } from '@trailence/services/i18n/i18n-string';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { PreferencesService } from '@trailence/services/preferences/preferences.service';
 import { ErrorService } from '@trailence/services/progress/error.service';
-import { Console } from '@trailence/utils/console';
 import { environment } from '@env/environment';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('reset-password.component');
 
 @Component({
   selector: 'app-reset-password',
@@ -65,7 +67,7 @@ export class ResetPasswordComponent implements OnInit {
         this.changeDetector.detectChanges();
       },
       error => {
-        Console.error('Captcha error', error);
+        logger.error('Captcha error', error);
       });
     }, 0);
   }
@@ -94,7 +96,7 @@ export class ResetPasswordComponent implements OnInit {
           this.page++;
         },
         error: e => {
-          Console.error(e);
+          logger.error(e);
           if (e instanceof ApiError && e.httpCode === 403 && e.errorCode === 'change-password-already-sent')
             this.sendMailError = 'pages.login.reset_password.errors.mail_already_sent';
           else {

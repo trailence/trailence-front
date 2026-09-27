@@ -1,16 +1,20 @@
 import { NgZone } from '@angular/core';
 import { BehaviorSubject, combineLatest, filter, first, map, Observable, switchMap, tap } from 'rxjs';
-import { Console } from '@trailence/utils/console';
 import { StoreLoadStatus, StoreSyncStatus } from './store';
+import { getLogger, Logger } from '@trailence/utils/console';
 
 export class StoreOperations {
 
   constructor(
-    private readonly name: string,
+    name: string,
     private readonly storeLoaded$: BehaviorSubject<StoreLoadStatus | undefined>,
     private readonly syncStatus$: Observable<StoreSyncStatus | null>,
     private readonly ngZone: NgZone,
-  ) {}
+  ) {
+    this.logger = getLogger('store-operations/' + name);
+  }
+
+  private readonly logger: Logger;
 
   public push(description: string, operation: () => Promise<any>): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -36,12 +40,12 @@ export class StoreOperations {
   public requestSync<T>(onready: () => Observable<T>): Observable<T> {
     return this._inProgress$.pipe(
       filter(p => {
-        if (p) Console.info('Store ' + this.name + ' waiting for ' + this._queue$.value.length + ' operations to finish before sync');
-        else Console.info('Store ' + this.name + ' ready to sync');
+        if (p) this.logger.info('Waiting for ' + this._queue$.value.length + ' operations to finish before sync');
+        else this.logger.info('Ready to sync');
         return !p;
       }),
       first(),
-      tap(() => Console.info('Launching store sync: ' + this.name)),
+      tap(() => this.logger.info('Launching store sync')),
       switchMap(onready),
     );
   }
@@ -67,19 +71,19 @@ export class StoreOperations {
 
   private executeNextOperation(startTime: number, deep: number): void {
     if (this._queue$.value.length === 0) {
-      Console.debug('No more operations on store ' + this.name);
+      this.logger.debug('No more operations');
       this._inProgress$.next(false);
       return;
     }
     const next = this._queue$.value.splice(0, 1)[0];
-    Console.debug('Executing operation on store ' + this.name + ': ' + next.description);
+    this.logger.debug('Executing operation: ' + next.description);
     next.operation()
     .then(() => {
-      Console.debug('Operation success on store ' + this.name + ': ' + next.description);
+      this.logger.debug('Operation success: ' + next.description);
       this.continueExecution(startTime, deep);
     })
     .catch(e => {
-      Console.error('Error during operation on store ' + this.name + ': ' + next.description, e);
+      this.logger.error('Error during operation: ' + next.description, e);
       this.continueExecution(startTime, deep);
     })
   }
@@ -88,7 +92,7 @@ export class StoreOperations {
     this.ngZone.runOutsideAngular(() => {
       this._queue$.next(this._queue$.value);
       if (Date.now() - startTime > 1000 || deep > 100) {
-        Console.info('Store ' + this.name + ': still ' + this._queue$.value.length + ' operations pending');
+        this.logger.info('Still ' + this._queue$.value.length + ' operations pending');
         setTimeout(() => this.executeNextOperation(Date.now(), 0), 0);
       } else
         this.executeNextOperation(startTime, deep + 1);

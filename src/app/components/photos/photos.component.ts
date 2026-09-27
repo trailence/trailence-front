@@ -12,7 +12,6 @@ import { AuthService } from '@trailence/services/auth/auth.service';
 import { BrowserService } from '@trailence/services/browser/browser.service';
 import { CompositeOnDone } from '@trailence/utils/callback-utils';
 import { ErrorService } from '@trailence/services/progress/error.service';
-import { Console } from '@trailence/utils/console';
 import { TranslatedString } from '@trailence/services/i18n/i18n-string';
 import { TrackService } from '@trailence/services/database/track.service';
 import { TrackUtils } from '@trailence/utils/track-utils';
@@ -25,6 +24,9 @@ import { BinaryContent } from '@trailence/utils/binary-content';
 import { WorkerService } from '@trailence/worker/web-app';
 import { ConcurrentPromises } from '@trailence/utils/concurrency';
 import { SHARED_OWNER_PREFIX } from '@trailence/model/dto/trail-collection';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('photos.component');
 
 interface PhotoWithInfo {
   photo: Photo;
@@ -313,7 +315,7 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
           progress?.done();
           errors.push(...processErrors);
           if (errors.length > 0) {
-            Console.error('Errors reading photos', errors);
+            logger.error('Errors reading photos', errors);
             this.errorService.addErrors(errors);
           };
         });

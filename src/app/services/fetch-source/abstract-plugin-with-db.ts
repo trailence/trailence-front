@@ -10,7 +10,6 @@ import { Track } from '@trailence/model/track';
 import { TrackEditionService } from '../track-edition/track-edition.service';
 import { filterItemsDefined } from '@trailence/utils/rxjs/filter-defined';
 import { DelayedTable } from '@trailence/utils/delayed-table';
-import { Console } from '@trailence/utils/console';
 import { AuthService } from '../auth/auth.service';
 import { SimplifiedPoint, SimplifiedTrackSnapshot, TrackMetadataSnapshot } from '@trailence/model/snapshots';
 import { debounceTime, filter, first, firstValueFrom, from, switchMap } from 'rxjs';
@@ -19,6 +18,7 @@ import { WorkerService } from '@trailence/worker/web-app';
 import { CleanupService } from '../database/cleanup/cleanup.service';
 import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
 import { NetworkService } from '../network/network.service';
+import { getLogger, Logger } from '@trailence/utils/console';
 
 export interface TrailInfoBaseDto {
   info: TrailInfo;
@@ -44,6 +44,7 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
     private readonly refreshAfter?: number,
   ) {
     super(injector, searchTrailsFeatureName);
+    this.logger = getLogger('fetch-plugin-with-db/' + dbName);
     injector.get(NgZone).runOutsideAngular(() => {
       setTimeout(() => {
         this._allowed$.pipe(filter(a => a), first()).subscribe(() => {
@@ -55,6 +56,7 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
   }
 
   private db?: Dexie;
+  private readonly logger: Logger;
   protected tableInfos!: DelayedTable<TRAIL_INFO_DTO, string>;
   protected tableTrails!: DelayedTable<TrailDto, string>;
   protected tableFullTracks!: DelayedTable<TrackDto, string>;
@@ -63,7 +65,7 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
 
   private openDb(name: string): void {
     if (this.db?.name === name) return;
-    Console.info('Opening DB ' + name);
+    this.logger.info('Opening DB ' + name);
     this.db = new Dexie(name);
     const schemaV1: any = {};
     schemaV1['infos'] = this.trailInfosKeys + ', fetchDate';

@@ -19,7 +19,6 @@ import * as L from 'leaflet';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { TrackUtils } from '@trailence/utils/track-utils';
 import { GeoService } from '@trailence/services/geolocation/geo.service';
-import { Console } from '@trailence/utils/console';
 import { TrackDto } from '@trailence/model/dto/track';
 import { TrailSourceType } from '@trailence/model/dto/trail';
 import { WayUtils } from '@trailence/services/map/way-utils';
@@ -30,6 +29,9 @@ import { WorkerService } from '@trailence/worker/web-app';
 import { TrackComputedDataCacheService } from '@trailence/services/database/track-computed-data-cache.service';
 import { NetworkService } from '@trailence/services/network/network.service';
 import { TrailCollection } from '@trailence/model/trail-collection';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('track-builder');
 
 export const WAY_MAPTRACK_DEFAULT_COLOR = '#0000FF80'
 export const WAY_MAPTRACK_HIGHLIGHTED_COLOR = '#000080FF'
@@ -484,7 +486,7 @@ export class TrackBuilder {
       }
       this.updateCurrentMapTrack();
     } catch (e) {
-      Console.warn('Error loading trail planner local storage', e, trackInStorage, pointsInStorage);
+      logger.warn('Error loading trail planner local storage', e, trackInStorage, pointsInStorage);
       // ignore
     }
   }

@@ -2,12 +2,14 @@ import { Injector } from '@angular/core';
 import { LocalFilesService } from '../../local-files/local-files.service';
 import { DbStatus, DbTable, DbTableMigration } from './db-table';
 import Dexie, { Table } from 'dexie';
-import { Console } from '@trailence/utils/console';
 import { ProgressService } from '../../progress/progress.service';
 import { I18nService } from '../../i18n/i18n.service';
 import { BinaryContent } from '@trailence/utils/binary-content';
 import { map, Observable, switchMap, throwIfEmpty } from 'rxjs';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('db-table-with-blob');
 
 export class DbTableWithBlob<DTO> extends DbTable<DTO> {
 
@@ -38,7 +40,7 @@ export class DbTableWithBlob<DTO> extends DbTable<DTO> {
   private async migrateToLocalFiles(injector: Injector, dexie: Dexie, table: Table, localDir: string) {
     const keys = await table.toCollection().primaryKeys();
     if (keys.length === 0) return;
-    Console.info(keys.length + ' entries to migrate to local files from ' + dexie.name + '/' + this.name);
+    logger.info(keys.length + ' entries to migrate to local files from ' + dexie.name + '/' + this.name);
     const progress = injector.get(ProgressService).getOrCreate('update-migration', injector.get(I18nService).texts.update.updating, keys.length);
     let workDone = 0;
     const next = async (from: number) => {

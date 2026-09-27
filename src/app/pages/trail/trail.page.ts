@@ -11,7 +11,6 @@ import { AbstractPage } from '@trailence/utils/component-utils';
 import { MenuItem } from '@trailence/components/menus/menu-item';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { NetworkService } from '@trailence/services/network/network.service';
-import { Console } from '@trailence/utils/console';
 import { firstTimeout } from '@trailence/utils/rxjs/first-timeout';
 import { ReplayService } from '@trailence/services/replay/replay.service';
 import { TrailCollectionService } from '@trailence/services/database/trail-collection.service';
@@ -23,6 +22,9 @@ import { FetchSourceService } from '@trailence/services/fetch-source/fetch-sourc
 import { PreferencesService } from '@trailence/services/preferences/preferences.service';
 import { TrailLinkService } from '@trailence/services/database/link.service';
 import { SHARED_OWNER_PREFIX } from '@trailence/model/dto/trail-collection';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('trail.page');
 
 @Component({
   selector: 'app-trail-page',
@@ -176,7 +178,7 @@ export class TrailPage extends AbstractPage {
               switchMap(([loaded, visible, connected, item]) => {
                 if (item === null && visible && (!connected || loaded)) {
                   // trail does not exist
-                  Console.warn('Trail not found, redirecting to home');
+                  logger.warn('Trail not found, redirecting to home');
                   if (!connected)
                     this.toastController.create({
                       message: this.i18n.texts.you_are_offline,

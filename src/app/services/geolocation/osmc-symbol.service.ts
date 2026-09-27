@@ -1,8 +1,10 @@
 import { Injectable, SecurityContext } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { IdGenerator } from '@trailence/utils/component-utils';
-import { Console } from '@trailence/utils/console';
+import { getLogger } from '@trailence/utils/console';
 import { XmlUtils } from '@trailence/utils/xml-utils';
+
+const logger = getLogger('osmc-symbol.service');
 
 @Injectable({providedIn: 'root'})
 export class OsmcSymbolService {
@@ -18,7 +20,7 @@ export class OsmcSymbolService {
   public generateSvgContent(symbol: string, x1: number, x2: number, y1: number, y2: number): string | undefined { // NOSONAR
     const elements = symbol.split(':');
     if (elements.length < 2) {
-      Console.warn('Invalid OSMC', symbol);
+      logger.warn('Invalid OSMC', symbol);
       return undefined;
     }
     const background = elements[1];
@@ -78,7 +80,7 @@ export class OsmcSymbolService {
         svg = '<rect x="' + x1 + '" y="' + (y1 + (y2 - y1 + 1) / 4) + '" width="' + (x2 - x1 + 1) + '" height="' + ((y2 - y1 + 1) / 2 - 1) + '" fill="' + color + '"></rect>';
     }
     if (svg.length === 0) {
-      Console.warn('Empty OMSC', symbol);
+      logger.warn('Empty OMSC', symbol);
       return undefined;
     }
     return svg;
@@ -118,7 +120,7 @@ export class OsmcSymbolService {
           };
         }
       }
-      Console.warn('unknown osmc background', background);
+      logger.warn('unknown osmc background', background);
     }
     return undefined;
   }
@@ -193,9 +195,9 @@ export class OsmcSymbolService {
         case 'x': return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke-width="3" stroke="' + color + '"></line><line x1="' + x1 + '" y1="' + y2 + '" x2="' + x2 + '" y2="' + y1 + '" stroke-width="3" stroke="' + color + '"></line>';
 
       }
-      Console.warn('unknown oscm type of foreground', foreground);
+      logger.warn('unknown oscm type of foreground', foreground);
     } else {
-      Console.warn('unknown oscm foreground color', foreground);
+      logger.warn('unknown oscm foreground color', foreground);
     }
     //return '<image x="' + x1 + '" y="' + y1 + '" width="' + width + '" height="' + height + '" preserveAspectRatio="" href="https://www.wanderreitkarte.de/symbols/icon_' + foreground + '.png" />';
     // https://hiking.waymarkedtrails.org/osmc_symbols.html
@@ -216,7 +218,7 @@ export class OsmcSymbolService {
       case 'yellow':
         return color;
     }
-    Console.warn('unknown oscm color', color);
+    logger.warn('unknown oscm color', color);
     return undefined;
   }
 

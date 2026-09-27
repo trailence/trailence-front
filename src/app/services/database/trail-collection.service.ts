@@ -20,10 +20,12 @@ import { PreferencesService } from '../preferences/preferences.service';
 import { QuotaService } from '../auth/quota.service';
 import { ShareService } from './share.service';
 import { ANONYMOUS_USER, AuthService } from '../auth/auth.service';
-import { Console } from '@trailence/utils/console';
 import { collection$items } from '@trailence/utils/rxjs/collection$items';
 import { CommonDatabaseService } from './common-database.service';
 import { StoreService } from './store/store.service';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('trail-collection.service');
 
 @Injectable({
     providedIn: 'root'
@@ -139,10 +141,10 @@ export class TrailCollectionService {
     const previousPause = this.injector.get(StoreService).pauseSync();
     progress.workAmount = 100 + 1000 + 1;
     this.injector.get(TagService).deleteAllTagsFromCollections([collection], progress, 100)
-    .pipe(defaultIfEmpty(false), timeout(15000), catchError(e => { Console.error('Error deleting tags', e); return of(false); }))
+    .pipe(defaultIfEmpty(false), timeout(15000), catchError(e => { logger.error('Error deleting tags', e); return of(false); }))
     .subscribe(() => {
       this.injector.get(TrailService).deleteAllTrailsFromCollections([collection], progress, 1000)
-      .pipe(defaultIfEmpty(false), timeout(30000), catchError(e => { Console.error('Error deleting trails', e); return of(false); }))
+      .pipe(defaultIfEmpty(false), timeout(30000), catchError(e => { logger.error('Error deleting trails', e); return of(false); }))
       .subscribe(() => {
         this._store.delete(collection);
         progress.addWorkDone(1);
@@ -276,12 +278,12 @@ class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollectio
 
     protected override beforeEmittingStoreLoaded(): void {
       if (this._store.value.length === 0 && this.injector.get(AuthService).email === ANONYMOUS_USER) {
-        Console.info('Creating MyTrails for new trial');
+        logger.info('Creating MyTrails for new trial');
         setTimeout(() => {
           this.create(new TrailCollection({
             type: TrailCollectionType.MY_TRAILS,
             owner: ANONYMOUS_USER,
-          })).subscribe(() => Console.info('MyTrails created.'));
+          })).subscribe(() => logger.info('MyTrails created.'));
         });
       }
       super.beforeEmittingStoreLoaded();

@@ -4,8 +4,10 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpClientService } from '../http/http-client.service';
 import { HttpMethod, TrailenceHttpRequest } from '../http/http-request';
 import { environment } from '@env/environment';
-import { Console } from '@trailence/utils/console';
 import { HttpService } from '../http/http.service';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('network.service');
 
 @Injectable({
   providedIn: 'root'
@@ -25,8 +27,8 @@ export class NetworkService implements INetworkService, OnDestroy {
     if ((globalThis as any).navigator.connection) {
       (globalThis as any).navigator.connection.addEventListener('change', () => this.updateStatus(false));
     }
-    this._server$.subscribe(connected => Console.info("Server reachable = " + connected));
-    this._internet$.subscribe(connected => Console.info("Network connection = " + connected));
+    this._server$.subscribe(connected => logger.info("Server reachable = " + connected));
+    this._internet$.subscribe(connected => logger.info("Network connection = " + connected));
     httpService.addResponseInterceptor(response => {
       if (response.status === 0 && response.request.url.startsWith(environment.apiBaseUrl)) {
         if (this._server$.value) {
@@ -53,7 +55,7 @@ export class NetworkService implements INetworkService, OnDestroy {
   private updateStatus(firstCall: boolean): void {
     if (this.destroyed) return;
     const newStatus = globalThis.navigator.onLine;
-    Console.info('Network changed (' + newStatus + '), ping server');
+    logger.info('Network changed (' + newStatus + '), ping server');
     if (!newStatus) {
       if (this._internet$.value) {
         this._internet$.next(false);
@@ -77,7 +79,7 @@ export class NetworkService implements INetworkService, OnDestroy {
     .then(() => true)
     .catch(() => false)
     .then(result => {
-      Console.info('Internet connection', result);
+      logger.info('Internet connection', result);
       return result;
     });
   }
@@ -90,10 +92,10 @@ export class NetworkService implements INetworkService, OnDestroy {
       if (count !== this.count || this.destroyed) return;
       let status: PingResponse | null;
       if (response.status === 200) {
-        Console.info('Server ping response received: connected (' + (Date.now() - start) + 'ms.)', response.body);
+        logger.info('Server ping response received: connected (' + (Date.now() - start) + 'ms.)', response.body);
         status = response.body
       } else {
-        Console.info('Server ping response error (' + response.status + '): not connected', Date.now() - start, 'ms.');
+        logger.info('Server ping response error (' + response.status + '): not connected', Date.now() - start, 'ms.');
         status = null;
         if (trial < 3) setTimeout(() => this.checkServerConnection(count, trial + 1), trial * 250);
         else if (trial < 10) setTimeout(() => this.checkServerConnection(count, trial + 1), 1000);

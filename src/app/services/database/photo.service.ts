@@ -17,7 +17,6 @@ import { PreferencesService } from '../preferences/preferences.service';
 import { DatabaseSubject } from './database-subject';
 import { DatabaseSubjectService } from './database-subject-service';
 import { ErrorService } from '../progress/error.service';
-import { Console } from '@trailence/utils/console';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { firstTimeout } from '@trailence/utils/rxjs/first-timeout';
 import { QuotaService } from '../auth/quota.service';
@@ -29,6 +28,9 @@ import { StoreWithCleaning } from './store/store.service';
 import { WorkerService } from '@trailence/worker/web-app';
 import { SHARED_OWNER_PREFIX } from '@trailence/model/dto/trail-collection';
 import { AuthService } from '../auth/auth.service';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('photo.service');
 
 @Injectable({providedIn: 'root'})
 export class PhotoService {
@@ -102,7 +104,7 @@ export class PhotoService {
               return b;
             })
             .catch(e2 => { // NOSONAR
-              Console.error('Cannot fetch photo', e, e2);
+              logger.error('Cannot fetch photo', e, e2);
               throw e;
             })
         })
@@ -185,7 +187,7 @@ export class PhotoService {
         );
       }),
       catchError(e => {
-        Console.error('error storing photo', e);
+        logger.error('error storing photo', e);
         this.injector.get(ErrorService).addTechnicalError(e, 'errors.import_photo', [description]);
         return of(null);
       })
@@ -293,12 +295,12 @@ export class PhotoService {
         const item = items.find(p => p.owner === owner && p.uuid === uuid);
         if (!item) {
           if (this._creating.some(v => v.owner === owner && v.uuid === uuid)) return true;
-          Console.info('Removing stored file', owner, uuid, 'because no corresponding photo');
+          logger.info('Removing stored file', owner, uuid, 'because no corresponding photo');
           return false;
         }
         const exclude = !item.isSavedOnServerAndNotDeletedLocally() || this.store.itemUpdatedLocally(owner, uuid);
         if (!exclude)
-          Console.info('Removing stored file', owner, uuid, 'because requested to remove cached files, and the photo is saved on server');
+          logger.info('Removing stored file', owner, uuid, 'because requested to remove cached files, and the photo is saved on server');
         return exclude;
       }))
     );
@@ -315,15 +317,15 @@ export class PhotoService {
           const photo = photos.find(p => item.key === files.getKey(p.owner, 'photo', p.uuid));
           if (!photo) {
             if (this._creating.some(v => item.key === files.getKey(v.owner, 'photo', v.uuid))) return false;
-            Console.info('Expired file without photo => delete', item.key, item.dateStored);
+            logger.info('Expired file without photo => delete', item.key, item.dateStored);
             return true;
           }
           const exclude = !photo.isSavedOnServerAndNotDeletedLocally() || this.store.itemUpdatedLocally(photo.owner, photo.uuid);
-          if (!exclude) Console.info('Expired file and photo saved on server => delete', item.key, item.dateStored);
+          if (!exclude) logger.info('Expired file and photo saved on server => delete', item.key, item.dateStored);
           return !exclude;
         }))
     ).pipe(
-      tap(nb => Console.info('Remove expired files', nb, 'deleted'))
+      tap(nb => logger.info('Remove expired files', nb, 'deleted'))
     );
   }
 
@@ -408,7 +410,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> implements StoreWithCleanin
                 }
               })),
               catchError(e => {
-                Console.error('error saving photo on server', dto, e);
+                logger.error('error saving photo on server', dto, e);
                 this.injector.get(ErrorService).addNetworkError(e, 'errors.stores.save_photo', [dto.description]);
                 return EMPTY;
               })
@@ -431,7 +433,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> implements StoreWithCleanin
     return combineLatest([trailReady$, fileReady$]).pipe(
       map(readiness => {
         const ready = !readiness.includes(false);
-        if (!ready) Console.debug('Photo', entity.owner, entity.uuid, entity.index, 'not ready', readiness);
+        if (!ready) logger.debug('Photo', entity.owner, entity.uuid, entity.index, 'not ready', readiness);
         return ready;
       })
     );

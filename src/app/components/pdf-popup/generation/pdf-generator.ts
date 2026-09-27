@@ -17,12 +17,14 @@ import { addQrCodeToPdf } from './pdf-qrcode';
 import { hasWaypointsContent } from '../waypoints-utils';
 import { MapLayer } from '@trailence/services/map/map-layers.service';
 import { FetchSourceService } from '@trailence/services/fetch-source/fetch-source.service';
-import { Console } from '@trailence/utils/console';
 import { BinaryContent } from '@trailence/utils/binary-content';
 import { PdfFixedColumnsLayout, pdfFullWidth, PdfSectionGenerator } from './pdf-layout-helper';
 import { generateDescriptionAndWaypoints } from './pdf-description-and-waypoints';
 import { computeWayPointsFromTrack, WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
 import { assetsDependencies } from '@trailence/assets-dependencies';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('pdf-generator');
 
 export enum PdfModel {
   BIG_MAP = 'BIG_MAP',
@@ -405,11 +407,11 @@ function createRoundedAvatar(blob: Blob): Promise<ArrayBuffer> {
                   const base64 = canvas.toDataURL('image/png');
                   BinaryContent.fromDataURL(base64).toArrayBuffer().then(b => resolve(b)).
                   catch(e => {
-                    Console.warn('Error converting data URL to blob', e);
+                    logger.warn('Error converting data URL to blob', e);
                     reject('Unable to generate PNG');
                   });
                 } catch (e) {
-                  Console.warn('Error converting blob to PNG data URL', e);
+                  logger.warn('Error converting blob to PNG data URL', e);
                   reject('Unable to generate PNG');
                 }
               }
@@ -421,7 +423,7 @@ function createRoundedAvatar(blob: Blob): Promise<ArrayBuffer> {
           "image/png"
         )
       } catch (e) {
-        Console.warn('Error converting photo', e);
+        logger.warn('Error converting photo', e);
         reject('Error converting photo');
       }
     };

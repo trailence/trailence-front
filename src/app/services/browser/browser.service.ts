@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, debounceTime, Subject } from 'rxjs';
-import { Console } from '@trailence/utils/console';
 import { Platform } from '@ionic/angular/common';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('browser.service');
 
 @Injectable({providedIn: 'root'})
 export class BrowserService {
@@ -14,11 +16,11 @@ export class BrowserService {
   constructor(
     platform: Platform,
   ) {
-    Console.info('platform: ' + platform.platforms().join(','));
+    logger.info('platform: ' + platform.platforms().join(','));
     platform.resize.pipe(debounceTime(25)).subscribe(() => {
       this._width = platform.width();
       this._height = platform.height();
-      Console.info('Screen resize', this._width, this._height);
+      logger.info('Screen resize', this._width, this._height);
       const newSize = {width: this._width, height: this._height};
       this._resize$.next(newSize);
       this._size$.next(newSize);

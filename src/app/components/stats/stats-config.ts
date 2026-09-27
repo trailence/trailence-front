@@ -1,7 +1,9 @@
 import { BehaviorSubject } from 'rxjs';
 import { TrailActivity } from '@trailence/model/dto/trail-activity';
 import { Arrays } from '@trailence/utils/arrays';
-import { Console } from '@trailence/utils/console';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('stats-config');
 
 export class StatsConfig {
 
@@ -84,7 +86,7 @@ export class StatsConfig {
         const json = JSON.parse(str);
         return new StatsConfig(email, json);
       } catch (e) {
-        Console.warn('Invalid stats config', e);
+        logger.warn('Invalid stats config', e);
       }
     }
     return new StatsConfig(email, defaultConfig);

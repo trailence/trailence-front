@@ -1,7 +1,9 @@
 import { Injectable, NgZone } from '@angular/core';
 import { DatabaseSubject } from './database-subject';
 import { Maps } from '@trailence/utils/maps';
-import { Console } from '@trailence/utils/console';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('database-subject.service');
 
 @Injectable({providedIn: 'root'})
 export class DatabaseSubjectService {
@@ -51,7 +53,7 @@ export class DatabaseSubjectService {
         msg += entry[1] + ' ' + (entry[0] ?? '?') + ';';
       }
       msg += ')';
-      Console.info(msg);
+      logger.info(msg);
     }
   }
 

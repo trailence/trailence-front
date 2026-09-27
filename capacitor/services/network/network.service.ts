@@ -5,12 +5,14 @@ import { ConnectionStatus, Network } from '@capacitor/network';
 import { HttpClientService } from '@trailence/services/http/http-client.service';
 import { HttpMethod, TrailenceHttpRequest } from '@trailence/services/http/http-request';
 import { environment } from '@env/environment';
-import { Console } from '@trailence/utils/console';
 import { HttpService } from '@trailence/services/http/http.service';
 import { StringUtils } from '@trailence/utils/string-utils';
 import { trailenceAppVersionCode } from '@trailence/trailence-version';
 import { AlertController } from '@ionic/angular';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('network.service');
 
 @Injectable({
   providedIn: 'root'
@@ -34,7 +36,7 @@ export class NetworkService implements INetworkService {
       if (status.connectionType !== 'none' && previous && previous.connected === status.connected && Date.now() - previous.timestamp < 60000)
         return;
       this._cache.set(status.connectionType, {connected: status.connected, timestamp: Date.now()});
-      Console.info('network status changed', status);
+      logger.info('network status changed', status);
       this.updateStatus(status);
     });
     httpService.addResponseInterceptor(response => {
@@ -61,7 +63,7 @@ export class NetworkService implements INetworkService {
   private countNet = 0;
 
   private updateStatus(status: ConnectionStatus): void {
-    Console.info('Network changed', status, 'ping server');
+    logger.info('Network changed', status, 'ping server');
     this.checkServerConnection(++this.countPing, 1);
     const c2 = ++this.countNet;
     setTimeout(() => {
@@ -78,11 +80,11 @@ export class NetworkService implements INetworkService {
       if (count !== this.countPing) return;
       let status: PingResponse | null;
       if (response.status === 200) {
-        Console.info('Server ping response received: connected on ' + environment.apiBaseUrl);
+        logger.info('Server ping response received: connected on ' + environment.apiBaseUrl);
         const ping = response.body as PingResponse;
         const minSupportedVersion = StringUtils.versionNameToVersionCode(ping.minSupportedVersion);
         if (minSupportedVersion === undefined || minSupportedVersion > trailenceAppVersionCode) {
-          Console.info("We are on an obselete version ! please update");
+          logger.info("We are on an obselete version ! please update");
           status = null;
           const i18n = this.injector.get(I18nService);
           this.injector.get(AlertController).create({
@@ -97,7 +99,7 @@ export class NetworkService implements INetworkService {
           status = ping;
         }
       } else {
-        Console.info('Server ping response error (' + response.status + '): not connected');
+        logger.info('Server ping response error (' + response.status + '): not connected');
         status = null;
         if (trial < 3) setTimeout(() => this.checkServerConnection(count, trial + 1), trial * 250);
         else if (trial < 10) setTimeout(() => this.checkServerConnection(count, trial + 1), 1000);

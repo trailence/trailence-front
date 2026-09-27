@@ -7,8 +7,10 @@ import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { IonSearchbarCustomEvent, SearchbarChangeEventDetail } from '@ionic/core';
 import { IdGenerator } from '@trailence/utils/component-utils';
 import { ErrorService } from '@trailence/services/progress/error.service';
-import { Console } from '@trailence/utils/console';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('search-place.component');
 
 @Component({
     selector: 'app-search-place',
@@ -52,7 +54,7 @@ export class SearchPlaceComponent {
       switchMap(event => geo.findPlacesByName(event!.value!)), // NOSONAR
       catchError(e => {
         errorService.addTechnicalError(e, 'errors.search_places', []);
-        Console.error(e);
+        logger.error(e);
         return of([]);
       }),
     ).subscribe(places => this.setPlaces(places));

@@ -4,7 +4,9 @@ import { I18nService } from '../i18n/i18n.service';
 import { CompositeI18nString, TranslatedString } from '../i18n/i18n-string';
 import { ApiError } from '../http/api-error';
 import { AuthService } from '../auth/auth.service';
-import { Console } from '@trailence/utils/console';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('error.service');
 
 @Injectable({providedIn: 'root'})
 export class ErrorService {
@@ -49,7 +51,7 @@ export class ErrorService {
   public addErrors(errors: any[]): void {
     this.pushErrors(errors);
     if (this._modal || this._shownErrors.length === 0) return;
-    Console.info('Showing errors modal with', errors);
+    logger.info('Showing errors modal with', errors);
     this._modal = import('../../components/errors-modal/errors-modal.component')
     .then(module => this.modalController.create({
       initialBreakpoint: 0.25,

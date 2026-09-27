@@ -212,3 +212,13 @@ app-avatar {
 .round-img img, img.round-img {
   border-radius: 5px;
 }
+
+.logs {
+  font-size: 12px !important;
+  font-family: monospace !important;
+}
+
+::highlight(selected-search-text) {
+  background-color: #c000ff;
+  color: black;
+}

@@ -18,8 +18,10 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ErrorService } from '@trailence/services/progress/error.service';
 import { defaultAuthRoute, defaultPublicRoute } from '@trailence/routes/package.routes';
-import { Console } from '@trailence/utils/console';
 import { LiveGroupDto } from '@trailence/model/dto/live-group';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('live-group.page');
 
 @Component({
   templateUrl: './live-group.page.html',
@@ -106,7 +108,7 @@ export class LiveGroupPage extends AbstractPage {
         } else {
           this.group = groups.find(g => g.slug === this.path1);
           if (!this.group) {
-            Console.warn('Live group not found, redirecting to default page', this.path1, groups);
+            logger.warn('Live group not found, redirecting to default page', this.path1, groups);
             this.router.navigateByUrl(this.authService.auth ? defaultAuthRoute : defaultPublicRoute);
           }
           else if (this.group.trailOwner && this.group.trailUuid)

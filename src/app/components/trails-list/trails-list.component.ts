@@ -31,7 +31,6 @@ import { HighlightService } from '@trailence/services/highlight/highlight.servic
 import { TrailCollectionService } from '@trailence/services/database/trail-collection.service';
 import { TrailCollection } from '@trailence/model/trail-collection';
 import { ModerationService } from '@trailence/services/moderation/moderation.service';
-import { Console } from '@trailence/utils/console';
 import { TrackMetadataConfig } from '../track-metadata/track-metadata.component';
 import { FiltersUtils } from './filters';
 import { FetchSourceService } from '@trailence/services/fetch-source/fetch-source.service';
@@ -46,6 +45,9 @@ import { FilterNumericCustomComponent } from '../filters/filter-numeric-custom/f
 import { Arrays } from '@trailence/utils/arrays';
 import { NgTemplateOutlet } from '@angular/common';
 import { PhotoService } from '@trailence/services/database/photo.service';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('trails-list.component');
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
@@ -288,7 +290,7 @@ export class TrailsListComponent extends AbstractComponent {
       this.state$.pipe(
         skip(1)
       ).subscribe(() => {
-        Console.info('New state: ', this.id, this.state$.value);
+        logger.info('New state: ', this.id, this.state$.value);
         this.saveState();
         this.toolbar = [...this.toolbar];
         this.filtersToolbar = [...this.filtersToolbar];
@@ -391,7 +393,7 @@ export class TrailsListComponent extends AbstractComponent {
               switchMap(trackUuid => trail.fromModeration ? this.injector.get(ModerationService).getTrackMetadata$(trail.uuid, trail.owner, trackUuid) : this.trackService.getMetadata$(trackUuid, trail.owner)),
               filterTimeout(track => !!track, 1000, () => null as TrackMetadataSnapshot | null),
               catchError(e => {
-                Console.warn('Cannot get track metadata for trail', trail);
+                logger.warn('Cannot get track metadata for trail', trail);
                 return of(null);
               }),
               map(track => ({trail, track})),

@@ -5,9 +5,11 @@ import { environment } from '@env/environment';
 import { DateFormat, DistanceUnit, HourFormat } from '../preferences/preferences';
 import { StringUtils } from '@trailence/utils/string-utils';
 import { AssetsService } from '../assets/assets.service';
-import { Console } from '@trailence/utils/console';
 import { DomSanitizer } from '@angular/platform-browser';
 import { LocaleKey } from './available-locales';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('i18n.service');
 
 const TEXTS_VERSION = '68';
 
@@ -396,10 +398,10 @@ export class I18nService {
     for (let e of toKeep) {
       toLoad.push(of(e));
     }
-    Console.info('Start loading texts ', lang);
+    logger.info('Start loading texts ', lang);
     const start = Date.now();
     combineLatest(toLoad).subscribe(loaded => {
-      Console.info('i18n texts loaded for language ', lang, '(' + (Date.now() - start) + 'ms.)');
+      logger.info('i18n texts loaded for language ', lang, '(' + (Date.now() - start) + 'ms.)');
       let newTexts = {};
       for (let l of loaded) {
         let t: any;
@@ -422,14 +424,14 @@ export class I18nService {
   private _languagesLoaded?: {code: string, name: string, targets: string[]}[];
   public getTranslationLanguages(): Observable<{code: string, name: string, targets: string[]}[]> {
     if (this._languagesLoaded) return of(this._languagesLoaded);
-    Console.info('Loading languages list');
+    logger.info('Loading languages list');
     return this.assets.loadJson(environment.assetsUrl + '/i18n/languages.1.json').pipe(
       tap(l => {
         this._languagesLoaded = l;
-        Console.info('Languages list loaded', l);
+        logger.info('Languages list loaded', l);
       }),
       catchError(e => {
-        Console.error('Error loading languages list', e);
+        logger.error('Error loading languages list', e);
         return of([]);
       })
     );
@@ -441,7 +443,7 @@ export class I18nService {
     let t = this.texts;
     for (const name of path) t = t ? t[name] : undefined;
     if (typeof t !== 'string') {
-      Console.error('Invalid i18n key', i18nKey, path, t, this.texts);
+      logger.error('Invalid i18n key', i18nKey, path, t, this.texts);
       return 'Invalid i18nkey: ' + i18nKey;
     }
     for (let i = 0; i < args.length; ++i) {
@@ -459,7 +461,7 @@ export class I18nService {
         let t = texts;
         for (const name of path) t = t ? t[name] : undefined;
         if (typeof t !== 'string') {
-          Console.error('Invalid i18n key', i18nKey, path, t, this.texts);
+          logger.error('Invalid i18n key', i18nKey, path, t, this.texts);
           return of('Invalid i18nkey: ' + i18nKey);
         }
         if (args.length === 0) return of(t);

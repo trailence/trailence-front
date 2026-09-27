@@ -2,7 +2,9 @@ import { Injectable } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { BinaryContent } from '@trailence/utils/binary-content';
 import { IFileService, OpenFileRequest } from './file.interface';
-import { Console } from '@trailence/utils/console';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('file.service');
 
 @Injectable({
   providedIn: 'root'
@@ -77,7 +79,7 @@ export class FileService implements IFileService {
       .catch((e: any) => {
         if (e instanceof DOMException) {
           // ignore error if user abort
-          Console.info('Open file dialog: ', e)
+          logger.info('Open file dialog: ', e)
         } else {
           r.ondone(undefined, [], [e]);
         }

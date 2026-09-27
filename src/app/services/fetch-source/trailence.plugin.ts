@@ -6,7 +6,6 @@ import { HttpService } from '../http/http.service';
 import { environment } from '@env/environment';
 import { Trail } from '@trailence/model/trail';
 import { TrailDto, TrailSourceType } from '@trailence/model/dto/trail';
-import { Console } from '@trailence/utils/console';
 import { PointDtoMapper } from '@trailence/model/point-dto-mapper';
 import { Track } from '@trailence/model/track';
 import { PreferencesService } from '../preferences/preferences.service';
@@ -22,6 +21,9 @@ import { WorkerService } from '@trailence/worker/web-app';
 import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
 import { NetworkService } from '../network/network.service';
 import { Filters } from '../preferences/preferences';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('trailence.plugin');
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   uuid: string;
@@ -146,7 +148,7 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
         return trailDtos.map(t => new Trail(t));
       }),
       catchError(e => {
-        Console.error('Error fetching public trails', uuids, e);
+        logger.error('Error fetching public trails', uuids, e);
         // try by smaller bunches
         if (uuids.length < 2) return of([]);
         return this._fetchByIdsByBunchSplit(uuids);
@@ -276,7 +278,7 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
               return new Trail(dtos.trailDto);
             }),
             catchError(e => {
-              Console.error('Error getting public trail from slug', uuid, e);
+              logger.error('Error getting public trail from slug', uuid, e);
               return of(null);
             }),
             defaultIfEmpty(null),
@@ -295,7 +297,7 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
           return new Trail(dtos.trailDto);
         }),
         catchError(e => {
-          Console.error('Error getting public trail from uuid', uuid, e);
+          logger.error('Error getting public trail from uuid', uuid, e);
           return of(null);
         }),
         defaultIfEmpty(null),

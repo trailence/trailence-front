@@ -4,7 +4,9 @@ import { LOCALSTORAGE_KEY_AUTH } from '../../auth/auth.service';
 import { indexedDbCursorBatch, openIndexedDb } from '../indexed-db/indexed-db';
 import { Injector } from '@angular/core';
 import { LocalFilesService } from '../../local-files/local-files.service';
-import { Console } from '@trailence/utils/console';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('migrate-db-from-user-to-global');
 
 export async function migrateLatestUserDbToGlobalDb(dbName: string, injector: Injector): Promise<boolean> {
   const latestAuthStr = localStorage.getItem(LOCALSTORAGE_KEY_AUTH);
@@ -20,7 +22,7 @@ export async function migrateLatestUserDbToGlobalDb(dbName: string, injector: In
   if (!(await Dexie.exists(dbName + '_' + latestEmail))) return false;
 
   // copy DB
-  Console.info('[DB MIGRATION] copying from ' + dbName + '_' + latestEmail + ' to ' + dbName);
+  logger.info('Copying from ' + dbName + '_' + latestEmail + ' to ' + dbName);
   const previousDb = await openIndexedDb(dbName + '_' + latestEmail);
   const tableNames: string[] = [];
   for (let tableIndex = 0; tableIndex < previousDb.objectStoreNames.length; tableIndex++) {
@@ -30,7 +32,7 @@ export async function migrateLatestUserDbToGlobalDb(dbName: string, injector: In
   const newDb = await openIndexedDb(dbName, 1, (db) => {
     const fromTransaction = previousDb.transaction(tableNames, 'readonly');
     for (const tableName of tableNames) {
-      Console.info('[DB MIGRATION] Creating table ' + dbName + '/' + tableName);
+      logger.info('Creating table ' + dbName + '/' + tableName);
       const fromTable = fromTransaction.objectStore(tableName);
       const newTable = db.createObjectStore(tableName, { keyPath: fromTable.keyPath, autoIncrement: fromTable.autoIncrement });
       for (let indexIndex = 0; indexIndex < fromTable.indexNames.length; ++indexIndex) {
@@ -41,7 +43,7 @@ export async function migrateLatestUserDbToGlobalDb(dbName: string, injector: In
     }
   });
   for (const tableName of tableNames) {
-    Console.info('[DB MIGRATION] copying from ' + dbName + '_' + latestEmail + '/' + tableName + ' to ' + dbName + '/' + tableName);
+    logger.info('Copying from ' + dbName + '_' + latestEmail + '/' + tableName + ' to ' + dbName + '/' + tableName);
     await copyTable(previousDb, newDb, tableName);
   }
 
@@ -62,7 +64,7 @@ export async function migrateLatestUserDbToGlobalDb(dbName: string, injector: In
     }
   }
 
-  Console.info('[DB MIGRATION] done from ' + dbName + '_' + latestEmail + ' to ' + dbName);
+  logger.info('Done from ' + dbName + '_' + latestEmail + ' to ' + dbName);
 
   return true;
 }

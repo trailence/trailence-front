@@ -12,7 +12,9 @@ import { ProgressService } from '@trailence/services/progress/progress.service';
 import { ErrorService } from '@trailence/services/progress/error.service';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
-import { Console } from '@trailence/utils/console';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('update.service');
 
 @Injectable({providedIn: 'root'})
 export class UpdateService {
@@ -49,10 +51,10 @@ export class UpdateService {
   }
 
   private checkApk(): Observable<boolean | null> {
-    Console.info('Check APK version, previous failures: ' + this.failures);
+    logger.info('Check APK version, previous failures: ' + this.failures);
     return this.http.get(environment.baseUrl + '/assets/apk/metadata.json').pipe(
       map((metadata: any) => {
-        Console.info('Check APK version response', metadata);
+        logger.info('Check APK version response', metadata);
         if (Array.isArray(metadata?.elements) && metadata.elements[0].versionCode && metadata.elements[0].versionCode > trailenceAppVersionCode) {
           this.failures = 0;
           return true;
@@ -61,7 +63,7 @@ export class UpdateService {
       }),
       catchError(() => {
         this.failures++;
-        Console.info('Check APK version failed: ' + this.failures);
+        logger.info('Check APK version failed: ' + this.failures);
         return of(null);
       })
     );

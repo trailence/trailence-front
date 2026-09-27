@@ -3,9 +3,11 @@ import { PointDto } from '@trailence/model/dto/point';
 import { GEOLOCATION_MAX_AGE, GEOLOCATION_TIMEOUT, GeolocationState, AbstractGeolocationService } from '@trailence/services/geolocation/geolocation.interface';
 import { registerPlugin } from '@capacitor/core';
 import { BehaviorSubject } from 'rxjs';
-import { Console } from '@trailence/utils/console';
 import { AlertController } from '@ionic/angular';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('geolocation.service');
 
 interface WatcherOptions {
     backgroundMessage?: string;
@@ -96,7 +98,7 @@ export class GeolocationService extends AbstractGeolocationService {
     return BackgroundGeolocation.checkPermissions()
     .then(result => this.handlePermissions(result))
     .catch(error => {
-      Console.error('checkPermissions error', error);
+      logger.error('checkPermissions error', error);
       return Promise.resolve(GeolocationState.DISABLED);
     })
   }
@@ -110,7 +112,7 @@ export class GeolocationService extends AbstractGeolocationService {
   }
 
   private handlePermissions(status: PermissionStatus): Promise<GeolocationState> {
-    Console.info('checkPermissions status', status);
+    logger.info('checkPermissions status', status);
     if (status.location === 'prompt') {
       return new Promise((resolve, reject) => {
         this.alertController.create({
@@ -162,7 +164,7 @@ export class GeolocationService extends AbstractGeolocationService {
       listener(pos);
     })
     .catch(e => {
-      Console.info('Geolocation error', e);
+      logger.info('Geolocation error', e);
       if (onerror) onerror(e);
     });
     this.watchListeners.push({listener, onerror});
@@ -172,7 +174,7 @@ export class GeolocationService extends AbstractGeolocationService {
         backgroundTitle: notifMessage,
         distanceFilter: 1,
       }, (position, err) => {
-        Console.info('background watcher', position, err);
+        logger.info('background watcher', position, err);
         if (position) {
           this.emitPosition(position);
         } else if (err) {
@@ -220,7 +222,7 @@ export class GeolocationService extends AbstractGeolocationService {
   }
 
   private emitError(err: any): void {
-    Console.info('Geolocation error', err);
+    logger.info('Geolocation error', err);
     this._waitingForGps$.next(true);
     for (const l of this.watchListeners)
       if (l.onerror) l.onerror(err);

@@ -6,13 +6,15 @@ import { adjustUnprobableElevationToSegmentBasedOnGrade, adjustUnprobableElevati
 import { PreferencesService } from '../preferences/preferences.service';
 import { Trail } from '@trailence/model/trail';
 import { detectLoopType } from './path-analysis/loop-type-detection';
-import { Console } from '@trailence/utils/console';
 import { removeUnprobablePointsBasedOnAccuracyOnSegment, removeUnprobablePointsBasedOnBigMovesOnShortTimeOnSegment, removeUnprobablePointsOnTrack } from './path-analysis/remove-unprobable-points';
 import { removeBreaksMovesOnSegment, removeBreaksMovesOnTrack } from './path-analysis/remove-breaks-moves';
 import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from '@trailence/worker/web-app';
 import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
 import { NetworkService } from '../network/network.service';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('track-edition.service');
 
 @Injectable({
   providedIn: 'root'
@@ -45,7 +47,7 @@ export class TrackEditionService {
   }
 
   public applyDefaultImprovmentsForRecordingSegment(segment: Segment, state: ImprovmentRecordingState, finish: boolean): void {
-    if (!finish) Console.info('Apply partial improvment');
+    if (!finish) logger.info('Apply partial improvment');
     removeUnprobablePointsBasedOnAccuracyOnSegment(segment, state);
     removeUnprobablePointsBasedOnBigMovesOnShortTimeOnSegment(segment, state);
     removeBreaksMovesOnSegment(segment, state, finish);
@@ -54,7 +56,7 @@ export class TrackEditionService {
       state.lastElevationThresholdIndex = applyElevationThresholdToSegment(segment, 10, 250, state.lastElevationThresholdIndex, segment.points.length - 1, true);
     else if (state.lastUnprobableElevationBasedOnGradeIndex)
       state.lastElevationThresholdIndex = applyElevationThresholdToSegment(segment, 10, 250, state.lastElevationThresholdIndex, state.lastUnprobableElevationBasedOnGradeIndex, false);
-    if (!finish) Console.info("Partial improvment done.");
+    if (!finish) logger.info("Partial improvment done.");
   }
 
 }

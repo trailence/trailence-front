@@ -10,9 +10,11 @@ import { I18nPipe } from '@trailence/services/i18n/i18n-string';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { PreferencesService } from '@trailence/services/preferences/preferences.service';
 import { ErrorService } from '@trailence/services/progress/error.service';
-import { Console } from '@trailence/utils/console';
 import { PasswordUtils } from '@trailence/utils/password-utils';
 import { environment } from '@env/environment';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('change-password.component');
 
 @Component({
   selector: 'app-change-password',
@@ -81,7 +83,7 @@ export class ChangePasswordComponent {
           this.page++;
         },
         error: e => {
-          Console.error(e);
+          logger.error(e);
           if (e instanceof ApiError && e.httpCode === 403 && e.errorCode === 'change-password-already-sent')
             this.sendMailError = 'pages.myaccount.change_password.errors.mail_already_sent';
           else {

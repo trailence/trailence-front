@@ -1,8 +1,10 @@
 import { Injectable, Injector } from '@angular/core';
-import { Console } from '@trailence/utils/console';
 import { DbTable } from './storage/db-table';
 import { CommonDatabaseService } from './common-database.service';
 import { EMPTY, firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('dependencies.service');
 
 @Injectable({providedIn: 'root'})
 export class DependenciesService {
@@ -28,7 +30,7 @@ export class DependenciesService {
           const itemsToRemove: Dependency[] = [];
           for (const dbItem of dbItems) {
             if (itemsToDelete.includes(dbItem.key)) {
-              Console.info('Element deleted on server: ' + dbItem.key + ' => remove all its dependencies');
+              logger.info('Element deleted on server: ' + dbItem.key + ' => remove all its dependencies');
               itemsToRemove.push(dbItem);
               continue;
             }
@@ -37,14 +39,14 @@ export class DependenciesService {
               const kept = itemOp.dependencies.filter(dep => {
                 if (dep.storeName !== storeName || !items.includes(dep.itemKey)) return true; // keep it
                 if (operation === 'delete' || operation === dep.operation) {
-                  Console.info('Dependency from ' + itemOp.operation + ' ' + dbItem.key + ' to ' + storeName + ' ' + dep + ' removed due to operation ' + operation + ' on it');
+                  logger.info('Dependency from ' + itemOp.operation + ' ' + dbItem.key + ' to ' + storeName + ' ' + dep + ' removed due to operation ' + operation + ' on it');
                   return false;
                 }
                 return true;
               });
               if (kept.length === 0) {
                 operationsToRemove.push(itemOp);
-                Console.info('No more dependency from ' + itemOp.operation + ' ' + dbItem.key);
+                logger.info('No more dependency from ' + itemOp.operation + ' ' + dbItem.key);
               } else if (kept.length !== itemOp.dependencies.length) {
                 itemOp.dependencies = kept;
                 if (!itemsToSave.includes(dbItem))
@@ -55,7 +57,7 @@ export class DependenciesService {
               dbItem.operations = dbItem.operations.filter(o => !operationsToRemove.includes(o));
               if (dbItem.operations.length === 0) {
                 itemsToRemove.push(dbItem);
-                Console.info('No more dependency from ' + dbItem.key);
+                logger.info('No more dependency from ' + dbItem.key);
               } else if (!itemsToSave.includes(dbItem)) {
                 itemsToSave.push(dbItem);
               }
@@ -72,7 +74,7 @@ export class DependenciesService {
   }
 
   public addDependencies(storeName: string, itemKey: string, operation: ServerOperation, dependencies: {storeName: string, itemKey: string, operation: ServerOperation}[]): Promise<any> {
-    Console.info('Add dependencies from ' + operation + ' ' + storeName  + ' ' + itemKey + ' to ', dependencies);
+    logger.info('Add dependencies from ' + operation + ' ' + storeName  + ' ' + itemKey + ' to ', dependencies);
     const key = storeName + ';' + itemKey;
     return firstValueFrom(this.table.inTransaction$(false, stillValid =>
       this.table.getByKey$(key).pipe(
@@ -102,14 +104,14 @@ export class DependenciesService {
   }
 
   public addEventDependency(storeName: string, itemKey: string, operation: ServerOperation, eventId: string): void {
-    Console.info('Add dependency on event ' + eventId + ' for ' + operation + ' ' + storeName + ' ' + itemKey);
+    logger.info('Add dependency on event ' + eventId + ' for ' + operation + ' ' + storeName + ' ' + itemKey);
     const event = this.events.get(eventId);
     if (event) event.push({storeName, itemKey, operation});
     else this.events.set(eventId, [{storeName, itemKey, operation}]);
   }
 
   public fireEvent(eventId: string): void {
-    Console.info('Remove dependencies on event ' + eventId);
+    logger.info('Remove dependencies on event ' + eventId);
     this.events.delete(eventId);
   }
 

@@ -5,10 +5,12 @@ import { StoreLoadStatus, StoreSyncStatus, SyncAgain } from './store/store';
 import { HttpService } from '../http/http.service';
 import { environment } from '@env/environment';
 import { Arrays } from '@trailence/utils/arrays';
-import { Console } from '@trailence/utils/console';
 import { StoreService } from './store/store.service';
 import { CommonDatabaseService } from './common-database.service';
 import { DbStatus, DbTable } from './storage/db-table';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('extensions.service');
 
 @Injectable({
   providedIn: 'root'
@@ -65,20 +67,20 @@ export class ExtensionsService {
         if (e) {
           updater(e);
           if (e.version >= 0)
-            Console.info('Updated extension ' + e.extension + ' locally', e);
+            logger.info('Updated extension ' + e.extension + ' locally', e);
           else
-            Console.info('Deleted extension ' + e.extension + ' locally', e);
+            logger.info('Deleted extension ' + e.extension + ' locally', e);
         } else if (createIfNeeded) {
           e = new Extension(0, extensionName, {});
           updater(e);
-          Console.info('Created extension ' + e.extension + ' locally', e);
+          logger.info('Created extension ' + e.extension + ' locally', e);
           this._extensions$.value.push(e);
         } else {
           this._pendingOperation$.next(this._pendingOperation$.value - 1);
           return;
         }
       } catch (e) {
-        Console.error("Error saving extension", extensionName, e);
+        logger.error("Error saving extension", extensionName, e);
         this._pendingOperation$.next(this._pendingOperation$.value - 1);
         return;
       }
@@ -92,7 +94,7 @@ export class ExtensionsService {
         data: e.data
       }).subscribe({
         next: () => this._pendingOperation$.next(this._pendingOperation$.value - 1),
-        error: e => Console.warn('Error updating extensions table', e)
+        error: e => logger.warn('Error updating extensions table', e)
       });
     });
   }
@@ -121,7 +123,7 @@ export class ExtensionsService {
         this._extensions$.next(items.map(item => new Extension(item.version, item.extension, item.data)));
         this._loaded$.next({counter: loadStatus.counter, email: loadStatus.email!, isNewDb: loadStatus.isNewDb});
       },
-      error: e => Console.error('Error loading extensions', e),
+      error: e => logger.error('Error loading extensions', e),
     });
   }
 
@@ -144,16 +146,16 @@ export class ExtensionsService {
     if (status.counter !== this._loaded$.value?.counter) return EMPTY;
     this._syncStatus$.value.inProgress = true;
     this._syncStatus$.next(this._syncStatus$.value);
-    Console.info('Sending updates for extensions:', this._extensions$.value.length);
+    logger.info('Sending updates for extensions:', this._extensions$.value.length);
     return this.http.post<DbItem[]>(environment.apiBaseUrl + '/extensions/v1', this._extensions$.value.map(e => ({version: e.version, extension: e.extension, data: e.data})))
     .pipe(
       switchMap(list => {
         if (status.counter !== this._loaded$.value?.counter) return EMPTY;
         if (Arrays.sameContent(list, this._extensions$.value, (i1, i2) => i1.extension === i2.extension && i1.version === i2.version)) {
-          Console.info('Extensions sync without change', list.length);
+          logger.info('Extensions sync without change', list.length);
           return of(undefined);
         }
-        Console.info('Extension(s) received from server: ', list.length);
+        logger.info('Extension(s) received from server: ', list.length);
         const extensions = list.map(item => new Extension(item.version, item.extension, item.data));
         this._extensions$.next(extensions);
         const items = extensions.map(e => ({
@@ -168,7 +170,7 @@ export class ExtensionsService {
               return this.table.setMany$(items);
             }),
             catchError(e => {
-              Console.error('Error computing extensions received from server', e);
+              logger.error('Error computing extensions received from server', e);
               return of(true);
             }),
           )
@@ -185,7 +187,7 @@ export class ExtensionsService {
       }),
       catchError(e => {
         if (status.counter !== this._loaded$.value?.counter) return EMPTY;
-        Console.error('Error loading extensions', e);
+        logger.error('Error loading extensions', e);
         this._syncStatus$.value.inProgress = false;
         this._syncStatus$.next(this._syncStatus$.value);
         return of(undefined);

@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { WorkerMessage, WorkerRequest } from './worker-request';
-import { Console } from '../utils/console';
 import { Track } from '../model/track';
 import { SimplifiedTrackSnapshot } from '../model/snapshots';
 import { ComputedPreferences } from '../services/preferences/preferences';
@@ -12,6 +11,9 @@ import { POI, POIType } from '../services/map/poi';
 import { EarthPoint } from '../utils/latlng';
 import { OsmWaysTrackPoint } from '../utils/track-computed-data/match-osm-ways';
 import { TrackOsmStats } from '../utils/track-computed-data/track-osm-stats';
+import { getLogger, Logger } from '@trailence/utils/console';
+
+const logger = getLogger('worker.service');
 
 @Injectable({providedIn: 'root'})
 export class WorkerService {
@@ -21,7 +23,7 @@ export class WorkerService {
   private readonly queue: Work[] = [];
 
   constructor() {
-    Console.info('[WORKER] max workers', this.maxWorkers, 'for', navigator.hardwareConcurrency, 'cpus');
+    logger.info('max workers', this.maxWorkers, 'for', navigator.hardwareConcurrency, 'cpus');
     (globalThis as any).__workerCoverage = () => this._codeCoverage().then(result => (globalThis as any).__workerCoverageResult = result);
   }
 
@@ -139,7 +141,7 @@ export class WorkerService {
     for (const w of this.workers) if (w.available) return w;
     if (this.workers.length < this.maxWorkers) {
       const num = this.workers.length + 1;
-      Console.info('[WORKER] Launching worker', num);
+      logger.info('Launching worker', num);
       const w = new WorkerInstance(num, this.queue);
       this.workers.push(w);
       return w;
@@ -153,6 +155,7 @@ class WorkerInstance {
 
   available = true;
 
+  private readonly logger: Logger;
   private readonly worker: Worker;
   private counter = 0;
   private readonly pending = new Map<number, {resolve: (value: any) => void, reject: (error?: any) => void}>();
@@ -161,12 +164,13 @@ class WorkerInstance {
     private readonly num: number,
     queue: Work[],
   ) {
+    this.logger = getLogger('worker-' + num);
     this.worker = new Worker(new URL('../heavy.worker', import.meta.url), { type: 'module' });
     this.worker.onmessage = ({ data }) => {
-      Console.debug('[WORKER-' + this.num + '] message received', data);
+      this.logger.debug('message received', data);
       const request = this.pending.get(data.id);
       if (!request) {
-        Console.warn('[WORKER-' + this.num + '] Unexpected message received', data);
+        this.logger.warn('Unexpected message received', data);
         return;
       }
       this.pending.delete(data.id);
@@ -190,7 +194,7 @@ class WorkerInstance {
       payload: work.request.payload,
     };
     this.pending.set(id, {resolve: work.resolve, reject: work.reject});
-    Console.debug('[WORKER-' + this.num + '] message sent', message);
+    this.logger.debug('message sent', message);
     this.worker.postMessage(message);
   }
 

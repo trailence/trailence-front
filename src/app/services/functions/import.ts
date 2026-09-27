@@ -17,7 +17,6 @@ import { ModalController, AlertController } from '@ionic/angular';
 import { filterItemsDefined } from '@trailence/utils/rxjs/filter-defined';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { TrailSourceType } from '@trailence/model/dto/trail';
-import { Console } from '@trailence/utils/console';
 import { StoreService } from '../database/store/store.service';
 import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from '@trailence/worker/web-app';
@@ -28,6 +27,9 @@ import { Trail } from '@trailence/model/trail';
 import { Track } from '@trailence/model/track';
 import { GeoService } from '../geolocation/geo.service';
 import { TrailCollection } from '@trailence/model/trail-collection';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('functions/import');
 
 const CP437 = "\0☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ ".split("");
 
@@ -126,7 +128,7 @@ export function openImportTrailsFileDialog(injector: Injector, collection: Trail
                   }
                 })
                 .catch((e) => {
-                  Console.error('Error importing from zip', filename, e);
+                  logger.error('Error importing from zip', filename, e);
                   zipErrors.push(new I18nError('errors.import.file_not_imported', [filename + '/' + gpxFile.name, e]));
                   progress.subTitle = '' + (index + 1 + previousZipEntries + entryIndex + 1) + '/' + (nbFiles + zipEntries);
                   progress.addWorkDone(1);
@@ -159,11 +161,11 @@ export function openImportTrailsFileDialog(injector: Injector, collection: Trail
       Promise.all(allDone).then(() => {
         progress?.done();
         if (errors.length > 0) {
-          Console.error('Error importing files', errors);
+          logger.error('Error importing files', errors);
           injector.get(ErrorService).addErrors(errors);
         }
         if (zipErrors.length > 0) {
-          Console.error('Error importing zip', zipErrors);
+          logger.error('Error importing zip', zipErrors);
           injector.get(ErrorService).addErrors(zipErrors);
         }
         const importedTrails = imported.flat();

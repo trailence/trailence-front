@@ -6,8 +6,10 @@ import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extend
 import { HttpService } from '../http/http.service';
 import { environment } from '@env/environment';
 import { CommonDatabaseService } from './common-database.service';
-import { Console } from '@trailence/utils/console';
 import { MyPublicTrail } from '@trailence/model/dto/my-public-trail';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('my-public-trails.service');
 
 @Injectable({providedIn: 'root'})
 export class MyPublicTrailsService {
@@ -46,7 +48,7 @@ export class MyPublicTrailsService {
         this.myPublicTrails$.next(list);
       },
       error: e => {
-        Console.error('Error getting my public trails', e);
+        logger.error('Error getting my public trails', e);
       }
     });
   }

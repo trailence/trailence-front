@@ -3,11 +3,13 @@ import { EMPTY, first, Subscription, switchMap, timer } from 'rxjs';
 import { Photo } from '@trailence/model/photo';
 import { IonSpinner, IonIcon } from "@ionic/angular";
 import { PhotoService } from '@trailence/services/database/photo.service';
-import { Console } from '@trailence/utils/console';
 import { NetworkService } from '@trailence/services/network/network.service';
 import { ChangesDetection } from '@trailence/utils/angular-helpers';
 import { NgStyle } from '@angular/common';
 import { ObserverHelper } from '@trailence/utils/observer-helper';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('photo.component');
 
 @Component({
     selector: 'app-photo',
@@ -82,7 +84,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
                 this.setBlob(blob);
               },
               error: e => {
-                Console.error('Error loading photo', e);
+                logger.error('Error loading photo', e);
                 this.error = true;
                 this.subscription = undefined;
                 if (trial > 1 && photo.uuid.startsWith('http')) {

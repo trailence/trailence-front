@@ -15,7 +15,6 @@ import { DatabaseSubjectService } from './database-subject-service';
 import { Progress, ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
 import { ErrorService } from '../progress/error.service';
-import { Console } from '@trailence/utils/console';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
 import { QuotaService } from '../auth/quota.service';
 import { StoreErrors } from './store/store-errors';
@@ -33,6 +32,9 @@ import { SHARED_OWNER_PREFIX, TrailCollectionType } from '@trailence/model/dto/t
 import { Maps } from '@trailence/utils/maps';
 import { TrailCollectionService } from './trail-collection.service';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('track-database');
 
 interface MetadataItem extends TrackMetadataSnapshot {
   key: string;
@@ -200,7 +202,7 @@ export class TrackDatabase implements StoreWithCleaning {
   }
 
   public recomputeMetadata(updateTimeEstimation: boolean, updateBreakTime: boolean): Promise<any> {
-    Console.info('Preferences changed, recompute estimated time/breaks duration of trails', updateTimeEstimation, updateBreakTime);
+    logger.info('Preferences changed, recompute estimated time/breaks duration of trails', updateTimeEstimation, updateBreakTime);
     return this.operations.push('Update trails metadata', () => {
       let count = 0;
       let countInMemory = 0;
@@ -239,11 +241,11 @@ export class TrackDatabase implements StoreWithCleaning {
         ));
       })
       .then(() => {
-        Console.info('Trails metadata updated', count, 'including items in memory', countInMemory);
+        logger.info('Trails metadata updated', count, 'including items in memory', countInMemory);
         progress.done();
       })
       .catch(e => {
-        Console.error('Error updating tracks metadata', e);
+        logger.error('Error updating tracks metadata', e);
         progress.done();
       });
     });
@@ -465,7 +467,7 @@ export class TrackDatabase implements StoreWithCleaning {
             })
           ]).pipe(
             catchError(e => {
-              Console.error('Error storing track in database', e);
+              logger.error('Error storing track in database', e);
               return throwError(() => e);
             })
           ))
@@ -519,7 +521,7 @@ export class TrackDatabase implements StoreWithCleaning {
             }),
           ]).pipe(
             catchError(e => {
-              Console.error('Error updating track in database', e);
+              logger.error('Error updating track in database', e);
               return throwError(() => e);
             })
           ))
@@ -562,7 +564,7 @@ export class TrackDatabase implements StoreWithCleaning {
             this.tableMeta.deleteOne$(key),
           ]).pipe(
             catchError(e => {
-              Console.error('Error deleting track in database', e);
+              logger.error('Error deleting track in database', e);
               return throwError(() => e);
             })
           ))
@@ -603,7 +605,7 @@ export class TrackDatabase implements StoreWithCleaning {
             this.tableMeta.deleteMany$(keys),
           ]).pipe(
             catchError(e => {
-              Console.error('Error deleting tracks in database', e);
+              logger.error('Error deleting tracks in database', e);
               return throwError(() => e);
             })
           ))
@@ -688,14 +690,14 @@ export class TrackDatabase implements StoreWithCleaning {
   private doSync(status: StoreLoadStatus): Observable<SyncAgain> {
     return this.ngZone.runOutsideAngular(() => {
       if (status.counter !== this.loaded$.value?.counter) {
-        Console.info('Store tracks was reloaded: cancel sync');
+        logger.info('Store tracks was reloaded: cancel sync');
         return EMPTY;
       }
       this.syncStatus$.value!.inProgress = true;
       this.syncStatus$.next(this.syncStatus$.value);
-      Console.info("Store tracks sync start: ", this.syncStatus$.value, this.operations.pendingOperations);
+      logger.info("Store tracks sync start: ", this.syncStatus$.value, this.operations.pendingOperations);
       const nextStep = (name: string, previousResult: SyncAgain, nextOp: () => Observable<SyncAgain>) => {
-        Console.info('Store tracks sync: ' + name);
+        logger.info('Store tracks sync: ' + name);
         if (status.counter !== this.loaded$.value?.counter) return EMPTY;
         if (previousResult) return of(previousResult);
         if (this.operations.pendingOperations > 0) return of('operations-pending' as SyncAgain);
@@ -711,7 +713,7 @@ export class TrackDatabase implements StoreWithCleaning {
         }),
         catchError(error => {
           // should never happen
-          Console.error('Error synchronizing tracks', error);
+          logger.error('Error synchronizing tracks', error);
           return EMPTY;
         }),
         defaultIfEmpty({localChanges: undefined, syncAgain: undefined}),
@@ -730,7 +732,7 @@ export class TrackDatabase implements StoreWithCleaning {
           sync.inProgress = false;
           sync.needsUpdateFromServer = result.syncAgain !== undefined;
           sync.lastUpdateFromServer = result.syncAgain === undefined ? Date.now() : 0;
-          Console.info("Store tracks sync done: ", sync, this.operations.pendingOperations, result);
+          logger.info("Store tracks sync done: ", sync, this.operations.pendingOperations, result);
           this.syncStatus$.next(sync);
           return result.syncAgain;
         })
@@ -774,7 +776,7 @@ export class TrackDatabase implements StoreWithCleaning {
         if (toCreate.length === 0) return of(undefined);
         return this.filterReadyToSave$(toCreate).pipe(
           switchMap(ready => {
-            Console.info('' + ready.length + ' tracks to be created on server (+' + (toCreate.length - ready.length) + ' not ready)');
+            logger.info('' + ready.length + ' tracks to be created on server (+' + (toCreate.length - ready.length) + ' not ready)');
             const limiter = new RequestLimiter(2);
             const requests: Observable<any>[] = [];
             for (const item of ready) {
@@ -795,7 +797,7 @@ export class TrackDatabase implements StoreWithCleaning {
       }),
       catchError(error => {
         // should not happen
-        Console.error('error creating tracks on server', error);
+        logger.error('error creating tracks on server', error);
         return of(undefined);
       })
     );
@@ -806,7 +808,7 @@ export class TrackDatabase implements StoreWithCleaning {
       return this.injector.get(HttpService).post<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track).pipe(
         switchMap(result => {
           if (status.counter !== this.loaded$.value?.counter) return EMPTY;
-          Console.info("track created on server", result.uuid);
+          logger.info('track created on server', result.uuid);
           this._errors.itemSuccess(item.uuid + '#' + item.owner);
           this.quotaService.updateQuotas(q => {
             q.tracksUsed++;
@@ -822,7 +824,7 @@ export class TrackDatabase implements StoreWithCleaning {
           });
         }),
         catchError(e => {
-          Console.error('error creating track on server', item.track, e);
+          logger.error('error creating track on server', item.track, e);
           this.injector.get(ErrorService).addNetworkError(e, 'errors.stores.save_track', []);
           this._errors.itemError(item.uuid + '#' + item.owner, e);
           return EMPTY;
@@ -836,7 +838,7 @@ export class TrackDatabase implements StoreWithCleaning {
       switchMap(items => {
         if (status.counter !== this.loaded$.value?.counter) return EMPTY;
         if (items.length === 0) return of(undefined);
-        Console.info('' + items.length + ' tracks deleted locally');
+        logger.info('' + items.length + ' tracks deleted locally');
         const uuidsByOwner = new Map<string, string[]>();
         for (const item of items) {
           Maps.computeIfAbsent(uuidsByOwner, item.owner, () => []).push(item.uuid);
@@ -846,7 +848,7 @@ export class TrackDatabase implements StoreWithCleaning {
             const owner = entry[0];
             const uuids = entry[1];
             const keys = uuids.map(uuid => uuid + '#' + owner);
-            Console.info('' + uuids.length + ' tracks to be deleted on server for ' + owner);
+            logger.info('' + uuids.length + ' tracks to be deleted on server for ' + owner);
             return (uuids.length > 0 ? this.injector.get(HttpService).post<void>(environment.apiBaseUrl + '/track/v1/_bulkDelete' + (owner.startsWith(SHARED_OWNER_PREFIX) ? '/' + encodeURIComponent(owner) : ''), uuids) : EMPTY).pipe(
               defaultIfEmpty(undefined),
               switchMap(() => {
@@ -860,7 +862,7 @@ export class TrackDatabase implements StoreWithCleaning {
               }),
               catchError(error => {
                 this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_tracks', []);
-                Console.error('Error deleting tracks from the server', error);
+                logger.error('Error deleting tracks from the server', error);
                 return of(undefined);
               })
             );
@@ -879,7 +881,7 @@ export class TrackDatabase implements StoreWithCleaning {
         return this.injector.get(HttpService).post<UpdatesResponse<{uuid: string, owner: string}>>(environment.apiBaseUrl + '/track/v1/_bulkGetUpdates', known).pipe(
           switchMap(response => {
             if (status.counter !== this.loaded$.value?.counter) return EMPTY;
-            Console.info('Server updates for tracks: sent ' + known.length + ' known tracks, received ' + response.created.length + ' new tracks, ' + response.updated.length + ' updated tracks, ' + response.deleted.length + ' deleted tracks');
+            logger.info('Server updates for tracks: sent ' + known.length + ' known tracks, received ' + response.created.length + ' new tracks, ' + response.updated.length + ' updated tracks, ' + response.deleted.length + ' deleted tracks');
             let operations$: Observable<any>;
             if (response.deleted.length > 0) {
               operations$ = this.updatesFromServer(status, [], response.deleted);
@@ -913,7 +915,7 @@ export class TrackDatabase implements StoreWithCleaning {
                     progress.addWorkDone(1);
                     progress.subTitle = '' + done + '/' + toRetrieve.length;
                     this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.get_track', []);
-                    Console.error('Error retrieving tracks', error);
+                    logger.error('Error retrieving tracks', error);
                     return of(null);
                   })
                 ));
@@ -929,7 +931,7 @@ export class TrackDatabase implements StoreWithCleaning {
           }),
           catchError(error => {
             // should never happen
-            Console.error('error getting track updates from server', error);
+            logger.error('error getting track updates from server', error);
             return of(undefined);
           })
         );
@@ -943,7 +945,7 @@ export class TrackDatabase implements StoreWithCleaning {
         if (status.counter !== this.loaded$.value?.counter) return EMPTY;
         const toUpdate = items.filter(item => this._errors.canProcess(item.uuid + '#' + item.owner, false));
         if (toUpdate.length === 0) return of(undefined);
-        Console.info('' + toUpdate.length + ' tracks to be updated on server');
+        logger.info('' + toUpdate.length + ' tracks to be updated on server');
         const limiter = new RequestLimiter(2);
         const requests: Observable<TrackDto>[] = [];
         for (const item of toUpdate) {
@@ -955,7 +957,7 @@ export class TrackDatabase implements StoreWithCleaning {
                 return r;
               }),
               catchError(e => {
-                Console.error('error sending update for track', item.track, e);
+                logger.error('error sending update for track', item.track, e);
                 this.injector.get(ErrorService).addNetworkError(e, 'errors.stores.update_track', []);
                 this._errors.itemError(item.uuid + '#' + item.owner, e);
                 return EMPTY;
@@ -975,7 +977,7 @@ export class TrackDatabase implements StoreWithCleaning {
       }),
       catchError(error => {
         // should never happen
-        Console.error('error sending tracks updates', error);
+        logger.error('error sending tracks updates', error);
         return of(undefined);
       })
     );
@@ -1034,7 +1036,7 @@ export class TrackDatabase implements StoreWithCleaning {
       }))),
       defaultIfEmpty(true),
       catchError(error => {
-        Console.error('Error saving tracks in database', error);
+        logger.error('Error saving tracks in database', error);
         this.injector.get(ErrorService).addTechnicalError(error, 'errors.stores.save_tracks', []);
         return of(true);
       })

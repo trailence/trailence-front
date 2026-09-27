@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, filter, Observable, tap } from 'rxjs';
 import { HttpService } from '@trailence/services/http/http.service';
-import { Console } from '@trailence/utils/console';
 import { environment } from '@env/environment';
 import { PageRequest } from '../components/paginator/page-request';
 import { PageResult } from '../components/paginator/page-result';
 import { ContactMessageDto } from '../model/contact-message';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('admin/messages.service');
 
 @Injectable({providedIn: 'root'})
 export class MessagesService {
@@ -27,7 +29,7 @@ export class MessagesService {
     this.http.get<number>(environment.apiBaseUrl + '/contact/v1/unread').subscribe({
       next: nb => this._unreadCount$.next(nb),
       error: e => {
-        Console.error(e);
+        logger.error(e);
       }
     })
   }

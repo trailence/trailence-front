@@ -2,9 +2,11 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, NgZone } from "@angular/core";
 import { addIcons } from 'ionicons';
 import { firstValueFrom, Observable, Subscriber } from "rxjs";
-import { Console } from '@trailence/utils/console';
 import { ICONS } from './icons';
 import { environment } from '@env/environment';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('assets.service');
 
 const ICONS_VERSION = '12';
 const iconsPath = '/icons.' + ICONS_VERSION + '.svg';
@@ -53,7 +55,7 @@ export class AssetsService {
           const svg = iconChild.children.item(0)! as SVGSVGElement;
           for (const name of names) this._icons.set(name, svg);
         }
-        Console.info('Icons loaded (' + (Date.now() - start) + 'ms.)');
+        logger.info('Icons loaded (' + (Date.now() - start) + 'ms.)');
         const subscribers = this._loading!;
         this._loading = undefined;
         for (const s of subscribers) {

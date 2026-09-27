@@ -1,5 +1,7 @@
 import { concat, first, Observable, of, Subject, Subscriber, Subscription, switchMap, timeout } from 'rxjs';
-import { Console } from '../console';
+import { getLogger } from '../console';
+
+const logger = getLogger('behavior-subject-ondemand');
 
 export class BehaviorSubjectOnDemand<T, E> {
 
@@ -67,7 +69,7 @@ export class BehaviorSubjectOnDemand<T, E> {
     this.subscription = event$.pipe(
       switchMap(event => this.valueProvider(event))
     ).subscribe(value => {
-      if (value === undefined) Console.warn('Value provider emitted an undefined value', this.valueProvider);
+      if (value === undefined) logger.warn('Value provider emitted an undefined value', this.valueProvider);
       if (value === this.lastValue) return;
       this.lastValue = value;
       const list = [...this.observers];

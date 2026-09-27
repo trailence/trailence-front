@@ -4,8 +4,10 @@ import { GeolocationService } from '../geolocation/geolocation.service';
 import { BehaviorSubject, combineLatest, concat, map, Observable, of, switchMap } from 'rxjs';
 import { PointDto } from '@trailence/model/dto/point';
 import { I18nService } from '../i18n/i18n.service';
-import { Console } from '@trailence/utils/console';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('map-geolocation.service');
 
 @Injectable({providedIn: 'root'})
 export class MapGeolocationService {
@@ -76,7 +78,7 @@ export class MapGeolocationService {
           });
         }
         if (!watch) return undefined;
-        Console.info('new position received on map', watch);
+        logger.info('new position received on map', watch);
         return ({lat: watch.l!, lng: watch.n!, active: !waiting});
       })
     );

@@ -3,8 +3,21 @@
   <span class="button" (click)="close()">Close</span>
 </div>
 <div class="content">
-  <textarea id="debug-logs-textarea" readonly="true"></textarea>
+  <div #textarea class="logs"></div>
 </div>
 <div class="footer">
-  <span class="button" (click)="refresh()">Refresh</span>
+  <ion-button (click)="refresh()" size="small">Refresh</ion-button>
+  <ion-select [multiple]="true" label="Levels" class="small" [value]="filters.levels" (ionChange)="filters.levels = $event.detail.value; filtersUpdated()">
+    <ion-select-option value="ERROR">ERROR</ion-select-option>
+    <ion-select-option value="WARN ">WARN</ion-select-option>
+    <ion-select-option value="INFO ">INFO</ion-select-option>
+    <ion-select-option value="DEBUG">DEBUG</ion-select-option>
+  </ion-select>
+  <ion-input [value]="search" (ionInput)="setSearch($event.detail.value ?? '');" label="Search" class="small"></ion-input>
+  <ion-button size="small" (click)="previousNode()" [disabled]="selectedNodeIndex === 0">
+    <ion-icon slot="icon-only" name="arrow-up"></ion-icon>
+  </ion-button>
+  <ion-button size="small" (click)="nextNode()" [disabled]="selectedNodeIndex >= nodes.length">
+    <ion-icon slot="icon-only" name="arrow-down"></ion-icon>
+  </ion-button>
 </div>

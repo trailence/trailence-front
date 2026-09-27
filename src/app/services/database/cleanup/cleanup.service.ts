@@ -1,5 +1,7 @@
 import { Injectable, Injector, NgZone, OnDestroy } from '@angular/core';
-import { Console } from '@trailence/utils/console';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('cleanup.service');
 
 const STARTUP_GRACE_PERIOD = 60000;
 const CLEANUP_DELAY = 10000;
@@ -116,14 +118,14 @@ export class CleanupService implements OnDestroy {
     .then(result => {
       todo.lastRun = Date.now();
       todo.nextRun = todo.lastRun + todo.every;
-      Console.info('[CLEANUP]', todo.name, result, 'in', (Date.now() - start), 'ms. Next run', new Date(todo.nextRun));
+      logger.info(todo.name, result, 'in', (Date.now() - start), 'ms. Next run', new Date(todo.nextRun));
       localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + todo.id, '' + todo.lastRun);
       this.lastRun = todo.lastRun;
       this.sort();
       done = true;
     })
     .catch(e => {
-      Console.error('[CLEANUP]', todo.name, e);
+      logger.error(todo.name, e);
       todo.lastRun = Date.now();
       todo.nextRun = todo.lastRun + todo.every;
       localStorage.setItem(LOCAL_STORAGE_KEY_PREFIX + todo.id, '' + todo.lastRun);

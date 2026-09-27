@@ -4,12 +4,14 @@ import { CacheService, TimeoutCacheDb } from '../cache/cache.service';
 import { HttpService } from '../http/http.service';
 import { AuthService } from '../auth/auth.service';
 import { environment } from '@env/environment';
-import { Console } from '@trailence/utils/console';
 import { NetworkService } from '../network/network.service';
 import { PendingRequests } from '@trailence/utils/pending-requests';
 import { ApiError } from '../http/api-error';
 import { ErrorService } from '../progress/error.service';
 import { AvatarDto } from '@trailence/model/dto/avatar';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('avatar.service');
 
 export const AVATAR_MIN_SIZE = 48;
 export const AVATAR_MAX_SIZE = 128;
@@ -33,12 +35,12 @@ export class AvatarService {
     this._myAvatar$ = new BehaviorSubject<AvatarToGenerate>({letter: this.getMyLetter()} as AvatarToGenerate);
     this._myDto$.pipe(
       switchMap(dto => {
-        Console.info('Avatar info', dto);
+        logger.info('Avatar info', dto);
         if (!dto?.hasAvatar) return of({letter: this.getMyLetter()} as AvatarToGenerate);
         return this.getAvatarToGenerate('mine*' + this.authService.email, '/current');
       })
     ).subscribe(avatar => {
-      Console.info('Avatar data', avatar);
+      logger.info('Avatar data', avatar);
       if (!avatar) return;
       if (avatar.blob) {
         if (this._myAvatar$.value.blob === avatar.blob) return;
@@ -191,7 +193,7 @@ export class AvatarService {
                 tap(blob => this._cache.feedItem(key, {blob: blob || undefined})),
                 catchError(e => {
                   if (e instanceof ApiError && e.httpCode === 404) return of(null);
-                  Console.warn('Error getting avatar', e);
+                  logger.warn('Error getting avatar', e);
                   return of(null);
                 }),
               )

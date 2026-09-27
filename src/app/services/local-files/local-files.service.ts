@@ -2,8 +2,10 @@ import { Injectable } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { BinaryContent } from '@trailence/utils/binary-content';
 import LocalFiles from './local-files';
-import { Console } from '@trailence/utils/console';
 import { JSONL_CHUNK_MAX_SIZE, JsonLEvent, LocalFilesPlugin } from './local-files.interface';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('local-files.service');
 
 type waitingOperation = {name: string, operation: () => Promise<any>, resolve: (result: any) => void, reject: (reason: any) => void};
 
@@ -65,7 +67,7 @@ export class LocalFilesService {
         this._waiting.set(path, waiting);
         this.executeOperation(path, op, waiting);
       } else {
-        Console.info('Operation ' + name + ' on local file ' + path + ' waiting for previous to finish');
+        logger.info('Operation ' + name + ' on local file ' + path + ' waiting for previous to finish');
         waiting.push(op);
       }
     });
@@ -78,7 +80,7 @@ export class LocalFilesService {
     const paths = files.map(filename => dir + '/' + filename);
     if (paths.every(path => !this._waiting.has(path))) {
       // can start now
-      Console.info('Starting multiple file operation ' + name + ' on ' + dir, files);
+      logger.info('Starting multiple file operation ' + name + ' on ' + dir, files);
       paths.forEach(path => this._waiting.set(path, []));
       const next = () => {
         for (const path of paths) {
@@ -93,18 +95,18 @@ export class LocalFilesService {
       };
       return operation()
       .then(result => {
-        Console.info('Multiple file operation ' + name + ' on ' + dir + ' done.');
+        logger.info('Multiple file operation ' + name + ' on ' + dir + ' done.');
         next();
         return result;
       })
       .catch(error => {
-        Console.error('Multiple file operation ' + name + ' on ' + dir + ' failed', error);
+        logger.error('Multiple file operation ' + name + ' on ' + dir + ' failed', error);
         next();
         throw error;
       });
     }
     // some files have operation
-    Console.info('Multiple operation ' + name + ' waiting on ' + dir, files);
+    logger.info('Multiple operation ' + name + ' waiting on ' + dir, files);
     return new Promise<T>((resolve, reject) => {
       if (paths.every(path => !this._waiting.has(path))) {
         this.multipleOperation(dir, files, name, () => operation().then(resolve).catch(reject));
@@ -133,15 +135,15 @@ export class LocalFilesService {
       else
         setTimeout(() => this.nextOperation(path), 0);
     };
-    Console.info('Starting local file operation on ' + path + ': ' + op.name);
+    logger.info('Starting local file operation on ' + path + ': ' + op.name);
     op.operation()
     .then(result => {
-      Console.info('Local file operation done on ' + path + ': ' + op.name);
+      logger.info('Local file operation done on ' + path + ': ' + op.name);
       next();
       op.resolve(result);
     })
     .catch(error => {
-      Console.error('Local file operation failed on ' + path + ': ' + op.name, error);
+      logger.error('Local file operation failed on ' + path + ': ' + op.name, error);
       next();
       op.reject(error);
     });
@@ -150,11 +152,11 @@ export class LocalFilesService {
   private nextOperation(path: string): void {
     let waiting = this._waiting.get(path);
     if (waiting === undefined) {
-      Console.warn('Next operation without operation?', path);
+      logger.warn('Next operation without operation?', path);
       return;
     }
     if (waiting.length === 0) {
-      Console.warn('Next operation with empty list?', path);
+      logger.warn('Next operation with empty list?', path);
       this._waiting.delete(path);
       return;
     }
