@@ -39,6 +39,8 @@ const KEY_EXPIRATION_NATIVE = 6 * 31 * 24 * 60 * 60 * 1000; // 6 months
 const RENEW_KEY_AFTER_WEB = 7 * 24 * 60 * 60 * 1000; // 7 days
 const RENEW_KEY_AFTER_NATIVE = 31 * 24 * 60 * 60 * 1000; // 31 days
 
+const RENEW_TOKEN_BEFORE_EXPIRATION = 60000; // renew if expires in less than 1 minute
+
 /*
 On first login, or when logged out, the authentication is using username + password:
  - generate a new KeyPair
@@ -402,7 +404,7 @@ export class AuthService {
     return this._auth$.pipe(
       filter(auth => auth !== undefined),
       switchMap(auth => {
-        if (!auth || auth.expires - Date.now() - 60000 > 0) return of(auth);
+        if (!auth || auth.expires - Date.now() - RENEW_TOKEN_BEFORE_EXPIRATION > 0) return of(auth);
         return this.renewAuth();
       }),
       first()
@@ -534,7 +536,9 @@ export class AuthService {
       request.url === environment.apiBaseUrl + '/user/v1/sendRegisterCode' ||
       request.url === environment.apiBaseUrl + '/user/v1/registerNewUser' ||
       (request.url.startsWith(environment.apiBaseUrl + '/user/v1/changePassword') && request.method === 'DELETE') ||
-      (request.url.startsWith(environment.apiBaseUrl + '/user/v1/sendDeletionCode') && request.method === 'DELETE')) {
+      (request.url.startsWith(environment.apiBaseUrl + '/user/v1/sendDeletionCode') && request.method === 'DELETE') ||
+      (request.url.startsWith(environment.apiBaseUrl + '/avatar/v1/public/') && request.method === 'GET')
+    ) {
         return request;
       }
     const optional =
@@ -557,7 +561,7 @@ export class AuthService {
         return false; // cancel request if not authenticated
       }),
       map(auth => {
-        if (auth?.accessToken && auth.expires > Date.now()) {
+        if (auth?.accessToken && auth.expires > Date.now() && !auth.isAnonymous) {
           request.headers['Authorization'] = 'Bearer ' + auth.accessToken;
         }
         return request;
