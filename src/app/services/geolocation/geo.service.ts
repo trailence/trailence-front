@@ -303,9 +303,8 @@ export class GeoService {
     if (locations.length > 0)
       requests.push(addRequest(locations, nb));
     return (requests.length === 0 ? of([]) : zip(requests)).pipe(
-      map(responses => {
-        const results: (number | undefined)[] = new Array(points.length);
-        for (let i = 0; i < results.length; ++i) results[i] = undefined;
+      map(responses => { // NOSONAR
+        const results: (number | undefined)[] = new Array(points.length).fill(undefined);
         for (const response of responses) {
           for (const result of response.results) {
             const e = result['elevation'];

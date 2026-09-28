@@ -131,8 +131,21 @@ export class DebugPopup implements OnInit {
     if (!node.nodeValue) return [];
     const text = node.nodeValue.toLowerCase();
     const search = this.search.toLowerCase();
+    const ranges = this.createExactTextRanges(text, search, node);
+    this.addAllWordsRanges(text, search, node, ranges)
+
+    if (ranges.length > 0) {
+      this.highlights.push(...ranges);
+      for (const range of ranges)
+        this.highlightService.addSearchText(range);
+      return ranges;
+    }
+    return [];
+  }
+
+  private createExactTextRanges(text: string, search: string, node: Node): Range[] {
     let pos = text.indexOf(search);
-    let ranges: Range[] = [];
+    const ranges: Range[] = [];
     if (pos >= 0) {
       do {
         const range = new Range();
@@ -142,15 +155,18 @@ export class DebugPopup implements OnInit {
         pos = text.indexOf(search, pos + search.length);
       } while (pos > 0);
     }
+    return ranges;
+  }
 
+  private addAllWordsRanges(text: string, search: string, node: Node, ranges: Range[]): void {
     const words = search.split(' ').map(s => s.trim()).filter(s => s.length > 0);
     const allRanges: Range[] = [...ranges];
     const wordsRanges: Range[][] = words.map(() => []);
     for (let i = 0; i < words.length; ++i) {
       const word = words[i];
-      pos = text.indexOf(word);
+      let pos = text.indexOf(word);
       while (pos >= 0) {
-        if (!allRanges.find(r => r.startOffset <= pos && r.endOffset >= pos)) {
+        if (!allRanges.some(r => r.startOffset <= pos && r.endOffset >= pos)) {
           const range = new Range();
           range.setStart(node, pos);
           range.setEnd(node, pos + word.length);
@@ -163,14 +179,6 @@ export class DebugPopup implements OnInit {
     if (wordsRanges.every(r => r.length > 0)) {
       for (const list of wordsRanges) ranges.push(...list);
     }
-
-    if (ranges.length > 0) {
-      this.highlights.push(...ranges);
-      for (const range of ranges)
-        this.highlightService.addSearchText(range);
-      return ranges;
-    }
-    return [];
   }
 
 }

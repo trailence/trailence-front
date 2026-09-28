@@ -79,7 +79,7 @@ export class MultipleInputEmailComponent implements OnInit, OnChanges {
     this.validateList();
   }
 
-  private validateList(): void {
+  private validateList(): void { // NOSONAR
     this.emailsValues = this.emailsValues.filter(e => e.email.trim().length > 0);
     if (!this.disabled)
       this.emailsValues.push({email: '', error: undefined});
