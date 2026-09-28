@@ -15,36 +15,15 @@ export function buildTooltip(context: any, container: HTMLElement, isSelecting: 
     return;
   }
   container.style.display = 'block';
-  let html = '<table>';
-  if (points.length > 1) {
-    html += '<tr class="header"><th></th>';
-    for (const point of points) {
-      html += '<th><div style="width: 25px; height: 0; display: inline-block; border-bottom: 2px solid ' + point.dataset.strokeColor + ';"></div></th>';
-    }
-    html += '</tr>';
-  }
-  const addInfo = (title: string, text: (pt: any) => string) => {
-    let hasValue = false;
-    for (const point of points) {
-      const v = text(point);
-      if (v && v.length > 0) {
-        hasValue = true;
-        break;
-      }
-    }
-    if (!hasValue) return;
-    html += '<tr><th>' + title + '</th>';
-    for (const point of points) html += '<td>' + text(point) + '</td>';
-    html += '</tr>';
-  };
-  addInfo(i18n.texts.trailGraph.elevation, pt => {
+  let html = '<table>' + buildHeader(points);
+  html += buildInfo(points, i18n.texts.trailGraph.elevation, pt => {
     let s = i18n.elevationToString(pt.raw.ele);
     if (pt.raw.eleAccuracy !== undefined) {
       s += ' (± ' + i18n.elevationToString(pt.raw.eleAccuracy) + ')';
     }
     return s;
   });
-  addInfo(i18n.texts.trailGraph.elevation_grade, pt => {
+  html += buildInfo(points, i18n.texts.trailGraph.elevation_grade, pt => {
     let s = '';
     if (pt.raw.grade.gradeBefore !== undefined) s = Math.floor(pt.raw.grade.gradeBefore * 100) + '%';
     if (pt.raw.grade.gradeAfter !== undefined) {
@@ -53,8 +32,8 @@ export function buildTooltip(context: any, container: HTMLElement, isSelecting: 
     }
     return s;
   });
-  addInfo(i18n.texts.trailGraph.distance, pt => i18n.distanceToString(pt.raw.distanceMeters));
-  addInfo(i18n.texts.trailGraph.time_duration, pt => {
+  html += buildInfo(points, i18n.texts.trailGraph.distance, pt => i18n.distanceToString(pt.raw.distanceMeters));
+  html += buildInfo(points, i18n.texts.trailGraph.time_duration, pt => {
     const s1 = i18n.durationToString(pt.raw.timeSinceStart);
     const s2 = i18n.durationToString(pt.raw.estimatedDuration);
     if (s1.length === 0) {
@@ -65,7 +44,7 @@ export function buildTooltip(context: any, container: HTMLElement, isSelecting: 
       return s1 + ' (≈ ' + s2 + ')';
     }
   });
-  addInfo(i18n.texts.trailGraph.speed, pt => {
+  html += buildInfo(points, i18n.texts.trailGraph.speed, pt => {
     const s1 = pt.raw.speedInMeters ? i18n.getSpeedStringInUserUnit(i18n.getSpeedInUserUnit(pt.raw.speedInMeters)) : '';
     const s2 = pt.raw.estimatedSpeed ? i18n.getSpeedStringInUserUnit(i18n.getSpeedInUserUnit(pt.raw.estimatedSpeed)) : '';
     if (s1.length === 0) {
@@ -95,6 +74,36 @@ export function buildTooltip(context: any, container: HTMLElement, isSelecting: 
   }
   html += '</table>';
   container.innerHTML = html;
+  setTooltipPosition(context, container);
+}
+
+function buildHeader(points: any[]): string {
+  if (points.length <= 1) return '';
+  let html = '<tr class="header"><th></th>';
+  for (const point of points) {
+    html += '<th><div style="width: 25px; height: 0; display: inline-block; border-bottom: 2px solid ' + point.dataset.strokeColor + ';"></div></th>';
+  }
+  html += '</tr>';
+  return html;
+}
+
+function buildInfo(points: any[], title: string, text: (pt: any) => string): string {
+  let hasValue = false;
+  for (const point of points) {
+    const v = text(point);
+    if (v && v.length > 0) {
+      hasValue = true;
+      break;
+    }
+  }
+  if (!hasValue) return '';
+  let html = '<tr><th>' + title + '</th>';
+  for (const point of points) html += '<td>' + text(point) + '</td>';
+  html += '</tr>';
+  return html;
+};
+
+function setTooltipPosition(context: any, container: HTMLElement): void {
   const chartRect = context.chart.canvas.getBoundingClientRect();
   const pos: number = context.tooltip._eventPosition.x;
   const tooltipSize = container.getBoundingClientRect();

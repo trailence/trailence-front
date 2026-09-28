@@ -27,7 +27,7 @@ export function exportTrails(injector: Injector, trails: Trail[]) {
       doExport(injector, trails, 'original', false, []);
       return;
     }
-    import('../../components/export-popup/export-popup.component').then(module => {
+    void import('../../components/export-popup/export-popup.component').then(module =>
       injector.get(ModalController).create({
         component: module.ExportPopupComponent,
         componentProps: {
@@ -35,11 +35,10 @@ export function exportTrails(injector: Injector, trails: Trail[]) {
           trailsPhotos,
         }
       })
-      .then(modal => modal.present().then(() => modal.onWillDismiss()))
-      .then(modalResult => {
-        if (!modalResult.data?.what) return;
-        doExport(injector, trails, modalResult.data.what, modalResult.data.includePhotos, trailsPhotos);
-      })
+    ).then(modal => modal.present().then(() => modal.onWillDismiss())) // NOSONAR
+    .then(modalResult => {
+      if (!modalResult.data?.what) return;
+      doExport(injector, trails, modalResult.data.what, modalResult.data.includePhotos, trailsPhotos);
     })
   });
 }
@@ -124,7 +123,7 @@ function doExport(injector: Injector, trails: Trail[], what: 'original' | 'curre
         return;
       }
       progress.addWorkDone(2);
-      fileService.saveBinaryData(StringUtils.toFilename(data.name) + '.gpx', data.gpx).then(() => progress.done());
+      void fileService.saveBinaryData(StringUtils.toFilename(data.name) + '.gpx', data.gpx).then(() => progress.done());
     });
     return;
   }
@@ -179,7 +178,7 @@ function doExport(injector: Injector, trails: Trail[], what: 'original' | 'curre
     });
   };
   const zipName = trails.length === 1 ? StringUtils.toFilename(trails[0].name) : 'trailence-export';
-  fileService.saveZip(zipName + '.zip', () => {
+  void fileService.saveZip(zipName + '.zip', () => {
     return new Promise<{ filename: string; data: BinaryContent; } | null>((resolve) => {
       processNextTrail(resolve);
     });

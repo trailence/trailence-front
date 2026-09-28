@@ -18,7 +18,7 @@ export function handleMapOffline(name: string, displayName: string, tiles: L.Til
       offlineMap.getTile(name, coords).subscribe({
         next: binary => {
           if (binary) {
-            binary.toBase64().then(base64 => {
+            void binary.toBase64().then(base64 => {
               img.src = 'data:' + binary.getContentType() + ';base64,' + base64;
               img._loaded = true;
               img.classList.add('map-tile-offline');
@@ -75,7 +75,10 @@ export function handleMapOffline(name: string, displayName: string, tiles: L.Til
     .then(r => {
       if (r.ok) {
         return r.blob()
-        .then(blob => new BinaryContent(blob).toBase64().then(b64 => 'data:' + blob.type + ';base64,' + b64))
+        .then(async blob => {
+          const b64 = await new BinaryContent(blob).toBase64();
+          return 'data:' + blob.type + ';base64,' + b64;
+        })
         .then(u => {
           img.src = u;
           img.classList.remove('map-tile-loading');

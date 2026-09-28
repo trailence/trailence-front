@@ -259,7 +259,7 @@ export class ModerationService {
               fromCache[1].next(trailAndPhotos);
               this.trailAndPhotosCache.feedItem(photo.trailUuid + ' ' + photo.owner, fromCache[1]);
             }
-            this.photoBlobCache.removeItem(photo.uuid + ' ' + photo.owner);
+            void this.photoBlobCache.removeItem(photo.uuid + ' ' + photo.owner);
             return true;
           })
         )
@@ -280,7 +280,7 @@ export class ModerationService {
     return this.http.post<PhotoDto>(environment.apiBaseUrl + '/moderation/v1/photoFromReview/' + photo.uuid + '/' + photo.owner + '/' + photo.trailUuid, blob, headers).pipe(
       map(dto => {
         const photo = new Photo(dto, true, false);
-        this.trailAndPhotosCache.getItem(photo.trailUuid + ' ' + photo.owner)
+        void this.trailAndPhotosCache.getItem(photo.trailUuid + ' ' + photo.owner)
         .then(cache => {
           if (cache) {
             const trailAndPhotos = cache.value;
@@ -334,8 +334,8 @@ export class ModerationService {
   public reject(trail: Trail, message: string, photos: Photo[] | undefined): void {
     trail.publicationMessageFromModerator = message;
     this.http.post<TrailDto>(environment.apiBaseUrl + '/moderation/v1/reject', trail.toDto()).subscribe(
-      response => {
-        this.endOfModeration(trail, photos ?? []);
+      () => {
+        void this.endOfModeration(trail, photos ?? []);
       },
     );
   }
@@ -460,7 +460,7 @@ export class ModerationService {
     this.http.post(environment.apiBaseUrl + '/moderation/v1/publish', dto).subscribe({
       next: () => {
         progress.addWorkDone(1);
-        step(1, async () => {
+        void step(1, async () => {
           await this.endOfModeration(trail, photos);
         }).then(() => {
           progress.done();
@@ -483,8 +483,8 @@ export class ModerationService {
     await this.trackCache.removeItem(trail.originalTrackUuid + ' ' + trail.owner);
     await this.trackCache.removeItem(trail.currentTrackUuid + ' ' + trail.owner);
     for (const p of photos) {
-      (await this.photoCache.getItem(p.uuid + ' ' + p.owner))?.next(null);
-      await this.photoBlobCache.removeItem(p.uuid + ' ' + p.owner);
+      (await this.photoCache.getItem(p.uuid + ' ' + p.owner))?.next(null); // NOSONAR
+      await this.photoBlobCache.removeItem(p.uuid + ' ' + p.owner); // NOSONAR
     }
     this._refreshCounters$.next(true);
   }

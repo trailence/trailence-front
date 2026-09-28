@@ -6,14 +6,14 @@ import { generatePdfText } from './pdf-text';
 import { getWaypointData } from '../waypoints-utils';
 import { WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
 
-export async function generateWaypointsTextToPdf(ctx: PdfContext, y: number, horiz: HorizBounds) {
+export function generateWaypointsTextToPdf(ctx: PdfContext, y: number, horiz: HorizBounds) {
   const userLang = ctx.preferences.preferences.lang;
   const sourceLang = ctx.trailInfo?.lang ?? userLang;
   const departure = ctx.wayPoints.find(wp => wp.isDeparture);
   let wayPointData = getWaypointData(departure, sourceLang, userLang);
   let state: {y: number, horiz: HorizBounds} = {y, horiz};
   if (wayPointData) {
-    state = await generateWaypoint(ctx, wayPointData.waypoint, wayPointData.name, wayPointData.description, state.y, state.horiz);
+    state = generateWaypoint(ctx, wayPointData.waypoint, wayPointData.name, wayPointData.description, state.y, state.horiz);
   }
   let index = 1;
   do {
@@ -22,7 +22,7 @@ export async function generateWaypointsTextToPdf(ctx: PdfContext, y: number, hor
     if (!wp.isDeparture && !wp.isArrival) {
       wayPointData = getWaypointData(wp, sourceLang, userLang);
       if (wayPointData) {
-        state = await generateWaypoint(ctx, wayPointData.waypoint, wayPointData.name, wayPointData.description, state.y, state.horiz);
+        state = generateWaypoint(ctx, wayPointData.waypoint, wayPointData.name, wayPointData.description, state.y, state.horiz);
       }
     }
     index++;
@@ -30,13 +30,13 @@ export async function generateWaypointsTextToPdf(ctx: PdfContext, y: number, hor
   const arrival = ctx.wayPoints.find(wp => wp.isArrival && !wp.isDeparture);
   wayPointData = getWaypointData(arrival, sourceLang, userLang);
   if (wayPointData) {
-    state = await generateWaypoint(ctx, wayPointData.waypoint, wayPointData.name, wayPointData.description, state.y, state.horiz);
+    state = generateWaypoint(ctx, wayPointData.waypoint, wayPointData.name, wayPointData.description, state.y, state.horiz);
   }
   ctx.doc.y = state.y;
   return state;
 }
 
-async function generateWaypoint(ctx: PdfContext, waypoint: WayPointFromTrack, name: string | undefined, description: string | undefined, y: number, horiz: HorizBounds): Promise<{y: number, horiz: HorizBounds}> {
+function generateWaypoint(ctx: PdfContext, waypoint: WayPointFromTrack, name: string | undefined, description: string | undefined, y: number, horiz: HorizBounds): {y: number, horiz: HorizBounds} {
   const anchorSize = 20;
   const anchorMargin = 2;
 
@@ -76,7 +76,7 @@ async function generateWaypoint(ctx: PdfContext, waypoint: WayPointFromTrack, na
       next.width -= anchorSize + anchorMargin;
       return next;
     }} as HorizBounds;
-    const after = await generatePdfText(ctx, description, ctx.doc.y, h, 9);
+    const after = generatePdfText(ctx, description, ctx.doc.y, h, 9);
     ctx.doc.y = after.y;
     horiz.x = after.horiz.x - (anchorSize + anchorMargin);
     horiz.width = after.horiz.width + (anchorSize + anchorMargin);

@@ -3,11 +3,9 @@ import { Track } from '@trailence/model/track';
 import { TrackWayPoint, TrackWayPointElement } from './track-waypoint';
 import { computeWayPointsFromTrack } from './waypoints-from-track';
 import { computeBreakPoints } from './breakpoints';
-import { extendsAround } from '../leaflet-utils';
 import { debounceTimeExtended } from '../rxjs/debounce-time-extended';
-import { computeGuidepostsWayPoints, GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT } from './guideposts';
+import { computeGuidepostsWayPoints } from './guideposts';
 import { BreakPointSection } from '@trailence/services/track-edition/time/break-detection';
-import { computeOsmWayChanges } from './way-intersection';
 
 export function computeTrackWayPoints(track: Track, breaksSections: BreakPointSection[]): Observable<TrackWayPoint[]> {
   return new Observable<TrackWayPoint[]>(subscriber => {
@@ -16,12 +14,10 @@ export function computeTrackWayPoints(track: Track, breaksSections: BreakPointSe
     const merged = [...fromTrack, ...breaks].sort(TrackWayPointElement.compare);
     const list = merged.map(e => new TrackWayPoint(e));
     subscriber.next(list);
-    let bounds = track.metadata.bounds;
-    if (!bounds) {
+    if (!track.metadata.bounds) {
       subscriber.complete();
       return;
     }
-    bounds = extendsAround(bounds, GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT + 1);
     const pois$ = track.isRecording ? of([]) : concat(of(undefined), track.computed.guidpostsOnTrackBounds$.pipe(map(response => response?.pois)));
     const ways$ = of([[null, null]]);// concat(of(undefined), combineLatest([track.computed.osmWaysOnTrackBounds$, track.computed.osmWaysMatch$]).pipe(first()));
     const estimatedTrackTime$ = track.isRecording ? of(undefined) : concat(of(undefined), track.computed.timeEstimation$.pipe(first()));

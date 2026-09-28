@@ -92,7 +92,12 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
             }
             const nextItems = (startIndex: number) => {
               const bunch = toFetch.length - startIndex <= 25 ? toFetch.slice(startIndex) : toFetch.slice(startIndex, startIndex + 25);
-              this.fetchTrailsByIds(bunch).then(trails => {
+              void this.fetchTrailsByIds(bunch)
+              .catch(e => {
+                logger.error(e);
+                return [];
+              })
+              .then(trails => {
                 subscriber.next({trails, end: startIndex + bunch.length >= toFetch.length, tooManyResults: searchResponse.hasMoreResults});
                 if (startIndex + bunch.length >= toFetch.length) {
                   subscriber.complete();

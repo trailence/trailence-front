@@ -1,4 +1,4 @@
-import { AfterContentChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, SecurityContext, ViewChild } from '@angular/core';
+import { AfterContentChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
 import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, distinctUntilChanged, filter, first, firstValueFrom, from, map, of, skip, switchMap, take, takeWhile, tap, timer } from 'rxjs';
 import { Trail } from '@trailence/model/trail';
 import { AbstractComponent, IdGenerator } from '@trailence/utils/component-utils';
@@ -813,7 +813,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         if (!baseTrack) {
           this.canShowTrackWithElevationColors = false;
         } else {
-          this.canShowTrackWithElevationColors &&= !!tracks[0].segments.find(s => s.points.find(p => p.ele !== undefined));
+          this.canShowTrackWithElevationColors &&= tracks[0].segments.some(s => s.points.find(p => p.ele !== undefined));
           baseTrack.showPathWithElevationColors(this.canShowTrackWithElevationColors && this.showTrackWithElevationColors);
         }
         if (!this.canShowTrackWithElevationColors) this.showTrackWithElevationColors = false;
@@ -975,7 +975,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     return of(null);
   }
 
-  private getSourceString(trail: Trail): Observable<string | undefined> {
+  private getSourceString(trail: Trail): Observable<string | undefined> { // NOSONAR
     let src: Observable<I18nString | null | undefined>[] = [];
     switch (trail.sourceType) {
       case TrailSourceType.TRAILENCE_RECORDER:
@@ -984,7 +984,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           src.push(of(new TranslatedString('pages.trail.source.with_date', [new DateTimeI18nString(trail.sourceDate)])));
         if (trail.source && trail.source !== this.auth.email)
           src.push(of(new TranslatedString('pages.trail.source.with_owner', [trail.source])));
-        if (trail.followedUuid && trail.followedOwner && trail.followedOwner.includes('@')) {
+        if (trail.followedUuid && trail.followedOwner?.includes('@')) {
           src.push(this.trailService.getTrail$(trail.followedUuid, trail.followedOwner).pipe(
             map(followedTrail => followedTrail ?
               new TranslatedString('pages.trail.source.following', ['/trail/' + trail.followedOwner + '/' + trail.followedUuid, followedTrail.name])
@@ -1281,7 +1281,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         if (ok.length !== result.length && canDisplayError) {
           const noNet = result.filter(m => m === undefined);
           const msg = noNet.length > 0 ? 'photos_error_no_network' : 'photos_error';
-          this.injector.get(ToastController).create({
+          void this.injector.get(ToastController).create({
             message: this.i18n.texts.errors[msg],
             color: 'warning',
             duration: 5000,
@@ -1339,7 +1339,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         map(base64 => {
           const marker = MapPhoto.create(point, 'data:image/jpeg;base64,' + base64, jpeg.width, jpeg.height, photos.length > 1 ? '' + photos.length : undefined);
           marker.addEventListener('click', () => {
-            this.photoService.openSliderPopup(photosByKey.get(key)!, 0);
+            void this.photoService.openSliderPopup(photosByKey.get(key)!, 0);
           });
           return {key, marker};
         }),
@@ -1364,7 +1364,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
 
   private listenForRecordingUpdates(): void {
     if (!this.recording$) return;
-    this.injector.get(CameraService).canTakePhoto().then(canTakePhoto => {
+    void this.injector.get(CameraService).canTakePhoto().then(canTakePhoto => {
       if (canTakePhoto) {
         this.canTakePhoto = true;
         this.refreshMapToolbarTop();
@@ -1711,20 +1711,20 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   }
 
   openSlider(): void {
-    this.photoService.openSliderPopup(this.photos!, 0);
+    void this.photoService.openSliderPopup(this.photos!, 0);
   }
 
   goToDeparture(): void {
     if (this.trail1) {
       const trail = this.trail1;
-      import('../../services/functions/go-to-departure').then(m => m.goToDeparture(this.injector, trail));
+      void import('../../services/functions/go-to-departure').then(m => m.goToDeparture(this.injector, trail));
     }
   }
 
   downloadMap(): void {
     if (this.trail1) {
       const trail = this.trail1;
-      import('../../services/functions/map-download').then(m => m.openMapDownloadDialog(this.injector, [trail], undefined, this.map$.value?.getState().tilesName));
+      void import('../../services/functions/map-download').then(m => m.openMapDownloadDialog(this.injector, [trail], undefined, this.map$.value?.getState().tilesName));
     }
   }
 
@@ -1738,21 +1738,21 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       ),
       import('../tags/tags.component')
     ]);
-    r[1].openTagsDialog(this.injector, [trail], r[0]);
+    void r[1].openTagsDialog(this.injector, [trail], r[0]);
   }
 
   editTrailName(trail: Trail): void {
     if (!this.editable) return;
-    import('../../services/functions/trail-rename').then(m => m.openRenameTrailDialog(this.injector, trail));
+    void import('../../services/functions/trail-rename').then(m => m.openRenameTrailDialog(this.injector, trail));
   }
 
   startTrail(): void {
-    this.traceRecorder.start(this.trail1!);
+    void this.traceRecorder.start(this.trail1!);
   }
 
   togglePauseRecordingWithoutConfirmation(): void {
     if (this.recording?.paused) {
-      this.traceRecorder.resume();
+      void this.traceRecorder.resume();
     } else {
       this.traceRecorder.pause();
     }
@@ -1760,7 +1760,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   }
 
   togglePauseRecordingWithConfirmation(): void {
-    this.injector.get(AlertController).create({
+    void this.injector.get(AlertController).create({
       header: this.recording?.paused ? this.i18n.texts.trace_recorder.resume : this.i18n.texts.trace_recorder.pause,
       message: this.recording?.paused ? this.i18n.texts.trace_recorder.confirm_popup.resume_message : this.i18n.texts.trace_recorder.confirm_popup.pause_message,
       buttons: [
@@ -1769,21 +1769,21 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           role: 'confirm',
           handler: () => {
             if (this.recording?.paused)
-              this.traceRecorder.resume();
+              void this.traceRecorder.resume();
             else
               this.traceRecorder.pause();
-            this.injector.get(AlertController).dismiss();
+            void this.injector.get(AlertController).dismiss();
           }
         }, {
           text: this.i18n.texts.buttons.cancel,
           role: 'cancel',
           handler: () => {
-            this.injector.get(AlertController).dismiss();
+            void this.injector.get(AlertController).dismiss();
           }
         }
       ]
     }).then(p => {
-      p.present();
+      void p.present();
       setTimeout(() => {
         if ((p as any).presented) p.dismiss(); // NOSONAR
       }, 10000);
@@ -1796,7 +1796,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   }
 
   stopRecordingWithConfirmation(): void {
-    this.injector.get(AlertController).create({
+    void this.injector.get(AlertController).create({
       header: this.i18n.texts.trace_recorder.stop,
       message: this.i18n.texts.trace_recorder.confirm_popup.stop_message,
       buttons: [
@@ -1807,22 +1807,22 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             this.traceRecorder.stop(true)
             .subscribe(trail => {
               if (trail)
-                this.injector.get(Router).navigateByUrl('/trail/' + trail.owner + '/' + trail.uuid);
+                void this.injector.get(Router).navigateByUrl('/trail/' + trail.owner + '/' + trail.uuid);
               else if (!this.trail1)
-                this.injector.get(Router).navigateByUrl('/trails/collection/my_trails');
+                void this.injector.get(Router).navigateByUrl('/trails/collection/my_trails');
             });
-            this.injector.get(AlertController).dismiss();
+            void this.injector.get(AlertController).dismiss();
           }
         }, {
           text: this.i18n.texts.buttons.cancel,
           role: 'cancel',
           handler: () => {
-            this.injector.get(AlertController).dismiss();
+            void this.injector.get(AlertController).dismiss();
           }
         }
       ]
     }).then(p => {
-      p.present();
+      void p.present();
       setTimeout(() => {
         if ((p as any).presented) p.dismiss(); // NOSONAR
       }, 10000);
@@ -1843,7 +1843,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       this.editingDescription = true;
       this.changesDetection.detectChanges(() => {
         setTimeout(() => {
-          if (this.descriptionEditor) this.descriptionEditor.setFocus();
+          if (this.descriptionEditor) void this.descriptionEditor.setFocus();
         }, 0);
       });
     });
@@ -1881,7 +1881,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       this.editingSourceUrl = true;
       this.changesDetection.detectChanges(() => {
         setTimeout(() => {
-          if (this.sourceUrlEditor) this.sourceUrlEditor.setFocus();
+          if (this.sourceUrlEditor) void this.sourceUrlEditor.setFocus();
         }, 0);
       });
     });
@@ -1908,24 +1908,24 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   openLocationDialog(): void {
     if (this.trail2 || !this.trail1 || !this.editable) return;
     const trail = this.trail1;
-    import('../location-popup/location-popup.component').then(m => m.openLocationDialog(this.injector, trail));
+    void import('../location-popup/location-popup.component').then(m => m.openLocationDialog(this.injector, trail));
   }
 
   openDateDialog(): void {
     if (this.trail2 || !this.trail1 || !this.editable) return;
-    import('@trailence/services/database/trail-menu.service').then(module => this.injector.get(module.TrailMenuService).openTrailDatePopup(this.trail1!, this.tracks$.value[0]));
+    void import('@trailence/services/database/trail-menu.service').then(module => this.injector.get(module.TrailMenuService).openTrailDatePopup(this.trail1!, this.tracks$.value[0]));
   }
 
   openActivityDialog(): void {
     const trail = !!this.trail1 && !this.trail2 && this.editable && !this.recording ? {trail: this.trail1, isRecording: false} : !this.trail1 && this.recording ? {trail: this.recording.trail, isRecording: true} : undefined;
     if (!trail) return;
-    import('../activity-popup/activity-popup.component')
+    void import('../activity-popup/activity-popup.component')
     .then(m => m.openActivityDialog(this.injector, [trail.trail], trail.isRecording))
     .then(() => this.refreshMapToolbarTop());
   }
 
   openPublish(): void {
-    import('@trailence/services/database/trail-menu.service').then(module => this.injector.get(module.TrailMenuService).startPublication(this.trail1!));
+    void import('@trailence/services/database/trail-menu.service').then(module => this.injector.get(module.TrailMenuService).startPublication(this.trail1!));
   }
 
   canEdit(): boolean {
@@ -1952,7 +1952,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     const point = this.recording?.track.arrivalPoint;
     if (!point) return;
     const wp = new WayPoint(point, '', '');
-    import('../track-edit-tools/tools/way-points/way-point-edit/way-point-edit.component')
+    void import('../track-edit-tools/tools/way-points/way-point-edit/way-point-edit.component')
     .then(module => this.injector.get(ModalController).create({
       component: module.WayPointEditModal,
       componentProps: {
@@ -1961,12 +1961,12 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       }
     }))
     .then(modal => {
-      modal.onDidDismiss().then(result => {
+      void modal.onDidDismiss().then(result => { // NOSONAR
         if (result.role === 'ok' && this.recording?.track) {
           this.recording.track.appendWayPoint(wp);
         }
       });
-      modal.present();
+      return modal.present();
     });
   }
 
@@ -2026,7 +2026,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   }
 
   confirmFollowThisTrail(): void {
-    this.injector.get(AlertController).create({
+    void this.injector.get(AlertController).create({
       header: this.i18n.texts.trace_recorder.follow_this_trail,
       message: new TranslatedString('trace_recorder.follow_this_trail_confirmation', [this.trail1?.name]).translate(this.i18n),
       buttons: [
@@ -2035,18 +2035,18 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           role: 'confirm',
           handler: () => {
             this.traceRecorder.setFollowedTrail(this.trail1?.owner, this.trail1?.uuid, this.trail1?.currentTrackUuid);
-            this.injector.get(AlertController).dismiss();
+            void this.injector.get(AlertController).dismiss();
           }
         }, {
           text: this.i18n.texts.buttons.cancel,
           role: 'cancel',
           handler: () => {
-            this.injector.get(AlertController).dismiss();
+            void this.injector.get(AlertController).dismiss();
           }
         }
       ]
     }).then(p => {
-      p.present();
+      void p.present();
       setTimeout(() => {
         if ((p as any).presented) p.dismiss(); // NOSONAR
       }, 10000);
@@ -2055,9 +2055,9 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
 
   rateThisTrail(): void {
     if (this.trail1WithInfo?.source?.externalUrl?.startsWith(environment.baseUrl + '/trail/trailence/'))
-      this.injector.get(Router).navigate([this.trail1WithInfo?.source.externalUrl.substring(environment.baseUrl.length)], {fragment: 'rate'});
+      void this.injector.get(Router).navigate([this.trail1WithInfo?.source.externalUrl.substring(environment.baseUrl.length)], {fragment: 'rate'});
     else if (this.trail1?.followedUrl?.startsWith(environment.baseUrl + '/trail/trailence/'))
-      this.injector.get(Router).navigate([this.trail1.followedUrl.substring(environment.baseUrl.length)], {fragment: 'rate'});
+      void this.injector.get(Router).navigate([this.trail1.followedUrl.substring(environment.baseUrl.length)], {fragment: 'rate'});
   }
 
   private async openChecklist() {
@@ -2071,7 +2071,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       },
       cssClass: 'large-modal'
     });
-    modal.onWillDismiss().then(() => {
+    void modal.onWillDismiss().then(() => {
       this.toolbarItems = [...this.toolbarItems];
       this.changesDetection.detectChanges();
     });
@@ -2096,13 +2096,13 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           role: 'confirm',
           handler: (result) => {
             const message = result ? result[0].trim() : '';
-            this.injector.get(AlertController).dismiss(message, 'confirm');
+            void this.injector.get(AlertController).dismiss(message, 'confirm');
           }
         }, {
           text: this.i18n.texts.buttons.cancel,
           role: 'cancel',
           handler: () => {
-            this.injector.get(AlertController).dismiss(false, 'cancel');
+            void this.injector.get(AlertController).dismiss(false, 'cancel');
           }
         }
       ]
@@ -2118,9 +2118,9 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         service.getFullTrack$(trail.uuid, trail.owner, trail.currentTrackUuid).pipe(first()),
         service.getPhotos$(trail.owner, trail.uuid).pipe(first()),
       ]).subscribe(([track, photos]) => {
-        service.validateAndPublish(trail, track, photos, (ok) => {
+        void service.validateAndPublish(trail, track, photos, (ok) => {
           if (ok)
-            this.injector.get(Router).navigateByUrl('/trails/moderation');
+            void this.injector.get(Router).navigateByUrl('/trails/moderation');
         });
       });
     } else {
@@ -2130,7 +2130,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       const toCollection = (await firstValueFrom(this.injector.get(TrailCollectionService).getOrCreatePublicationSubmit()))!;
       const copyModule = await import('../../services/functions/copy-trails');
       copyModule.moveTrailsTo(this.injector, [trail], fromCollection, toCollection, t => t.publicationMessageFromAuthor = result.data, true);
-      this.injector.get(Router).navigateByUrl('/trails/collection/' + this.trail1WithInfo!.collection!.uuid + '/' + this.trail1WithInfo!.collection!.owner);
+      void this.injector.get(Router).navigateByUrl('/trails/collection/' + this.trail1WithInfo!.collection!.uuid + '/' + this.trail1WithInfo!.collection!.owner);
     }
   }
 
@@ -2152,14 +2152,14 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           handler: (result) => {
             const message = result[0].trim();
             if (message.length > 10)
-              this.injector.get(AlertController).dismiss(message, 'confirm');
+              void this.injector.get(AlertController).dismiss(message, 'confirm');
             return false;
           }
         }, {
           text: this.i18n.texts.buttons.cancel,
           role: 'cancel',
           handler: () => {
-            this.injector.get(AlertController).dismiss(false, 'cancel');
+            void this.injector.get(AlertController).dismiss(false, 'cancel');
           }
         }
       ]
@@ -2171,7 +2171,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     const trail = this.trail1!;
     const service = this.injector.get(ModerationService);
     service.reject(trail, result.data as string, this.photos);
-    this.injector.get(Router).navigateByUrl('/trails/moderation');
+    void this.injector.get(Router).navigateByUrl('/trails/moderation');
   }
 
   private async rejectToDraft() {
@@ -2196,12 +2196,12 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         }
       ]
     });
-    alert.onDidDismiss().then(result => {
+    void alert.onDidDismiss().then(result => {
       if (result.role === 'success') {
         this.injector.get(TrailCollectionService)
         .getOrCreatePublicationDraft().pipe(first(c => !!c))
         .subscribe(col => {
-          import('../../services/functions/copy-trails')
+          void import('../../services/functions/copy-trails')
           .then(m => m.copyTrailsTo(this.injector, [this.trail1!], col, true, true, true, (newTrail) => ({
             publishedFromUuid: this.trail1WithInfo?.source?.info?.myUuid,
             sourceType: this.trail1WithInfo?.source?.info?.externalUrl ? TrailSourceType.EXTERNAL : undefined,
@@ -2238,14 +2238,14 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           handler: (result) => {
             const message = result ? result[0].trim() : '';
             if (message.length < 25) return false;
-            this.injector.get(AlertController).dismiss(message, 'confirm');
+            void this.injector.get(AlertController).dismiss(message, 'confirm');
             return true;
           }
         }, {
           text: this.i18n.texts.buttons.cancel,
           role: 'cancel',
           handler: () => {
-            this.injector.get(AlertController).dismiss(false, 'cancel');
+            void this.injector.get(AlertController).dismiss(false, 'cancel');
           }
         }
       ]
@@ -2257,7 +2257,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this.injector.get(HttpService).postString(environment.apiBaseUrl + '/public/trails/v1/trail/' + this.trail1!.uuid + '/requestRemove', result.data)
     .subscribe({
       complete: () => {
-        this.injector.get(ToastController).create({
+        void this.injector.get(ToastController).create({
           message: this.i18n.texts.publications.remove_publication_sent,
           duration: 10000,
           color: 'success',
@@ -2278,7 +2278,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       (this.trail2$ as BehaviorSubject<Trail | null>).next(trail);
   }
 
-  private async exitCompareToPublicTrail() {
+  private exitCompareToPublicTrail() {
     (this.trail2$ as BehaviorSubject<Trail | null>).next(null);
   }
 
@@ -2291,7 +2291,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
 
   showPublicTrailsAround(): void {
     this.isShowPublicTrailsAround = true;
-    import('./check-public-trails-around')
+    void import('./check-public-trails-around')
     .then(m => m.checkPublicTrailsAround(this.injector, this.tracks$.value[0], (tracks) => {
       if (this.isShowPublicTrailsAround) this.publicTrailsAroundMapTracks$.next(tracks);
     }));

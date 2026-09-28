@@ -172,7 +172,7 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
     .then(t => {
       if (!t) return this.fetchInfoById(uuid);
       if (this.refreshAfter !== undefined && Date.now() - t.fetchDate > this.refreshAfter) {
-        return this.fetchInfoById(uuid).catch(e => null).then(trail => {
+        return this.fetchInfoById(uuid).catch(_ => null).then(trail => { // NOSONAR
           return trail ?? t.info;
         })
       }
@@ -267,7 +267,7 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
       ...trails.map(t => t.originalTrackDto),
       ...filterItemsDefined(trails.map(t => t.currentTrackDto)),
     ]);
-    Promise.all([
+    void Promise.all([
       ...trails.map(t => t.originalSimplifiedTrackDto),
       ...trails.filter(t => !!t.currentSimplifiedTrackDto).map(t => t.currentSimplifiedTrackDto!),
     ]).then(tracks => this.tableSimplifiedTracks.bulkPut(tracks));

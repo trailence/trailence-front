@@ -24,8 +24,7 @@ export function processWorkerMessage(request: WorkerMessage): Promise<{response:
           .then(result => ({result, transferable: []}));
         break;
       case WorkerRequest.SIMPLIFY_TRACK:
-        result = simplifyTrack(request.payload)
-          .then(result => ({result, transferable: []}));
+        result = Promise.resolve({result: simplifyTrack(request.payload), transferable: []});
         break;
       case WorkerRequest.IMPORT_PHOTO:
         result = importPhoto(

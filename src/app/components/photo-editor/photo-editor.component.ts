@@ -19,7 +19,7 @@ export async function openEditor(injector: Injector, photo: Photo) {
     },
     cssClass: 'large-modal',
   });
-  modal.onDidDismiss().then(result => {
+  void modal.onDidDismiss().then(result => {
     if (result.data)
       injector.get(PhotoService).updateFile(photo, result.data);
   });
@@ -227,7 +227,7 @@ export class PhotoEditorComponent implements OnInit, OnDestroy, OnChanges {
     ctx.translate(canvas.width / 2, canvas.height / 2);
     ctx.rotate((clockwise ? 90 : -90)*Math.PI/180);
     ctx.drawImage(original, -original.naturalWidth / 2, -original.naturalHeight / 2);
-    this.applyTransform(canvas)
+    void this.applyTransform(canvas)
     .then(() => {
       this.applying = false;
       this.refresh();
@@ -326,10 +326,10 @@ export class PhotoEditorComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   close(save: boolean): void {
-    if (save && this.blob && this.historyBack.length > 0)
-      this.modalController.dismiss(this.blob);
+    if (save && this.blob && this.historyBack.length > 0) // NOSONAR
+      void this.modalController.dismiss(this.blob);
     else
-      this.modalController.dismiss();
+      void this.modalController.dismiss();
   }
 
 }
@@ -412,7 +412,7 @@ class CropTool implements Tool, ToolAreaRange {
     canvas.height = this.y2 - this.y1;
     const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
     ctx.drawImage(original, this.x1, this.y1, this.x2 - this.x1, this.y2 - this.y1, 0, 0, this.x2 - this.x1, this.y2 - this.y1);
-    this.component.applyTransform(canvas).then(() => this.component.cancelTool());
+    void this.component.applyTransform(canvas).then(() => this.component.cancelTool());
   }
 
   public static renderRounded(ctx: CanvasRenderingContext2D, x1: number, x2: number, y1: number, y2: number, w: number, h: number): void {
@@ -477,6 +477,6 @@ class BlurTool implements Tool, ToolAreaRange {
     ctx.drawImage(original,
       this.x1, this.y1, this.x2 - this.x1 + 1, this.y2 - this.y1 + 1,
       this.x1 - this.blur, this.y1 - this.blur, (this.x2 - this.x1 + 1) + this.blur * 2, (this.y2 - this.y1 + 1) + this.blur * 2);
-    this.component.applyTransform(canvas).then(() => this.component.cancelTool());
+    void this.component.applyTransform(canvas).then(() => this.component.cancelTool());
   }
 }

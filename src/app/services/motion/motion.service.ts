@@ -24,8 +24,8 @@ export class MotionService {
 
       let deviceOrientation = 0;
       // Older browsers
-      if (!event.absolute && 'undefined' !== typeof window.orientation) {
-          deviceOrientation = window.orientation;
+      if (!event.absolute && 'undefined' !== typeof window.orientation) { // NOSONAR
+          deviceOrientation = window.orientation; // NOSONAR
       } else if (globalThis.screen?.orientation) {
         deviceOrientation = globalThis.screen.orientation.angle ?? 0;
       }
@@ -117,7 +117,7 @@ export class MotionService {
     if (this._bearingStarted || this._bearingListeners.length === 0) return;
     this._bearingStarted = true;
     const permission = DeviceOrientationEvent && (DeviceOrientationEvent as any).requestPermission ? (DeviceOrientationEvent as any).requestPermission() as Promise<string> : Promise.resolve('granted');
-    permission.then(permissionResult => {
+    void permission.then(permissionResult => {
       if (permissionResult !== 'granted') {
         this._bearingStarted = false;
       }
@@ -139,7 +139,7 @@ export class MotionService {
     if (this._motionStarted || this._motionListeners.length === 0) return;
     this._motionStarted = true;
     const permission = DeviceMotionEvent && (DeviceMotionEvent as any).requestPermission ? (DeviceMotionEvent as any).requestPermission() as Promise<string> : Promise.resolve('granted');
-    permission.then(permissionResult => {
+    void permission.then(permissionResult => {
       if (permissionResult !== 'granted') {
         this._motionStarted = false;
       }

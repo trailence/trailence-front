@@ -43,6 +43,7 @@ import { FullScreenTool } from './tools/fullscreen-tool';
 import { ToastController } from '@ionic/angular';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { getLogger } from '@trailence/utils/console';
+import { PointDto } from '@trailence/model/dto/point';
 
 const logger = getLogger('map.component');
 
@@ -160,7 +161,7 @@ export class MapComponent extends AbstractComponent {
         this._initMapTimeout = undefined;
       }
       if (!this.visible) return;
-      this.jsLoaded.then(() => {
+      void this.jsLoaded.then(() => {
         if (document.getElementById(this.id)?.clientHeight) {
           this.createMap();
           return;
@@ -762,7 +763,7 @@ export class MapComponent extends AbstractComponent {
                 debounceTimeExtended(0, 100, 5),
               )
             ).pipe(map(bearing => ({mode, bearing})))
-            : of({mode})
+            : of({mode, bearing: undefined})
           ),
         ),
       ]).subscribe(
@@ -789,51 +790,11 @@ export class MapComponent extends AbstractComponent {
             phoneLockTool.visible = false;
           }
           // show position
-          if (position && nbPosDisabled === 0) {
-            this.showLocation(position.lat, position.lng, position.active ? '#2020FF' : '#555');
-          } else {
-            this.hideLocation();
-          }
-          let rotateChanged = false;
-          if (rotation.mode === RotateMode.HEADING) {
-            if (watched) {
-              let heading = undefined;// watched.h;
-              if (typeof heading !== 'number' && watched.l !== undefined && watched.n !== undefined) {
-                previousPositions ??= [];
-                const currentPos = L.latLng({lat: watched.l, lng: watched.n});
-                for (let i = previousPositions.length - 1; i >= 0; --i) {
-                  if (currentPos.distanceTo(previousPositions[i]) >= 5) {
-                    heading = bearing(previousPositions[i], currentPos);
-                    if (i > 0) previousPositions.splice(0, i);
-                    break;
-                  }
-                }
-                previousPositions.push(currentPos);
-              } else {
-                previousPositions = undefined;
-              }
-              if (typeof heading === 'number' && this.getState().bearing !== heading) {
-                this.setRotation(RotateMode.HEADING, heading, true);
-                rotateChanged = true;
-              }
-            } else {
-              this.setRotation(RotateMode.NORTH, 0, true);
-              rotateChanged = true;
-              previousPositions = undefined;
-            }
-          } else if (rotation.mode === RotateMode.DEVICE_ORIENTATION && rotation.bearing !== undefined) {
-            if (rotation.bearing === null) {
-              this.injector.get(ToastController).create({
-                message: this.injector.get(I18nService).texts.mapRotate.noDeviceOrientation,
-                duration: 5000,
-              }).then(t => t.present());
-              this.setRotation(RotateMode.NORTH);
-              rotateChanged = true;
-            } else if (this.getState().bearing !== rotation.bearing) {
-              this.setRotation(RotateMode.DEVICE_ORIENTATION, rotation.bearing, true);
-              rotateChanged = true;
-            }
-          }
+          this.handlePosition(position, nbPosDisabled);
+          // rotation
+          const [rotateChanged, newPreviousPositions] = this.handleRotation(rotation, watched, previousPositions);
+          previousPositions = newPreviousPositions;
+
           if (toolShowPosition.visible !== positionToolWasVisible || (positionToolWasVisible && showPosition !== positionToolWasActive) || phoneLockTool.visible !== phoneLockToolWasVisible || phoneLockToolWasActive !== phoneLockTool.enabled || rotateChanged)
             this.refreshTools();
         }
@@ -841,6 +802,61 @@ export class MapComponent extends AbstractComponent {
     );
 
     this.updateTools();
+  }
+
+  private handlePosition(position: {lat: number, lng: number, active: boolean} | undefined, nbPosDisabled: number): void {
+    if (position && nbPosDisabled === 0) {
+      this.showLocation(position.lat, position.lng, position.active ? '#2020FF' : '#555');
+    } else {
+      this.hideLocation();
+    }
+  }
+
+  private handleRotation(rotation: {mode: RotateMode, bearing: number | null | undefined}, watched: PointDto | undefined, previousPositions: L.LatLng[] | undefined): [boolean, L.LatLng[] | undefined] {
+    let rotateChanged = false;
+    if (rotation.mode === RotateMode.HEADING) {
+      return this.handleRotationHeading(watched, previousPositions);
+    } else if (rotation.mode === RotateMode.DEVICE_ORIENTATION && rotation.bearing !== undefined) {
+      if (rotation.bearing === null) {
+        void this.injector.get(ToastController).create({
+          message: this.injector.get(I18nService).texts.mapRotate.noDeviceOrientation,
+          duration: 5000,
+        }).then(t => t.present());
+        this.setRotation(RotateMode.NORTH);
+        rotateChanged = true;
+      } else if (this.getState().bearing !== rotation.bearing) {
+        this.setRotation(RotateMode.DEVICE_ORIENTATION, rotation.bearing, true);
+        rotateChanged = true;
+      }
+    }
+    return [rotateChanged, previousPositions];
+  }
+
+  private handleRotationHeading(watched: PointDto | undefined, previousPositions: L.LatLng[] | undefined): [boolean, L.LatLng[] | undefined] {
+    if (!watched) {
+      this.setRotation(RotateMode.NORTH, 0, true);
+      return [true, undefined];
+    }
+    let heading = undefined;// watched.h;
+    if (typeof heading !== 'number' && watched.l !== undefined && watched.n !== undefined) {
+      previousPositions ??= [];
+      const currentPos = L.latLng({lat: watched.l, lng: watched.n});
+      for (let i = previousPositions.length - 1; i >= 0; --i) {
+        if (currentPos.distanceTo(previousPositions[i]) >= 5) {
+          heading = bearing(previousPositions[i], currentPos);
+          if (i > 0) previousPositions.splice(0, i);
+          break;
+        }
+      }
+      previousPositions.push(currentPos);
+    } else {
+      previousPositions = undefined;
+    }
+    if (typeof heading === 'number' && this.getState().bearing !== heading) {
+      this.setRotation(RotateMode.HEADING, heading, true);
+      return [true, previousPositions];
+    }
+    return [false, previousPositions];
   }
 
   private updateTools(): void {

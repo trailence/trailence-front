@@ -55,7 +55,7 @@ export class TrailPage extends AbstractPage {
   titleLongPress = () => {
     const trail = this.trail$.value;
     if (trail && !this.trail2$.value && trail.owner === this.injector.get(AuthService).email)
-      import('../../services/functions/trail-rename').then(m => m.openRenameTrailDialog(this.injector, trail));
+      void import('../../services/functions/trail-rename').then(m => m.openRenameTrailDialog(this.injector, trail));
   }
 
   @ViewChild('trailComponent') trailComponent?: TrailComponent;
@@ -180,12 +180,12 @@ export class TrailPage extends AbstractPage {
                   // trail does not exist
                   logger.warn('Trail not found, redirecting to home');
                   if (!connected)
-                    this.toastController.create({
+                    void this.toastController.create({
                       message: this.i18n.texts.you_are_offline,
                       duration: 2000,
                       color: 'danger',
                     }).then(t => t.present());
-                  this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/'));
+                  this.ngZone.run(() => void this.injector.get(Router).navigateByUrl('/'));
                 }
                 return of([null, null]);
               })
@@ -216,7 +216,7 @@ export class TrailPage extends AbstractPage {
                 .setFixedLabel('[Admin] Delete')
                 .setTextColor('danger')
                 .setAction(() => {
-                  this.injector.get(AlertController).create({
+                  void this.injector.get(AlertController).create({
                     header: 'Delete public trail',
                     message: 'Confirm?',
                     buttons: [
@@ -232,12 +232,12 @@ export class TrailPage extends AbstractPage {
                     ]
                   })
                   .then(alert => {
-                    alert.onDidDismiss()
-                    .then(result => {
+                    void alert.onDidDismiss()
+                    .then(result => { // NOSONAR
                       if (result.role === 'ok')
                         this.injector.get(ModerationService).deletePublicTrail(t1.uuid).subscribe({complete: () => this.injector.get(NavController).back()});
                     });
-                    alert.present();
+                    return alert.present();
                   });
                 }),
             );

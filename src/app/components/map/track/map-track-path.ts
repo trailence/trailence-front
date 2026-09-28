@@ -71,7 +71,7 @@ export class MapTrackPath {
     })];
   }
 
-  private buildPolyLinesWithEleColors(track: Track | SimplifiedTrackSnapshot): L.Polyline[] {
+  private buildPolyLinesWithEleColors(track: Track | SimplifiedTrackSnapshot): L.Polyline[] { // NOSONAR
     const segments: {lat: number, lng: number, ele?: number}[][] = track instanceof Track ?
       track.segments.map(s => s.points.map(p => ({lat: p.pos.lat, lng: p.pos.lng, ele: p.ele})))
       : [track.points];
@@ -111,7 +111,29 @@ export class MapTrackPath {
       // end of segment
       this.pushPoints(points, d, polylines);
     }
+    return this.createPolylinesWithBorders(polylines);
+  }
 
+  private pushPoints(points: {lat: number, lng: number, ele?: number}[], d: number, polylines: {points: L.LatLngLiteral[], color: string, d: number, startEle: number | undefined}[]) {
+    let startEle: number | undefined;
+    let endEle: number | undefined;
+    for (const p of points) {
+      if (p.ele !== undefined) {
+        startEle ??= p.ele;
+        endEle = p.ele;
+      }
+    }
+    const color = startEle === undefined ? this._color : gradeColors[getGradeRange(d === 0 ? 0 : (endEle! - startEle) / d)];
+    const latest = polylines.at(-1);
+    if (latest?.color === color) {
+      latest.points.push(...points);
+      latest.d += d;
+    } else {
+      polylines.push({points, color, d, startEle});
+    }
+  }
+
+  private createPolylinesWithBorders(polylines: {points: L.LatLngLiteral[], color: string, d: number, startEle: number | undefined}[]): L.Polyline[] {
     const result: L.Polyline[] = [];
     const bgColor = '#808080A0';
     const minWidth = 6;
@@ -135,25 +157,6 @@ export class MapTrackPath {
       }));
     }
     return result;
-  }
-
-  private pushPoints(points: {lat: number, lng: number, ele?: number}[], d: number, polylines: {points: L.LatLngLiteral[], color: string, d: number, startEle: number | undefined}[]) {
-    let startEle: number | undefined;
-    let endEle: number | undefined;
-    for (const p of points) {
-      if (p.ele !== undefined) {
-        startEle ??= p.ele;
-        endEle = p.ele;
-      }
-    }
-    const color = startEle === undefined ? this._color : gradeColors[getGradeRange(d === 0 ? 0 : (endEle! - startEle) / d)];
-    const latest = polylines.at(-1);
-    if (latest?.color === color) {
-      latest.points.push(...points);
-      latest.d += d;
-    } else {
-      polylines.push({points, color, d, startEle});
-    }
   }
 
   public addTo(map: L.Map): void {

@@ -46,7 +46,7 @@ export class StatsConfigComponent {
   openActivitiesFilter(event: Event): void {
     event.stopPropagation();
     event.preventDefault();
-    import('../../activity-popup/activity-popup.component')
+    void import('../../activity-popup/activity-popup.component')
     .then(m => m.openActivitiesSelectionPopup(this.injector, this.config.activities, s => this.config.activities = s));
   }
 }

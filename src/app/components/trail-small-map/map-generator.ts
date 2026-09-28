@@ -1,3 +1,5 @@
+import { Point2D } from '@trailence/utils/geometry-utils';
+
 export class MapGenerator {
 
   public static readonly tileSize = 256;
@@ -19,17 +21,7 @@ export class MapGenerator {
     return {zoom, bounds};
   }
 
-  public static computeMap(trackBounds: L.LatLngBounds, width: number, height: number, margin: number = 0.025): {
-    zoom: number,
-    topTile: number,
-    bottomTile: number,
-    leftTile: number,
-    rightTile: number,
-    topDiff: number,
-    leftDiff: number,
-    mapLeft: number,
-    mapTop: number,
-  } {
+  public static computeMap(trackBounds: L.LatLngBounds, width: number, height: number, margin: number = 0.025): MapBounds {
     const mapBounds = this.computeMapBounds(trackBounds, width, height, margin);
     const bounds = mapBounds.bounds;
     const pathYMiddle = (bounds.y1 + (bounds.y2 - bounds.y1) / 2) * this.tileSize;
@@ -48,13 +40,25 @@ export class MapGenerator {
     const mapRight = pathXMiddle + width/2;
     const rightTile = Math.floor(mapRight / this.tileSize);
 
-    return { zoom: mapBounds.zoom, topTile, bottomTile, leftTile, rightTile, topDiff, leftDiff, mapLeft, mapTop };
+    return {zoom: mapBounds.zoom, topTile, bottomTile, leftTile, rightTile, topDiff, leftDiff, mapLeft, mapTop };
   }
 
-  public static getPathPt(pos: L.LatLngLiteral, zoom: number, mapLeft: number, mapTop: number): {x: number, y: number} {
+  public static getPathPt(pos: L.LatLngLiteral, zoom: number, mapLeft: number, mapTop: number): Point2D {
     return {x: (lon2pt(pos.lng, zoom) * this.tileSize) - mapLeft, y: (lat2pt(pos.lat, zoom) * this.tileSize) - mapTop};
   }
 
+}
+
+export interface MapBounds {
+  zoom: number;
+  topTile: number;
+  bottomTile: number;
+  leftTile: number;
+  rightTile: number;
+  topDiff: number;
+  leftDiff: number;
+  mapLeft: number;
+  mapTop: number;
 }
 
 function lon2pt(lon: number, zoom: number) { return (lon+180)/360*Math.pow(2,zoom); }

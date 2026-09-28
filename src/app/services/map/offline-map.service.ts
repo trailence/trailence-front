@@ -71,7 +71,7 @@ export class OfflineMapService implements OnDestroy {
     this._destroyed = true;
     this.pois.stop();
     this.ways.stop();
-    this.db.stop();
+    void this.db.stop();
   }
 
   public getPoiIcon$(type: POIType) {
@@ -212,9 +212,10 @@ class Saver {
     this.limiter = new RequestLimiter(layer.maxConcurrentRequests);
     this.i18n = injector.get(I18nService);
     this.mapLayerService = injector.get(MapLayersService);
-    this.progress = injector.get(ProgressService).create(new TranslatedString('offline_map.downloading.progress_title', [layer.displayName]).translate(this.i18n), 1, async () => {
+    this.progress = injector.get(ProgressService).create(new TranslatedString('offline_map.downloading.progress_title', [layer.displayName]).translate(this.i18n), 1, () => {
       this.cancelled = true;
       this.limiter.cancel();
+      return Promise.resolve();
     });
     this.zooms = Array.from(toDownload.keys()).sort((a, b) => a - b);
     this.currentZoom = 0;
@@ -224,7 +225,7 @@ class Saver {
 
   public start(): void {
     setTimeout(() => {
-      this.process(0)
+      void this.process(0)
       .then(() => {
         // TODO retry errors
         this.progress.done();
@@ -327,7 +328,7 @@ class Saver {
           if (startIndex + 1000 >= tiles.length) {
             resolve(true);
           } else {
-            processNext1000(startIndex + 1000).then(resolve);
+            void processNext1000(startIndex + 1000).then(resolve);
           }
         }
       });

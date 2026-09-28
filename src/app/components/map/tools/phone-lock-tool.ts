@@ -18,7 +18,7 @@ export class PhoneLockTool extends MapTool {
         service.set(newValue).then(result => {
           this.enabled = result;
           subscriber.complete();
-        });
+        }).catch(e => subscriber.error(e));
       });
     };
   }

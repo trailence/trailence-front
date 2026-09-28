@@ -138,7 +138,7 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
       ).subscribe(result => {
         if (this.activeTrail$.value === this.traceRecorder.current?.trail) {
           if (this.deviceCanTakePhoto === undefined) {
-            this.cameraService.canTakePhoto().then(result => {
+            void this.cameraService.canTakePhoto().then(result => {
               this.deviceCanTakePhoto = result;
               if (this.activeTrail$.value === this.traceRecorder.current?.trail && this.deviceCanTakePhoto) {
                 this.canTakePhoto = true;
@@ -232,7 +232,7 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
       this.photoService.update(photo.photo, p => { p.latitude = undefined; p.longitude = undefined; });
       return;
     }
-    this.alertController.create({
+    void this.alertController.create({
       header: this.i18n.texts.pages.photos_popup.position.clear_title,
       message: this.i18n.texts.pages.photos_popup.position.clear_message,
       buttons: [
@@ -240,7 +240,7 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
           text: this.i18n.texts.buttons.confirm,
           role: 'danger',
           handler: () => {
-            this.alertController.dismiss();
+            void this.alertController.dismiss();
             this.photoService.update(photo.photo, p => {
               if (p.latitude !== undefined && p.longitude !== undefined) {
                 p.latitude = undefined;
@@ -311,7 +311,7 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
         return concurrency.launchOrWait(op, () => true);
       },
       ondone: (progress: Progress | undefined, result: boolean[], errors: any[]) => {
-        concurrency.waitAll().then(() => {
+        void concurrency.waitAll().then(() => {
           progress?.done();
           errors.push(...processErrors);
           if (errors.length > 0) {
@@ -384,7 +384,7 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
   }
 
   openSlider(index: number): void {
-    this.photoService.openSliderPopup(this.photos.map(p => p.photo), index);
+    void this.photoService.openSliderPopup(this.photos.map(p => p.photo), index);
   }
 
   editDescription(photo: PhotoWithInfo): void {
@@ -392,7 +392,7 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
     photo.editing = photo.photo.description;
     this.changesDetector.detectChanges();
     setTimeout(() => {
-      if (this.descriptionEditor) this.descriptionEditor.setFocus();
+      if (this.descriptionEditor) void this.descriptionEditor.setFocus();
     }, 0);
   }
 
@@ -416,7 +416,7 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
   }
 
   editPhoto(photo: Photo): void {
-    import('../photo-editor/photo-editor.component').then(m => m.openEditor(this.injector, photo));
+    void import('../photo-editor/photo-editor.component').then(m => m.openEditor(this.injector, photo));
   }
 
 }

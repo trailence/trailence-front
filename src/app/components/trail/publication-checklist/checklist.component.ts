@@ -57,7 +57,7 @@ export class CheckListComponent implements OnInit, OnDestroy {
   }
 
   close(): void {
-    this.modalController.dismiss();
+    void this.modalController.dismiss();
   }
 
   check(item: string, checked: boolean): void {
@@ -91,17 +91,17 @@ export class CheckListComponent implements OnInit, OnDestroy {
 
   openDateDialog(): void {
     if (!this.trail || !this.track) return;
-    this.trailMenuService.openTrailDatePopup(this.trail, this.track).then(d => { if (d) this.changeDetector.detectChanges(); });
+    void this.trailMenuService.openTrailDatePopup(this.trail, this.track).then(d => { if (d) this.changeDetector.detectChanges(); });
   }
 
   openLocationDialog(): void {
     if (!this.trail) return;
-    import('../../location-popup/location-popup.component').then(m => m.openLocationDialog(this.injector, this.trail!).then(() => this.changeDetector.detectChanges()));
+    void import('../../location-popup/location-popup.component').then(m => m.openLocationDialog(this.injector, this.trail!)).then(() => this.changeDetector.detectChanges());
   }
 
   openActivityDialog(): void {
     if (!this.trail) return;
-    import('../../activity-popup/activity-popup.component').then(m => m.openActivityDialog(this.injector, [this.trail!])).then(() => this.changeDetector.detectChanges());
+    void import('../../activity-popup/activity-popup.component').then(m => m.openActivityDialog(this.injector, [this.trail!])).then(() => this.changeDetector.detectChanges());
   }
 
 }

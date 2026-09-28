@@ -182,7 +182,7 @@ export class TrailsListComponent extends AbstractComponent {
         const children = [
           new MenuItem().setI18nLabel('pages.trails.filters.save_new').setTextColor('secondary')
           .setAction(() => {
-            this.injector.get(AlertController).create({
+            void this.injector.get(AlertController).create({
               header: this.i18n.texts.pages.trails.filters.save_title,
               inputs: [{
                 type: 'text',
@@ -199,7 +199,7 @@ export class TrailsListComponent extends AbstractComponent {
                   role: 'cancel'
                 }
               ]
-            }).then(a => a.present().then(() => a.onDidDismiss().then(event => {
+            }).then(a => a.present().then(() => a.onDidDismiss().then(event => { // NOSONAR
               if (event.role === 'ok') {
                 const name = event.data.values[0].trim();
                 if (name.length > 0) {
@@ -545,12 +545,12 @@ export class TrailsListComponent extends AbstractComponent {
           .setAction(() => import('../../services/functions/import')
             .then(m => {
               if (this.collection)
-                m.openImportTrailsDialog(this.injector, this.collection);
+                void m.openImportTrailsDialog(this.injector, this.collection);
               else {
                 const retry = (nb: number) => {
                   setTimeout(() => {
                     if (this.collection)
-                      m.openImportTrailsDialog(this.injector, this.collection);
+                      void m.openImportTrailsDialog(this.injector, this.collection);
                     else if (nb < 20)
                       retry(nb + 1);
                   }, nb * 100);
@@ -889,7 +889,7 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   openActivitiesDialog(): void {
-    import('../activity-popup/activity-popup.component')
+    void import('../activity-popup/activity-popup.component')
     .then(m => m.openActivitiesSelectionPopup(
       this.injector,
       this.state$.value.filters.activities.selected || [],
@@ -951,15 +951,15 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   import(): void {
-    import('../../services/functions/import').then(m => m.openImportTrailsDialog(this.injector, this.collection!));
+    void import('../../services/functions/import').then(m => m.openImportTrailsDialog(this.injector, this.collection!));
   }
 
   openTrail(trail: Trail): void {
-    this.router.navigate(['trail', trail.owner, trail.uuid], {queryParams: { from: this.router.url }});
+    void this.router.navigate(['trail', trail.owner, trail.uuid], {queryParams: { from: this.router.url }});
   }
 
   share(): void {
-    import('../share-popup/share-popup.component').then(m => m.openSharePopup(this.injector, this.collection!, []));
+    void import('../share-popup/share-popup.component').then(m => m.openSharePopup(this.injector, this.collection!, []));
   }
 
   removeFromList(trailWithInfo: TrailWithInfo): void {
@@ -1097,7 +1097,7 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   openSelectionMenu(event: MouseEvent): void {
-    import('../menus/menu-content/menu-content.component')
+    void import('../menus/menu-content/menu-content.component')
     .then(module => this.injector.get(PopoverController).create({
       component: module.MenuContentComponent,
       componentProps: {

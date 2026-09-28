@@ -63,7 +63,7 @@ export class AvatarService {
         return this.http.get<AvatarDto>(environment.apiBaseUrl + '/avatar/v1');
       })
     ).subscribe(dto => {
-      this._cache.removeItem('mine*' + this.authService.email);
+      void this._cache.removeItem('mine*' + this.authService.email);
       if (this.authService.auth) {
         this.authService.auth.avatar = dto;
         this.authService.preferencesUpdated();
@@ -209,7 +209,7 @@ export class AvatarService {
   public save(blob: Blob, isPublic: boolean): Observable<AvatarDto> {
     return this.http.post<AvatarDto>(environment.apiBaseUrl + '/avatar/v1', blob, {'X-Avatar-Public': '' + isPublic, 'Content-Type': 'application/octet-stream'}).pipe(
       tap(dto => {
-        this._cache.removeItem('mine*' + this.authService.email);
+        void this._cache.removeItem('mine*' + this.authService.email);
         this.authService.auth!.avatar = dto;
         this.authService.preferencesUpdated();
         this._myDto$.next(dto);
@@ -220,7 +220,7 @@ export class AvatarService {
   public deleteMyCurrent(): void {
     this.http.delete<AvatarDto>(environment.apiBaseUrl + '/avatar/v1/current').subscribe({
       next: dto => {
-        this._cache.removeItem('mine*' + this.authService.email);
+        void this._cache.removeItem('mine*' + this.authService.email);
         this.authService.auth!.avatar = dto;
         this.authService.preferencesUpdated();
         this._myDto$.next(dto);

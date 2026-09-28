@@ -58,19 +58,17 @@ export class FileService implements IFileService {
               }
             };
             files[index].getFile()
-            .then(file => {
-              file.arrayBuffer().then(fileContent => {
-                r.onfileread(index, files.length, fromStartReading, files[index].name, fileContent)
-                .then(result => {
-                  results.push(result);
-                  if (index === files.length - 1) {
-                    setTimeout(() => r.ondone(fromStartReading, results, errors), 0);
-                  } else {
-                    setTimeout(() => readNext(index + 1), 0);
-                  }
-                })
-                .catch(onerror);
-              }).catch(onerror);
+            .then(async file => {
+              try {
+                const fileContent = await file.arrayBuffer()
+                const result = await r.onfileread(index, files.length, fromStartReading, files[index].name, fileContent)
+                results.push(result);
+                if (index === files.length - 1) {
+                  setTimeout(() => r.ondone(fromStartReading, results, errors), 0);
+                } else {
+                  setTimeout(() => readNext(index + 1), 0);
+                }
+              } catch (e) { onerror(e); }
             }).catch(onerror);
           };
           setTimeout(() => readNext(0), 0);
@@ -166,7 +164,7 @@ export class FileService implements IFileService {
     const JSZip = await import('jszip');
     const zip = new JSZip.default();
     let nextFile: { filename: string; data: BinaryContent; } | null;
-    while ((nextFile = await contentProvider()) !== null) {
+    while ((nextFile = await contentProvider()) !== null) { // NOSONAR
       const data = nextFile.data.toRaw();
       zip.file(nextFile.filename, data, {
         base64: typeof data === 'string',

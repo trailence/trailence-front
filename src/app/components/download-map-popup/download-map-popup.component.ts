@@ -114,15 +114,17 @@ export class DownloadMapPopupComponent implements OnInit, OnChanges {
       cachePadding = new Map<string, Map<number, {points: L.Point[], toDownload: L.Point[]}>>();
       this.cache.set(this.options.extendPercent, cachePadding);
     }
-    let total = 0;
+    const layersCounts: Promise<number>[] = [];
     for (const layer of this.getSelection()) {
       let layerCache = cachePadding.get(layer.layer.name);
       if (!layerCache) {
         layerCache = new Map<number, {points: L.Point[], toDownload: L.Point[]}>();
         cachePadding.set(layer.layer.name, layerCache);
       }
-      total += await this.computeLayerDownload(layer, maxZoom, params, layerCache, result);
+      layersCounts.push(this.computeLayerDownload(layer, maxZoom, params, layerCache, result));
     }
+    const counts = await Promise.all(layersCounts);
+    const total = counts.reduce((p,n) => p + n, 0);
     this.nbDownload = total - this.nbDone;
     this.percentDone = Math.floor(this.nbDone * 100 / total);
     return {toDownload: result, params};
@@ -132,25 +134,42 @@ export class DownloadMapPopupComponent implements OnInit, OnChanges {
     const layerResult = new Map<number, L.Point[]>();
     let layerTotal = 0;
     const crs = L.CRS.EPSG3857;
+    const zoomsPromises: Promise<{points: L.Point[], toDownload: L.Point[]}>[] = [];
     for (let zoom = Math.max(layer.layer.minZoom, 1); zoom <= Math.min(maxZoom, layer.layer.maxZoom); ++zoom) {
       let zoomCache = layerCache.get(zoom);
+      let zoomCalculation$: Promise<{points: L.Point[], toDownload: L.Point[]}>;
       if (zoomCache) {
         layerTotal += zoomCache.points.length;
         this.nbDone += zoomCache.points.length - zoomCache.toDownload.length;
+        zoomCalculation$ = Promise.resolve(zoomCache);
       } else {
         const calculation$ = zoom <= 17 || params.paths.length === 0 ?
           calculateTilesFromBounds(zoom, params.allBounds, crs, layer.layer.tileSize) :
           calculateTilesFromPaths(zoom, params.paths, params.pathAroundMeters, crs, layer.layer.tileSize);
-        const points = await calculation$;
-        const toDownload = await this.offlineMap.getTilesToDownload(points, zoom, layer.layer.name);
-        layerTotal += points.length;
-        this.nbDone += points.length - toDownload.length;
-        zoomCache = {points, toDownload};
-        layerCache.set(zoom, zoomCache);
+        const points$ = calculation$.catch(e => {logger.error(e); return [];});
+        zoomCalculation$ = points$.then(async points => {
+          try {
+            return {points, toDownload: await this.offlineMap.getTilesToDownload(points, zoom, layer.layer.name)};
+          } catch (e) {
+            logger.error(e);
+            return {points, toDownload: []};
+          }
+        }).then(result => {
+          layerTotal += result.points.length;
+          this.nbDone += result.points.length - result.toDownload.length;
+          zoomCache = result;
+          layerCache.set(zoom, zoomCache);
+          return zoomCache;
+        });
       }
-      if (zoomCache.toDownload.length > 0)
-        layerResult.set(zoom, zoomCache.toDownload);
+      zoomCalculation$ = zoomCalculation$.then(cache => {
+        if (cache.toDownload.length > 0)
+          layerResult.set(zoom, cache.toDownload);
+        return cache;
+      });
+      zoomsPromises.push(zoomCalculation$);
     }
+    await Promise.all(zoomsPromises);
     if (layerResult.size > 0)
       result.set(layer.layer.name, layerResult);
     return layerTotal;
@@ -187,7 +206,7 @@ export class DownloadMapPopupComponent implements OnInit, OnChanges {
       this.close()
     ]).then(([computed, _]) => {
       if (computed) this.downloadMaps(computed.toDownload, selection, computed.params.allBounds);
-    });
+    }).catch(e => logger.error(e));
   }
 
   private downloadMaps(computed: Map<string, Map<number, L.Point[]>>, selection: {layer: MapLayer, tiles: L.TileLayer}[], allBounds: L.LatLngBounds[]): void {

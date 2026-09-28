@@ -12,6 +12,9 @@ import { combineLatest, firstValueFrom } from 'rxjs';
 import { PhotoService } from '@trailence/services/database/photo.service';
 import { populateWayPointInfo } from '@trailence/services/fetch-source/fetch-source.interfaces';
 import { AsyncPipe } from '@angular/common';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('fetch-source-popup');
 
 @Component({
   selector: 'app-fetch-source-popup',
@@ -60,50 +63,45 @@ export class FetchSourcePopupComponent implements OnInit {
         progress.addWorkDone(1);
         continue;
       }
-      this.fetchSourceService.fetchTrailInfo(t.source).then(info => {
+      void this.fetchSourceService.fetchTrailInfo(t.source).then(async info => {
         if (!info) return true;
-        let r$: Promise<any> = Promise.resolve(true);
         const updateDescription = info.description && info.description.trim().length > 0 && trail.description.trim().length === 0;
         const updateLocation = info.location && info.location.trim().length > 0 && trail.location.trim().length === 0;
         if (updateDescription || updateLocation) {
-          r$ = r$.then(() => new Promise(resolve => this.trailService.doUpdate(trail, t => {
+          await new Promise(resolve => this.trailService.doUpdate(trail, t => {
             if (updateDescription)
               t.description = info.description!.trim();
             if (updateLocation)
               t.location = info.location!.trim();
-          }, () => resolve(true))));
+          }, () => resolve(true)));
         }
         if (info.wayPoints && info.wayPoints.length > 0) {
-          r$ = r$
-          .then(() => firstValueFrom(combineLatest([this.trackService.getFullTrackReady$(trail.originalTrackUuid, email), this.trackService.getFullTrackReady$(trail.currentTrackUuid, email)])))
-          .then(([track1, track2]) => {
-            let track1Updated = populateWayPointInfo(track1, info.wayPoints!);
-            let track2Updated = track2.uuid === track1.uuid ? false : populateWayPointInfo(track2, info.wayPoints!);
-            if (track1Updated) this.trackService.update(track1);
-            if (track2Updated) this.trackService.update(track2);
-            return true;
-          })
+          const [track1, track2] = await firstValueFrom(combineLatest([this.trackService.getFullTrackReady$(trail.originalTrackUuid, email), this.trackService.getFullTrackReady$(trail.currentTrackUuid, email)]));
+          let track1Updated = populateWayPointInfo(track1, info.wayPoints!);
+          let track2Updated = track2.uuid === track1.uuid ? false : populateWayPointInfo(track2, info.wayPoints!);
+          if (track1Updated) this.trackService.update(track1);
+          if (track2Updated) this.trackService.update(track2);
         }
         if (info.photos && info.photos.length > 0) {
           let index = 100;
-          for (const p of info.photos)
-            r$ = r$.then(() => globalThis.fetch(p.url)).then(r => r.arrayBuffer()).then(b => firstValueFrom(
-              this.photoService.addPhoto(
-                email,
-                t.trailUuid,
-                p.description ?? '',
-                index++,
-                b
-              )
-            ));
+          for (const p of info.photos) {
+            try {
+              const response = await globalThis.fetch(p.url); // NOSONAR
+              if (!response.ok) continue;
+              const buffer = await response.arrayBuffer(); // NOSONAR
+              await firstValueFrom(this.photoService.addPhoto(email, t.trailUuid, p.description ?? '', index++, buffer)); // NOSONAR
+            } catch (e) {
+              logger.error('Error fetching photo', e);
+            }
+          }
         }
-        return r$;
-      }).catch(e => true).then(() => progress.addWorkDone(1));
+        return true;
+      }).catch(e => { logger.error(e); return true; }).then(() => progress.addWorkDone(1));
     }
   }
 
   close(): void {
-    this.modalController.dismiss(null, 'cancel');
+    void this.modalController.dismiss(null, 'cancel');
   }
 
 }

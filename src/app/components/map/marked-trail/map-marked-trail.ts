@@ -9,7 +9,7 @@ import { OsmWaysTrackPoint } from '@trailence/utils/track-computed-data/match-os
 import { Arrays } from '@trailence/utils/arrays';
 import { TrackPointReference } from '@trailence/utils/track-computed-data/types';
 import { EarthPoint } from '@trailence/utils/latlng';
-import { Way } from '@trailence/services/map/way';
+import { Route, Way } from '@trailence/services/map/way';
 import { Maps } from '@trailence/utils/maps';
 
 const MIN_DISTANCE_TO_DISPLAY = 100;
@@ -85,12 +85,20 @@ class Section {
       if (!way) continue;
       for (const route of way.routes) {
         if (!route.symbol) continue;
-        if (!route.name && !route.ref) continue;
-        const name = route.name ? (route.name + (route.ref ? ' (' + route.ref + ')' : '')) : route.ref!;
-        Maps.computeIfAbsent(result, route.symbol, () => new Set()).add(name);
+        const name = this.getRouteName(route);
+        if (name) Maps.computeIfAbsent(result, route.symbol, () => new Set()).add(name);
       }
     }
     return result;
+  }
+
+  getRouteName(route: Route): string | undefined {
+    if (route.name) {
+      if (route.ref) return route.name + ' (' + route.ref + ')';
+      return route.name;
+    }
+    if (route.ref) return route.ref;
+    return undefined;
   }
 
 }
@@ -241,47 +249,50 @@ export class MapMarkedTrail implements MapElement {
   addTo(map: L.Map): void {
     if (this._map) return;
     this._map = map;
-    if (this._osmc === undefined) {
-      this._osmc = L.marker(this.pos, {
-        icon: L.divIcon({
-          html: '<div class="marked-trail">' + this.svg + '</div>',
-          iconSize: [24, this.height],
-          iconAnchor: [12, this.height / 2],
-          className: 'no-background rotate-' + this.rotation,
-        }),
-        rotation: -this.rotation,
-        rotateWithView: true,
-      } as any);
-      if (this.routesNames.size > 0) {
-        const popup = document.createElement('DIV');
-        for (const [symbol, names] of this.routesNames) {
-          const svg = this.symbolService.generateSvg(symbol);
-          if (!svg) continue;
-          for (const name of names) {
-            const n = name.trim();
-            if (n.length === 0) continue;
-            const row = document.createElement('DIV');
-            row.style.display = 'flex';
-            row.style.flexDirection = 'row';
-            row.style.alignItems = 'center';
-            if (popup.children.length > 0) row.style.marginTop = '2px';
-            const svgContainer = document.createElement('DIV')
-            svgContainer.innerHTML = svg;
-            svgContainer.style.border = '1px solid rgba(0, 0, 0, 0.33)';
-            svgContainer.style.height = '26px';
-            row.appendChild(svgContainer);
-            const textContainer = document.createElement('DIV');
-            textContainer.innerText = n;
-            textContainer.style.marginLeft = '3px';
-            row.appendChild(textContainer);
-            popup.appendChild(row);
-          }
-        }
-        if (popup.children.length > 0)
-          this._osmc.bindPopup(popup, {className: 'marked-trails-popup'});
+    this._osmc ??= this.createMarker();
+    this._osmc.addTo(map);
+  }
+
+  private createMarker(): L.Marker<any> {
+    const marker = L.marker(this.pos, {
+      icon: L.divIcon({
+        html: '<div class="marked-trail">' + this.svg + '</div>',
+        iconSize: [24, this.height],
+        iconAnchor: [12, this.height / 2],
+        className: 'no-background rotate-' + this.rotation,
+      }),
+      rotation: -this.rotation,
+      rotateWithView: true,
+    } as any);
+
+    if (this.routesNames.size === 0) return marker;
+    const popup = document.createElement('DIV');
+    for (const [symbol, names] of this.routesNames) {
+      const svg = this.symbolService.generateSvg(symbol);
+      if (!svg) continue;
+      for (const name of names) {
+        const n = name.trim();
+        if (n.length === 0) continue;
+        const row = document.createElement('DIV');
+        row.style.display = 'flex';
+        row.style.flexDirection = 'row';
+        row.style.alignItems = 'center';
+        if (popup.children.length > 0) row.style.marginTop = '2px';
+        const svgContainer = document.createElement('DIV')
+        svgContainer.innerHTML = svg;
+        svgContainer.style.border = '1px solid rgba(0, 0, 0, 0.33)';
+        svgContainer.style.height = '26px';
+        row.appendChild(svgContainer);
+        const textContainer = document.createElement('DIV');
+        textContainer.innerText = n;
+        textContainer.style.marginLeft = '3px';
+        row.appendChild(textContainer);
+        popup.appendChild(row);
       }
     }
-    this._osmc.addTo(map);
+    if (popup.children.length > 0)
+      marker.bindPopup(popup, {className: 'marked-trails-popup'});
+    return marker;
   }
 
   remove(): void {

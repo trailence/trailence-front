@@ -113,12 +113,12 @@ export class LiveGroupService {
 
   private watching = false;
   private watchPosition(ask: boolean): void {
-    this.geolocation.getState()
+    void this.geolocation.getState()
     .then(state => {
       if (state === GeolocationState.DISABLED) {
         if (!ask) return;
         const alertController = this.injector.get(AlertController);
-        alertController.create({
+        void alertController.create({
           header: this.i18n.texts.trace_recorder.disabled_popup.title,
           message: this.i18n.texts.trace_recorder.disabled_popup.message,
           backdropDismiss: false,
@@ -126,18 +126,18 @@ export class LiveGroupService {
             text: this.i18n.texts.buttons.retry,
             role: 'ok',
             handler: () => {
-              alertController.dismiss();
+              void alertController.dismiss();
               this.watchPosition(true);
             }
           }, {
             text: this.i18n.texts.buttons.cancel,
             role: 'cancel',
             handler: () => {
-              alertController.dismiss();
+              void alertController.dismiss();
               logger.info('User cancel GPS: cannot watch for live groups');
             }
           }]
-        }).then(alert => alert.present());
+        }).then(alert => void alert.present());
       } else if (state === GeolocationState.DENIED) {
         logger.error('Geolocation access denied by user: cannot watch for live groups');
       } else {
@@ -263,16 +263,16 @@ export class LiveGroupService {
 
   public openLiveGroup(group: LiveGroupDto): void {
     if (group.trailOwner && group.trailUuid)
-      this.router.navigate(['trail', group.trailOwner, group.trailUuid], {fragment: 'bottom-tab=live-group'});
+      void this.router.navigate(['trail', group.trailOwner, group.trailUuid], {fragment: 'bottom-tab=live-group'});
     else
-      this.router.navigateByUrl('/live-group/' + group.slug);
+      void this.router.navigateByUrl('/live-group/' + group.slug);
   }
 
   private _informListeningShown = false;
   private informListening(): void {
     this._informListeningShown = true;
     const alertController = this.injector.get(AlertController);
-    alertController.create({
+    void alertController.create({
       header: this.i18n.texts.pages.live_group.title,
       message: this.i18n.texts.pages.live_group.listening_info_message,
       buttons: [
@@ -280,7 +280,7 @@ export class LiveGroupService {
           text: this.i18n.texts.buttons.understood,
           role: 'ok',
           handler: () => {
-            alertController.dismiss();
+            void alertController.dismiss();
             this._informListeningShown = false;
             if (this._groups$.value?.length) this.listenToGroups(true);
           }
@@ -288,7 +288,7 @@ export class LiveGroupService {
           text: this.i18n.texts.buttons.cancel,
           role: 'cancel',
           handler: () => {
-            alertController.dismiss();
+            void alertController.dismiss();
             this._informListeningShown = false;
             this._paused$.next(true);
           }

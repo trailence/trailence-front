@@ -38,7 +38,7 @@ export class CalibrateElevationWithProvider implements TrackEditTool {
           let diff = Math.round(totalDiff / nbPoints);
           return new Observable<boolean>(subscriber => {
             const i18n = ctx.injector.get(I18nService);
-            ctx.injector.get(AlertController)
+            void ctx.injector.get(AlertController)
             .create({
               header: i18n.texts.track_edit_tools.tools.calibrate_elevation,
               message: i18n.translateWithArguments('track_edit_tools.tools.calibrate_elevation_message', [i18n.elevationInUserUnit(diff), i18n.shortUserElevationUnit()]),
@@ -60,11 +60,11 @@ export class CalibrateElevationWithProvider implements TrackEditTool {
               ]
             })
             .then(alert => {
-              alert.onDidDismiss().then(() => {
+              void alert.onDidDismiss().then(() => {
                 subscriber.next(true);
                 subscriber.complete();
               });
-              alert.present();
+              void alert.present();
             })
           });
         })

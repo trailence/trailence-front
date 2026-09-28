@@ -60,7 +60,7 @@ export class GeolocationService extends AbstractGeolocationService {
         return new Promise((resolve, error) => {
           let done = false;
           const check = () => {
-            this.getCurrentPosition().then(p => {
+            void this.getCurrentPosition().then(p => {
               logger.info('getCurrentPosition returned a position => consider it as enabled', p);
               done = true;
               resolve(GeolocationState.ENABLED);

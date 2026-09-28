@@ -1,5 +1,3 @@
-import { Injector } from '@angular/core';
-import { MapComponent } from '../map.component';
 import { MapTool, MapToolContext } from './tool.interface';
 import { of } from 'rxjs';
 

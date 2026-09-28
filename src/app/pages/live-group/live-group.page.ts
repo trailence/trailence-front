@@ -109,7 +109,7 @@ export class LiveGroupPage extends AbstractPage {
           this.group = groups.find(g => g.slug === this.path1);
           if (!this.group) {
             logger.warn('Live group not found, redirecting to default page', this.path1, groups);
-            this.router.navigateByUrl(this.authService.auth ? defaultAuthRoute : defaultPublicRoute);
+            void this.router.navigateByUrl(this.authService.auth ? defaultAuthRoute : defaultPublicRoute);
           }
           else if (this.group.trailOwner && this.group.trailUuid)
             this.liveGroupService.openLiveGroup(this.group); // go to trail page
@@ -126,7 +126,7 @@ export class LiveGroupPage extends AbstractPage {
   titleLongPress = () => this.edit();
 
   private edit(): void {
-    import('../../components/live-group/live-group-popup.component')
+    void import('../../components/live-group/live-group-popup.component')
     .then(m => {
       if (!this.group) return;
       return m.openEditLiveGroupPopup(this.injector, this.group, undefined, undefined);
@@ -142,7 +142,7 @@ export class LiveGroupPage extends AbstractPage {
     this.joining = true;
     this.liveGroupService.joinGroup(this.path2!, this.myName).subscribe({
       next: group => {
-        this.router.navigateByUrl('/live-group/' + group.slug);
+        void this.router.navigateByUrl('/live-group/' + group.slug);
         this.joining = false;
       },
       error: e => {

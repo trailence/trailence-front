@@ -24,6 +24,7 @@ import { collection$items } from '@trailence/utils/rxjs/collection$items';
 import { CommonDatabaseService } from './common-database.service';
 import { StoreService } from './store/store.service';
 import { getLogger } from '@trailence/utils/console';
+import { CompositeOnDone } from '@trailence/utils/callback-utils';
 
 const logger = getLogger('trail-collection.service');
 
@@ -350,16 +351,21 @@ class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollectio
       const local = this._store.value.find(c$ => c$.value?.type === entity.type && c$.value.isCreatedLocally() && !c$.value.isDeletedLocally())?.value;
       if (!local) return;
       const trailService = this.injector.get(TrailService);
+      const ondone = new CompositeOnDone(() => {
+        this.delete(local);
+      });
+      const completed = ondone.add();
+      ondone.start();
       trailService.getAllWhenLoaded$().pipe(
         collection$items(),
         map(trails => trails.filter(t => t.collectionUuid === local.uuid)),
         takeWhile(trails => trails.length > 0),
       ).subscribe({
         next: trails => {
-          for (const trail of trails) trailService.doUpdate(trail, t => t.collectionUuid = entity.uuid);
+          for (const trail of trails) trailService.doUpdate(trail, t => t.collectionUuid = entity.uuid, ondone.add());
         },
         complete: () => {
-          this.delete(local);
+          completed();
         }
       });
     }

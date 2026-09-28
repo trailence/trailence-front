@@ -21,7 +21,7 @@ import { EmailsValue, MultipleInputEmailComponent } from '../input-email/multipl
 import { TrailCollection } from '@trailence/model/trail-collection';
 
 export function openSharePopup(injector: Injector, collection: TrailCollection, trails: Trail[]) {
-  injector.get(ModalController).create({
+  void injector.get(ModalController).create({
     component: SharePopupComponent,
     componentProps: {
       collection,
@@ -109,11 +109,10 @@ export class SharePopupComponent implements OnInit {
       this.elements = this.trails!.map(trail => trail.uuid);
       this.pages = [SharePage.NAME_WHO];
       this.shareDescription = new TranslatedString('pages.share_popup.share_description.TRAIL', [this.elements.length]).translate$(this.i18n);
+    } else if (this.collection!.name.length === 0 && this.collection!.type === TrailCollectionType.MY_TRAILS) {
+      this.collectionName = this.i18n.texts.my_trails;
     } else {
-      if (this.collection!.name.length === 0 && this.collection!.type === TrailCollectionType.MY_TRAILS)
-        this.collectionName = this.i18n.texts.my_trails;
-      else
-        this.collectionName = this.collection!.name;
+      this.collectionName = this.collection!.name;
     }
     this.mailLanguage = this.prefService.preferences.lang;
   }

@@ -6,7 +6,7 @@ import Trailence from '@trailence/services/trailence.service';
 import { environment } from '@env/environment';
 
 export function openLiveGroupLinkPopup(injector: Injector, group: LiveGroupDto): void {
-  injector.get(ModalController).create({
+  void injector.get(ModalController).create({
     component: LiveGroupLinkPopup,
     componentProps: {group}
   }).then(m => m.present());
@@ -38,7 +38,7 @@ export class LiveGroupLinkPopup implements OnInit {
   }
 
   ngOnInit(): void {
-    import('qrcode')
+    void import('qrcode')
     .then(module => {
       const canvas = document.createElement('CANVAS') as HTMLCanvasElement;
       canvas.width = 150;
@@ -49,7 +49,7 @@ export class LiveGroupLinkPopup implements OnInit {
           margin: 1,
           width: 150,
         },
-        (e, r) => {
+        (_, r) => {
           if (r) this.qrCode = r;
         }
       );
@@ -57,7 +57,7 @@ export class LiveGroupLinkPopup implements OnInit {
   }
 
   copyLink(): void {
-    navigator.clipboard.writeText(this.linkStart + this.group.slug)
+    void navigator.clipboard.writeText(this.linkStart + this.group.slug)
     .then(() => this.toastController.create({
       message: this.i18n.texts.pages.trail_link.copied,
       color: 'success',
@@ -67,10 +67,10 @@ export class LiveGroupLinkPopup implements OnInit {
   }
 
   shareLink(): void {
-    Trailence.share({link: this.linkStart + this.group.slug, title: this.i18n.texts.pages.live_group.title});
+    void Trailence.share({link: this.linkStart + this.group.slug, title: this.i18n.texts.pages.live_group.title});
   }
 
   close(): void {
-    this.modalController.dismiss();
+    void this.modalController.dismiss();
   }
 }

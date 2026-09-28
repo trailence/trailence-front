@@ -47,10 +47,8 @@ export class RangeComponent implements AfterViewInit, OnDestroy {
   ) {}
 
   ngAfterViewInit(): void {
-    if (!this.startGesture)
-      this.startGesture = this.createGesture(this.startKnob.nativeElement, true);
-    if (!this.endGesture)
-      this.endGesture = this.createGesture(this.endKnob.nativeElement, false);
+    this.startGesture ??= this.createGesture(this.startKnob.nativeElement, true);
+    this.endGesture ??= this.createGesture(this.endKnob.nativeElement, false);
   }
 
   ngOnDestroy(): void {
@@ -61,7 +59,7 @@ export class RangeComponent implements AfterViewInit, OnDestroy {
   private createGesture(element: HTMLElement, isStart: boolean): Gesture {
     let startValue: number | undefined;
     let size: number | undefined;
-    const applyDelta = (e: GestureDetail) => {
+    const applyDelta = (e: GestureDetail) => { // NOSONAR
       if (startValue === undefined || size === undefined) return;
       const delta = this.direction === 'horizontal' ? e.deltaX : e.deltaY;
       const deltaValue = delta * (this.max - this.min) / size;

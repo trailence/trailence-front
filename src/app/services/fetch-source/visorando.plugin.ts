@@ -280,7 +280,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
           const end = end1 > 0 ? (end2 > 0 ? Math.min(end1, end2) : end1) : end2;
           if (end > 0) {
             const value = html.substring(pos + 12, end);
-            if (/^[0-9]+$/.test(value)) {
+            if (/^\d+$/.test(value)) {
               keyNumber = value;
               break;
             }
@@ -555,7 +555,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     const keyNumber = Number.parseInt(uuid);
     if (Number.isNaN(keyNumber)) return of([]);
     return this.injector.get(HttpService).get<{error?: number, html?: string}>('https://www.visorando.com/index.php?component=ajax&task=getRandoTopics&idRandonnee=' + keyNumber + '&start=' + start + '&limit=' + limit).pipe(
-      map(response => {
+      map(response => { // NOSONAR
         if (!response?.html) return [];
         const sanitized = this.sanitizer.sanitize(SecurityContext.HTML, response.html);
         if (!sanitized) return [];

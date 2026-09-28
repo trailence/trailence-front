@@ -88,7 +88,7 @@ export class HomePage extends PublicPage implements AfterContentChecked {
     for (const trail of trails) {
       const track = tracks.find(t => t.uuid === trail.currentTrackUuid);
       if (!track) continue;
-      const info = await trailence.getInfo(trail.uuid);
+      const info = await trailence.getInfo(trail.uuid); // NOSONAR
       if (!info) continue;
       result.push({trail, track, info});
     }

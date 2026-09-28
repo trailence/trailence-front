@@ -16,7 +16,7 @@ export class MapLayerSelectionTool extends MapTool {
   private _execute(ctx: MapToolContext): Observable<any> {
     const modalController = ctx.injector.get(ModalController);
     return new Observable(subscriber => {
-      import('../../map-layer-selection/map-layer-selection.component')
+      void import('../../map-layer-selection/map-layer-selection.component')
       .then(module => modalController.create({
         component: module.MapLayerSelectionComponent,
         componentProps: {
@@ -45,13 +45,13 @@ export class MapLayerSelectionTool extends MapTool {
                 ctx.mapComponent.getState().tilesName = layer.name;
               }
             }
-            modalController.dismiss();
+            void modalController.dismiss();
           },
         }
       }))
       .then(modal => {
-        modal.onDidDismiss().then(() => subscriber.complete());
-        modal.present();
+        void modal.present();
+        void modal.onDidDismiss().then(() => subscriber.complete()); // NOSONAR
       });
     });
   }

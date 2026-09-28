@@ -98,7 +98,7 @@ export class SetElevationOnRangeManualValueTool implements TrackEditTool {
 
   execute(ctx: TrackEditToolContext): void {
     const i18n = ctx.injector.get(I18nService);
-    ctx.injector.get(AlertController).create({
+    void ctx.injector.get(AlertController).create({
       header: i18n.texts.track_edit_tools.categories.set_elevation_on_range,
       inputs: [
         {
@@ -119,7 +119,7 @@ export class SetElevationOnRangeManualValueTool implements TrackEditTool {
         }
       ]
     }).then(alert => {
-      alert.onDidDismiss().then(result => {
+      void alert.onDidDismiss().then(result => { // NOSONAR
         if (result.role === 'ok') {
           const elevation = Number.parseFloat(result.data?.values[0]);
           if (!Number.isNaN(elevation)) {
@@ -133,7 +133,7 @@ export class SetElevationOnRangeManualValueTool implements TrackEditTool {
           }
         }
       });
-      alert.present();
+      void alert.present();
     });
   }
 

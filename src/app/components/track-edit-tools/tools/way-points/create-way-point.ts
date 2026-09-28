@@ -31,7 +31,7 @@ export class CreateWayPointTool implements TrackEditTool {
     ctx.modifyTrack(track => {
       const wp = new WayPoint(point.point, '', '');
       return new Observable<boolean>(subscriber => {
-        import('./way-point-edit/way-point-edit.component')
+        void import('./way-point-edit/way-point-edit.component')
         .then(module => ctx.injector.get(ModalController).create({
           component: module.WayPointEditModal,
           componentProps: {
@@ -40,14 +40,14 @@ export class CreateWayPointTool implements TrackEditTool {
           }
         }))
         .then(modal => {
-          modal.onDidDismiss().then(result => {
+          void modal.onDidDismiss().then(result => { // NOSONAR
             if (result.role === 'ok') {
               track.appendWayPoint(wp);
               TrackUtils.putWayPointAtIndexForFirstExactPosition(track, wp);
             }
             subscriber.complete();
           });
-          modal.present();
+          void modal.present();
         });
       });
     }, true, true).subscribe(() => ctx.refreshTools());

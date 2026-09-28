@@ -97,7 +97,7 @@ export class AdminUsersPage {
   tableSettings = this.tableSettingsGeneral;
 
   displayUser(user: any): void {
-    import('./user/user.component')
+    void import('./user/user.component')
     .then(m => this.modalController.create({
       component: m.UserComponent,
       componentProps: {

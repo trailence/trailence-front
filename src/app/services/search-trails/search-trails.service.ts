@@ -78,7 +78,7 @@ export class SearchTrailsService {
       .setIcon('radio-group').setI18nLabel('pages.trails.search.sources')
       .setVisible(() => this._availableSearchPlugins.length > 1)
       .setAction(() => {
-        import('@ionic/angular').then(ionic => this.injector.get(ionic.AlertController))
+        void import('@ionic/angular').then(ionic => this.injector.get(ionic.AlertController))
         .then(alertController => alertController.create({
           header: this.i18n.texts.pages.trails.search.sources,
           inputs: this._availableSearchPlugins.map(plugin => ({
@@ -95,7 +95,7 @@ export class SearchTrailsService {
                 this._selectedSearchPlugins = [value];
                 this.mapTopToolbar$.next(this.mapTopToolbar$.value);
               }
-              alertController.dismiss();
+              void alertController.dismiss();
             },
           }]
         }))
@@ -250,7 +250,7 @@ export class SearchTrailsService {
       this._bubbles$.next(result.trailsByTile.map(r => this.searchBubbleResultToMapBubble(r, zoom)));
       logger.info('Search bubbles found', result.trailsByTile.length);
       if (result.uuids?.length) {
-        plugin.getTrails(result.uuids)
+        void plugin.getTrails(result.uuids)
         .catch(e => {
           logger.error('Get trails by uuids error', e);
           return [] as Trail[];

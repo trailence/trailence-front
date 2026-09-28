@@ -112,11 +112,11 @@ export class AppComponent {
           first(),
         ).subscribe(() => {
           this.loadMenu = true;
-          this.loadServices();
+          void this.loadServices();
         });
         setTimeout(() => this.loadServices(), 1000);
       }
-      import('./services/geolocation/geolocation.service')
+      void import('./services/geolocation/geolocation.service')
       .then(module => injector.get(module.GeolocationService).waitingForGps$.subscribe(value => {
         this.waitingForGps = value;
         this.injector.get(ChangeDetectorRef).detectChanges();

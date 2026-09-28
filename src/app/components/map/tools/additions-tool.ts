@@ -43,14 +43,14 @@ export class AdditionsTool extends MapTool {
       if (this.modal) {
         this.closeModal();
       } else {
-        this.displayModal(ctx);
+        void this.displayModal(ctx);
       }
       return of(true);
     };
   }
 
   private closeModal(): void {
-    this.modal?.dismiss();
+    void this.modal?.dismiss();
     this.modal = undefined;
   }
 
@@ -85,7 +85,7 @@ export class AdditionsTool extends MapTool {
       },
       cssClass: 'small-modal'
     });
-    this.modal.onDidDismiss().then(() => this.modal = undefined);
+    void this.modal.onDidDismiss().then(() => this.modal = undefined);
     await this.modal.present();
   }
 
@@ -136,7 +136,7 @@ export class AdditionsTool extends MapTool {
       if (additions.done) {
         this._loading = false;
         if (additions.partial && !ctx.injector.get(NetworkService).server) {
-          ctx.injector.get(ToastController).create({
+          void ctx.injector.get(ToastController).create({
             message: ctx.injector.get(I18nService).texts.mapAdditions.errors.no_net,
             color: 'warning',
             duration: 5000,

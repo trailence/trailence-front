@@ -41,8 +41,8 @@ export class ImportPopupComponent {
   }
 
   fromFile(): void {
-    import('../../services/functions/import').then(m => m.openImportTrailsFileDialog(this.injector, this.collection));
-    this.modalController.dismiss();
+    void import('../../services/functions/import').then(m => m.openImportTrailsFileDialog(this.injector, this.collection));
+    void this.modalController.dismiss();
   }
 
   updateUrl(value: string): void {
@@ -93,7 +93,7 @@ export class ImportPopupComponent {
         };
       } else if (item.types.includes('text/plain') && !url) {
         try {
-          const text = await item.getType('text/plain').then(text => text.text());
+          const text = await item.getType('text/plain').then(text => text.text()); // NOSONAR
           if (text.startsWith('http')) url = text.trim();
         } catch (e) { // NOSONAR
           // ignore
@@ -128,7 +128,7 @@ export class ImportPopupComponent {
   }
 
   close(): void {
-    this.modalController.dismiss(null, 'cancel');
+    void this.modalController.dismiss(null, 'cancel');
   }
 
 }

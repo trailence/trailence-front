@@ -27,7 +27,7 @@ export abstract class AddPointsTool implements TrackEditTool {
     if (!sel) return;
     const isForward = sel.pointIndex !== 0;
     ctx.selection.cancelSelection();
-    ctx.startInteractiveTool(
+    void ctx.startInteractiveTool(
       iCtx => [
         new MenuItem()
           .setI18nLabel('track_edit_tools.stop_interactive')

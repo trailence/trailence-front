@@ -34,7 +34,7 @@ export class UserComponent {
   ) {}
 
   close(): void {
-    this.modalController.dismiss();
+    void this.modalController.dismiss();
   }
 
   removeRole(role: string): void {
@@ -47,7 +47,7 @@ export class UserComponent {
   }
 
   addRole(): void {
-    this.alertController.create({
+    void this.alertController.create({
       header: this.i18n.texts.admin.users.add_role,
       inputs: [
         {
@@ -64,17 +64,21 @@ export class UserComponent {
           role: 'cancel'
         }
       ]
-    }).then(m => m.present().then(() => m.onDidDismiss().then(event => {
-      if (event.role === 'ok') {
-        const role = event.data.values[0].trim();
-        if (role.length > 0)
-          this.http.put<string[]>(environment.apiBaseUrl + '/admin/users/v1/' + this.user.email + '/roles', [...this.user.roles, role])
-          .subscribe({
-            next: list => this.user.roles = list,
-            error: e => this.errorService.addNetworkError(e, 'admin.users.error', [])
-          });
-      }
-    })));
+    })
+    .then(m => {
+      void m.present();
+      void m.onDidDismiss().then(event => {
+        if (event.role === 'ok') {
+          const role = event.data.values[0].trim();
+          if (role.length > 0)
+            this.http.put<string[]>(environment.apiBaseUrl + '/admin/users/v1/' + this.user.email + '/roles', [...this.user.roles, role])
+            .subscribe({
+              next: list => this.user.roles = list,
+              error: e => this.errorService.addNetworkError(e, 'admin.users.error', [])
+            });
+        }
+      });
+    });
   }
 
   refreshQuotas(): void {

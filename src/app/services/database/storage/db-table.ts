@@ -56,7 +56,7 @@ export class DbTable<DTO> {
     for (const migration of this.migrations) {
       if (version < migration.version) {
         logger.info('Migration of table ' + dexie.name + '/' + this.name + ': ' + migration.name + ' (to version ' + migration.version + ')');
-        await migration.migration(this.injector, dexie, table, localDir);
+        await migration.migration(this.injector, dexie, table, localDir); // NOSONAR
         version = migration.version;
         logger.info('Migration done for table ' + dexie.name + '/' + this.name + ': ' + migration.name + ' (to version ' + migration.version + ')');
       }
@@ -69,14 +69,14 @@ export class DbTable<DTO> {
   protected ready$ = new BehaviorSubject<DbStatus<DTO> | undefined>(undefined);
   private readonly ngZone: NgZone;
 
-  async start(db: Db, ready: DbReady, table: Table, localDir: string, stillValid: () => boolean) {
+  start(db: Db, ready: DbReady, table: Table, localDir: string, stillValid: () => boolean) {
     this.ready$.next({db, table, localDir, email: ready.email, isNewDb: ready.isNew, counter: ready.counter});
   }
 
   async shutdown() {
     this.ready$.next(undefined);
     for (const hook of this.shutdownHooks) {
-      await hook();
+      await hook(); // NOSONAR
     }
     this.shutdownHooks.splice(0, this.shutdownHooks.length);
   }
@@ -119,6 +119,11 @@ export class DbTable<DTO> {
   protected toDtos: (fromTable: Partial<DTO>[], status: DbStatus<DTO>) => Promise<DTO[]> = dtos => Promise.resolve(dtos as DTO[]);
   protected fromDtos: (dtos: DTO[], status: DbStatus<DTO>) => Promise<Partial<DTO>[]> = dtos => Promise.resolve(dtos);
   protected deleted: (keys: string[], status: DbStatus<DTO>) => Promise<any> = () => Promise.resolve();
+
+  protected async toDto(dto: Partial<DTO> | undefined | null, status: DbStatus<DTO>): Promise<DTO | undefined> {
+    if (!dto) return undefined;
+    return (await this.toDtos([dto], status))[0];
+  }
 
   public getAllKeys$(): Observable<string[]> {
     return this.onceReady$().pipe(
@@ -189,13 +194,13 @@ export class DbTable<DTO> {
 
   public getByKey$(key: string): Observable<DTO | undefined> {
     return this.onceReady$().pipe(
-      switchMap(status => status.table.get(key).then(dto => dto ? this.toDtos([dto], status).then(dtos => dtos[0]) : undefined)),
+      switchMap(status => status.table.get(key).then(dto => this.toDto(dto, status))),
     );
   }
 
   public getOneWhen(predicate: (dto: DTO) => boolean): Observable<DTO | undefined> {
     return this.onceReady$().pipe(
-      switchMap(status => status.table.filter(predicate).first().then(dto => dto ? this.toDtos([dto], status).then(dtos => dtos[0]) : undefined)),
+      switchMap(status => status.table.filter(predicate).first().then(dto => this.toDto(dto, status))),
     );
   }
 
@@ -308,7 +313,7 @@ export class DbTable<DTO> {
               .then(() => this.isStillValid(status) ? this.deleted(toRemove, status) : undefined)
               .then(() => count += toRemove.length);
             }).then(() => {
-              if (this.isStillValid(status) && end < keys.length) return next(end);
+              if (this.isStillValid(status) && end < keys.length) return next(end); // NOSONAR
               return count;
             })
           };

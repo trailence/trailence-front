@@ -54,9 +54,9 @@ describe('Trail Page', () => {
   });
 
   it('Edit tags', async () => {
-    expect((await trailPage.trailComponent.getTags()).length).toBe(0);
+    expect((await trailPage.trailComponent.getTags())).toHaveSize(0);
     let tagsPopup = await trailPage.trailComponent.openTags();
-    expect((await tagsPopup.getAllTags()).length).toBe(0);
+    expect((await tagsPopup.getAllTags())).toHaveSize(0);
     await tagsPopup.createTag('My Tag');
     await tagsPopup.createTag('Beautiful');
     await tagsPopup.selectTags(['My Tag', 'Beautiful']);
@@ -64,7 +64,7 @@ describe('Trail Page', () => {
     try { await browser.waitUntil(() => new TrailPage(trailPage.owner, trailPage.uuid).trailComponent.getTags().then(tags => tags.length === 2)); } catch (e) {}
     trailPage = new TrailPage(trailPage.owner, trailPage.uuid);
     let tags = await trailPage.trailComponent.getTags();
-    expect(tags.length).toBe(2);
+    expect(tags).toHaveSize(2);
     expect(tags.indexOf('My Tag') >= 0).toBeTrue();
     expect(tags.indexOf('Beautiful') >= 0).toBeTrue();
 
@@ -260,7 +260,7 @@ describe('Trail Page', () => {
       if (sizes.length !== 2 || sizes[0] === '0 Bytes' || sizes[1] !== '0 Bytes') throw Error();
       return sizes;
     }, 3, 2500);
-    expect(sizes.length).toBe(2);
+    expect(sizes).toHaveSize(2);
     expect(sizes[0]).not.toBe('0 Bytes');
     expect(sizes[1]).toBe('0 Bytes');
     await App.synchronize();

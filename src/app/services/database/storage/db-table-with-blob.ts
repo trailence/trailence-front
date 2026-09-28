@@ -163,10 +163,10 @@ export class DbTableWithBlob<DTO> extends DbTable<DTO> {
             subscriber.next(n);
             if (end < keys.length) next(end);
             else subscriber.complete();
-          });
+          }).catch(e => subscriber.error(e));
         }
         next(0);
-      });
+      }).catch(e => subscriber.error(e));
     })));
   }
 

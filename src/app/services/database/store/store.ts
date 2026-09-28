@@ -308,7 +308,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
         resolve(true);
       });
     });
-    this.operations.push(description, operation);
+    void this.operations.push(description, operation);
   }
 
   protected waitReadyWithTimeout(entities: STORE_ITEM[]): Observable<STORE_ITEM[]> {

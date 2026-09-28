@@ -68,7 +68,7 @@ export class CleanupService implements OnDestroy {
       if (!this.timeout) {
         this.nextTimeout = Date.now() + STARTUP_GRACE_PERIOD;
         this.ngZone.runOutsideAngular(() => this.timeout = setTimeout(() => {
-          import('@trailence/services/trace-recorder/trace-recorder.service')
+          void import('@trailence/services/trace-recorder/trace-recorder.service')
           .then(module => {
             const traceService = this.injector.get(module.TraceRecorderService);
             this.isRecording = () => traceService.recording;

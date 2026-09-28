@@ -281,7 +281,7 @@ export class PhotoService {
       },
       cssClass: ['full-screen', 'semi-opaque'],
     });
-    modal.present();
+    await modal.present();
   }
 
   public getTotalCacheSize(maxDateStored: number): Observable<[number,number]> {
@@ -499,7 +499,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> implements StoreWithCleanin
               }
               count++;
               this.delete(photo, d);
-            });
+            }).catch(_ => d());
           }
           ondone.start();
         });

@@ -68,7 +68,7 @@ export class EditWayPointTool implements TrackEditTool {
 
   private openModal(ctx: TrackEditToolContext, w: WayPoint, isNew: boolean, track: Track): Observable<boolean> {
     return new Observable<boolean>(subscriber => {
-      import('./way-point-edit/way-point-edit.component')
+      void import('./way-point-edit/way-point-edit.component')
       .then(module => ctx.injector.get(ModalController).create({
         component: module.WayPointEditModal,
         componentProps: {
@@ -77,13 +77,13 @@ export class EditWayPointTool implements TrackEditTool {
         }
       }))
       .then(modal => {
-        modal.onDidDismiss().then(result => {
+        void modal.onDidDismiss().then(result => { // NOSONAR
           if (result.role === 'ok' && isNew) {
             track.appendWayPoint(w);
           }
           subscriber.complete();
         });
-        modal.present();
+        void modal.present();
       });
     });
   }

@@ -13,8 +13,8 @@ export class ConcurrentPromises {
         // launch now
         const p = op();
         this.pending.push(p);
-        p.finally(() => {
-          this.pending.splice(this.pending.indexOf(p), 1);
+        void p.finally(() => {
+          this.pending.splice(this.pending.indexOf(p), 1); // NOSONAR
           this.launchNext();
         });
         resolve(onLaunched());
@@ -38,11 +38,11 @@ export class ConcurrentPromises {
     const next = this.waiting.shift();
     if (!next) return;
     const p = next.op();
-    p.finally(() => {
-      this.pending.splice(this.pending.indexOf(p), 1);
+    void p.finally(() => {
+      this.pending.splice(this.pending.indexOf(p), 1); // NOSONAR
       this.launchNext();
     });
-    p.catch(next.reject).then(next.resolve);
+    void p.catch(next.reject).then(next.resolve);
   }
 
 }

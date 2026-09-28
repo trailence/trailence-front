@@ -46,7 +46,7 @@ export async function openImportTrailsDialog(injector: Injector, collection: Tra
     },
     backdropDismiss: true,
   });
-  modal.present();
+  await modal.present();
 }
 
 export function openImportTrailsFileDialog(injector: Injector, collection: TrailCollection): void {
@@ -110,8 +110,8 @@ export function openImportTrailsFileDialog(injector: Injector, collection: Trail
                 return gpxFile.async('arraybuffer')
                 .then(arraybuffer => {
                   const r = importGpx(injector, arraybuffer, collection.getContentOwner(), collection.uuid, zip, TrailSourceType.FILE_IMPORT, filename + '/' + gpxFile.name, Date.now());
-                  for (const rt of r) allDone.push(rt.allDone.catch(() => null));
-                  Promise.all(r.map(rt => rt.allDone)).then(() => {
+                  for (const rt of r) allDone.push(rt.allDone.catch(() => null)); // NOSONAR
+                  void Promise.all(r.map(rt => rt.allDone)).then(() => { // NOSONAR
                     progress.subTitle = '' + (index + 1 + previousZipEntries + entryIndex + 1) + '/' + (nbFiles + zipEntries);
                     progress.addWorkDone(1);
                   });
@@ -124,7 +124,7 @@ export function openImportTrailsFileDialog(injector: Injector, collection: Trail
                     resolve(done);
                   } else {
                     injector.get(StoreService).keepPauseSync(syncPause);
-                    readNextZipEntry(entryIndex + 1);
+                    void readNextZipEntry(entryIndex + 1);
                   }
                 })
                 .catch((e) => {
@@ -136,11 +136,11 @@ export function openImportTrailsFileDialog(injector: Injector, collection: Trail
                     injector.get(StoreService).resumeSync(syncPause);
                     resolve(done);
                   } else {
-                    readNextZipEntry(entryIndex + 1);
+                    void readNextZipEntry(entryIndex + 1);
                   }
                 });
               };
-              readNextZipEntry(0);
+              void readNextZipEntry(0);
             });
           });
         }
@@ -158,7 +158,7 @@ export function openImportTrailsFileDialog(injector: Injector, collection: Trail
       })
     },
     ondone: (progress: Progress | undefined, imported: ({trailUuid: string, tags: string[][], source?: string})[][], errors: any[]) => {
-      Promise.all(allDone).then(() => {
+      void Promise.all(allDone).then(() => {
         progress?.done();
         if (errors.length > 0) {
           logger.error('Error importing files', errors);
@@ -169,7 +169,7 @@ export function openImportTrailsFileDialog(injector: Injector, collection: Trail
           injector.get(ErrorService).addErrors(zipErrors);
         }
         const importedTrails = imported.flat();
-        finishImport(injector, importedTrails, collection);
+        void finishImport(injector, importedTrails, collection);
       });
     }
   });
@@ -249,7 +249,7 @@ function importGpxTrail(
         }
       }
     }
-    return { imported: result$.then(() => result), allDone: result$.then(() => dbDone.then(() => result)) };
+    return { imported: result$.then(() => result), allDone: result$.then(() => dbDone).then(() => result) };
   } catch (e) {
     return { imported: Promise.reject(e), allDone: Promise.reject(e) };
   }
@@ -283,7 +283,7 @@ function importTags(injector: Injector, imported: ({trailUuid: string, tags: str
     }
   }))
   .then(modal => {
-    modal.present();
+    void modal.present();
     return modal.onDidDismiss();
   });
 }
@@ -303,7 +303,7 @@ function importFromSources(injector: Injector, imported: {trailUuid: string, tag
         resolve(true);
         return;
       }
-      import('../../components/fetch-source-popup/fetch-source-popup.component')
+      void import('../../components/fetch-source-popup/fetch-source-popup.component')
       .then(module => injector.get(ModalController).create({
         component: module.FetchSourcePopupComponent,
         backdropDismiss: false,
@@ -312,7 +312,7 @@ function importFromSources(injector: Injector, imported: {trailUuid: string, tag
         }
       }))
       .then(modal => {
-        modal.present();
+        void modal.present();
         return modal.onDidDismiss();
       })
       .then(resolve);
@@ -344,7 +344,7 @@ async function proposeElevationDownload(injector: Injector, imported: {trailUuid
       role: 'cancel'
     }]
   });
-  alert.present();
+  void alert.present();
   return alert.onDidDismiss().then(result => {
     if (result.role !== 'ok') return true;
     const next = (index: number): Promise<any> => {

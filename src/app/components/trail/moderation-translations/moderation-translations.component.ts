@@ -98,7 +98,7 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges, OnDes
     }
   }
 
-  private isReady(): string | undefined {
+  private isReady(): string | undefined { // NOSONAR
     if (!this.trail || !this.track) return 'Data is loading';
     if (!this.sourceLanguages) return 'Loading languages';
     const source = this.trail.publicationData?.['lang'];
@@ -117,8 +117,8 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges, OnDes
   }
 
   private hasLang(lang: string, names: any, descriptions: any, wayPoints: WayPoint[]): boolean {
-    if (names && names[lang] && names[lang].trim().length > 0) return true;
-    if (descriptions && descriptions[lang] && descriptions[lang].trim().length > 0) return true;
+    if (names && names[lang] && names[lang].trim().length > 0) return true; // NOSONAR
+    if (descriptions && descriptions[lang] && descriptions[lang].trim().length > 0) return true; // NOSONAR
     for (const wp of wayPoints) {
       if (wp.name.trim().length > 0 && (wp.nameTranslations?.[lang] ?? '').trim().length > 0) return true;
       if (wp.description.trim().length > 0 && (wp.descriptionTranslations?.[lang] ?? '').trim().length > 0) return true;
@@ -127,8 +127,8 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges, OnDes
   }
 
   private isLangFullyTranslated(lang: string, names: any, descriptions: any, wayPoints: WayPoint[]): boolean {
-    if (!names || !names[lang] || names[lang].trim().length === 0) return false;
-    if (!descriptions || !descriptions[lang] || descriptions[lang].trim().length === 0) return false;
+    if (!names || !names[lang] || names[lang].trim().length === 0) return false; // NOSONAR
+    if (!descriptions || !descriptions[lang] || descriptions[lang].trim().length === 0) return false; // NOSONAR
     for (const wp of wayPoints) {
       if (wp.name.trim().length > 0 && (wp.nameTranslations?.[lang] ?? '').trim().length === 0) return false;
       if (wp.description.trim().length > 0 && (wp.descriptionTranslations?.[lang] ?? '').trim().length === 0) return false;
@@ -336,7 +336,7 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges, OnDes
   }
 
   showAIPrompt(): void {
-    this.alertController.create({
+    void this.alertController.create({
       header: 'AI Prompt',
       cssClass: 'large',
       inputs: [{

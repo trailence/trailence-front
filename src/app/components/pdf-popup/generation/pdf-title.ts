@@ -1,6 +1,6 @@
 import { PdfContext } from './pdf-context';
 
-export async function addTitleToPdf(ctx: PdfContext, level: number, text: string, x: number, y: number, width: number) {
+export function addTitleToPdf(ctx: PdfContext, level: number, text: string, x: number, y: number, width: number) {
   ctx.doc.strokeColor('#3088D8').fillColor('#3088D8').font('Roboto', 12);
   const textWidth = ctx.doc.widthOfString(text);
   ctx.doc.text(text, x + 20, y, {width: width - 40, continued: true});

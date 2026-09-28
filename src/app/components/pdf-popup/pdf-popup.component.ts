@@ -28,11 +28,12 @@ import { computeWayPointsFromTrack, WayPointFromTrack } from '@trailence/utils/t
 import { AssetsService } from '@trailence/services/assets/assets.service';
 import { assetsDependencies } from '@trailence/assets-dependencies';
 import { getLogger } from '@trailence/utils/console';
+import { ErrorService } from '@trailence/services/progress/error.service';
 
 const logger = getLogger('pdf-popup');
 
 export function openPdfPopup(injector: Injector, trail: Trail) {
-  injector.get(ModalController).create({
+  void injector.get(ModalController).create({
     component: PdfPopup,
     componentProps: {
       trail
@@ -150,7 +151,7 @@ export class PdfPopup implements OnInit, OnDestroy {
       this.photos = photos.length > 0 ? photos : undefined;
       if (this.photos) {
         const cover = this.photos.findIndex(p => p.isCover);
-        this.photoIndex = cover >= 0 ? cover : 0;
+        this.photoIndex = Math.max(0, cover);
       }
     });
     this.optionsChanged();
@@ -167,7 +168,7 @@ export class PdfPopup implements OnInit, OnDestroy {
         mapLayer: this.options.mapLayer.name,
         qrCode: !!this.options.qrCode,
       }))
-      this.generate();
+      this.generate().catch(e => this.injector.get(ErrorService).addError(e));
     }
   }
 
@@ -181,7 +182,7 @@ export class PdfPopup implements OnInit, OnDestroy {
   }
 
   avatarCheckboxChanged(checked: boolean): void {
-    if (!checked) {
+    if (!checked) { // NOSONAR
       this.options.includeAvatar = undefined;
       this.optionsChanged();
     } else if (!this.options.includeAvatar) {
@@ -317,11 +318,11 @@ export class PdfPopup implements OnInit, OnDestroy {
   }
 
   download(): void {
-    this.injector.get(FileService).saveBinaryData('trailence.pdf', new BinaryContent(this.blob!));
+    void this.injector.get(FileService).saveBinaryData('trailence.pdf', new BinaryContent(this.blob!));
   }
 
   close(): void {
-    this.modalController.dismiss();
+    void this.modalController.dismiss();
   }
 
   zooms = [25, 50, 75, 100, 150, 200, 300, 400, 500];

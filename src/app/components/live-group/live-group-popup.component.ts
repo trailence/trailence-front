@@ -22,11 +22,14 @@ export function openCreateLiveGroupPopup(injector: Injector, trailOwner?: string
     component: LiveGroupPopup,
     componentProps: {trailOwner, trailUuid},
   })
-  .then(m => m.present().then(() => m.onDidDismiss()).then(r => r.role === 'create' ? r.data || null : null));
+  .then(m => {
+    void m.present();
+    return m.onDidDismiss().then(r => r.role === 'create' ? r.data || null : null)
+  });
 }
 
 export function openEditLiveGroupPopup(injector: Injector, group: LiveGroupDto, newTrailOwner: string | undefined, newTrailUuid: string | undefined): void {
-  injector.get(ModalController).create({
+  void injector.get(ModalController).create({
     component: LiveGroupPopup,
     componentProps: {group, trailOwner: newTrailOwner || group.trailOwner, trailUuid: newTrailUuid || group.trailUuid},
   })
@@ -105,7 +108,7 @@ export class LiveGroupPopup implements OnInit, OnDestroy {
   }
 
   close(): void {
-    this.modalController.dismiss();
+    void this.modalController.dismiss();
   }
 
   isValid(): boolean {
@@ -128,7 +131,7 @@ export class LiveGroupPopup implements OnInit, OnDestroy {
   }
 
   createPublicLink(): void {
-    import('../trail-link-popup/trail-link-popup.component')
+    void import('../trail-link-popup/trail-link-popup.component')
     .then(m => m.openTrailLink(this.injector, this.group?.trailOwner || this.trailOwner!, this.group?.trailUuid || this.trailUuid!));
   }
 
@@ -155,7 +158,7 @@ export class LiveGroupPopup implements OnInit, OnDestroy {
       next: group => {
         this.group = group;
         this.saving = false;
-        this.modalController.dismiss(group, 'create');
+        void this.modalController.dismiss(group, 'create');
         localStorage.setItem(LAST_NAME_STORAGE_KEY_PREFIX + this.authService.email, myName);
       },
       error: e => {

@@ -67,10 +67,10 @@ export class TrailMenuService {
         if (email)
           menu.push(new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.start_this_trail')
           .setAction(() => {
-            this.injector.get(TraceRecorderService).start(trails[0]);
+            void this.injector.get(TraceRecorderService).start(trails[0]);
             const url = '/trail/' + trails[0].owner + '/' + trails[0].uuid;
             const router = this.injector.get(Router);
-            if (!router.url.includes(url)) router.navigateByUrl(url);
+            if (!router.url.includes(url)) void router.navigateByUrl(url);
           }));
       }
     }
@@ -132,13 +132,13 @@ export class TrailMenuService {
       if (this.injector.get(Platform).is('capacitor')) {
         menu.push(new MenuItem().setIcon('share').setI18nLabel('pages.trails.actions.share_link')
           .setAction(() => {
-            Trailence.share({link, title: trails[0].name});
+            void Trailence.share({link, title: trails[0].name});
           })
         );
       } else {
         menu.push(new MenuItem().setIcon('link').setI18nLabel('pages.trails.actions.copy_link')
           .setAction(() => {
-            navigator.clipboard.writeText(link);
+            void navigator.clipboard.writeText(link);
           })
         );
       }
@@ -214,7 +214,7 @@ export class TrailMenuService {
         .setAction(() => {
           this.trailToCompare = undefined;
           const router = this.injector.get(Router);
-          router.navigateByUrl('/trail/' + encodeURIComponent(trails[0].owner) + '/' + trails[0].uuid + '/' + encodeURIComponent(trails[1].owner) + '/' + trails[1].uuid + '?from=' + encodeURIComponent(router.url));
+          void router.navigateByUrl('/trail/' + encodeURIComponent(trails[0].owner) + '/' + trails[0].uuid + '/' + encodeURIComponent(trails[1].owner) + '/' + trails[1].uuid + '?from=' + encodeURIComponent(router.url));
         })
       );
     }
@@ -227,14 +227,14 @@ export class TrailMenuService {
           const trail1 = this.trailToCompare!;
           this.trailToCompare = undefined;
           const router = this.injector.get(Router);
-          router.navigateByUrl('/trail/' + encodeURIComponent(trail1.owner) + '/' + trail1.uuid + '/' + encodeURIComponent(trails[0].owner) + '/' + trails[0].uuid + '?from=' + encodeURIComponent(router.url));
+          void router.navigateByUrl('/trail/' + encodeURIComponent(trail1.owner) + '/' + trail1.uuid + '/' + encodeURIComponent(trails[0].owner) + '/' + trails[0].uuid + '?from=' + encodeURIComponent(router.url));
         }).setDisabled(this.trailToCompare === trails[0]));
       } else if (email) {
         addTools();
         menu.push(new MenuItem().setIcon('compare').setI18nLabel('pages.trail.actions.compare_with').setAction(() => {
           this.trailToCompare = trails[0];
           const i18n = this.injector.get(I18nService).texts;
-          this.injector.get(AlertController).create({
+          void this.injector.get(AlertController).create({
             header: i18n.pages.trail.actions.compare_with,
             message: i18n.pages.trail.actions.compare_with_explanation,
             buttons: [{
@@ -361,7 +361,7 @@ export class TrailMenuService {
           .setI18nLabel('pages.trails.actions.new_collection')
           .setIcon('add')
           .setAction(() => {
-            this.injector.get(TrailCollectionService).collectionPopup(undefined, false)
+            void this.injector.get(TrailCollectionService).collectionPopup(undefined, false)
             .then(result => {
               if (result.role !== 'apply' || !result.data) return;
               action(result.data as TrailCollection);
@@ -450,7 +450,7 @@ export class TrailMenuService {
 
   public openTrail(trail: Trail): void {
     const router = this.injector.get(Router);
-    router.navigate(['trail', trail.owner, trail.uuid], {queryParams: { from: router.url }});
+    void router.navigate(['trail', trail.owner, trail.uuid], {queryParams: { from: router.url }});
   }
 
   private async declineAll(trails: Trail[]) {
@@ -469,7 +469,7 @@ export class TrailMenuService {
         }
       ]
     });
-    alert.onDidDismiss()
+    void alert.onDidDismiss()
     .then(result => {
       if (result.role === 'ok') {
         const service = this.injector.get(ModerationService);

@@ -195,7 +195,7 @@ export class TrackDatabase implements StoreWithCleaning {
         }
 
         if (speedChanged || breaksChanged) {
-          this.recomputeMetadata(speedChanged, breaksChanged);
+          void this.recomputeMetadata(speedChanged, breaksChanged);
         }
       }
     );
@@ -445,7 +445,7 @@ export class TrackDatabase implements StoreWithCleaning {
       const metadata = TrackDatabase.toMetadata(track);
       const status = this.loaded$.value;
       if (!status) return;
-      this.operations.push('Create track', () => simplifiedTrackFromWorker$.then(simplified => {
+      void this.operations.push('Create track', () => simplifiedTrackFromWorker$.then(async simplified => {
         if (status.counter !== this.loaded$.value?.counter) throw new Error('track DB changed');
         const tx = this.database.transaction$(false, [this.tableMeta.name, this.tableSimplifiedTrack.name, this.tableFullTrack.name], () =>
           firstValueFrom(forkJoin([
@@ -481,11 +481,10 @@ export class TrackDatabase implements StoreWithCleaning {
         const metadata$ = this.metadata.get(key);
         if (metadata$) metadata$.newValue(metadata);
         else this.metadata.set(key, this.subjectService.create<TrackMetadataSnapshot>('TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
-        return tx.then(() => {
-          this.syncStatus$.value!.hasLocalCreates = true;
-          this.syncStatus$.next(this.syncStatus$.value);
-          if (ondone) ondone();
-        });
+        await tx;
+        this.syncStatus$.value!.hasLocalCreates = true;
+        this.syncStatus$.next(this.syncStatus$.value);
+        if (ondone) ondone();
       }));
     });
   }
@@ -499,7 +498,7 @@ export class TrackDatabase implements StoreWithCleaning {
       const metadata = TrackDatabase.toMetadata(track);
       const status = this.loaded$.value;
       if (!status) return;
-      this.operations.push('Update track', () => simplifiedTrackFromWorker$.then(simplified => {
+      void this.operations.push('Update track', () => simplifiedTrackFromWorker$.then(async simplified => {
         if (status.counter !== this.loaded$.value?.counter) throw new Error('track DB changed');
         const tx = this.database.transaction$(false, [this.tableMeta.name, this.tableSimplifiedTrack.name, this.tableFullTrack.name], () =>
           firstValueFrom(forkJoin([
@@ -535,10 +534,9 @@ export class TrackDatabase implements StoreWithCleaning {
         const metadata$ = this.metadata.get(key);
         if (metadata$) metadata$.newValue(metadata);
         else this.metadata.set(key, this.subjectService.create<TrackMetadataSnapshot>('TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
-        return tx.then(() => {
-          this.syncStatus$.value!.hasLocalUpdates = true;
-          this.syncStatus$.next(this.syncStatus$.value);
-        });
+        await tx;
+        this.syncStatus$.value!.hasLocalUpdates = true;
+        this.syncStatus$.next(this.syncStatus$.value);
       }));
     });
   }
@@ -547,7 +545,7 @@ export class TrackDatabase implements StoreWithCleaning {
     this.ngZone.runOutsideAngular(() => {
       const status = this.loaded$.value;
       if (!status) return;
-      this.operations.push('Delete track', () => {
+      void this.operations.push('Delete track', () => {
         if (status.counter !== this.loaded$.value?.counter) return Promise.reject(new Error('track DB changed'));
         const key = uuid + '#' + owner;
         const tx = this.database.transaction$(false, [this.tableMeta.name, this.tableSimplifiedTrack.name, this.tableFullTrack.name], () =>
@@ -588,7 +586,7 @@ export class TrackDatabase implements StoreWithCleaning {
     this.ngZone.runOutsideAngular(() => {
       const status = this.loaded$.value;
       if (!status) return;
-      this.operations.push('Delete multiple tracks', () => {
+      void this.operations.push('Delete multiple tracks', () => {
         if (status.counter !== this.loaded$.value?.counter) return Promise.reject(new Error('track DB changed'));
         const keys = ids.map(id => id.uuid + '#' + id.owner);
         const tx = this.database.transaction$(false, [this.tableMeta.name, this.tableSimplifiedTrack.name, this.tableFullTrack.name], () =>
@@ -670,7 +668,7 @@ export class TrackDatabase implements StoreWithCleaning {
         filterDefined(),
         first()
       ).subscribe(() => {
-        this.operations.push('trigger sync from server', () => {
+        void this.operations.push('trigger sync from server', () => {
           if (this.syncStatus$.value) {
             this.syncStatus$.value.needsUpdateFromServer = true;
             this.syncStatus$.next(this.syncStatus$.value);

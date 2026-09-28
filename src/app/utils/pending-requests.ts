@@ -77,7 +77,7 @@ export class PendingRequestsMultiple<T> {
         this._pendingMultiple.set(key, r);
         pendingKeys.push(r.then(results => this.multipleToSingle(results, key)));
       }
-      r.then(() => {
+      void r.then(() => {
         for (const key of missingKeys) {
           this._pendingMultiple.delete(key);
         }

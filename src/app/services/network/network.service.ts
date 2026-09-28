@@ -62,14 +62,14 @@ export class NetworkService implements INetworkService, OnDestroy {
       }
     } else if (!this._internet$.value) { // NOSONAR
       if (firstCall) {
-        this.checkInternet().then(connected => { if (connected) this._internet$.next(true); })
+        void this.checkInternet().then(connected => { if (connected) this._internet$.next(true); })
       }
       else setTimeout(() => {
         if (globalThis.navigator.onLine && !this._internet$.value)
-          this.checkInternet().then(connected => { if (connected) this._internet$.next(true); })
+          void this.checkInternet().then(connected => { if (connected) this._internet$.next(true); })
       }, 1000);
     } else {
-      this.checkInternet().then(connected => { if (!connected) this._internet$.next(false); })
+      void this.checkInternet().then(connected => { if (!connected) this._internet$.next(false); })
     }
     this.checkServerConnection(++this.count, 1);
   }

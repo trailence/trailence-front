@@ -407,11 +407,11 @@ interface DefaultLayerConfig extends BaseLayerConfig {
   urlTemplate: string,
 }
 
-function createDefaultLayer( // NOSONAR
+function createDefaultLayer(
   injector: Injector,
   config: DefaultLayerConfig,
 ): MapLayer {
-  const getTileUrl = (layer: L.TileLayer, coords: L.Coords, crs?: L.CRS) => {
+  const getTileUrl = (layer: L.TileLayer, coords: L.Coords, crs?: L.CRS) => { // NOSONAR
     let zoom = coords.z;
     if (layer.options.zoomReverse && layer.options.maxZoom) zoom = layer.options.maxZoom - zoom;
     if (layer.options.zoomOffset) zoom += layer.options.zoomOffset;
@@ -456,7 +456,7 @@ function createDefaultLayer( // NOSONAR
       maxZoom: config.maxZoom,
       attribution: config.copyright,
       id: config.name,
-      ...(config.additionalOptions ?? {})
+      ...config.additionalOptions,
     }), getTileUrl, injector.get(NetworkService), injector.get(OfflineMapService), injector.get(I18nService)),
     getTileUrl,
     maxConcurrentRequests: config.maxConcurrentRequests,
@@ -504,7 +504,7 @@ function _createIgnLayer( // NOSONAR
       maxZoom: baseConfig.maxZoom,
       attribution: baseConfig.copyright,
       id: baseConfig.name,
-      ...(baseConfig.additionalOptions ?? {}),
+      ...baseConfig.additionalOptions,
     }), getTileUrl, injector.get(NetworkService), injector.get(OfflineMapService), injector.get(I18nService)),
     getTileUrl,
     maxConcurrentRequests: baseConfig.maxConcurrentRequests,
@@ -561,7 +561,7 @@ function createWmsLayer(injector: Injector, config: WmsMapLayerConfig): MapLayer
       maxZoom: config.maxZoom,
       attribution: config.copyright,
       id: config.name,
-      ...(config.additionalOptions ?? {}),
+      ...config.additionalOptions,
     }), getTileUrl, injector.get(NetworkService), injector.get(OfflineMapService), injector.get(I18nService)),
     getTileUrl,
     maxConcurrentRequests: config.maxConcurrentRequests,

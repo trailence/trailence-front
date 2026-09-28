@@ -14,11 +14,11 @@ export class SlopeThreshold implements TrackEditTool {
   }
 
   execute(ctx: TrackEditToolContext): void {
-    ctx.injector.get(ModalController).create({
+    void ctx.injector.get(ModalController).create({
       component: SlopeThresholdModal,
       cssClass: 'small-modal',
     }).then(m => {
-      m.onDidDismiss().then(event => {
+      void m.onDidDismiss().then(event => { // NOSONAR
         if (event.data) {
           ctx.modifySelectedRange(track => {
             applyElevationThresholdToTrack(track, event.data.threshold, event.data.maxDistance);
@@ -26,7 +26,7 @@ export class SlopeThreshold implements TrackEditTool {
           }, true, false).subscribe();
         }
       });
-      m.present();
+      void m.present();
     });
   }
 

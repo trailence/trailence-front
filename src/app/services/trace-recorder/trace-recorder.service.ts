@@ -119,7 +119,7 @@ export class TraceRecorderService {
       if (recording) {
         logger.info('Trace in progress found in DB, start it');
         this._recording$.next(recording);
-        if (!recording.paused) this.startRecording(recording);
+        if (!recording.paused) void this.startRecording(recording);
       }
     })
     .catch(e => {
@@ -158,7 +158,7 @@ export class TraceRecorderService {
             following?.owner,
             following?.currentTrackUuid,
           );
-          this.startRecording(recording).catch(e => reject(e)).then(() => resolve(recording));
+          void this.startRecording(recording).catch(e => reject(e)).then(() => resolve(recording));
         },
         error: e => reject(e)
       });
@@ -206,7 +206,7 @@ export class TraceRecorderService {
     logger.info('Recording stopped');
     this._recording$.next(null);
     if (!save) {
-      if (this._table) this._table.clear();
+      if (this._table) void this._table.clear();
       return of(null);
     }
     if (!this._email) return of(null);
@@ -218,7 +218,7 @@ export class TraceRecorderService {
         recording.track.removeEmptySegments();
         if (recording.rawTrack.segments.length === 0 || recording.track.segments.length === 0) {
           progress.done();
-          this.alertController.create({
+          void this.alertController.create({
             header: this.i18n.texts.trace_recorder.saving,
             message: this.i18n.texts.trace_recorder.empty_trail,
             buttons: [{
@@ -271,14 +271,12 @@ export class TraceRecorderService {
           if (this._table)
             for (const photo of recording.photos$.value) {
               const onPhotoDone = onSaved.add(() => progress.addWorkDone(1));
-              this._table.get('photo:' + photo.uuid).then(p => {
+              void this._table.get('photo:' + photo.uuid).then(p => {
                 const content = (p as {key: string, photo: ArrayBuffer}).photo;
                 return firstValueFrom(this.photoService.addPhoto(photo.owner, photo.trailUuid, photo.description, photo.index, content, photo.dateTaken, photo.latitude, photo.longitude, photo.isCover));
               })
-              .catch(e => null)
-              .then(result => {
-                onPhotoDone();
-              });
+              .catch(() => null)
+              .then(() => onPhotoDone());
             }
           subscriber.next(trail$);
           onSaved.start();
@@ -288,7 +286,7 @@ export class TraceRecorderService {
         )
       ),
       defaultIfEmpty(null),
-      tap(() => { if (this._table) this._table.clear(); }),
+      tap(() => { if (this._table) void this._table.clear(); }),
       catchError(e => {
         logger.error('Error saving recorded trail', e);
         this.errorService.addError(e);
@@ -331,7 +329,7 @@ export class TraceRecorderService {
   public deletePhoto(uuid: string) {
     const recording = this._recording$.value;
     if (!recording) return;
-    this._table?.delete('photo:' + uuid);
+    void this._table?.delete('photo:' + uuid);
     recording.photos$.next(recording.photos$.value.filter(p => p.uuid !== uuid));
   }
 
@@ -360,9 +358,9 @@ export class TraceRecorderService {
         this.ngZone.runOutsideAngular(() => this.newPositionReceived(position, recording));
       }
       this.geolocation.watchPosition(this.i18n.texts.trace_recorder.notif_message, this._geolocationListener);
-      this.screenLockService.set(true);
+      void this.screenLockService.set(true);
       if (!this.geolocation.isNative && recording.rawTrack.metadata.distance === 0) {
-        this.toastController.create({
+        void this.toastController.create({
           message: this.i18n.texts.trace_recorder.not_native_message,
           color: 'warning',
           position: 'bottom',
@@ -374,7 +372,7 @@ export class TraceRecorderService {
             text: this.i18n.texts.buttons.close,
             role: 'cancel',
           }]
-        }).then(t => t.present());
+        }).then(t => void t.present());
       }
       return recording;
     });
@@ -552,7 +550,7 @@ export class TraceRecorderService {
     this._geolocationListener = undefined;
     if (recording.track.segments.length > 0)
       this.trackEdition.applyDefaultImprovmentsForRecordingSegment(recording.track.segments.at(-1)!, recording.state, true);
-    this.screenLockService.set(false);
+    void this.screenLockService.set(false);
   }
 
   private save(recording: Recording): void {
@@ -563,7 +561,7 @@ export class TraceRecorderService {
       const t = this._table;
       this._saving = true;
       this._saved = true;
-      this._table.put(recording.toDto(), '1').finally(() => {
+      void this._table.put(recording.toDto(), '1').finally(() => {
         if (this._table !== t) return;
         this._saving = false;
         if (!this._saved) this.save(recording);

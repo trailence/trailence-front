@@ -331,7 +331,7 @@ class TagStore extends OwnedStore<TagDto, Tag> implements StoreWithCleaning {
               }
               count++;
               this.delete(tag, d);
-            });
+            }).catch(_ => d());
           }
           ondone.start();
         });

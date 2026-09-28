@@ -16,12 +16,11 @@ export class ScreenLockService {
   private readonly _enabled$ = new BehaviorSubject<boolean>(false);
 
   private init(): void {
-    Trailence.canKeepOnScreenLock({}).then(response => {
+    void Trailence.canKeepOnScreenLock({}).then(async response => {
       if (response.allowed) {
         this._available$.next(true);
-        Trailence.getKeepOnScreenLock({}).then(response => {
-          this._enabled$.next(response.enabled);
-        });
+        const newResponse = await Trailence.getKeepOnScreenLock({});
+        this._enabled$.next(newResponse.enabled);
       }
     });
   }

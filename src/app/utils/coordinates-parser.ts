@@ -10,7 +10,7 @@ const DD1_REGEXP = /^\s*(-?\d{1,2}(?:[.,]\d+)?)(?:\s+|\s*[,\/;]\s*|\s*°\s*[,\/;
 
 function parseCoordinatesDDVariant1(s: string): L.LatLngLiteral | undefined {
   const match = DD1_REGEXP.exec(s);
-  if (!match || match.length !== 3) return undefined;
+  if (match?.length !== 3) return undefined;
   const lat = Number.parseFloat(match[1].replace(',', '.'));
   if (Number.isNaN(lat) || lat < -90 || lat > 90) return undefined;
   const lng = Number.parseFloat(match[2].replace(',', '.'));

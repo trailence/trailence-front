@@ -101,9 +101,9 @@ export class AuthService {
           })) {
             logger.debug('No auth, route not public => routing to /home or /login');
             if (url === '/')
-              navController.navigateRoot(['/home']);
+              void navController.navigateRoot(['/home']);
             else
-              navController.navigateRoot(['/login'], { queryParams: {returnUrl: url} });
+              void navController.navigateRoot(['/login'], { queryParams: {returnUrl: url} });
           }
         }
       } else if (auth) {
@@ -125,7 +125,7 @@ export class AuthService {
             localStorage.setItem(ANONYMOUS_TOAST_LAST_TIME_LOCAL_STORAGE_KEY, '' + Date.now());
             const i18n = injector.get(I18nService);
             i18n.texts$.pipe(filterDefined(), first()).subscribe(() => {
-              import('@ionic/angular').then(ionic => injector.get(ionic.ToastController).create({
+              void import('@ionic/angular').then(ionic => injector.get(ionic.ToastController).create({
                 message: i18n.texts.toast_anonymous_account,
                 color: 'warning',
                 position: 'bottom',
@@ -366,12 +366,12 @@ export class AuthService {
     localStorage.removeItem(LOCALSTORAGE_KEY_AUTH);
     const auth = this._auth$.value;
     if (auth && !auth.isAnonymous) {
-      logout$ = logout$.then(() => firstValueFrom(this.http.delete(environment.apiBaseUrl + '/auth/v1/mykeys/' + auth.keyId)).catch(_ => true));
+      logout$ = logout$.then(() => firstValueFrom(this.http.delete(environment.apiBaseUrl + '/auth/v1/mykeys/' + auth.keyId)).catch(_ => true)); // NOSONAR
     }
     if (this.db) {
       const db = this.db;
       this.db = undefined;
-      logout$ = logout$.then(() => db.delete().then(() => db.close()).catch(_ => true));
+      logout$ = logout$.then(() => db.delete().then(() => db.close()).catch(_ => true)); // NOSONAR
     }
     logout$ = logout$.then(() => this._auth$.next(null));
     if (withDelete) {
@@ -469,7 +469,7 @@ export class AuthService {
             if (error instanceof ApiError) {
               if (error.httpCode === 403) {
                 logger.warn('The server refused our authentication key id ' + security.keyId);
-                this.db?.table<StoredSecurity, string>(DB_SECURITY_TABLE).delete(current.email);
+                void this.db?.table<StoredSecurity, string>(DB_SECURITY_TABLE).delete(current.email);
                 this._auth$.next(null);
                 return of(null);
               }

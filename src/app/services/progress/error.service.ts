@@ -65,8 +65,8 @@ export class ErrorService {
       },
       id: 'errors-modal',
     }).then(modal => {
-      modal.present();
-      modal.onWillDismiss().then(() => {
+      void modal.present();
+      void modal.onWillDismiss().then(() => { // NOSONAR
         this._modal = undefined;
         this._shownErrors = [];
       });

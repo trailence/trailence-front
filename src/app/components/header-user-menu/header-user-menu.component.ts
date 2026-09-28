@@ -100,7 +100,7 @@ export class HeaderUserMenuComponent extends AbstractComponent {
       }
     );
     this.visible$.subscribe(v => {
-      if (!v && this.accountPopover) this.accountPopover.dismiss();
+      if (!v && this.accountPopover) void this.accountPopover.dismiss();
     });
     this.whenVisible.subscribe(combineLatest([this.notifications.nbUnread$, this.i18n.texts$]), ([nb, texts]) => {
       this.nbUnreadNotifications = nb;
@@ -112,13 +112,13 @@ export class HeaderUserMenuComponent extends AbstractComponent {
   }
 
   logout(): void {
-    this.logoutModal!.present();
+    void this.logoutModal!.present();
   }
 
   doLogout(withDelete: boolean): void {
     this.loggingOut = true;
     this.auth.logout(withDelete).subscribe(() => {
-      this.logoutModal!.dismiss();
+      void this.logoutModal!.dismiss();
       this.loggingOut = false;
     });
   }
@@ -132,11 +132,11 @@ export class HeaderUserMenuComponent extends AbstractComponent {
   }
 
   goToNotifications(): void {
-    this.router.navigateByUrl('/notifications');
+    void this.router.navigateByUrl('/notifications');
   }
 
   openWebVersion(): void {
-    Trailence.openLink({link: this.webUrl!});
+    void Trailence.openLink({link: this.webUrl!});
   }
 
 }

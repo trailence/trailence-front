@@ -92,8 +92,8 @@ export class WorkerService {
       }, false, fromRecording)
     }))
     .catch(e => {
-      if (typeof e === 'object' && e['i18nKey']) return Promise.reject(new TranslatedString(e['18nKey']));
-      return Promise.reject(e);
+      if (typeof e === 'object' && e['i18nKey']) return Promise.reject(new TranslatedString(e['18nKey'])); // NOSONAR
+      return Promise.reject(e); // NOSONAR
     })
   }
 

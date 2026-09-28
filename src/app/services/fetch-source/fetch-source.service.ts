@@ -28,7 +28,7 @@ export class FetchSourceService {
   }
 
   private load(): void {
-    Promise.all([
+    void Promise.all([
       import('./trailence.plugin').then(m => new m.TrailencePlugin(this.injector)),
       import('./link.plugin').then(m => new m.LinkPlugin(this.injector)),
       import('./visorando.plugin').then(m => new m.VisorandoPlugin(this.injector)),
@@ -132,9 +132,10 @@ export class FetchSourceService {
     for (const plugin of this.plugins$.value) {
       if (plugin.canFetchTrailsByUrl(url)) {
         return plugin.fetchTrailsByUrl(url)
-        .then(trails => {
+        .then(async trails => {
           if (trails.length > 0) return trails;
-          return plugin.fetchTrailByUrl(url).then(trail => trail ? [trail] : []);
+          const trail = await plugin.fetchTrailByUrl(url);
+          return trail ? [trail] : [];
         });
       }
     }

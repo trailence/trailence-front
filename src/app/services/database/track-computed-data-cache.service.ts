@@ -91,7 +91,7 @@ export class TrackComputedDataCacheService implements OnDestroy {
 
   ngOnDestroy(): void {
     this._destroyed = true;
-    this.db.stop();
+    void this.db.stop();
   }
 
   private get<T extends CacheItem>(table: DbTable<T>, track: Track): Observable<T | undefined> {

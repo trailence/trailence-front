@@ -61,14 +61,14 @@ export class Db {
       this.injector.get(NgZone).runOutsideAngular(() =>
         this.injector.get(AuthService).userChanged$.subscribe(
           auth => {
-            if (auth) this.open(auth.email);
-            else if (this.noUserHasPublicDb) this.open();
-            else this.close();
+            if (auth) void this.open(auth.email);
+            else if (this.noUserHasPublicDb) void this.open();
+            else void this.close();
           }
         )
       );
     } else {
-      this.open();
+      void this.open();
     }
   }
 
@@ -94,7 +94,7 @@ export class Db {
   public transaction$<T>(readonly: boolean, tables: string[], op: () => Promise<T> | undefined): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       this.ready$.value!.db.transaction(readonly ? 'r' : 'rw', tables, () => ({result: op()}))
-      .then(r => r.result ? r.result.then(resolve).catch(reject) : undefined);
+      .then(r => r.result ? r.result.then(resolve).catch(reject) : undefined).catch(reject); // NOSONAR
     });
   }
 
@@ -110,7 +110,7 @@ export class Db {
     if (email && this.injector.get(AuthService).email !== email) return;
     const counter = ++this._openCounter;
     this.opening = new Promise((resolve, reject) => {
-      this._open(email, counter)
+      void this._open(email, counter)
       .catch(reject)
       .then(() => {
         this.opening = undefined;
@@ -177,10 +177,10 @@ export class Db {
       try {
         if (!stillValid()) return;
         const currentVersion = versions?.[table.name] || initialVersion;
-        const newVersion = await table.migrate(db, db.table(table.name), openStatus.localDir + '/' + table.name, appVersion || initialVersion, dbExists, currentVersion, trailenceAppVersionCode);
+        const newVersion = await table.migrate(db, db.table(table.name), openStatus.localDir + '/' + table.name, appVersion || initialVersion, dbExists, currentVersion, trailenceAppVersionCode); // NOSONAR
         newVersions[table.name] = newVersion;
         if (newVersion !== currentVersion) {
-          await db.table(INTERNAL_TABLE_NAME).put(newVersions, INTERNAL_VERSION_KEY);
+          await db.table(INTERNAL_TABLE_NAME).put(newVersions, INTERNAL_VERSION_KEY); // NOSONAR
         }
       } catch (e) {
         logger.error('Error during migration of table ' + this.dbName + '/' + table.name, e);
@@ -223,7 +223,7 @@ export class Db {
     for (const s of this.tableChangedSubscriptions.values()) s.unsubscribe();
     this.tableChangedSubscriptions.clear();
     for (const table of this.tables)
-      await table.shutdown();
+      await table.shutdown(); // NOSONAR
     ready.db.close();
     logger.info('Closed', ready.db.name);
     this._closed$.next({email: ready.email});
@@ -243,7 +243,7 @@ export class Db {
         const tableName = backupableTables[i];
         try {
           if (!stillValid()) return false;
-          await this.restoreTable(db, tableName, localFiles, localDir);
+          await this.restoreTable(db, tableName, localFiles, localDir); // NOSONAR
         } catch (e) {
           logger.error('Error restoring backup from ' + this.dbName + '/' + tableName, e);
         }
@@ -282,7 +282,7 @@ export class Db {
     for (const table of this.tables) this.registerBackup(localFiles, table, ready);
     // launch backup of internal table
     if (this.ready$.value === ready)
-      this.backupTable(ready, localFiles, INTERNAL_TABLE_NAME, 1000, false);
+      void this.backupTable(ready, localFiles, INTERNAL_TABLE_NAME, 1000, false);
   }
 
   private registerBackup(localFiles: LocalFilesService, table: DbTable<any>, ready: DbReady): void {
@@ -332,7 +332,7 @@ export class Db {
       logger.info('Backup done for DB table to', ready.localDir + '/' + filename, 'in', (Date.now() - start), 'ms.');
     } catch (e) {
       logger.error('Error storing backup to ' + ready.localDir + '/' + filename, e);
-      this.injector.get(LocalFilesService).deleteFile(ready.localDir, filename);
+      void this.injector.get(LocalFilesService).deleteFile(ready.localDir, filename);
     }
   }
 

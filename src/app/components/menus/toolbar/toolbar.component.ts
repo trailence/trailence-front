@@ -109,7 +109,7 @@ export class ToolbarComponent implements OnInit, OnChanges {
       this.itemSelected.emit();
       item.item.action(event);
     } else if (item.children.items.length > 0) {
-      import('../menu-content/menu-content.component')
+      void import('../menu-content/menu-content.component')
       .then(module => this.popoverController.create({
         component: module.MenuContentComponent,
         componentProps: {

@@ -90,7 +90,7 @@ export class Progress {
       cancel.onclick = (event: Event) => {
         event.stopPropagation();
         event.preventDefault();
-        this._cancel();
+        void this._cancel();
       };
     }
     this._oncancel.push(handler);
@@ -98,7 +98,7 @@ export class Progress {
 
   private async _cancel() {
     for (const handler of this._oncancel) {
-      await handler();
+      await handler(); // NOSONAR
     }
     this.done();
   }

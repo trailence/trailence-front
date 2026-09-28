@@ -32,7 +32,7 @@ export class StartPublicationModal {
     this.injector.get(TrailCollectionService)
     .getOrCreatePublicationDraft().pipe(first(c => !!c))
     .subscribe(col => {
-      import('../../../services/functions/copy-trails')
+      void import('../../../services/functions/copy-trails')
       .then(m => m.copyTrailsTo(this.injector, [this.trail], col, true, true, true,
         () => ({publishedFromUuid: this.trail.uuid}),
         () => this.modalController.dismiss()
@@ -41,7 +41,7 @@ export class StartPublicationModal {
   }
 
   cancel(): void {
-    this.modalController.dismiss();
+    void this.modalController.dismiss();
   }
 
 }

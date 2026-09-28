@@ -16,7 +16,7 @@ export class SelectAreaTool implements TrackEditTool {
     const track = ctx.currentTrack$.value;
     if (!track) return;
     ctx.selection.cancelSelection();
-    ctx.startInteractiveTool(
+    void ctx.startInteractiveTool(
       () => [],
     ).then(iCtx => {
       const mapElement = document.getElementById(iCtx.map.id) as HTMLDivElement;
@@ -39,7 +39,7 @@ export class SelectAreaTool implements TrackEditTool {
       let startPointAbsolute: Point2D | undefined;
       let endPoint: Point2D | undefined;
       let bounds: L.Bounds | undefined;
-      const updateBounds = () => {
+      const updateBounds = () => { // NOSONAR
         bounds = L.bounds(L.point({x: Math.min(startPoint!.x, endPoint!.x), y: Math.min(startPoint!.y, endPoint!.y)}), L.point({x: Math.max(startPoint!.x, endPoint!.x), y: Math.max(startPoint!.y, endPoint!.y)}));
         const topLeft = iCtx.map.getMap()!.containerPointToLatLng(bounds.getTopLeft());
         const bottomRight = iCtx.map.getMap()!.containerPointToLatLng(bounds.getBottomRight())

@@ -131,8 +131,8 @@ export class TrailOverviewComponent extends AbstractComponent {
   @Input() renameOnTrailNamePress = false;
   trailNamePressed(): void {
     if(this.renameOnTrailNamePress && this.trail && this.trail.owner === this.auth.email)
-      import('../../services/functions/trail-rename').then(m => {
-        if (this.trail) m.openRenameTrailDialog(this.injector, this.trail);
+      void import('../../services/functions/trail-rename').then(m => {
+        if (this.trail) void m.openRenameTrailDialog(this.injector, this.trail);
       });
   }
 
@@ -254,7 +254,7 @@ export class TrailOverviewComponent extends AbstractComponent {
           changed = true;
           if (this.external && TrailOverviewComponent.firstRateLoading) {
             // inside a @defer block
-            import('../trail/rate-and-comments/rate/rate.component')
+            void import('../trail/rate-and-comments/rate/rate.component')
             .then(() => {
               TrailOverviewComponent.firstRateLoading = false;
               this.changesDetection.detectChanges();
@@ -509,29 +509,29 @@ export class TrailOverviewComponent extends AbstractComponent {
   }
 
   openPhotos(slider: PhotosSliderComponent): void {
-    this.photoService.openSliderPopup(this.photos, slider.index);
+    void this.photoService.openSliderPopup(this.photos, slider.index);
   }
 
   openTrail(uuid?: string): void {
     if (!this.trail) return;
     if (uuid) {
-      this.router.navigate(['trail', this.trail.owner, uuid], {queryParams: { from: this.router.url }});
+      void this.router.navigate(['trail', this.trail.owner, uuid], {queryParams: { from: this.router.url }});
       return;
     }
     this.openTrailEvent.emit(this.trail);
     if (this.trail.fromModeration)
-      this.router.navigate(['trail', this.trail.owner, this.trail.uuid, 'moderation'], {queryParams: { from: this.router.url }});
+      void this.router.navigate(['trail', this.trail.owner, this.trail.uuid, 'moderation'], {queryParams: { from: this.router.url }});
     else
-      this.router.navigate(['trail', this.trail.owner, this.trail.uuid], {queryParams: { from: this.router.url }});
+      void this.router.navigate(['trail', this.trail.owner, this.trail.uuid], {queryParams: { from: this.router.url }});
   }
 
   openPublicTrail(): void {
     if (!this.publicTrailUuid) return;
-    this.router.navigate(['trail', 'trailence', this.publicTrailUuid], {queryParams: { from: this.router.url }});
+    void this.router.navigate(['trail', 'trailence', this.publicTrailUuid], {queryParams: { from: this.router.url }});
   }
 
   openTrailLink(): void {
-    import('../trail-link-popup/trail-link-popup.component')
+    void import('../trail-link-popup/trail-link-popup.component')
     .then(m => {
       if (this.trailLink) m.openTrailLink(this.injector, this.trailLink.trailOwner, this.trailLink.trailUuid);
     });
@@ -576,7 +576,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     this.changesDetection.detectChanges(() => {
       if (tab === 'elevation') {
         // loading of component is in a @defer
-        import('@trailence/components/trail-graph/trail-graph.component')
+        void import('@trailence/components/trail-graph/trail-graph.component')
         .then(() => this.changesDetection.detectChanges());
       }
     });

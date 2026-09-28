@@ -11,7 +11,7 @@ import Trailence from '@trailence/services/trailence.service';
 import { AuthService } from '@trailence/services/auth/auth.service';
 
 export function openTrailLink(injector: Injector, trailOwner: string, trailUuid: string) {
-  injector.get(ModalController).create({
+  void injector.get(ModalController).create({
     component: TrailLinkPopup,
     componentProps: {
       trailOwner,
@@ -20,7 +20,7 @@ export function openTrailLink(injector: Injector, trailOwner: string, trailUuid:
     cssClass: 'auto-height'
   }).then(m => {
     m.style.setProperty('--width', 'calc(min(95%, 900px))');
-    m.present();
+    return m.present();
   });
 }
 
@@ -72,7 +72,7 @@ export class TrailLinkPopup implements OnInit, OnDestroy {
       this.trailLink = link || undefined;
       this.qrCode = undefined;
       if (this.trailLink) {
-        import('qrcode')
+        void import('qrcode')
         .then(module => {
           if (!this.trailLink) return;
           const canvas = document.createElement('CANVAS') as HTMLCanvasElement;
@@ -84,7 +84,7 @@ export class TrailLinkPopup implements OnInit, OnDestroy {
               margin: 1,
               width: 150,
             },
-            (e, r) => {
+            (_, r) => {
               if (r) this.qrCode = r;
             }
           );
@@ -98,7 +98,7 @@ export class TrailLinkPopup implements OnInit, OnDestroy {
   }
 
   copyLink(): void {
-    navigator.clipboard.writeText(this.linkStart + this.trailLink!.link)
+    void navigator.clipboard.writeText(this.linkStart + this.trailLink!.link)
     .then(() => this.toastController.create({
       message: this.i18n.texts.pages.trail_link.copied,
       color: 'success',
@@ -108,7 +108,7 @@ export class TrailLinkPopup implements OnInit, OnDestroy {
   }
 
   shareLink(): void {
-    Trailence.share({link: this.linkStart + this.trailLink!.link, title: this.i18n.texts.pages.trail_link.share_title});
+    void Trailence.share({link: this.linkStart + this.trailLink!.link, title: this.i18n.texts.pages.trail_link.share_title});
   }
 
   async delete() {
@@ -122,8 +122,8 @@ export class TrailLinkPopup implements OnInit, OnDestroy {
           handler: () => {
             this.subscription?.unsubscribe();
             this.subscription = undefined;
-            this.modalController.dismiss();
-            alert.dismiss(true);
+            void this.modalController.dismiss();
+            void alert.dismiss(true);
             this.linkService.delete(this.trailLink!);
           }
         },
@@ -133,11 +133,11 @@ export class TrailLinkPopup implements OnInit, OnDestroy {
         }
       ]
     });
-    alert.present();
+    void alert.present();
   }
 
   close(): void {
-    this.modalController.dismiss();
+    void this.modalController.dismiss();
   }
 
 }

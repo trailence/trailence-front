@@ -404,7 +404,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     this.changesDetection.detectChanges();
   }
 
-  private setHighlighted(trail: Trail | undefined): void {
+  private setHighlighted(trail: Trail | undefined): void { // NOSONAR
     for (const mapTrack of this.mapElements$.value) {
       if (!(mapTrack instanceof MapTrack)) continue;
       const highlighted = !!trail && trail.uuid === mapTrack.trail?.uuid && trail.owner === mapTrack.trail?.owner;
@@ -454,7 +454,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
   }
 
   openTrail(trail: Trail): void {
-    this.router.navigate(['/trail/' + trail.owner + '/' + trail.uuid], {queryParams: { from: this.router.url }});
+    void this.router.navigate(['/trail/' + trail.owner + '/' + trail.uuid], {queryParams: { from: this.router.url }});
   }
 
   expandSearchPlace(): void {

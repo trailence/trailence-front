@@ -303,7 +303,7 @@ export class PreferencesPage implements OnDestroy {
   }
 
   editAvatar(): void {
-    import('../../components/avatar/edit-avatar-popup.component').then(m => m.openEditAvatarPopup(this.injector));
+    void import('../../components/avatar/edit-avatar-popup.component').then(m => m.openEditAvatarPopup(this.injector));
   }
 
   deleteCurrentAvatar(): void {

@@ -161,17 +161,17 @@ export class MenuComponent implements OnInit {
   }
 
   private deferedInit(refresh: () => void): void {
-    import('@trailence/services/database/my-public-trails.service')
+    void import('@trailence/services/database/my-public-trails.service')
     .then(module => this.injector.get(module.MyPublicTrailsService).myPublicTrails$.subscribe(list => {
       this.myPublicTrails = list;
       refresh();
     }));
-    import('@trailence/services/database/my-selection.service')
+    void import('@trailence/services/database/my-selection.service')
     .then(module => this.injector.get(module.MySelectionService).getMySelection().subscribe(list => {
       this.mySelectionCount = list.length;
       refresh();
     }));
-    import('@trailence/services/live-group/live-group.service')
+    void import('@trailence/services/live-group/live-group.service')
     .then(module => {
       const service = this.injector.get(module.LiveGroupService);
       service.groups$.pipe(
@@ -192,12 +192,12 @@ export class MenuComponent implements OnInit {
       this.moderationCounters = counters;
       refresh();
     });
-    import('@trailence/services/update/update.service')
+    void import('@trailence/services/update/update.service')
     .then(module => this.injector.get(module.UpdateService).availableDownload$.subscribe(update => {
       this.update = update;
       refresh();
     }));
-    import('@trailence/services/trace-recorder/trace-recorder.service')
+    void import('@trailence/services/trace-recorder/trace-recorder.service')
     .then(module => this.injector.get(module.TraceRecorderService).current$.subscribe(recording => {
       const isRecording = !!recording;
       if (this.recording !== isRecording) {
@@ -212,7 +212,7 @@ export class MenuComponent implements OnInit {
   }
 
   goTo(url: string): void {
-    this.router.navigateByUrl(url);
+    void this.router.navigateByUrl(url);
   }
 
   goToPublicPage(url: string): void {
@@ -220,7 +220,7 @@ export class MenuComponent implements OnInit {
   }
 
   goToRecordTrace(): void {
-    import('@trailence/services/trace-recorder/trace-recorder.service')
+    void import('@trailence/services/trace-recorder/trace-recorder.service')
     .then(module => {
       const service = this.injector.get(module.TraceRecorderService);
       const trace = service.current;
@@ -231,25 +231,25 @@ export class MenuComponent implements OnInit {
           this.goTo('/trail');
         }
       } else {
-        service.start().then(() => this.goTo('/trail'));
+        void service.start().then(() => this.goTo('/trail')); // NOSONAR
       }
     });
   }
 
   createLiveGroup(): void {
-    import('../../live-group/live-group-popup.component')
+    void import('../../live-group/live-group-popup.component')
     .then(m => m.openCreateLiveGroupPopup(this.injector))
     .then(created => {
       if (created)
-        import('@trailence/services/live-group/live-group.service')
+        void import('@trailence/services/live-group/live-group.service')
         .then(module => this.injector.get(module.LiveGroupService).openLiveGroup(created));
     });
-    this.close();
+    void this.close();
   }
 
   liveGroupMenu($event: MouseEvent): void {
     $event.stopPropagation();
-    import('@trailence/services/live-group/live-group.service')
+    void import('@trailence/services/live-group/live-group.service')
     .then(module => {
       const liveGroupService = this.injector.get(module.LiveGroupService);
       const menu: MenuItem[] = [
@@ -266,13 +266,13 @@ export class MenuComponent implements OnInit {
               this.i18n.texts.pages.live_group.date_from + ' ' + this.i18n.timestampToDateString(group.startedAt) + ' ' +
               this.i18n.texts.pages.live_group.date_to + ' ' + this.i18n.timestampToDateString(group.expiresAt)
             ])
-            .setAction(() => { liveGroupService.openLiveGroup(group); this.close(); })
+            .setAction(() => { liveGroupService.openLiveGroup(group); void this.close(); })
         ),
         new MenuItem().setIcon('add').setI18nLabel('menu.create_live_group').setTextColor('success')
           .setVisible(() => !this.isAnonymous && this.liveGroups.length < 10)
           .setAction(() => this.createLiveGroup()),
       ];
-      this.injector.get(PopoverController).create({
+      void this.injector.get(PopoverController).create({
         component: MenuContentComponent,
         componentProps: {
           menu,
@@ -281,7 +281,7 @@ export class MenuComponent implements OnInit {
         side: 'right',
         dismissOnSelect: true,
         arrow: true,
-      }).then(p => p.present());
+      }).then(p => void p.present());
     });
   }
 
@@ -329,7 +329,7 @@ export class MenuComponent implements OnInit {
   openCollectionMenu($event: MouseEvent, collection: TrailCollection) {
     $event.stopPropagation();
     const menu = this.collectionService.getCollectionMenu(collection);
-    this.injector.get(PopoverController).create({
+    void this.injector.get(PopoverController).create({
       component: MenuContentComponent,
       componentProps: {
         menu,
@@ -344,7 +344,7 @@ export class MenuComponent implements OnInit {
   openShareMenu($event: MouseEvent, share: Share) {
     $event.stopPropagation();
     const menu = this.shareService.getShareMenu(share);
-    this.injector.get(PopoverController).create({
+    void this.injector.get(PopoverController).create({
       component: MenuContentComponent,
       componentProps: {
         menu,
@@ -363,7 +363,7 @@ export class MenuComponent implements OnInit {
     if (now - this.debugLastClick < 2000) {
       if (++this.debugClickCount >= 10) {
         this.debugClickCount = 0;
-        import('@trailence/services/debug/debug.service')
+        void import('@trailence/services/debug/debug.service')
         .then(module => this.injector.get(module.DebugService).openPopup());
       }
     }

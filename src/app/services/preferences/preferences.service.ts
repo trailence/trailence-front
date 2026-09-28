@@ -149,7 +149,7 @@ export class PreferencesService implements OnDestroy {
   }
 
   private initDevice(): void {
-    Trailence.getInfo({}).then(info => {
+    void Trailence.getInfo({}).then(info => {
       let elements = [];
       if (info?.['deviceBrand']) elements.push(info['deviceBrand']);
       if (info?.['deviceModel']) elements.push(info['deviceModel']);
@@ -217,7 +217,7 @@ export class PreferencesService implements OnDestroy {
       debounceTime(1000),
     )
     .subscribe(
-      ([connected, auth, saveNeeded]) => {
+      ([connected, auth, saveNeeded]) => { // NOSONAR
         if (!connected) return;
         if (!auth || auth.isAnonymous) return;
         if (saveNeeded.length === 0) return;

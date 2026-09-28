@@ -108,7 +108,7 @@ export class WayPointComponent implements OnInit, OnChanges {
   }
 
   openPhotos(photos: Photo[], slider: PhotosSliderComponent): void {
-    this.photoService.openSliderPopup(photos, slider.index);
+    void this.photoService.openSliderPopup(photos, slider.index);
   }
 
 }

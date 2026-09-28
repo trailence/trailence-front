@@ -242,20 +242,8 @@ export class TrailGraphComponent extends AbstractComponent {
       }
       this.chartData = {
         datasets: []
-      }
-      if (this.track1 && this.track2) {
-        this.buildDataSet(this.track1, this.primaryColor, 0.33, false, false);
-        this.buildDataSet(this.track2, this.secondaryColor, 1, false, false);
-      } else if (this.track1) {
-        this.buildDataSet(this.track1, this.primaryColor, 1, this.graphType === 'elevation', this.graphType === 'speed');
-        if (this.graphType === 'elevation') {
-          if (!this.chartPlugins.some(p => p instanceof ElevationLegendPlugin))
-            this.chartPlugins.push(new ElevationLegendPlugin());
-        } else if (this.graphType === 'speed') {
-          if (!this.chartPlugins.some(p => p instanceof SpeedLegendPlugin))
-            this.chartPlugins.push(new SpeedLegendPlugin(EstimatedSpeedDatasetBuilder.SPEED_ESTIMATION_COLOR, this.contrastColor, this.i18n.texts.trailGraph.legend_estimated_speed));
-        }
-      }
+      };
+      this.buildInitialDatasets();
       this.updateMinMaxAxis(false);
       this.changesDetection.detectChanges(() => {
         if (this.selectionRange) {
@@ -265,6 +253,22 @@ export class TrailGraphComponent extends AbstractComponent {
         }
       });
     });
+  }
+
+  private buildInitialDatasets(): void {
+    if (this.track1 && this.track2) {
+      this.buildDataSet(this.track1, this.primaryColor, 0.33, false, false);
+      this.buildDataSet(this.track2, this.secondaryColor, 1, false, false);
+    } else if (this.track1) {
+      this.buildDataSet(this.track1, this.primaryColor, 1, this.graphType === 'elevation', this.graphType === 'speed');
+      if (this.graphType === 'elevation') {
+        if (!this.chartPlugins.some(p => p instanceof ElevationLegendPlugin))
+          this.chartPlugins.push(new ElevationLegendPlugin());
+      } else if (this.graphType === 'speed') {
+        if (!this.chartPlugins.some(p => p instanceof SpeedLegendPlugin))
+          this.chartPlugins.push(new SpeedLegendPlugin(EstimatedSpeedDatasetBuilder.SPEED_ESTIMATION_COLOR, this.contrastColor, this.i18n.texts.trailGraph.legend_estimated_speed));
+      }
+    }
   }
 
   private updateMinMaxAxis(updateCurrent: boolean): void {
@@ -298,25 +302,17 @@ export class TrailGraphComponent extends AbstractComponent {
     }
     if (this.width && this.width > 200 && maxX > 1 && this.graphType === 'elevation') {
       const whishedSteps = Math.floor(this.width / 100);
-      const step = 0.1 * whishedSteps >= maxX ? 0.1 :
-        0.25 * whishedSteps >= maxX ? 0.25 :
-        0.5 * whishedSteps >= maxX ? 0.5 :
-        whishedSteps >= maxX ? 1 :
-        2 * whishedSteps >= maxX ? 2 :
-        2.5 * whishedSteps >= maxX ? 2.5 :
-        undefined;
-      (this.chartOptions!.scales!['x']!.ticks as any).stepSize = step;
+      (this.chartOptions!.scales!['x']!.ticks as any).stepSize = this.getStepSize(whishedSteps, maxX, [0.1, 0.25, 0.5, 1, 2, 2.5]);
     } else if (this.width && this.width > 200 && maxX > 60 && this.graphType === 'speed') {
       const whishedSteps = Math.floor(this.width / 100);
-      const step = 10 * whishedSteps >= maxX ? 10 :
-        15 * whishedSteps >= maxX ? 15 :
-        30 * whishedSteps >= maxX ? 30 :
-        60 * whishedSteps >= maxX ? 60 :
-        90 * whishedSteps >= maxX ? 90 :
-        120 * whishedSteps >= maxX ? 120 :
-        undefined;
-      (this.chartOptions!.scales!['x']!.ticks as any).stepSize = step;
+      (this.chartOptions!.scales!['x']!.ticks as any).stepSize = this.getStepSize(whishedSteps, maxX, [10, 15, 30, 60, 90, 120]);
     }
+  }
+
+  private getStepSize(whishedSteps: number, maxX: number, steps: number[]): number | undefined {
+    for (const s of steps)
+      if (s * whishedSteps >= maxX) return s;
+    return undefined;
   }
 
   private buildOptions(): void {
@@ -517,7 +513,9 @@ export class TrailGraphComponent extends AbstractComponent {
     });
   }
 
-  private createDataPoints(previous: DataPoint | undefined, trackSegmentIndex: number, trackPointIndex: number, track: Track, points: Point[], dataPoints: DataPoint[], dataIndex: number): DataPoint[] {
+  private createDataPoints( // NOSONAR
+    previous: DataPoint | undefined, trackSegmentIndex: number, trackPointIndex: number, track: Track, points: Point[], dataPoints: DataPoint[], dataIndex: number
+  ): DataPoint[] {
     const point = points[trackPointIndex];
 
     let distance = previous?.distanceMeters ?? 0;

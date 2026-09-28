@@ -50,10 +50,11 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
     const id = this.idFromUrl(url);
     if (!id) return Promise.resolve(null);
     return this.tableInfos.get(id)
-    .then(info => info ? info.info :
-      firstValueFrom(this.requestTrailsByIds([id]))
-      .then(result => result.length === 0 ? null : result[0].info)
-    );
+    .then(async info => {
+      if (info) return info.info;
+      const result = await firstValueFrom(this.requestTrailsByIds([id]))
+      return result.length === 0 ? null : result[0].info;
+    });
   }
 
   private idFromUrl(url: string): string | undefined {
@@ -83,10 +84,11 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
       return Promise.resolve(null);
     }
     return this.tableTrails.get(id)
-    .then(trail => trail ? new Trail(trail) :
-      firstValueFrom(this.requestTrailsByIds([id]))
-      .then(result => result.length === 0 ? null : result[0].trail)
-    );
+    .then(async trail => {
+      if (trail) return new Trail(trail);
+      const result = await firstValueFrom(this.requestTrailsByIds([id]));
+      return result.length === 0 ? null : result[0].trail;
+    });
   }
 
   public override canSearchByArea(): boolean {

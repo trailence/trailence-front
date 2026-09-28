@@ -45,8 +45,8 @@ export interface PdfOptions {
 export class PdfGenerator {
 
   public static generate(injector: Injector, environmentInjector: EnvironmentInjector, trail: Trail, track: Track | undefined, wayPoints: WayPointFromTrack[], avatar: Blob | undefined, photo: ArrayBuffer | undefined, options: PdfOptions, progress: (percent: number) => void): Promise<Blob> { // NOSONAR
-    return new Promise<Blob>((resolve) => {
-      this._generate(injector, environmentInjector, trail, track, wayPoints, avatar, photo, options, progress, resolve);
+    return new Promise<Blob>((resolve, reject) => {
+      this._generate(injector, environmentInjector, trail, track, wayPoints, avatar, photo, options, progress, resolve).catch(e => reject(e));
     });
   }
 
@@ -150,7 +150,7 @@ export class PdfGenerator {
     const range = ctx.doc.bufferedPageRange();
     for (let page = 0; page < range.count; page++) {
       ctx.doc.switchToPage(range.start + page);
-      await generatePdfHeader(ctx);
+      await generatePdfHeader(ctx); // NOSONAR
       percentDone(1);
     }
     ctx.doc.end();
@@ -187,7 +187,7 @@ export class PdfGenerator {
   }
 
   private static photoGenerator(maxHeight?: number): PdfSectionGenerator {
-    return async function (ctx: PdfContext, options: PdfOptions, x: number, y: number, width: number): Promise<number> {
+    return async function (ctx: PdfContext, options: PdfOptions, x: number, y: number, width: number): Promise<number> { // NOSONAR
       const size = PdfGenerator.getPhotoSize(ctx, width, maxHeight);
       ctx.doc.image(ctx.photo!.photo, x, y, size);
       return y + size.height;
@@ -212,7 +212,7 @@ export class PdfGenerator {
     }
   }
 
-  private static async generateOnePageModel(ctx: PdfContext, options: PdfOptions, progress: (done: number) => void, workAmount: number) {
+  private static async generateOnePageModel(ctx: PdfContext, options: PdfOptions, progress: (done: number) => void, workAmount: number) { // NOSONAR
     const userLang = ctx.preferences.preferences.lang;
     const sourceLang = ctx.trailInfo?.lang ?? userLang;
     const hasWaypoints = options.includeWaypoints && hasWaypointsContent(ctx.wayPoints, sourceLang, userLang);
@@ -260,7 +260,7 @@ export class PdfGenerator {
         }
       }
       work.elevationDone();
-      await generateDescriptionAndWaypoints(ctx, options, hasWaypoints, ctx.doc.y + 10, {x, width: w, nextPage: defaultNextPage(ctx)});
+      generateDescriptionAndWaypoints(ctx, hasWaypoints, ctx.doc.y + 10, {x, width: w, nextPage: defaultNextPage(ctx)});
       work.descriptionDone();
       work.waypointsDone();
     } else {
@@ -288,16 +288,16 @@ export class PdfGenerator {
           ctx.doc.y = y2 + 10;
           return {x: x + col1Width + 5, width: largeMapWidth, nextPage: defaultNextPage(ctx)};
         }};
-        await generateDescriptionAndWaypoints(ctx, options, hasWaypoints, ctx.doc.y + 10, horiz);
+        generateDescriptionAndWaypoints(ctx, hasWaypoints, ctx.doc.y + 10, horiz);
       } else {
-        await generateDescriptionAndWaypoints(ctx, options, hasWaypoints, ctx.doc.y + 10, {x, width: w, nextPage: defaultNextPage(ctx)});
+        generateDescriptionAndWaypoints(ctx, hasWaypoints, ctx.doc.y + 10, {x, width: w, nextPage: defaultNextPage(ctx)});
       }
       work.descriptionDone();
       work.waypointsDone();
     }
   }
 
-  private static async generateBigMapModel(ctx: PdfContext, options: PdfOptions, progress: (done: number) => void, workAmount: number) {
+  private static async generateBigMapModel(ctx: PdfContext, options: PdfOptions, progress: (done: number) => void, workAmount: number) { // NOSONAR
     const userLang = ctx.preferences.preferences.lang;
     const sourceLang = ctx.trailInfo?.lang ?? userLang;
     const hasWaypoints = options.includeWaypoints && hasWaypointsContent(ctx.wayPoints, sourceLang, userLang);
@@ -335,7 +335,7 @@ export class PdfGenerator {
       work.metaDone();
     }
 
-    await generateDescriptionAndWaypoints(ctx, options, hasWaypoints, ctx.doc.y, {x, width, nextPage: defaultNextPage(ctx)});
+    generateDescriptionAndWaypoints(ctx, hasWaypoints, ctx.doc.y, {x, width, nextPage: defaultNextPage(ctx)});
     work.descriptionDone();
     work.waypointsDone();
 

@@ -79,7 +79,7 @@ export class LoginPage extends PublicPage {
     this.whenVisible.subscribe(auth.auth$, a => {
       if (this.inprogress || !a) return;
       logger.debug('Authenticated, routing to', this.returnUrl);
-      this.injector.get(NavController).navigateRoot(this.returnUrl);
+      void this.injector.get(NavController).navigateRoot(this.returnUrl);
     });
   }
 
@@ -133,7 +133,7 @@ export class LoginPage extends PublicPage {
               this.inprogress = false;
             });
             logger.debug('login done, routing to', this.returnUrl);
-            this.injector.get(NavController).navigateRoot(this.returnUrl);
+            void this.injector.get(NavController).navigateRoot(this.returnUrl);
           } else {
             this.inprogress = false;
           }
@@ -170,7 +170,7 @@ export class LoginPage extends PublicPage {
     this.injector.get(StoreService);
     this.injector.get(TrailCollectionService);
     this.injector.get(NavController);
-    import('../../services/database/all');
+    void import('../../services/database/all');
   }
 
   async resetPassword() {
@@ -181,15 +181,15 @@ export class LoginPage extends PublicPage {
         email: this.email
       }
     });
-    modal.present();
+    await modal.present();
   }
 
   createAccount(): void {
-    this.router.navigateByUrl('/' + this.prefs.preferences.lang + '/register');
+    void this.router.navigateByUrl('/' + this.prefs.preferences.lang + '/register');
   }
 
   tryWithoutAccount(): void {
-    this.router.navigateByUrl('/try');
+    void this.router.navigateByUrl('/try');
   }
 
 }

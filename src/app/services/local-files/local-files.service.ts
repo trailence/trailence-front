@@ -109,7 +109,7 @@ export class LocalFilesService {
     logger.info('Multiple operation ' + name + ' waiting on ' + dir, files);
     return new Promise<T>((resolve, reject) => {
       if (paths.every(path => !this._waiting.has(path))) {
-        this.multipleOperation(dir, files, name, () => operation().then(resolve).catch(reject));
+        void this.multipleOperation(dir, files, name, () => operation().then(resolve).catch(reject));
         return;
       }
       const tryAgain: waitingOperation = {
@@ -350,8 +350,8 @@ export class LocalFilesService {
 
   private continueReadJsonl(id: number, reader: JsonlReader): Promise<any> {
     return this.plugin.readJsonlFileChunk({id})
-    .then(r => {
-      reader.consumeEvents(r.events);
+    .then(async r => {
+      await reader.consumeEvents(r.events);
       if (r.end) return reader.end();
       else return this.continueReadJsonl(id, reader);
     });

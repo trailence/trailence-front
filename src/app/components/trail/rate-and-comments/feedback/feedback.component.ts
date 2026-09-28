@@ -70,7 +70,7 @@ export class FeedbackComponent {
       setTimeout(() => this.focusReply(trial + 1), trial * 100);
       return;
     }
-    this.replyTextArea.getInputElement()
+    void this.replyTextArea.getInputElement()
     .then(e => e.scrollIntoView({behavior: 'smooth', block: 'center'}))
     .then(() => this.replyTextArea?.setFocus());
   }
@@ -106,7 +106,7 @@ export class FeedbackComponent {
 
   delete(): void {
     if (this.feedback && this.trailUuid) {
-      this.alertController.create({
+      void this.alertController.create({
         header: this.i18n.texts.pages.trail.sections.comments.delete_comment_confirmation.title,
         message: this.i18n.texts.pages.trail.sections.comments.delete_comment_confirmation.message,
         buttons: [
@@ -114,19 +114,19 @@ export class FeedbackComponent {
           { text: this.i18n.texts.buttons.cancel, role: 'cancel' },
         ]
       }).then(m => {
-        m.onDidDismiss().then(result => {
+        void m.onDidDismiss().then(result => { // NOSONAR
           if (result.role === 'confirm') {
             this.service.deleteComment(this.feedback!.uuid, this.trailUuid!).subscribe(() => this.feedbackChange.emit(null));
           }
         });
-        m.present();
+        void m.present();
       });
     }
   }
 
   deleteReply(replyUuid: string): void {
     if (this.feedback && this.trailUuid) {
-      this.alertController.create({
+      void this.alertController.create({
         header: this.i18n.texts.pages.trail.sections.comments.delete_reply_confirmation.title,
         message: this.i18n.texts.pages.trail.sections.comments.delete_reply_confirmation.message,
         buttons: [
@@ -134,7 +134,7 @@ export class FeedbackComponent {
           { text: this.i18n.texts.buttons.cancel, role: 'cancel' },
         ]
       }).then(m => {
-        m.onDidDismiss().then(result => {
+        void m.onDidDismiss().then(result => { // NOSONAR
           if (result.role === 'confirm') {
             this.service.deleteReply(replyUuid).subscribe(() => {
               const index = this.feedback!.replies.findIndex(r => r.uuid === replyUuid);
@@ -146,7 +146,7 @@ export class FeedbackComponent {
             });
           }
         });
-        m.present();
+        void m.present();
       });
     }
   }

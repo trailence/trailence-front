@@ -1,7 +1,7 @@
 import { TextComponent } from '../../text/text.component';
 import { HorizBounds, PdfContext } from './pdf-context';
 
-export async function generatePdfText(ctx: PdfContext, text: string, y: number, horiz: HorizBounds, fontSize: number) {
+export function generatePdfText(ctx: PdfContext, text: string, y: number, horiz: HorizBounds, fontSize: number) {
   text = TextComponent.replaceBreakLines(text);
   const div = document.createElement('DIV');
   div.innerHTML = text;
@@ -27,7 +27,7 @@ interface TextOptions {
   firstText: boolean;
 }
 
-async function htmlToPdf(ctx: PdfContext, html: HTMLElement, options: TextOptions) {
+function htmlToPdf(ctx: PdfContext, html: HTMLElement, options: TextOptions) {
   switch (html.tagName) {
     case 'EM': {
       const o = {...options, italic: true};

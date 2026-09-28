@@ -93,7 +93,9 @@ export class EditAvatarPopup implements OnDestroy, OnInit {
   onBlobChange(event: {blob: Blob, changed: boolean}): void {
     this.fromBlob = event.blob;
     this.blobUpdated = event.changed;
-    this.extractCenter(event.blob).then(small => this.blob = small);
+    this.extractCenter(event.blob)
+      .then(small => this.blob = small)
+      .catch(e => logger.error(e));
     this.refresh();
   }
 
@@ -195,7 +197,7 @@ export class EditAvatarPopup implements OnDestroy, OnInit {
   }
 
   close(): void {
-    this.modalController.dismiss();
+    void this.modalController.dismiss();
   }
 
   save(): void {
@@ -203,7 +205,7 @@ export class EditAvatarPopup implements OnDestroy, OnInit {
     this.refresh();
     this.avatarService.save(this.blob!, this.isPublic).subscribe({
       next: () => {
-        this.modalController.dismiss();
+        void this.modalController.dismiss();
       },
       error: e => {
         this.saving = false;

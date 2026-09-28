@@ -79,7 +79,7 @@ export class LinkPlugin extends FetchSourcePlugin {
 
   private toTrail(link: string, cache: LinkCache): Trail {
     if (cache.trail) return cache.trail;
-    return cache.trail = new Trail({
+    return cache.trail = new Trail({ // NOSONAR
       ...cache.content.trail,
       version: 1,
       owner: this.owner,
@@ -92,7 +92,7 @@ export class LinkPlugin extends FetchSourcePlugin {
 
   private toTrack(link: string, cache: LinkCache): Track {
     if (cache.track) return cache.track;
-    return cache.track = new Track({
+    return cache.track = new Track({ // NOSONAR
       ...cache.content.track,
       version: 1,
       owner: this.owner,
@@ -102,7 +102,7 @@ export class LinkPlugin extends FetchSourcePlugin {
 
   private toMetadata(link: string, cache: LinkCache): TrackMetadataSnapshot {
     if (cache.metadata) return cache.metadata;
-    return cache.metadata = TrackDatabase.toMetadata(this.toTrack(link, cache));
+    return cache.metadata = TrackDatabase.toMetadata(this.toTrack(link, cache)); // NOSONAR
   }
 
   private toSimplifiedTrack(link: string, cache: LinkCache): Promise<SimplifiedTrackSnapshot> {
@@ -129,7 +129,7 @@ export class LinkPlugin extends FetchSourcePlugin {
 
   private toTrailInfo(link: string, cache: LinkCache): TrailInfo {
     if (cache.info) return cache.info;
-    return cache.info = {
+    return cache.info = { // NOSONAR
       photos: cache.content.photos.map(p => ({
         url: environment.apiBaseUrl + '/trail-link/v1/photo/' + link + '/' + p.uuid,
         description: p.description,

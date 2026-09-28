@@ -119,10 +119,10 @@ export function copyTrailsTo( // NOSONAR
     ([trails, tags, photos]) => {
       tags = tags.filter(t => t.tags.length > 0);
       photos = photos.filter(t => t.photos.length > 0);
-      handleImportTags(injector, trails, tags, toCollection)
+      void handleImportTags(injector, trails, tags, toCollection)
       .then(() => handleImportPhotos(injector, trails, photos, autoImportPhotos))
       .then(() => {
-        if (fromTrail) injector.get(Router).navigateByUrl('/trail/' + trails[0].newTrail.owner + '/' + trails[0].newTrail.uuid);
+        if (fromTrail) void injector.get(Router).navigateByUrl('/trail/' + trails[0].newTrail.owner + '/' + trails[0].newTrail.uuid);
         if (onDone) onDone(trails.map(t => t.newTrail));
       });
       progress.done();
@@ -208,7 +208,7 @@ function doImportPhotos(
   const copyNext = () => {
     photoService.getFile$(allPhotos[index]).subscribe({
       next: blob => {
-        blob.arrayBuffer().then(buffer => {
+        void blob.arrayBuffer().then(buffer => {
           const originalPhoto = allPhotos[index];
           const originalTrail = photos.find(p => p.photos.indexOf(originalPhoto) >= 0)!.originalTrail; // NOSONAR
           const trail = trails.find(t => t.originalTrail === originalTrail)!; // NOSONAR
@@ -284,7 +284,7 @@ export function moveTrailsTo(injector: Injector, trails: Trail[], fromCollection
             if (additionalUpdate) additionalUpdate(t);
           },
           t => {
-            (t.version > 0 ? injector.get(TrailCollectionService).doNotDeleteCollectionWhileTrailNotSync(fromCollection.uuid, t) : Promise.resolve())
+            void (t.version > 0 ? injector.get(TrailCollectionService).doNotDeleteCollectionWhileTrailNotSync(fromCollection.uuid, t) : Promise.resolve())
             .then(() => {
               progress.addWorkDone(1);
               progress.subTitle = (++done) + '/' + trails.length;
@@ -305,7 +305,7 @@ export function moveTrailsTo(injector: Injector, trails: Trail[], fromCollection
   ).subscribe(tags => {
     const trailTags = tags.filter(t => t.tags.length > 0);
     const trails = trailTags.map(t => ({originalTrail: t.originalTrail, newTrail: t.originalTrail}));
-    handleImportTags(injector, trails, trailTags, toCollection);
+    void handleImportTags(injector, trails, trailTags, toCollection);
     progress.done();
   });
 }

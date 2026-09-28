@@ -4,6 +4,7 @@ import { Track } from '@trailence/model/track';
 import { Trail } from '@trailence/model/trail';
 import { FetchSourceService } from '@trailence/services/fetch-source/fetch-source.service';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { ErrorService } from '@trailence/services/progress/error.service';
 
 export function checkPublicTrailsAround(injector: Injector, track: Track, listener: (mapTracks: MapTrack[]) => void) {
   const trailence = injector.get(FetchSourceService).getPluginByName('Trailence');
@@ -26,7 +27,7 @@ export function checkPublicTrailsAround(injector: Injector, track: Track, listen
           return mt;
         });
         listener(mapTracks);
-      });
+      }).catch(e => injector.get(ErrorService).addError(e));
     }
   );
 }

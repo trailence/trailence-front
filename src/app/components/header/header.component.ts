@@ -76,7 +76,7 @@ export class HeaderComponent extends AbstractComponent {
   }
 
   back(): void {
-    this.router.navigateByUrl(this.backUrl!);
+    void this.router.navigateByUrl(this.backUrl!);
   }
 
   titlePress(): void {
@@ -84,7 +84,7 @@ export class HeaderComponent extends AbstractComponent {
   }
 
   goTo(url: string): void {
-    this.router.navigateByUrl(url);
+    void this.router.navigateByUrl(url);
   }
 
   home(): void {
@@ -139,10 +139,10 @@ export class HeaderComponent extends AbstractComponent {
   }
 
   pauseLiveGroups(): void {
-    import('@trailence/services/live-group/live-group.service').then(module => this.injector.get(module.LiveGroupService).pause());
+    void import('@trailence/services/live-group/live-group.service').then(module => this.injector.get(module.LiveGroupService).pause());
   }
   resumeLiveGroups(): void {
-    import('@trailence/services/live-group/live-group.service').then(module => this.injector.get(module.LiveGroupService).resume());
+    void import('@trailence/services/live-group/live-group.service').then(module => this.injector.get(module.LiveGroupService).resume());
   }
 
 }

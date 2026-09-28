@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { OwnedStore, UpdatesResponse } from './store/owned-store';
 import { HttpService } from '../http/http.service';
-import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, defaultIfEmpty, filter, first, firstValueFrom, from, map, of, switchMap, take, tap, timer, zip } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, Subscriber, catchError, combineLatest, defaultIfEmpty, filter, first, firstValueFrom, from, map, of, switchMap, take, tap, timer, zip } from 'rxjs';
 import { environment } from '@env/environment';
 import { Trail } from '@trailence/model/trail';
 import { TrailDto } from '@trailence/model/dto/trail';
@@ -33,6 +33,8 @@ import { CommonDatabaseService } from './common-database.service';
 import { StoreService, StoreWithCleaning } from './store/store.service';
 import { TrailCollection } from '@trailence/model/trail-collection';
 import { getLogger } from '@trailence/utils/console';
+import { Share } from '@trailence/model/share';
+import { StoreLoadStatus } from './store/store';
 
 const logger = getLogger('trail.service');
 
@@ -430,46 +432,42 @@ class TrailStore extends OwnedStore<TrailDto, Trail> implements StoreWithCleanin
       this.injector.get(ShareService).getAll$().pipe(collection$items()),
     ]).pipe(
       first(),
-      switchMap(([trails, collections, shares]) => {
-        return new Observable<any>(subscriber => {
-          if (!this.isStillValid(status)) {
-            subscriber.next('database changed, cancelled');
-            subscriber.complete();
-            return;
-          }
-          const maxDate = Date.now() - 24 * 60 * 60 * 1000;
-          let count = 0;
-          const ondone = new CompositeOnDone(() => {
-            subscriber.next('' + count);
-            subscriber.complete();
-          });
-          for (const trail of trails) {
-            if (trail.createdAt > maxDate || trail.updatedAt > maxDate) continue;
-            if (trail.owner === status.email) {
-              if (collections.some(c => c.uuid === trail.collectionUuid && c.owner === status.email && c.type !== TrailCollectionType.SHARED)) continue;
-            } else if (trail.owner.startsWith(SHARED_OWNER_PREFIX)) {
-              if (collections.some(c => c.type === TrailCollectionType.SHARED && c.getContentOwner() === trail.owner)) continue;
-            } else {
-              if (shares.some(s => s.owner === trail.owner && s.trails.includes(trail.uuid))) continue; // NOSONAR
-            }
-            const d = ondone.add();
-            this.getLocalUpdate(trail).then(date => {
-              if (!this.isStillValid(status)) {
-                d();
-                return;
-              }
-              if (!date || date > maxDate) {
-                d();
-                return;
-              }
-              count++;
-              this.delete(trail, d);
-            });
-          }
-          ondone.start();
-        });
-      })
+      switchMap(([trails, collections, shares]) => new Observable<any>(subscriber => this.cleanTrails(status, trails, collections, shares, subscriber))),
     ));
+  }
+
+  private cleanTrails(status: StoreLoadStatus, trails: Trail[], collections: TrailCollection[], shares: Share[], subscriber: Subscriber<string>): void { // NOSONAR
+    if (!this.isStillValid(status)) {
+      subscriber.next('database changed, cancelled');
+      subscriber.complete();
+      return;
+    }
+    const maxDate = Date.now() - 24 * 60 * 60 * 1000;
+    let count = 0;
+    const ondone = new CompositeOnDone(() => {
+      subscriber.next('' + count);
+      subscriber.complete();
+    });
+    for (const trail of trails) {
+      if (trail.createdAt > maxDate || trail.updatedAt > maxDate) continue;
+      if (trail.owner === status.email) {
+        if (collections.some(c => c.uuid === trail.collectionUuid && c.owner === status.email && c.type !== TrailCollectionType.SHARED)) continue;
+      } else if (trail.owner.startsWith(SHARED_OWNER_PREFIX)) {
+        if (collections.some(c => c.type === TrailCollectionType.SHARED && c.getContentOwner() === trail.owner)) continue;
+      } else {
+        if (shares.some(s => s.owner === trail.owner && s.trails.includes(trail.uuid))) continue; // NOSONAR
+      }
+      const d = ondone.add();
+      this.getLocalUpdate(trail).then(date => {
+        if (!this.isStillValid(status) || !date || date > maxDate) {
+          d();
+          return;
+        }
+        count++;
+        this.delete(trail, d);
+      }).catch(_ => d());
+    }
+    ondone.start();
   }
 
 }

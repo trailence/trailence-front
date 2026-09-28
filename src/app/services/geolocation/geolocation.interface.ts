@@ -50,7 +50,7 @@ export abstract class AbstractGeolocationService {
     .then(state => {
       if (state === GeolocationState.DISABLED) {
         return new Promise((resolve, reject) => {
-          this.alertController.create({
+          void this.alertController.create({
             header: this.i18n.texts.trace_recorder.disabled_popup.title,
             message: this.i18n.texts.trace_recorder.disabled_popup.message,
             backdropDismiss: false,
@@ -58,14 +58,14 @@ export abstract class AbstractGeolocationService {
               text: this.i18n.texts.buttons.retry,
               role: 'ok',
               handler: () => {
-                this.alertController.dismiss();
+                void this.alertController.dismiss();
                 this.needsPermission().then(resolve).catch(reject);
               }
             }, {
               text: this.i18n.texts.buttons.cancel,
               role: 'cancel',
               handler: () => {
-                this.alertController.dismiss();
+                void this.alertController.dismiss();
                 reject(new Error('Geolocation disabled'));
               }
             }]
@@ -74,7 +74,7 @@ export abstract class AbstractGeolocationService {
       } else if (state === GeolocationState.DENIED) {
         return new Promise((resolve, reject) => {
           const showPopup = () => {
-            this.alertController.create({
+            void this.alertController.create({
               header: this.i18n.texts.trace_recorder.denied_popup.title,
               message: this.i18n.texts.trace_recorder.denied_popup.message,
               backdropDismiss: false,
@@ -82,23 +82,23 @@ export abstract class AbstractGeolocationService {
                 text: this.i18n.texts.buttons.retry,
                 role: 'ok',
                 handler: () => {
-                  this.alertController.dismiss();
+                  void this.alertController.dismiss();
                   this.needsPermission().then(resolve).catch(reject);
                 }
               }, {
                 text: this.i18n.texts.buttons.cancel,
                 role: 'cancel',
                 handler: () => {
-                  this.alertController.dismiss();
+                  void this.alertController.dismiss();
                   reject(new Error('Geolocation access denied by user'));
                 }
               }]
             }).then(alert => alert.present());
           };
           if (!showPopupImmediatelyIfDenied && this.canRequestPermission()) {
-            this.requestPermissions()
+            void this.requestPermissions()
             .then(ok => {
-              if (ok) this.needsPermission(true).then(resolve).catch(reject);
+              if (ok) this.needsPermission(true).then(resolve).catch(reject); // NOSONAR
               else showPopup();
             })
           } else {

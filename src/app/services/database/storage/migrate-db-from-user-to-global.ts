@@ -8,7 +8,7 @@ import { getLogger } from '@trailence/utils/console';
 
 const logger = getLogger('migrate-db-from-user-to-global');
 
-export async function migrateLatestUserDbToGlobalDb(dbName: string, injector: Injector): Promise<boolean> {
+export async function migrateLatestUserDbToGlobalDb(dbName: string, injector: Injector): Promise<boolean> { // NOSONAR
   const latestAuthStr = localStorage.getItem(LOCALSTORAGE_KEY_AUTH);
   if (!latestAuthStr) return false;
   let latestEmail: string;
@@ -44,7 +44,7 @@ export async function migrateLatestUserDbToGlobalDb(dbName: string, injector: In
   });
   for (const tableName of tableNames) {
     logger.info('Copying from ' + dbName + '_' + latestEmail + '/' + tableName + ' to ' + dbName + '/' + tableName);
-    await copyTable(previousDb, newDb, tableName);
+    await copyTable(previousDb, newDb, tableName); // NOSONAR
   }
 
   // rename local directory
@@ -59,7 +59,7 @@ export async function migrateLatestUserDbToGlobalDb(dbName: string, injector: In
       if (localFiles.supported()) {
         const email = existingDb.name.substring(dbName.length + 1);
         if (email.length > 0)
-          localFiles.deleteDirectoryAndContent(email + '/' + dbName);
+          void localFiles.deleteDirectoryAndContent(email + '/' + dbName);
       }
     }
   }
