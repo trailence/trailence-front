@@ -191,6 +191,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   protected abstract itemFromDb(item: DB_ITEM): STORE_ITEM;
   protected abstract areSame(item1: STORE_ITEM, item2: STORE_ITEM): boolean;
+  protected areConflicting(item1: STORE_ITEM, item2: STORE_ITEM): boolean { return false; }
   protected abstract getKey(item: STORE_ITEM): string;
 
   protected abstract sync(): Observable<SyncAgain>;
@@ -335,7 +336,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     this.performOperation(
       'create item',
       () => {
-        existing = this._store.value.find(value => value.value && this.areSame(value.value, item));
+        existing = this._store.value.find(value => value.value && (this.areSame(value.value, item) || this.areConflicting(value.value, item)));
         if (existing) {
           inStore$.next(existing);
         } else {

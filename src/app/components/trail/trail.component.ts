@@ -2127,7 +2127,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       this.publicationChecklist?.delete();
       const trail = this.trail1!
       const fromCollection = this.injector.get(TrailCollectionService).getCollection(trail.collectionUuid, trail.owner)!;
-      const toCollection = await firstValueFrom(this.injector.get(TrailCollectionService).getOrCreatePublicationSubmit());
+      const toCollection = (await firstValueFrom(this.injector.get(TrailCollectionService).getOrCreatePublicationSubmit()))!;
       const copyModule = await import('../../services/functions/copy-trails');
       copyModule.moveTrailsTo(this.injector, [trail], fromCollection, toCollection, t => t.publicationMessageFromAuthor = result.data, true);
       this.injector.get(Router).navigateByUrl('/trails/collection/' + this.trail1WithInfo!.collection!.uuid + '/' + this.trail1WithInfo!.collection!.owner);
@@ -2177,7 +2177,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   private async rejectToDraft() {
     const trail = this.trail1!
     const fromCollection = this.injector.get(TrailCollectionService).getCollection(trail.collectionUuid, trail.owner)!;
-    const toCollection = await firstValueFrom(this.injector.get(TrailCollectionService).getOrCreatePublicationDraft());
+    const toCollection = (await firstValueFrom(this.injector.get(TrailCollectionService).getOrCreatePublicationDraft()))!;
     const copyModule = await import('../../services/functions/copy-trails');
     copyModule.moveTrailsTo(this.injector, [trail], fromCollection, toCollection);
   }
@@ -2199,7 +2199,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     alert.onDidDismiss().then(result => {
       if (result.role === 'success') {
         this.injector.get(TrailCollectionService)
-        .getOrCreatePublicationDraft()
+        .getOrCreatePublicationDraft().pipe(first(c => !!c))
         .subscribe(col => {
           import('../../services/functions/copy-trails')
           .then(m => m.copyTrailsTo(this.injector, [this.trail1!], col, true, true, true, (newTrail) => ({

@@ -69,9 +69,10 @@ export class TrailCollectionService {
     );
   }
 
-  public getOrCreatePublicationDraft(): Observable<TrailCollection> {
+  public getOrCreatePublicationDraft(): Observable<TrailCollection | null> {
     return this._store.getAllWhenLoaded$().pipe(
       collection$items(),
+      first(),
       switchMap(collections => {
         const col = collections.find(c => c.type === TrailCollectionType.PUB_DRAFT);
         if (col) return of(col);
@@ -80,14 +81,13 @@ export class TrailCollectionService {
           type: TrailCollectionType.PUB_DRAFT,
         }))
       }),
-      filterDefined(),
-      first(),
     );
   }
 
-  public getOrCreatePublicationSubmit(): Observable<TrailCollection> {
+  public getOrCreatePublicationSubmit(): Observable<TrailCollection | null> {
     return this._store.getAllWhenLoaded$().pipe(
       collection$items(),
+      first(),
       switchMap(collections => {
         const col = collections.find(c => c.type === TrailCollectionType.PUB_SUBMIT);
         if (col) return of(col);
@@ -96,8 +96,6 @@ export class TrailCollectionService {
           type: TrailCollectionType.PUB_SUBMIT,
         }))
       }),
-      filterDefined(),
-      first(),
     );
   }
 
@@ -349,16 +347,25 @@ class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollectio
       // if a publication collection is new on server, and we have it created locally
       // move all trails from the local to the one from the server, and delete the local
       if (!isPublicationCollection(entity.type)) return;
-      const local = this._store.value.find(c$ => c$.value && c$.value.type === entity.type && c$.value.isCreatedLocally() && !c$.value.isDeletedLocally())?.value;
+      const local = this._store.value.find(c$ => c$.value?.type === entity.type && c$.value.isCreatedLocally() && !c$.value.isDeletedLocally())?.value;
       if (!local) return;
       const trailService = this.injector.get(TrailService);
       trailService.getAllWhenLoaded$().pipe(
         collection$items(),
         map(trails => trails.filter(t => t.collectionUuid === local.uuid)),
         takeWhile(trails => trails.length > 0),
-      ).subscribe(trails => {
-        for (const trail of trails) trailService.doUpdate(trail, t => t.collectionUuid = entity.uuid);
+      ).subscribe({
+        next: trails => {
+          for (const trail of trails) trailService.doUpdate(trail, t => t.collectionUuid = entity.uuid);
+        },
+        complete: () => {
+          this.delete(local);
+        }
       });
+    }
+
+    protected override areConflicting(item1: TrailCollection, item2: TrailCollection): boolean {
+      return item1.type === item2.type && isPublicationCollection(item1.type);
     }
 
   }

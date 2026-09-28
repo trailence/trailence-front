@@ -4,6 +4,7 @@ import { IonHeader, IonButton, IonToolbar, IonIcon, IonLabel, IonContent, IonFoo
 import { Trail } from '@trailence/model/trail';
 import { TrailCollectionService } from '@trailence/services/database/trail-collection.service';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { first } from 'rxjs';
 
 @Component({
   templateUrl: './start-publication-modal.component.html',
@@ -29,7 +30,7 @@ export class StartPublicationModal {
   create(): void {
     this.creating = true;
     this.injector.get(TrailCollectionService)
-    .getOrCreatePublicationDraft()
+    .getOrCreatePublicationDraft().pipe(first(c => !!c))
     .subscribe(col => {
       import('../../../services/functions/copy-trails')
       .then(m => m.copyTrailsTo(this.injector, [this.trail], col, true, true, true,
