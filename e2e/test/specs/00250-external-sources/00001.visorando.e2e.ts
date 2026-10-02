@@ -34,7 +34,7 @@ describe('Import data from Visorando', () => {
     const trailPage = await trailsList.openTrailByName(hautMontetName);
     const description = await trailPage.trailComponent.getDescription();
     expect(description).toBe(hautMontetDescription);
-    const waypoints = await TestUtils.retry(async (trial) => {
+    const waypoints = await TestUtils.retry(async () => {
       const wp = await trailPage.trailComponent.getWayPoints(1);
       if (wp.length === 0 || wp[0].description === '') throw new Error()
       return wp;

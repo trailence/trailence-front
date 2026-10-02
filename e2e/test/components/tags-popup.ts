@@ -30,8 +30,9 @@ export class TagsPopup extends ModalComponent {
     const tags = [];
     if (this.editing) {
       const inputs = this.contentElement.$$('>>>div.tag-node ion-input');
-      for (const input of await inputs.getElements()) {
-        tags.push(await new IonicInput(input).getValue());
+      const nb = await inputs.length;
+      for (let i = 0; i < nb; ++i) {
+        tags.push(await new IonicInput(inputs[i]).getValue());
       }
     } else if (this.selectable) {
       const nodes = this.contentElement.$$('>>>div.tag-node');
@@ -96,27 +97,29 @@ export class TagsPopup extends ModalComponent {
 
   public async editName(currentName: string, newName: string) {
     const inputs = this.contentElement.$$('>>>div.tag-node ion-input');
-    for (const input of await inputs.getElements()) {
-      const i = new IonicInput(input);
+    const nb = await inputs.length
+    for (let index = 0; index < nb; ++index) {
+      const i = new IonicInput(inputs[index]);
       if (await i.getValue() === currentName) {
         await i.setValue(newName);
         return;
       }
     }
-    throw Error('Tag not found: ' + currentName);
+    throw new Error('Tag not found: ' + currentName);
   }
 
   public async removeTag(name: string) {
     const inputs = this.contentElement.$$('>>>div.tag-node ion-input');
-    for (const input of await inputs.getElements()) {
-      const i = new IonicInput(input);
+    const nb = await inputs.length;
+    for (let index = 0; index < nb; ++index) {
+      const i = new IonicInput(inputs[index]);
       if (await i.getValue() === name) {
         await new IonicButton(i.getElement().parentElement().$('ion-button[color=danger]')).click();
         await (await App.waitAlert()).clickButtonWithRole('danger');
         return;
       }
     }
-    throw Error('Tag not found: ' + name);
+    throw new Error('Tag not found: ' + name);
   }
 
   public async save() {

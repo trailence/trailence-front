@@ -10,8 +10,6 @@ import { TestUtils } from '../utils/test-utils';
 import { TrailPlannerPage } from '../app/pages/trail-planner-page';
 import { AdminPage } from '../admin/admin.page';
 import { MenuContent } from './menu-content.component';
-import { IonicToggle } from './ionic/ion-toggle';
-import { IonicInput } from './ionic/ion-input';
 
 export class AppMenu extends Component {
 

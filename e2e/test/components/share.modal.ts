@@ -29,8 +29,8 @@ export class ShareModal extends ModalComponent {
   }
 
   public async addEmail(email: string) {
-    const recipientsElements = await this.contentElement.$$('>>>div.recipients ion-input').getElements();
-    await new IonicInput(recipientsElements[recipientsElements.length - 1]).setValue(email);
+    const recipientsElements = this.contentElement.$$('>>>div.recipients ion-input');
+    await new IonicInput(recipientsElements[await recipientsElements.length - 1]).setValue(email);
   }
 
   public async selectIncludePhotos() {

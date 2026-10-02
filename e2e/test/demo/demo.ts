@@ -24,7 +24,7 @@ describe('Demo', () => {
         await App.waitNoProgress();
         await browser.waitUntil(() => list.items.length.then(nb => nb === 0));
       }
-      await importTrail(mytrails, '../demo/mytrails.zip', undefined, tags => tags.importAll());
+      await importTrail(mytrails, '../demo/mytrails.zip', tags => tags.importAll());
       await App.waitNoProgress();
       await App.synchronize(false, 20);
     }

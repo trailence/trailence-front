@@ -59,7 +59,7 @@ export class TrailComponent extends Component {
   public async centerOnMetadata() {
     const details = await this.openDetails();
     const meta = await details.$$('.metadata-item-container').getElements();
-    await Component.scrollIntoView(meta[meta.length - 1]);
+    await Component.scrollElementIntoView(meta[meta.length - 1]);
   }
 
   public async getMetadataItems() {
@@ -68,7 +68,7 @@ export class TrailComponent extends Component {
   }
 
   public async getMetadataTitle(item: WebdriverIO.Element) {
-    await Component.scrollIntoView(item);
+    await Component.scrollElementIntoView(item);
     return await item.$('.metadata-title').getText();
   }
 
@@ -119,7 +119,7 @@ export class TrailComponent extends Component {
     const details = await this.openDetails();
     const checkboxes = details.$$('ion-checkbox');
     for (const cb of await checkboxes.getElements()) {
-      await Component.scrollIntoView(cb);
+      await Component.scrollElementIntoView(cb);
       const text = await cb.getText();
       if (text === 'Show original trace') {
         await cb.click();
@@ -291,7 +291,7 @@ export class TrailComponent extends Component {
 
   public async canAcceptPublication() {
     const details = await (await this.openDetails()).getElement();
-    return await new ToolbarComponent(details.$('app-toolbar')).getButtonByIcon('web').parentElement().getAttribute('class').then(c => !c.includes('disabled'));
+    return await new ToolbarComponent(details.$('app-toolbar')).getButtonByIcon('web').parentElement().getAttribute('class').then(c => !c?.includes('disabled'));
   }
 
   public async acceptPublication() {
@@ -312,7 +312,7 @@ export class TrailComponent extends Component {
 
   public async isBottomSheetOpen() {
     const top = await this.getElement().$('div.top-container').getAttribute('class');
-    return top.indexOf('bottom-sheet-closed') < 0;
+    return !top || top.indexOf('bottom-sheet-closed') < 0;
   }
 
   public async openBottomSheet() {

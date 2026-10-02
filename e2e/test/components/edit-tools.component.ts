@@ -5,7 +5,6 @@ import { IonicButton } from './ionic/ion-button';
 import { IonicInput } from './ionic/ion-input';
 import { ModalComponent } from './modal';
 import { ToolbarComponent } from './toolbar.component';
-import { Key } from 'webdriverio';
 
 export class EditTools extends Component {
 
@@ -65,7 +64,8 @@ export class EditTools extends Component {
   }
 
   public async canUndo() {
-    return (await this.toolbar.getButtonByIcon('undo').parentElement().getAttribute('class')).indexOf('disabled') < 0;
+    const c = await this.toolbar.getButtonByIcon('undo').parentElement().getAttribute('class');
+    return !c || c.indexOf('disabled') < 0;
   }
 
   public async undo() {

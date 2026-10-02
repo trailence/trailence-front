@@ -234,7 +234,7 @@ describe('Trails list', () => {
     expect(paths.length).toBe(0);
     bubbles = await map.getOverlaysSvgsWithClass('bubble').map(m => m.getAttribute('class'));
     expect(bubbles.length).toBeGreaterThan(0);
-    expect(bubbles.every(c => c.indexOf('bubble') >= 0));
+    expect(bubbles.every(c => c && c.indexOf('bubble') >= 0));
 
     await map.setPathMode();
     // map should contain only trails

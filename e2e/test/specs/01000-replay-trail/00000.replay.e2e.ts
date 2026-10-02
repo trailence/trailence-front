@@ -97,7 +97,6 @@ describe('Replay trail', () => {
     await startButton.click();
   });
 
-  let paused = false;
   it('Go to map and wait until pause', async () => {
     await browser.execute(() => (window as any)._startTrail = true);
     await trailPage.trailComponent.openMap();

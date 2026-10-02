@@ -57,7 +57,7 @@ export class App {
             .then(() => browser.getUrl()).catch(_ => Promise.resolve('error')).then(url => { console.log('Browser URL was: ' + url); return true; });
         }
         promise = promise.then(() => browser.execute(name => {
-          const history = [...(window as any)['_consoleHistory'], ' *** End of ' + name + ' ***'];
+          const history: string[] = [...(window as any)['_consoleHistory'], ' *** End of ' + name + ' ***'];
           (window as any)['_consoleHistory'].push(' *** End of ' + name + ' ***');
           return history;
         }, result.fullName)

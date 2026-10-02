@@ -14,7 +14,7 @@ export class FilterTrailsPopup extends ModalComponent {
     const headers = this.getElement().$$('>>>div.filter-header>div');
     let textElement;
     for (const header of await headers.getElements()) {
-      await Component.scrollIntoView(header);
+      await Component.scrollElementIntoView(header);
       const text = await header.getText();
       if (text === filterName) {
         textElement = header;
@@ -32,7 +32,7 @@ export class FilterTrailsPopup extends ModalComponent {
     const headers = this.getElement().$$('>>>div.filter-header>div');
     let textElement;
     for (const header of await headers.getElements()) {
-      await Component.scrollIntoView(header);
+      await Component.scrollElementIntoView(header);
       const text = await header.getText();
       if (text === filterName) {
         textElement = header;
@@ -56,7 +56,7 @@ export class FilterTrailsPopup extends ModalComponent {
     const tagsFounds = [];
     const foundTexts = [];
     for (const cb of await checkboxes.getElements()) {
-      await Component.scrollIntoView(cb);
+      await Component.scrollElementIntoView(cb);
       const text = await cb.getText();
       foundTexts.push(text);
       if (tags.indexOf(text) >= 0) {

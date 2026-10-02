@@ -23,12 +23,13 @@ export class PhotosComponent extends Component {
   public async collectPhotosInfos() {
     const result = new Map<string, { container: WebdriverIO.Element; metadata: Map<string, string> }>();
     for (const container of await this.getPhotosContainers().getElements()) {
-      await Component.scrollIntoView(container);
+      await Component.scrollElementIntoView(container);
       const text = (await container.$('div.photo-and-description div.description').getText()).trim();
       const metadataItems = container.$$('div.metadata-item');
       const metadata = new Map<string, string>();
       for (const metadataItem of await metadataItems.getElements()) {
         const icon = await metadataItem.$('ion-icon').getAttribute('name');
+        if (!icon) continue;
         const value = await metadataItem.$('.metadata-primary').getText();
         metadata.set(icon, value);
       }
@@ -44,7 +45,7 @@ export class PhotosComponent extends Component {
   public async getIndexByDescription(description: string) {
     let index = 1;
     for (const container of await this.getPhotosContainers().getElements()) {
-      await Component.scrollIntoView(container);
+      await Component.scrollElementIntoView(container);
       const text = (await container.$('div.photo-and-description div.description').getText()).trim();
       if (text === description) return index;
       index++;

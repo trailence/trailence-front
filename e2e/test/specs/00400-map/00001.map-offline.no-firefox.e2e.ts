@@ -40,7 +40,7 @@ describe('Map offline', () => {
       if (tiles.length === 0) return false;
       for (const tile of tiles) {
         const c = await tile.getAttribute('class');
-        if (c.indexOf('map-tile-error') < 0) return false;
+        if (!c || c.indexOf('map-tile-error') < 0) return false;
       }
       return true;
     });
@@ -55,7 +55,7 @@ describe('Map offline', () => {
       if (tiles.length === 0) return false;
       for (const tile of tiles) {
         const c = await tile.getAttribute('class');
-        if (c.indexOf('map-tile-fallback') || c.indexOf('map-tile-offline') >= 0) return true;
+        if (c && (c.indexOf('map-tile-fallback') || c.indexOf('map-tile-offline') >= 0)) return true;
       }
       return false;
     });
@@ -65,8 +65,8 @@ describe('Map offline', () => {
       if (tiles.length === 0) return false;
       for (const tile of tiles) {
         const c = await tile.getAttribute('class');
-        if (c.indexOf('map-tile-offline') >= 0) return false;
-        if (c.indexOf('map-tile-fallback') >= 0 && c.indexOf('map-tile-fallback-2') >= 0) return true;
+        if (c && c.indexOf('map-tile-offline') >= 0) return false;
+        if (c && c.indexOf('map-tile-fallback') >= 0 && c.indexOf('map-tile-fallback-2') >= 0) return true;
       }
       return false;
     });
@@ -76,8 +76,8 @@ describe('Map offline', () => {
       if (tiles.length === 0) return false;
       for (const tile of tiles) {
         const c = await tile.getAttribute('class');
-        if (c.indexOf('map-tile-offline') >= 0) return false;
-        if (c.indexOf('map-tile-fallback') >= 0 && c.indexOf('map-tile-fallback-4') >= 0) return true;
+        if (c && c.indexOf('map-tile-offline') >= 0) return false;
+        if (c && c.indexOf('map-tile-fallback') >= 0 && c.indexOf('map-tile-fallback-4') >= 0) return true;
       }
       return false;
     });
@@ -92,8 +92,8 @@ describe('Map offline', () => {
       if (tiles.length === 0) throw Error('No tile');
       for (const tile of tiles) {
         const c = await tile.getAttribute('class');
-        if (c.indexOf('map-tile-offline') >= 0) throw Error('There is a tile offline: ' + (await tile.getHTML()));
-        if (c.indexOf('map-tile-fallback') >= 0) throw Error('There is a tile fallback: ' + (await tile.getHTML()));
+        if (c && c.indexOf('map-tile-offline') >= 0) throw Error('There is a tile offline: ' + (await tile.getHTML()));
+        if (c && c.indexOf('map-tile-fallback') >= 0) throw Error('There is a tile fallback: ' + (await tile.getHTML()));
       }
       return true;
     });
@@ -108,7 +108,7 @@ describe('Map offline', () => {
       if (tiles.length === 0) return false;
       for (const tile of tiles) {
         const c = await tile.getAttribute('class');
-        if (c.indexOf('map-tile-error') < 0) return false;
+        if (!c || c.indexOf('map-tile-error') < 0) return false;
       }
       return true;
     });
@@ -123,7 +123,7 @@ describe('Map offline', () => {
       if (tiles.length === 0) return false;
       for (const tile of tiles) {
         const c = await tile.getAttribute('class');
-        if (c.indexOf('map-tile-error') >= 0) return false;
+        if (c && c.indexOf('map-tile-error') >= 0) return false;
       }
       return true;
     });

@@ -30,8 +30,10 @@ export class UserModal extends ModalComponent {
   }
 
   public async removeRole(roleName: string) {
-    const roles = await this.getRolesDivs().getElements();
-    for (const role of roles) {
+    const roles = this.getRolesDivs();
+    const nb = await roles.length;
+    for (let i = 0; i < nb; ++i) {
+      const role = roles[i];
       const span = role.$('span');
       const name = await span.getText();
       if (name === roleName) {
