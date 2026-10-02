@@ -54,14 +54,17 @@ async function generateCommandLines() {
         await create_user.setUserRoles(token, username, test.roles);
     }
     let mode = '';
+    let preparationMode = '';
     if (test['browser']) {
       mode += ' --browser=' + test['browser'] + ' --browser-size=' + test['browserSize'];
+      preparationMode += 'browser-' + test['browser'];
     } else if (test['nativePlatform']) {
       mode += ' --native-platform=' + test['nativePlatform'] + ' --native-platform-version=' + test['nativePlatformVersion'] + ' --native-device=' + test['nativeDevice'];
+      preparationMode += 'native-' + test['nativePlatform'] + '@' + test['nativePlatformVersion'] + '@' + test['nativeDevice'];
     }
     if (preparation) {
-      if (preparation_done.indexOf(mode) < 0) {
-        preparation_done.push(mode);
+      if (preparation_done.indexOf(preparationMode) < 0) {
+        preparation_done.push(preparationMode);
       } else {
         continue;
       }

@@ -45,13 +45,14 @@ export class GpxFormatRaw {
     if (metadata) {
       let name = XmlUtils.getChildText(metadata, 'name');
       if (name && name.length > 0) {
-        // visorando gpx is wrong, and may encode &amp;#xxx
-        if (name.includes('&#')) {
+        // visorando gpx is wrong, and may encode stuff like &amp;#xxx or &amp;quot;
+        if (name.includes('&')) {
           try {
-            const div = document.createElement('DIV');
-            div.innerHTML = name;
-            const newName = div.childNodes.length > 0 ? div.childNodes[0].nodeValue : undefined;
-            if (newName && newName.length > 0) name = newName;
+            const docName = parser.parseFromString('<root>' + name + '</root>', "application/xml");
+            if (!docName.querySelector('parsererror')) {
+              const newName = docName.documentElement.textContent;
+              if (newName && newName.length > 0) name = newName;
+            }
           } catch (e) { /* ignore */} // NOSONAR
         }
         trailDto.name = name;
