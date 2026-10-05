@@ -1,4 +1,4 @@
-import { Injectable, SecurityContext } from '@angular/core';
+import { Injectable, Injector, SecurityContext } from '@angular/core';
 import { PreferencesService } from '../preferences/preferences.service';
 import { BehaviorSubject, catchError, combineLatest, filter, map, Observable, of, switchMap, tap } from 'rxjs';
 import { environment } from '@env/environment';
@@ -8,6 +8,7 @@ import { AssetsService } from '../assets/assets.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { LocaleKey } from './available-locales';
 import { getLogger } from '@trailence/utils/console';
+import { ErrorService } from '../progress/error.service';
 
 const logger = getLogger('i18n.service');
 
@@ -48,6 +49,7 @@ export class I18nService {
     private readonly prefService: PreferencesService,
     private readonly assets: AssetsService,
     private readonly sanitizer: DomSanitizer,
+    private readonly injector: Injector,
   ) {
     let state = '';
     prefService.preferences$.subscribe(p => {
@@ -494,6 +496,32 @@ export class I18nService {
       }
     }
     return of('' + value);
+  }
+
+  public customI18n(texts: any) {
+    const current = this._texts$.value;
+    const check = (c: any, n: any, path: string): string | undefined => {
+      for (const key of Object.getOwnPropertyNames(c)) {
+        const subPath = path.length > 0 ? path + '.' + key : key;
+        if (!n[key]) {
+          if (path.includes('.installApk.') || path.includes('translations.from')) continue;
+          return 'missing key: ' + subPath;
+        }
+        if (typeof c[key] === 'string') {
+          if (typeof n[key] !== 'string') return 'invalid key: ' + subPath;
+          continue;
+        }
+        const r = check(c[key], n[key], subPath);
+        if (r) return r;
+      }
+      return undefined;
+    };
+    const error = check(current, texts, '');
+    if (error) {
+      this.injector.get(ErrorService).addError('Invalid i18n file: ' + error);
+      return;
+    }
+    this._texts$.next(texts);
   }
 
 }

@@ -222,3 +222,7 @@ app-avatar {
   background-color: #c000ff;
   color: black;
 }
+
+.drop-target {
+  outline: 3px dashed var(--ion-text-color);
+}

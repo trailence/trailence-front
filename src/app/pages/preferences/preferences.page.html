@@ -8,7 +8,7 @@
     <div class="icon">
       <ion-icon name="i18n"></ion-icon>
     </div>
-    <div class="preference-content">
+    <div class="preference-content" dropFileTarget (filesDropped)="customI18n($event)">
       <div class="title">{{i18n.texts.pages.preferences.language}}</div>
       <div class="value">
         <app-lang-picker [showText]="true"></app-lang-picker>

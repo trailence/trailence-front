@@ -19,6 +19,7 @@ import { AvatarComponent } from '@trailence/components/avatar/avatar.component';
 import { ObserverHelper } from '@trailence/utils/observer-helper';
 import { LangPickerComponent } from '@trailence/components/lang-picker/lang-picker.component';
 import { AvatarDto } from '@trailence/model/dto/avatar';
+import { DropFileTarget } from '@trailence/utils/drop-file-target.directive';
 
 @Component({
   selector: 'app-preferences',
@@ -33,6 +34,7 @@ import { AvatarDto } from '@trailence/model/dto/avatar';
     InputNumberComponent,
     AvatarComponent,
     LangPickerComponent,
+    DropFileTarget,
   ]
 })
 export class PreferencesPage implements OnDestroy {
@@ -312,6 +314,12 @@ export class PreferencesPage implements OnDestroy {
 
   deletePendingAvatar(): void {
     this.avatarService.deleteMyPending();
+  }
+
+  customI18n(files: FileList): void {
+    const file = files.item(0);
+    if (!file) return;
+    void file.text().then(text => this.i18n.customI18n(JSON.parse(text)));
   }
 
 }

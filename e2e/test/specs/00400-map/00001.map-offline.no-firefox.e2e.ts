@@ -92,8 +92,8 @@ describe('Map offline', () => {
       if (tiles.length === 0) throw Error('No tile');
       for (const tile of tiles) {
         const c = await tile.getAttribute('class');
-        if (c && c.indexOf('map-tile-offline') >= 0) throw Error('There is a tile offline: ' + (await tile.getHTML()));
-        if (c && c.indexOf('map-tile-fallback') >= 0) throw Error('There is a tile fallback: ' + (await tile.getHTML()));
+        if (c && c.indexOf('map-tile-offline') >= 0) throw Error('There is a tile offline: ' + c + ': ' + (await tile.getHTML()));
+        if (c && c.indexOf('map-tile-fallback') >= 0) throw Error('There is a tile fallback: ' + c + ': ' + (await tile.getHTML()));
       }
       return true;
     });
