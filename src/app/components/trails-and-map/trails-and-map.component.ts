@@ -178,7 +178,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
         if (!nb) return undefined;
         return { text: '' + nb, color: 'success', fill: true };
       })
-      .setAction(() => this.trailsList?.filtersModal?.present());
+      .setAction(() => this.trailsList?.openFilters());
     this.mapToolbarTopItems = [filtersItem, new MenuItem(), ...searchPlaceItems];
     this.mapTopToolbarSubscription?.unsubscribe();
     this.mapTopToolbarSubscription = undefined;

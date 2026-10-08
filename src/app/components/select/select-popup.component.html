@@ -1,0 +1,83 @@
+@if (titleKey) {
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-label>{{i18n.translateWithArguments(titleKey, [])}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+}
+<ion-content>
+  @if (multiple) {
+    <ion-list>
+      <ng-container *ngTemplateOutlet="groupTemplateMutliple; context: {$implicit: _root}"></ng-container>
+    </ion-list>
+  } @else {
+    <ion-radio-group [value]="(_currentSelection.length > 0 ? _currentSelection[0] : undefined) ?? ''" (ionChange)="setSelection([$event.detail.value])">
+      <ion-list>
+        <ng-container *ngTemplateOutlet="groupTemplateSingle; context: {$implicit: _root}"></ng-container>
+      </ion-list>
+    </ion-radio-group>
+  }
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    @if (multiple && allKey) {
+      <ion-buttons slot="start">
+        <ion-button (click)="selectAll()">{{ i18n.translateWithArguments(allKey, []) }}</ion-button>
+        @if (noneKey) {
+          <ion-button (click)="selectNone()">{{ i18n.translateWithArguments(noneKey, []) }}</ion-button>
+        } @else {
+          <ion-button (click)="selectNone()">{{ i18n.texts.buttons.reset }}</ion-button>
+        }
+      </ion-buttons>
+    }
+    <ion-buttons slot="end">
+      @if (onSelectionChanged) {
+        <ion-button color="medium" (click)="apply()">{{ i18n.texts.buttons.close }}</ion-button>
+      } @else {
+        <ion-button color="success" (click)="apply()" [disabled]="!canApply()">{{ i18n.texts.buttons.apply }}</ion-button>
+        <ion-button color="medium" (click)="cancel()">{{ i18n.texts.buttons.cancel }}</ion-button>
+      }
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>
+
+<ng-template #groupTemplateSingle let-parent>
+  @for (group of parent.subGroups; track group.group.key) {
+    <ion-item class="group" class="group-{{group.group.key}}">
+      @if (group.group.icon) { <ion-icon slot="start" [name]="group.group.icon" color="secondary" class="select-icon group-icon"></ion-icon> }
+      <ion-label>{{ label(group.group) }}</ion-label>
+    </ion-item>
+    <ion-list class="inner-list">
+      <ng-container *ngTemplateOutlet="groupTemplateSingle; context: {$implicit: group}"></ng-container>
+    </ion-list>
+  }
+  @for (item of parent.items; track item.item.value) {
+    <ion-item class="item" (click)="setItemSelected(item, true)" class="item-{{item.item.value}}">
+      <ion-radio slot="start" [value]="item.item.value" color="tertiary"></ion-radio>
+      @if (item.item.icon) { <ion-icon slot="start" [name]="item.item.icon" color="secondary" class="select-icon item-icon"></ion-icon> }
+      <ion-label>{{ label(item.item) }}</ion-label>
+    </ion-item>
+  }
+</ng-template>
+
+<ng-template #groupTemplateMutliple let-parent>
+  @for (group of parent.subGroups; track group.group.key) {
+    <ion-item class="group" (click)="toggleGroupSelected(group)" class="group-{{group.group.key}}">
+      <ion-checkbox slot="start" [checked]="isGroupFullySelected(group)" [indeterminate]="isGroupPartiallySelected(group)" (ionChange)="setGroupSelected(group, $event.detail.checked)" color="tertiary" (click)="$event.stopPropagation()"></ion-checkbox>
+      @if (group.group.icon) { <ion-icon slot="start" [name]="group.group.icon" color="secondary" class="select-icon group-icon"></ion-icon> }
+      <ion-label>{{ label(group.group) }}</ion-label>
+    </ion-item>
+    <ion-list class="inner-list">
+      <ng-container *ngTemplateOutlet="groupTemplateMutliple; context: {$implicit: group}"></ng-container>
+    </ion-list>
+  }
+  @for (item of parent.items; track item.item.value) {
+    <ion-item class="item" (click)="setItemSelected(item, !item.selected)" class="item-{{item.item.value}}">
+      <ion-checkbox slot="start" [checked]="item.selected" (ionChange)="setItemSelected(item, $event.detail.checked)" color="tertiary" (click)="$event.stopPropagation()"></ion-checkbox>
+      @if (item.item.icon) { <ion-icon slot="start" [name]="item.item.icon" color="secondary" class="select-icon item-icon"></ion-icon> }
+      <ion-label>{{ label(item.item) }}</ion-label>
+    </ion-item>
+  }
+</ng-template>

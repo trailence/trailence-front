@@ -236,8 +236,6 @@
         "distance": "Distanz",
         "positive_elevation": "Aufstieg",
         "negative_elevation": "Abstieg",
-        "loopType": "Tourtyp",
-        "loopTypePlaceholder": "Typen auswählen",
         "activity": "Aktivität",
         "select_activities_button": "Zum Auswählen klicken",
         "tags": "Tags",
@@ -955,46 +953,16 @@
       "filter_title": "Nur unter Berücksichtigung der Touren",
       "activity_filter_title": "mit der Aktivität",
       "types": {
-        "nb_trails": {
-          "title": "Die Anzahl der Touren"
-        },
-        "distance": {
-          "title": "Die Distanz"
-        },
-        "positive-elevation": {
-          "title": "Der Aufstieg"
-        },
-        "negative-elevation": {
-          "title": "Der Abstieg"
-        },
-        "duration": {
-          "title": "Die Dauer"
-        }
+        "nb_trails": "Die Anzahl der Touren",
+        "distance": "Die Distanz",
+        "positive-elevation": "Der Aufstieg",
+        "negative-elevation": "Der Abstieg",
+        "duration": "Die Dauer"
       },
       "time_units": {
-        "year": {
-          "title": "Jahr"
-        },
-        "month": {
-          "title": "Monat"
-        },
-        "month_of_year": {
-          "title": "Monat über alle Jahre hinweg"
-        }
-      },
-      "sources": {
-        "the_collection": "Die Sammlung",
-        "collection_single": "Sammlung",
-        "collection_plural": "Sammlungen",
-        "the_share": "Die Freigabe",
-        "share_single": "Freigabe",
-        "share_plural": "Freigaben",
-        "shared_by": "geteilt von"
-      },
-      "activities": {
-        "all": "(Alle)",
-        "or": "oder",
-        "n_activities": "Aktivitäten"
+        "year":"Jahr",
+        "month": "Monat",
+        "month_of_year": "Monat über alle Jahre hinweg"
       }
     },
     "privacy_policy": {
@@ -1836,6 +1804,18 @@
       "duplicate": "Diese E-Mail-Adresse ist bereits vorhanden",
       "atLeastOneEmailIsRequired": "Bitte geben Sie mindestens eine E-Mail-Adresse ein",
       "cannotAddYourself": "Sie können sich nicht selbst hinzufügen"
+    }
+  },
+  "select": {
+    "activities": {
+      "title": "Aktivitäten",
+      "or": "oder",
+      "all": "Alle"
+    },
+    "loopType": {
+      "title": "Tourtyp",
+      "or": "oder",
+      "all": "Alle"
     }
   }
 }

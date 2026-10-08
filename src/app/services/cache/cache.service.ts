@@ -23,10 +23,12 @@ export class CacheService {
   private getDb(): Dexie {
     if (!this.db) {
       logger.info('Opening cache DB');
+      const start = Date.now();
       this.db = new Dexie('trailence_cache');
       const storesV1: any = {};
       storesV1[TIMEOUT_CACHE_TABLE] = '&full_key, name, key';
       this.db.version(1).stores(storesV1);
+      logger.info('Cache DB opened in', Date.now() - start, 'ms.');
     }
     return this.db;
   }

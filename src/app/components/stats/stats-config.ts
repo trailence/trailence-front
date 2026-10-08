@@ -23,7 +23,7 @@ export class StatsConfig {
     else
       this._value = defaultConfig.value;
     if (dto.source && Array.isArray(dto.source)) {
-      this._source = dto.source.filter(s => typeof s === 'object' && s.type && s.type === 'collection');
+      this._source = dto.source.filter(s => typeof s === 'object' && s.uuid);
       if (this._source.length === 0) this._source = defaultConfig.source;
     } else {
       this._source = defaultConfig.source;
@@ -111,13 +111,10 @@ export enum StatsValue {
   DURATION = 'duration',
 }
 
-export interface StatsSourceCollection {
-  type: 'collection',
-  owner?: string,
+export interface StatsSource {
   uuid: string,
+  owner?: string,
 }
-
-export type StatsSource = StatsSourceCollection; // NOSONAR
 
 export enum StatsTimeUnit {
   YEAR = 'year',
@@ -136,7 +133,7 @@ interface StatsConfigDto {
 
 const defaultConfig: StatsConfigDto = {
   value: StatsValue.NB_TRAILS,
-  source: [{type: 'collection', uuid: 'my_trails'}],
+  source: [{uuid: 'my_trails'}],
   timeUnit: StatsTimeUnit.YEAR,
   activityFilter: [],
 };

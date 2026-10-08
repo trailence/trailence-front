@@ -236,8 +236,6 @@
         "distance": "Distanza",
         "positive_elevation": "Dislivello positivo",
         "negative_elevation": "Dislivello negativo",
-        "loopType": "Tipo di percorso",
-        "loopTypePlaceholder": "Seleziona i tipi",
         "activity": "Attività",
         "select_activities_button": "Clicca per selezionare",
         "tags": "Etichette",
@@ -955,46 +953,16 @@
       "filter_title": "Considerando solo i percorsi",
       "activity_filter_title": "con l'attività",
       "types": {
-        "nb_trails": {
-          "title": "Il numero di percorsi"
-        },
-        "distance": {
-          "title": "La distanza"
-        },
-        "positive-elevation": {
-          "title": "Il dislivello positivo"
-        },
-        "negative-elevation": {
-          "title": "Il dislivello negativo"
-        },
-        "duration": {
-          "title": "La durata"
-        }
+        "nb_trails": "Il numero di percorsi",
+        "distance": "La distanza",
+        "positive-elevation": "Il dislivello positivo",
+        "negative-elevation": "Il dislivello negativo",
+        "duration": "La durata"
       },
       "time_units": {
-        "year": {
-          "title": "Anno"
-        },
-        "month": {
-          "title": "Mese"
-        },
-        "month_of_year": {
-          "title": "Mese (tutti gli anni insieme)"
-        }
-      },
-      "sources": {
-        "the_collection": "La raccolta",
-        "collection_single": "raccolta",
-        "collection_plural": "raccolte",
-        "the_share": "La condivisione",
-        "share_single": "condivisione",
-        "share_plural": "condivisioni",
-        "shared_by": "condiviso da"
-      },
-      "activities": {
-        "all": "(Tutte)",
-        "or": "o",
-        "n_activities": "attività"
+        "year": "Anno",
+        "month": "Mese",
+        "month_of_year": "Mese (tutti gli anni insieme)"
       }
     },
     "privacy_policy": {
@@ -1836,6 +1804,18 @@
       "duplicate": "Questo indirizzo email è già presente",
       "atLeastOneEmailIsRequired": "Inserisci almeno un indirizzo email",
       "cannotAddYourself": "Non puoi aggiungere te stesso"
+    }
+  },
+  "select": {
+    "activities": {
+      "title": "Attività",
+      "or": "o",
+      "all": "Tutte"
+    },
+    "loopType": {
+      "title": "Tipo di percorso",
+      "or": "o",
+      "all": "Tutti"
     }
   }
 }

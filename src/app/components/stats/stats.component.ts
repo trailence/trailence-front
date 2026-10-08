@@ -14,7 +14,11 @@ import { GraphBuilder } from './graph-builder';
   templateUrl: './stats.component.html',
   styleUrl: './stats.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonIcon, StatsConfigComponent, GraphComponent, IonAccordionGroup, IonAccordion, IonItem, IonLabel]
+  imports: [
+    IonIcon, IonAccordionGroup, IonAccordion, IonItem, IonLabel,
+    StatsConfigComponent,
+    GraphComponent,
+  ]
 })
 export class StatsComponent extends AbstractComponent {
 

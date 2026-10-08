@@ -6,37 +6,6 @@ import { TrailService } from '@trailence/services/database/trail.service';
 import { TrailActivitiesGroups, TrailActivity, TrailActivityGroup } from '@trailence/model/dto/trail-activity';
 import { TraceRecorderService } from '@trailence/services/trace-recorder/trace-recorder.service';
 
-export async function openActivityDialog(injector: Injector, trails: Trail[], isRecording: boolean = false) {
-  let sel = [trails[0].activity];
-  for (let i = 1; i < trails.length; ++i) {
-    if (trails[i].activity !== sel[0]) {
-      sel = [];
-      break;
-    }
-  }
-  const modal = await injector.get(ModalController).create({
-    component: ActivityPopup,
-    backdropDismiss: true,
-    componentProps: {
-      selection: sel,
-      multiple: false,
-    }
-  });
-  await modal.present();
-  const event = await modal.onDidDismiss();
-  if (event.role !== 'ok' || event.data === undefined) return;
-  const promises = trails.map(trail => new Promise(resolve => {
-    if (isRecording) {
-      const trail = injector.get(TraceRecorderService).current?.trail;
-      if (trail) trail.activity = event.data[0];
-      resolve(true);
-    } else {
-      injector.get(TrailService).doUpdate(trail, t => t.activity = event.data[0], () => resolve(true));
-    }
-  }));
-  await Promise.all(promises);
-}
-
 export async function openActivitiesSelectionPopup(
   injector: Injector,
   selection: (TrailActivity | undefined)[],

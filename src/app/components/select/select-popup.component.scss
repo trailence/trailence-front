@@ -1,0 +1,16 @@
+ion-list.inner-list {
+  margin-left: 20px;
+}
+ion-icon.select-icon {
+  margin-inline-end: 16px;
+}
+ion-list {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+ion-item {
+  --min-height: 40px;
+}
+ion-item::part(native) {
+  height: 40px;
+}

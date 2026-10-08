@@ -236,8 +236,6 @@
         "distance": "Distancia",
         "positive_elevation": "Desnivel positivo",
         "negative_elevation": "Desnivel negativo",
-        "loopType": "Tipo de ruta",
-        "loopTypePlaceholder": "Selecciona los tipos",
         "activity": "Actividad",
         "select_activities_button": "Haz clic para seleccionar",
         "tags": "Etiquetas",
@@ -955,46 +953,16 @@
       "filter_title": "Teniendo en cuenta únicamente las rutas",
       "activity_filter_title": "con la actividad",
       "types": {
-        "nb_trails": {
-          "title": "El número de rutas"
-        },
-        "distance": {
-          "title": "La distancia"
-        },
-        "positive-elevation": {
-          "title": "El desnivel positivo"
-        },
-        "negative-elevation": {
-          "title": "El desnivel negativo"
-        },
-        "duration": {
-          "title": "La duración"
-        }
+        "nb_trails": "El número de rutas",
+        "distance": "La distancia",
+        "positive-elevation": "El desnivel positivo",
+        "negative-elevation": "El desnivel negativo",
+        "duration": "La duración"
       },
       "time_units": {
-        "year": {
-          "title": "Año"
-        },
-        "month": {
-          "title": "Mes"
-        },
-        "month_of_year": {
-          "title": "Mes (todos los años juntos)"
-        }
-      },
-      "sources": {
-        "the_collection": "La colección",
-        "collection_single": "colección",
-        "collection_plural": "colecciones",
-        "the_share": "El elemento compartido",
-        "share_single": "elemento compartido",
-        "share_plural": "elementos compartidos",
-        "shared_by": "compartido por"
-      },
-      "activities": {
-        "all": "(Todas)",
-        "or": "o",
-        "n_activities": "actividades"
+        "year": "Año",
+        "month": "Mes",
+        "month_of_year": "Mes (todos los años juntos)"
       }
     },
     "privacy_policy": {
@@ -1836,6 +1804,18 @@
       "duplicate": "Esta dirección de correo electrónico ya está presente",
       "atLeastOneEmailIsRequired": "Introduce al menos una dirección de correo electrónico",
       "cannotAddYourself": "No puedes añadirte a ti mismo"
+    }
+  },
+  "select": {
+    "activities": {
+      "title": "Actividades",
+      "or": "o",
+      "all": "Todas"
+    },
+    "loopType": {
+      "title": "Tipo de ruta",
+      "or": "o",
+      "all": "Todos"
     }
   }
 }

@@ -236,8 +236,6 @@
         "distance": "Distance",
         "positive_elevation": "Positive elevation",
         "negative_elevation": "Negative elevation",
-        "loopType": "Trail type",
-        "loopTypePlaceholder": "Select types",
         "activity": "Activity",
         "select_activities_button": "Click to select",
         "tags": "Tags",
@@ -955,46 +953,16 @@
       "filter_title": "Taking into account only trails",
       "activity_filter_title": "with activity",
       "types": {
-        "nb_trails": {
-          "title": "Number of trails"
-        },
-        "distance": {
-          "title": "Distance"
-        },
-        "positive-elevation": {
-          "title": "Positive elevation"
-        },
-        "negative-elevation": {
-          "title": "Negative elevation"
-        },
-        "duration": {
-          "title": "Duration"
-        }
+        "nb_trails": "Number of trails",
+        "distance": "Distance",
+        "positive-elevation": "Positive elevation",
+        "negative-elevation": "Negative elevation",
+        "duration": "Duration"
       },
       "time_units": {
-        "year": {
-          "title": "Year"
-        },
-        "month": {
-          "title": "Month"
-        },
-        "month_of_year": {
-          "title": "Month all years combined"
-        }
-      },
-      "sources": {
-        "the_collection": "The collection",
-        "collection_single": "collection",
-        "collection_plural": "collections",
-        "the_share": "The share",
-        "share_single": "share",
-        "share_plural": "shares",
-        "shared_by": "shared by"
-      },
-      "activities": {
-        "all": "(All)",
-        "or": "or",
-        "n_activities": "activities"
+        "year": "Year",
+        "month": "Month",
+        "month_of_year": "Month all years combined"
       }
     },
     "privacy_policy": {
@@ -1836,6 +1804,18 @@
       "duplicate": "This email is already present",
       "atLeastOneEmailIsRequired": "Please enter at least one email",
       "cannotAddYourself": "You cannot add yourself"
+    }
+  },
+  "select": {
+    "activities": {
+      "title": "Activities",
+      "or": "or",
+      "all": "All"
+    },
+    "loopType": {
+      "title": "Trail type",
+      "or": "or",
+      "all": "All"
     }
   }
 }

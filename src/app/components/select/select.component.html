@@ -1,0 +1,44 @@
+<div class="select">
+  @if (multiple) {
+    @if (_selection.length === 0) {
+      @if (noneMeansAll && allKey) {
+        <div class="select-multiple">
+          {{ i18n.translateWithArguments(allKey, []) }}
+        </div>
+      } @else if (noneKey) {
+        <div class="select-multiple">
+          {{ i18n.translateWithArguments(noneKey, []) }}
+        </div>
+      } @else {
+        <div class="select-multiple"></div>
+      }
+    } @else if (_selection.length === items.length && allKey) {
+      <div class="select-multiple">
+          {{ i18n.translateWithArguments(allKey, []) }}
+        </div>
+    } @else {
+      <div class="select-multiple" [fitContentAndMore]="_selection" [elementRenderer]="_elementRenderer" [moreRenderer]="_moreRenderer"></div>
+    }
+  } @else {
+    <div class="select-single">
+      @if (_selection.length === 0) {
+        @if (noneKey) {
+          <div class="item">
+            <span class="item-label">{{ i18n.translateWithArguments(noneKey, []) }}</span>
+          </div>
+        }
+      } @else {
+        @let item = _selection[0];
+        <div class="item">
+          @if (item.icon) {
+            <ion-icon [name]="item.icon"></ion-icon>
+          }
+          <span class="item-label">{{ _label(item) }}</span>
+        </div>
+      }
+    </div>
+  }
+  <div class="select-arrow">
+    <ion-icon name="caret-down" color="medium"></ion-icon>
+  </div>
+</div>

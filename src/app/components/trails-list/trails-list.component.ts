@@ -5,13 +5,11 @@ import { TrailOverviewComponent } from '../trail-overview/trail-overview.compone
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { TrackService } from '@trailence/services/database/track.service';
 import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup,
-  IonItem, IonCheckbox, IonList, IonSelectOption, IonSelect, IonInput, IonSpinner, PopoverController, AlertController } from "@ionic/angular";
+  IonItem, IonCheckbox, IonList, IonInput, IonSpinner, PopoverController } from "@ionic/angular";
 import { BehaviorSubject, catchError, combineLatest, debounceTime, distinctUntilChanged, filter, first, map, Observable, of, skip, switchMap } from 'rxjs';
 import { ObjectUtils } from '@trailence/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
 import { Router } from '@angular/router';
-import { FilterEnum, FilterNumeric, FilterTags, NumericFilterCustomConfig } from '../filters/filter';
-import { FilterNumericComponent, NumericFilterValueEvent } from '../filters/filter-numeric/filter-numeric.component';
 import { PreferencesService } from '@trailence/services/preferences/preferences.service';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
 import { MapComponent } from '../map/map.component';
@@ -19,7 +17,6 @@ import { TrailMenuService } from '@trailence/services/database/trail-menu.servic
 import { TagService } from '@trailence/services/database/tag.service';
 import { AuthService } from '@trailence/services/auth/auth.service';
 import { TrailTag } from '@trailence/model/trail-tag';
-import { FilterTagsComponent } from '../filters/filter-tags/filter-tags.component';
 import { List } from 'immutable';
 import { filterTimeout } from '@trailence/utils/rxjs/filter-timeout';
 import { I18nPipe } from '@trailence/services/i18n/i18n-string';
@@ -39,13 +36,11 @@ import { isPublicationCollection, SHARED_OWNER_PREFIX, TrailCollectionType } fro
 import { collection$items } from '@trailence/utils/rxjs/collection$items';
 import { Tag } from '@trailence/model/tag';
 import { TrackMetadataSnapshot } from '@trailence/model/snapshots';
-import { TrailLoopType } from '@trailence/model/dto/trail-loop-type';
-import { ComputedPreferences, Filters } from '@trailence/services/preferences/preferences';
-import { FilterNumericCustomComponent } from '../filters/filter-numeric-custom/filter-numeric-custom.component';
 import { Arrays } from '@trailence/utils/arrays';
 import { NgTemplateOutlet } from '@angular/common';
 import { PhotoService } from '@trailence/services/database/photo.service';
 import { getLogger } from '@trailence/utils/console';
+import { Filters } from '@trailence/services/preferences/preferences';
 
 const logger = getLogger('trails-list.component');
 
@@ -80,15 +75,12 @@ interface TrailWithInfo {
   styleUrls: ['./trails-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    IonSpinner, IonInput, IonList, IonSelect, IonSelectOption,
+    IonSpinner, IonInput, IonList,
     IonCheckbox, IonItem, IonRadioGroup, IonRadio, IonLabel, IonIcon, IonButtons, IonButton,
     IonToolbar, IonFooter, IonContent, IonTitle, IonHeader, IonModal,
     TrailOverviewComponent,
     TrailOverviewCondensedComponent,
     ToggleChoiceComponent,
-    FilterNumericComponent,
-    FilterNumericCustomComponent,
-    FilterTagsComponent,
     I18nPipe,
     HorizontalGestureDirective,
     ToolbarComponent,
@@ -133,10 +125,7 @@ export class TrailsListComponent extends AbstractComponent {
 
   collectionTags: Tag[] = [];
 
-  durationFormatter = (value: number) => this.i18n.hoursToString(value) + (value === 24 ? '+' : '');
   isPositive = (value: any) => typeof value === 'number' && value > 0;
-
-  loopTypes = Object.values(TrailLoopType);
 
   toolbar: MenuItem[] = [];
   emptyListTools = [
@@ -144,7 +133,6 @@ export class TrailsListComponent extends AbstractComponent {
   ];
 
   @ViewChild('sortModal') sortModal?: IonModal;
-  @ViewChild('filtersModal') filtersModal?: IonModal;
 
   metadataConfig: TrackMetadataConfig = {
     mergeDurationAndEstimated: true,
@@ -155,96 +143,6 @@ export class TrailsListComponent extends AbstractComponent {
     alwaysShowElevation: false,
     showSpeed: false,
   };
-
-  private static sorted(names: string[], locale: string): string[] {
-    return names.sort((s1, s2) => s1.localeCompare(s2, locale));
-  }
-
-  filtersToolbar: MenuItem[] = [
-    new MenuItem().setI18nLabel('pages.trails.filters.preset').setSectionTitle(true).setTextColor('secondary'),
-    new MenuItem().setIcon('export').setI18nLabel('pages.trails.filters.load').setChildrenProvider(() => {
-      const saved = this.preferences.preferences.trailFilters;
-      const names = saved ? Object.keys(saved) : [];
-      if (names.length === 0) return of([new MenuItem().setI18nLabel('pages.trails.filters.no_saved_filter').setDisabled(true).setAction(() => {})]);
-      return of(TrailsListComponent.sorted(names, this.preferences.preferences.lang).map(name => {
-        const systemFilter = saved![name];
-        const userFilter = FiltersUtils.toUserUnit(systemFilter, this.preferences.preferences, this.i18n);
-        return new MenuItem().setFixedLabel(name).setSubLabel(FiltersUtils.getDescription(userFilter, this.i18n, this.preferences.preferences))
-          .setDisabled(() => !this.isFilterEligible(systemFilter))
-          .setAction(() => {
-            this.state$.next({...this.state$.value, filters: FiltersUtils.copy(userFilter)});
-          })
-      }));
-    }),
-    new MenuItem().setIcon('save').setI18nLabel('pages.trails.filters.save')
-      .setDisabled(() => FiltersUtils.nbActives(this.state$.value.filters, true) === 0)
-      .setChildrenProvider(() => {
-        const children = [
-          new MenuItem().setI18nLabel('pages.trails.filters.save_new').setTextColor('secondary')
-          .setAction(() => {
-            void this.injector.get(AlertController).create({
-              header: this.i18n.texts.pages.trails.filters.save_title,
-              inputs: [{
-                type: 'text',
-                min: 1,
-                max: 100,
-                label: this.i18n.texts.pages.trails.filters.save_name,
-              }],
-              buttons: [
-                {
-                  text: this.i18n.texts.buttons.ok,
-                  role: 'ok'
-                }, {
-                  text: this.i18n.texts.buttons.cancel,
-                  role: 'cancel'
-                }
-              ]
-            }).then(a => a.present().then(() => a.onDidDismiss().then(event => { // NOSONAR
-              if (event.role === 'ok') {
-                const name = event.data.values[0].trim();
-                if (name.length > 0) {
-                  const filters = this.preferences.preferences.trailFilters ?? {};
-                  filters[name] = FiltersUtils.toSystemUnit(FiltersUtils.copy(this.state$.value.filters), this.preferences.preferences, this.i18n);
-                  this.preferences.saveTrailFilters({...filters});
-                }
-              }
-            })));
-          })
-        ];
-        const saved = this.preferences.preferences.trailFilters;
-        const names = saved ? Object.keys(saved) : [];
-        if (names.length === 0) return of(children);
-        children.push(new MenuItem());
-        TrailsListComponent.sorted(names, this.preferences.preferences.lang).forEach(name => {
-          const systemFilter = saved![name];
-          const userFilter = FiltersUtils.toUserUnit(systemFilter, this.preferences.preferences, this.i18n);
-          children.push(
-            new MenuItem().setFixedLabel(name).setSubLabel(FiltersUtils.getDescription(userFilter, this.i18n, this.preferences.preferences))
-            .setDisabled(() => !this.isFilterEligible(systemFilter))
-            .setAction(() => {
-              const filters = this.preferences.preferences.trailFilters ?? {};
-              filters[name] = FiltersUtils.toSystemUnit(FiltersUtils.copy(this.state$.value.filters), this.preferences.preferences, this.i18n);
-              this.preferences.saveTrailFilters({...filters});
-            })
-          );
-        });
-        return of(children);
-      }),
-    new MenuItem().setIcon('trash').setI18nLabel('pages.trails.filters.remove').setChildrenProvider(() => {
-      const saved = this.preferences.preferences.trailFilters;
-      const names = saved ? Object.keys(saved) : [];
-      return of(TrailsListComponent.sorted(names, this.preferences.preferences.lang).map(name => {
-        const systemFilter = saved![name];
-        const userFilter = FiltersUtils.toUserUnit(systemFilter, this.preferences.preferences, this.i18n);
-        return new MenuItem().setFixedLabel(name).setSubLabel(FiltersUtils.getDescription(userFilter, this.i18n, this.preferences.preferences))
-          .setAction(() => {
-            const filters = this.preferences.preferences.trailFilters ?? {};
-            delete filters[name];
-            this.preferences.saveTrailFilters({...filters});
-          })
-      }));
-    }),
-  ];
 
   constructor(
     injector: Injector,
@@ -276,13 +174,11 @@ export class TrailsListComponent extends AbstractComponent {
         if (changed)
           this.state$.next({...this.state$.value, filters: {...this.state$.value.filters}});
         if (currentLang === prefs.lang) {
-          this.filtersToolbar = [...this.filtersToolbar];
           this.changesDetection.detectChanges();
         } else {
           currentLang = prefs.lang;
           i18n.langLoaded$.pipe(first(l => l === currentLang)).subscribe(() => {
             this.toolbar = [...this.toolbar];
-            this.filtersToolbar = [...this.filtersToolbar];
             this.changesDetection.detectChanges();
           });
         }
@@ -293,7 +189,6 @@ export class TrailsListComponent extends AbstractComponent {
         logger.info('New state: ', this.id, this.state$.value);
         this.saveState();
         this.toolbar = [...this.toolbar];
-        this.filtersToolbar = [...this.filtersToolbar];
         this.changesDetection.detectChanges();
       });
     });
@@ -325,7 +220,6 @@ export class TrailsListComponent extends AbstractComponent {
         filters: { ...this.state$.value.filters, search }
       });
     });
-    this.whenAlive.add(preferences.preferences$.subscribe(prefs => this.configureFilters(prefs)));
   }
 
   protected override initComponent(): void {
@@ -485,13 +379,30 @@ export class TrailsListComponent extends AbstractComponent {
       );
   }
 
+  public async openFilters() {
+    const module = await import('./filters-popup/filters-popup.component');
+    await module.openFiltersPopup(
+      this.injector,
+      this.state$.value.filters,
+      newFilters => this.state$.next({...this.state$.value, filters: newFilters}),
+      filters => this.isFilterEligible(filters),
+      this.listType,
+      this.collectionUuid,
+      this.searchValue$,
+    );
+  }
+
+  nbActiveFilters(includeByName: boolean = false): number {
+    return FiltersUtils.nbActives(this.state$.value.filters, includeByName);
+  }
+
   private updateToolbar(trails: Trail[]): void {
     this.toolbar = [
       new MenuItem().setIcon('sort').setI18nLabel('tools.sort')
         .setDisabled(() => trails.length === 0)
         .setAction(() => this.sortModal?.present()),
       new MenuItem().setIcon('filters').setI18nLabel('tools.filters')
-        .setAction(() => this.filtersModal?.present())
+        .setAction(() => this.openFilters())
         .setBadgeTopRight(() => {
           const nb = this.nbActiveFilters();
           if (nb === 0) return undefined;
@@ -778,132 +689,6 @@ export class TrailsListComponent extends AbstractComponent {
   sortAsc(asc: boolean): void {
     if (this.state$.value.sortAsc === asc) return;
     this.state$.next({...this.state$.value, sortAsc: asc});
-  }
-
-  filterDurationConfig: NumericFilterCustomConfig = {
-    range: true,
-    values: [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20, 24],
-    formatter: this.durationFormatter
-  };
-
-  filterDistanceConfig!: NumericFilterCustomConfig;
-  filterElevationConfig!: NumericFilterCustomConfig;
-
-  private configureFilters(prefs: ComputedPreferences): void {
-    switch (prefs.distanceUnit) {
-      case 'METERS':
-        this.filterDistanceConfig = {
-          range: true,
-          values: [0, 1, 2, 3, 4, 6, 8, 10, 12, 14, 17, 20, 25, 30, 40, 50],
-          formatter: FiltersUtils.getDistanceFormatter(prefs, 50),
-        };
-        this.filterElevationConfig = {
-          range: true,
-          values: [0, 50, 100, 200, 300, 400, 500, 600, 800, 1000, 1250, 1500, 2000],
-          formatter: FiltersUtils.getElevationFormatter(prefs, 2000),
-        };
-        break;
-      case 'IMPERIAL':
-        this.filterDistanceConfig = {
-          range: true,
-          values: [0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 17, 20, 25, 30],
-          formatter: FiltersUtils.getDistanceFormatter(prefs, 30),
-        };
-        this.filterElevationConfig = {
-          range: true,
-          values: [0, 200, 500, 800, 1100, 1400, 1700, 2000, 2500, 3000, 4000, 5000, 6000, 7000],
-          formatter: FiltersUtils.getElevationFormatter(prefs, 7000),
-        };
-        break;
-    }
-  }
-
-  updateNumericFilter(filter: FilterNumeric, $event: NumericFilterValueEvent): void {
-    const newMin = $event.min === $event.valueMin ? undefined : $event.valueMin;
-    const newMax = $event.max === $event.valueMax ? undefined : $event.valueMax;
-    if (filter.from === newMin && filter.to === newMax) return;
-    filter.from = newMin;
-    filter.to = newMax;
-    this.state$.next({
-      ...this.state$.value,
-      filters: { ...this.state$.value.filters }
-    });
-  }
-
-  updateNumericCustomFilter(filter: FilterNumeric, config: NumericFilterCustomConfig, $event: FilterNumeric | number): void {
-    const event = $event as FilterNumeric;
-    this.updateNumericFilter(filter, {valueMin: event.from! , valueMax: event.to!, min: config.values[0], max: config.values.at(-1)!});
-  }
-
-  updateFilterOnlyVisibleOnMap(checked: boolean): void {
-    if (checked === this.state$.value.filters.onlyVisibleOnMap) return;
-    this.state$.next({
-      ...this.state$.value,
-      filters: { ...this.state$.value.filters, onlyVisibleOnMap: checked }
-    });
-  }
-
-  updateFilterOnlyWithPhotos(checked: boolean): void {
-    if (checked === this.state$.value.filters.onlyWithPhotos) return;
-    this.state$.next({
-      ...this.state$.value,
-      filters: { ...this.state$.value.filters, onlyWithPhotos: checked }
-    });
-  }
-
-  updateEnumFilter(filter: FilterEnum<any>, $event: string[]): void {
-    const selected = $event.length > 0 ? $event : undefined;
-    if (filter.selected === selected) return;
-    filter.selected = selected;
-    this.state$.next({
-      ...this.state$.value,
-      filters: { ...this.state$.value.filters }
-    });
-  }
-
-  updateTagsFilter(filter: FilterTags): void {
-    this.state$.next({
-      ...this.state$.value,
-      filters: { ...this.state$.value.filters, tags: filter }
-    });
-  }
-
-  nbActiveFilters(includeByName: boolean = false): number {
-    return FiltersUtils.nbActives(this.state$.value.filters, includeByName);
-  }
-
-  resetFilters(): void {
-    const filters = this.state$.value.filters;
-    FiltersUtils.reset(filters);
-    this.state$.next({...this.state$.value, filters: {...filters}});
-  }
-
-
-  formatRate = (rate: number) => rate.toLocaleString(this.preferences.preferences.lang, {maximumFractionDigits: 1});
-
-  getSelectedActivitiesButtonText(): string {
-    if (this.state$.value.filters.activities.selected?.length) {
-      return this.state$.value.filters.activities.selected.map(activity => this.i18n.texts.activity[activity ?? 'unspecified']).join(', ');
-    }
-    return this.i18n.texts.pages.trails.filters.select_activities_button;
-  }
-
-  openActivitiesDialog(): void {
-    void import('../activity-popup/activity-popup.component')
-    .then(m => m.openActivitiesSelectionPopup(
-      this.injector,
-      this.state$.value.filters.activities.selected || [],
-      newSelection => {
-        const newValue = newSelection.length === 0 ? undefined : newSelection;
-        const filter = this.state$.value.filters.activities;
-        if (filter.selected === newValue) return;
-        filter.selected = newValue;
-        this.state$.next({
-          ...this.state$.value,
-          filters: { ...this.state$.value.filters }
-        });
-      }
-    ));
   }
 
   private trailClicked?: Trail;

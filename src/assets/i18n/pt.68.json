@@ -236,8 +236,6 @@
         "distance": "Distância",
         "positive_elevation": "Desnível positivo",
         "negative_elevation": "Desnível negativo",
-        "loopType": "Tipo de percurso",
-        "loopTypePlaceholder": "Selecione os tipos",
         "activity": "Atividade",
         "select_activities_button": "Clique para selecionar",
         "tags": "Etiquetas",
@@ -955,46 +953,16 @@
       "filter_title": "Tendo em conta apenas os percursos",
       "activity_filter_title": "com a atividade",
       "types": {
-        "nb_trails": {
-          "title": "O número de percursos"
-        },
-        "distance": {
-          "title": "A distância"
-        },
-        "positive-elevation": {
-          "title": "O desnível positivo"
-        },
-        "negative-elevation": {
-          "title": "O desnível negativo"
-        },
-        "duration": {
-          "title": "A duração"
-        }
+        "nb_trails": "O número de percursos",
+        "distance": "A distância",
+        "positive-elevation": "O desnível positivo",
+        "negative-elevation": "O desnível negativo",
+        "duration": "A duração"
       },
       "time_units": {
-        "year": {
-          "title": "Ano"
-        },
-        "month": {
-          "title": "Mês"
-        },
-        "month_of_year": {
-          "title": "Mês (todos os anos juntos)"
-        }
-      },
-      "sources": {
-        "the_collection": "A coleção",
-        "collection_single": "coleção",
-        "collection_plural": "coleções",
-        "the_share": "A partilha",
-        "share_single": "partilha",
-        "share_plural": "partilhas",
-        "shared_by": "partilhado por"
-      },
-      "activities": {
-        "all": "(Todas)",
-        "or": "ou",
-        "n_activities": "atividades"
+        "year": "Ano",
+        "month": "Mês",
+        "month_of_year": "Mês (todos os anos juntos)"
       }
     },
     "privacy_policy": {
@@ -1836,6 +1804,18 @@
       "duplicate": "Este endereço de email já está presente",
       "atLeastOneEmailIsRequired": "Introduza pelo menos um endereço de email",
       "cannotAddYourself": "Não pode adicionar-se a si próprio"
+    }
+  },
+  "select": {
+    "activities": {
+      "title": "Atividades",
+      "or": "ou",
+      "all": "Todas"
+    },
+    "loopType": {
+      "title": "Tipo de percurso",
+      "or": "ou",
+      "all": "Todos"
     }
   }
 }

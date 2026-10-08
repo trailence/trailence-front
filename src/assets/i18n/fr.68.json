@@ -236,8 +236,6 @@
         "distance": "Distance",
         "positive_elevation": "Dénivelé positif",
         "negative_elevation": "Dénivelé négatif",
-        "loopType": "Type de parcours",
-        "loopTypePlaceholder": "Sélectionnez les types",
         "activity": "Activité",
         "select_activities_button": "Cliquez pour sélectionner",
         "tags": "Tags",
@@ -955,46 +953,16 @@
       "filter_title": "En prenant en compte uniquement les parcours",
       "activity_filter_title": "avec l'activité",
       "types": {
-        "nb_trails": {
-          "title": "Le nombre de parcours"
-        },
-        "distance": {
-          "title": "La distance"
-        },
-        "positive-elevation": {
-          "title": "Le dénivelé positif"
-        },
-        "negative-elevation": {
-          "title": "Le dénivelé négatif"
-        },
-        "duration": {
-          "title": "La durée"
-        }
+        "nb_trails": "Le nombre de parcours",
+        "distance": "La distance",
+        "positive-elevation": "Le dénivelé positif",
+        "negative-elevation": "Le dénivelé négatif",
+        "duration": "La durée"
       },
       "time_units": {
-        "year": {
-          "title": "Année"
-        },
-        "month": {
-          "title": "Mois"
-        },
-        "month_of_year": {
-          "title": "Mois toutes années confondues"
-        }
-      },
-      "sources": {
-        "the_collection": "La collection",
-        "collection_single": "collection",
-        "collection_plural": "collections",
-        "the_share": "Le partage",
-        "share_single": "partage",
-        "share_plural": "partages",
-        "shared_by": "partagé par"
-      },
-      "activities": {
-        "all": "(Toutes)",
-        "or": "ou",
-        "n_activities": "activités"
+        "year": "Année",
+        "month": "Mois",
+        "month_of_year": "Mois toutes années confondues"
       }
     },
     "privacy_policy": {
@@ -1836,6 +1804,18 @@
       "duplicate": "Cet email est déjà présent",
       "atLeastOneEmailIsRequired": "Veuillez entrer au moins un email",
       "cannotAddYourself": "Vous ne pouvez pas vous ajouter vous-même"
+    }
+  },
+  "select": {
+    "activities": {
+      "title": "Activités",
+      "or": "ou",
+      "all": "Toutes"
+    },
+    "loopType": {
+      "title": "Type de parcours",
+      "or": "ou",
+      "all": "Tous"
     }
   }
 }

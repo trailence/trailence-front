@@ -12,7 +12,6 @@ import { TagService } from '@trailence/services/database/tag.service';
 import { AuthService } from '@trailence/services/auth/auth.service';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
 import { TrailMenuService } from '@trailence/services/database/trail-menu.service';
-import { TrailService } from '@trailence/services/database/trail.service';
 import { Arrays } from '@trailence/utils/arrays';
 import { AssetsService } from '@trailence/services/assets/assets.service';
 import { BrowserService } from '@trailence/services/browser/browser.service';
@@ -35,12 +34,13 @@ import { TrailSmallMapComponent } from '../trail-small-map/trail-small-map.compo
 import { TrackMetadataSnapshot } from '@trailence/model/snapshots';
 import { NgClass, NgStyle } from '@angular/common';
 import { TrailLink } from '@trailence/model/dto/trail-link';
-import { TrailLinkService } from '@trailence/services/database/link.service';
 import { TrailSmallElevationProfileComponent } from '../trail-small-elevation-profile/trail-small-elevation-profile.component';
 import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
 import { ObserverHelper } from '@trailence/utils/observer-helper';
 import { TrailPublicationInfoService } from '@trailence/services/database/trail-publication-info.service';
 import { SHARED_OWNER_PREFIX } from '@trailence/model/dto/trail-collection';
+import { getLoopTypeIcon } from '@trailence/model/dto/trail-loop-type';
+import { getActivityIcon } from '@trailence/model/dto/trail-activity';
 
 class Meta {
   name?: string;
@@ -167,7 +167,6 @@ export class TrailOverviewComponent extends AbstractComponent {
     public trailMenuService: TrailMenuService,
     private readonly tagService: TagService,
     public readonly auth: AuthService,
-    private readonly trailService: TrailService,
     private readonly browser: BrowserService,
     private readonly assets: AssetsService,
     private readonly popoverController: PopoverController,
@@ -177,7 +176,6 @@ export class TrailOverviewComponent extends AbstractComponent {
     private readonly preferencesService: PreferencesService,
     private readonly mySelectionService: MySelectionService,
     private readonly platform: Platform,
-    private readonly trailLinkService: TrailLinkService,
   ) {
     super(injector);
     changeDetector.detach();
@@ -268,9 +266,9 @@ export class TrailOverviewComponent extends AbstractComponent {
         if (this.updateMeta(this.meta, 'location', trailLocation, undefined, force)) changed = true;
         if (this.updateMeta(this.meta, 'date', trailDate ?? trackStartDate, timestamp => this.dateWithoutTime ? this.i18n.timestampToDateString(timestamp) : this.i18n.timestampToDateTimeString(timestamp), force)) changed = true;
         if (this.updateMeta(this.meta, 'loopType', loopType, type => type ? this.i18n.texts.loopType[type] : '', force)) changed = true;
-        if (this.updateMeta(this.meta, 'loopTypeIcon', loopType, type => this.trailService.getLoopTypeIcon(type), force)) changed = true;
+        if (this.updateMeta(this.meta, 'loopTypeIcon', loopType, type => getLoopTypeIcon(type), force)) changed = true;
         if (this.updateMeta(this.meta, 'activity', activity, activity => activity ? this.i18n.texts.activity[activity] : '', force)) changed = true;
-        if (this.updateMeta(this.meta, 'activityIcon', activity, activity => this.trailService.getActivityIcon(activity), force)) changed = true;
+        if (this.updateMeta(this.meta, 'activityIcon', activity, activity => getActivityIcon(activity), force)) changed = true;
         if (this.meta.isInMySelection !== isInMySelection) {
           this.meta.isInMySelection = isInMySelection;
           changed = true;

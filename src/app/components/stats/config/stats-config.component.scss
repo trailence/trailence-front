@@ -9,10 +9,18 @@ div.config-horizontal {
   flex-direction: row;
   align-items: center;
   flex-wrap: wrap;
+  margin-right: 6px;
   span {
-    margin-right: 10px;
+    margin-right: 4px;
   }
 }
+::ng-deep app-stats-config div.config-horizontal app-select {
+  color: var(--ion-color-secondary);
+  max-width: calc(min(250px, 75vw));
+  display: block;
+}
+
+
 ::ng-deep app-stats-config div.config-horizontal ion-select {
   color: var(--ion-color-secondary);
   width: auto;
