@@ -93,7 +93,7 @@ export class TrailMenuService {
           );
         }
         menu.push(new MenuItem().setIcon('hiking').setI18nLabel('pages.trails.actions.edit_activity')
-          .setAction(() => import('../../components/activity-popup/activity-popup.component').then(m => m.openActivityDialog(this.injector, trails))));
+          .setAction(() => import('../../components/select/activity/select-activity-popup').then(m => m.openActivityDialog(this.injector, trails))));
         if (!!fromCollection && !isModeration && !isPublicationCollection(fromCollection.type) && uniqueCollection.uuid === fromCollection.uuid && uniqueCollection.owner === fromCollection.owner) {
           menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item')
             .setAction(() => import('../../components/tags/tags.component').then(m => m.openTagsDialog(this.injector, trails, fromCollection))));

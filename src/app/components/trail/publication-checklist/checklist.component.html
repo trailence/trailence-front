@@ -94,7 +94,7 @@
 <ng-template #activityInput>
   @if (trail) {
     <ion-button (click)="openActivityDialog()">
-      <ion-icon [name]="trailService.getActivityIcon(trail.activity)" slot="start"></ion-icon>
+      <ion-icon [name]="activityIcon(trail.activity)" slot="start"></ion-icon>
       <ion-label>{{ trail.activity ? i18n.texts.activity[trail.activity] : '' }}</ion-label>
     </ion-button>
   }

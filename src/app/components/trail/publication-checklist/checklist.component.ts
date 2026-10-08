@@ -8,6 +8,7 @@ import { TrailMenuService } from '@trailence/services/database/trail-menu.servic
 import { Track } from '@trailence/model/track';
 import { Observable, Subscription } from 'rxjs';
 import { NgTemplateOutlet } from '@angular/common';
+import { getActivityIcon } from '@trailence/model/dto/trail-activity';
 
 @Component({
   templateUrl: './checklist.component.html',
@@ -27,7 +28,7 @@ export class CheckListComponent implements OnInit, OnDestroy {
   constructor(
     public readonly i18n: I18nService,
     private readonly modalController: ModalController,
-    public readonly trailService: TrailService,
+    private readonly trailService: TrailService,
     private readonly trailMenuService: TrailMenuService,
     private readonly injector: Injector,
     private readonly changeDetector: ChangeDetectorRef,
@@ -37,6 +38,8 @@ export class CheckListComponent implements OnInit, OnDestroy {
   track: Track | null = null;
   trailSubscription?: Subscription;
   trackSubscription?: Subscription;
+
+  activityIcon = getActivityIcon;
 
   ngOnInit(): void {
     let _init = false;
@@ -101,7 +104,7 @@ export class CheckListComponent implements OnInit, OnDestroy {
 
   openActivityDialog(): void {
     if (!this.trail) return;
-    void import('../../activity-popup/activity-popup.component').then(m => m.openActivityDialog(this.injector, [this.trail!])).then(() => this.changeDetector.detectChanges());
+    void import('../../select/activity/select-activity-popup').then(m => m.openActivityDialog(this.injector, [this.trail!])).then(() => this.changeDetector.detectChanges());
   }
 
 }

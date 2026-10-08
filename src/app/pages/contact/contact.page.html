@@ -21,6 +21,7 @@
           label-placement="floating"
           [disabled]="sending"
           [(ngModel)]="type"
+          [interfaceOptions]="{cssClass: 'no-message'}"
         >
           <ion-select-option value="question">{{ i18n.texts.pages.contact.types.question }}</ion-select-option>
           <ion-select-option value="bug">{{ i18n.texts.pages.contact.types.bug }}</ion-select-option>

@@ -37,7 +37,7 @@ export class ShareService {
   }
 
   public getAllReady$(): Observable<Share[]> {
-    return this.getAll$().pipe(collection$items());
+    return this._store.getAllWhenLoaded$().pipe(collection$items());
   }
 
   public getShare$(id: string, from: string): Observable<Share | null> {
@@ -92,7 +92,7 @@ export class ShareService {
         share
       }
     });
-    modal.present();
+    void modal.present();
   }
 
   public async confirmDelete(share: Share) {
@@ -106,7 +106,7 @@ export class ShareService {
           text: texts.yes,
           role: 'danger',
           handler: () => {
-            alert.dismiss();
+            void alert.dismiss();
             this.remove(share);
           }
         }, {
@@ -174,6 +174,18 @@ export class ShareService {
   public getSharesFromTrailSharedWithMe(trailUuid: string, trailOwner: string): Observable<Share[]> {
     return this.getAll$().pipe(
       collection$items(share => share.owner === trailOwner && share.trails.includes(trailUuid)),
+    );
+  }
+
+  public getAllSharesWithMeReady$(): Observable<Share[]> {
+    return combineLatest([
+      this.injector.get(AuthService).userChanged$,
+      this.getAllReady$()
+    ]).pipe(
+      map(([auth, shares]) => {
+        if (!auth || auth.isAnonymous) return [];
+        return shares.filter(share => share.owner !== auth.email);
+      })
     );
   }
 }

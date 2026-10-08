@@ -94,63 +94,6 @@ app-toolbar {
   }
 }
 
-.filters-modal {
-  --additional-header-footer-size: 40px;
-}
-.filter-header, .filter-checkbox {
-  ion-icon {
-    width: 20px;
-    height: 20px;
-    margin-right: 8px;
-    color: var(--ion-color-secondary);
-  }
-}
-
-.filter-header {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin: 0 -8px 2px -8px;
-
-  div {
-    color: var(--ion-color-secondary);
-    font-size: 14px;
-  }
-}
-
-.filter-value {
-  margin-bottom: 3px;
-  &.with-range {
-    margin-right: 8px;
-  }
-}
-
-.filter-checkbox {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin: 0 -8px 3px -8px;
-
-  ion-icon {
-    flex: none;
-  }
-  ion-checkbox {
-    flex: 1 1 100%;
-    --size: 16px;
-  }
-  ion-checkbox::part(label) {
-    margin-inline: 8px 0;
-    white-space: normal;
-    font-size: 14px;
-  }
-}
-app-toolbar.filters-toolbar {
-  padding: 0;
-  border-bottom: 1px solid var(--ion-color-light);
-  display: block;
-  background-color: rgba(var(--ion-toolbar-background-rgb), 0.8);
-}
-
 ion-item ion-radio ion-icon {
   margin-bottom: -2px;
 }
@@ -160,11 +103,5 @@ ion-item ion-radio ion-icon {
     ion-item {
       --min-height: 40px;
     }
-  }
-}
-@media (max-width: 550px) {
-  .filter-value ion-checkbox::part(label) {
-    text-overflow: unset;
-    white-space: unset;
   }
 }

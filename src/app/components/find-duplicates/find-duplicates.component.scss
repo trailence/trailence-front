@@ -6,11 +6,10 @@
       align-items: center;
       margin-bottom: 3px;
 
-      ion-select {
+      app-select-collections {
         margin-left: 10px;
         min-width: 100px;
         max-width: 300px;
-        min-height: 40px;
       }
     }
   }
@@ -74,11 +73,11 @@ ion-radio::part(label) {
     font-size: 14px;
 
     ion-radio-group {
-      >div {
+      > div.option {
         flex-direction: column;
         align-items: flex-start;
 
-        ion-select {
+        app-select-collections {
           margin: 5px 0 3px 38px;
           max-width: calc(100% - 40px);
         }

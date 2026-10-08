@@ -43,14 +43,14 @@ export class TrailCollectionService {
   }
 
   public getMyCollectionsReady$(): Observable<TrailCollection[]> {
-    return this._store.getAll$().pipe(
+    return this._store.getAllWhenLoaded$().pipe(
       collection$items(),
       map(collections => collections.filter(c => !isPublicationCollection(c.type))),
     );
   }
 
   public getAllCollectionsReady$(): Observable<TrailCollection[]> {
-    return this._store.getAll$().pipe(collection$items());
+    return this._store.getAllWhenLoaded$().pipe(collection$items());
   }
 
   public getCollection$(uuid: string, owner: string): Observable<TrailCollection | null> {

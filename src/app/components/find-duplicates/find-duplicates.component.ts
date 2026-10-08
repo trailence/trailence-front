@@ -1,5 +1,5 @@
 import { Component, Injector, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { IonHeader, IonFooter, IonToolbar, IonTitle, IonButtons, IonButton, IonLabel, IonIcon, IonContent, IonRadioGroup, IonRadio, IonSelect, IonSelectOption, IonInput, IonPopover, IonList, IonItem, IonSpinner, ModalController } from '@ionic/angular';
+import { IonHeader, IonFooter, IonToolbar, IonTitle, IonButtons, IonButton, IonLabel, IonIcon, IonContent, IonRadioGroup, IonRadio, IonInput, IonPopover, IonList, IonItem, IonSpinner, ModalController } from '@ionic/angular';
 import { first, map, Observable, of, switchMap, zip } from 'rxjs';
 import { Track } from '@trailence/model/track';
 import { Trail } from '@trailence/model/trail';
@@ -16,9 +16,11 @@ import { Subscriptions } from '@trailence/utils/rxjs/subscription-utils';
 import { TrailComponent } from '../trail/trail.component';
 import { TrailCollectionType } from '@trailence/model/dto/trail-collection';
 import { NgClass, NgStyle } from '@angular/common';
+import { SelectCollectionComponent } from '../select/collection/selection-collection.component';
+import { CollectionItem } from '../select/collection/select-collection';
 
 export function openFindDuplicates(injector: Injector, fromCollection: string): void {
-  injector.get(ModalController).create({
+  void injector.get(ModalController).create({
     component: FindDuplicatesComponent,
     backdropDismiss: false,
     cssClass: 'large-modal',
@@ -34,10 +36,11 @@ export function openFindDuplicates(injector: Injector, fromCollection: string): 
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonHeader, IonFooter, IonToolbar, IonTitle, IonButtons, IonButton, IonLabel, IonIcon, IonContent,
-    IonRadioGroup, IonRadio, IonSelect, IonSelectOption, IonInput, IonSpinner, IonPopover, IonList, IonItem,
+    IonRadioGroup, IonRadio, IonInput, IonSpinner, IonPopover, IonList, IonItem,
     I18nPipe,
     TrailComponent,
     NgClass, NgStyle,
+    SelectCollectionComponent,
   ]
 })
 export class FindDuplicatesComponent implements OnInit, OnDestroy {
@@ -45,9 +48,8 @@ export class FindDuplicatesComponent implements OnInit, OnDestroy {
   @Input() collectionUuid!: string;
 
   collection!: TrailCollection;
-  otherCollections: TrailCollection[] = [];
-  what = 'inside';
-  withCollection?: string;
+  what: 'inside' | 'two' | 'all' = 'inside';
+  withCollection?: CollectionItem;
   threshold = 85;
 
   started = false;
@@ -75,9 +77,6 @@ export class FindDuplicatesComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.collection = this.collectionService.getCollection(this.collectionUuid, this.auth.email!)!;
-    this.subscriptions.add(this.collectionService.getMyCollectionsReady$().subscribe(
-      list => this.otherCollections = this.collectionService.sort(list.filter(c => c.uuid !== this.collectionUuid))
-    ));
   }
 
   ngOnDestroy(): void {
@@ -87,6 +86,7 @@ export class FindDuplicatesComponent implements OnInit, OnDestroy {
   collectionName(col: TrailCollection): string {
     return col.name.length === 0 && col.type === TrailCollectionType.MY_TRAILS ? this.i18n.texts.my_trails : col.name;
   }
+
   reset(): void {
     this.processing = false;
     this.started = false;
@@ -100,13 +100,20 @@ export class FindDuplicatesComponent implements OnInit, OnDestroy {
   }
 
   close(): void {
-    this.modalController.dismiss(null, 'cancel');
+    void this.modalController.dismiss(null, 'cancel');
   }
 
   setThreshold(value: string | null | undefined): void {
     if (!value) return;
     const n = Number.parseInt(value);
     if (!Number.isNaN(n) && n >= 1 && n <= 100) this.threshold = n;
+  }
+
+  filterWithCollection = (item: CollectionItem) => !item.collection || item.collection.uuid !== this.collection.uuid;
+
+  setWithCollection(selection: CollectionItem[]): void {
+    this.withCollection = selection.length > 0 ? selection[0] : undefined;
+    if (this.withCollection) this.what = 'two';
   }
 
   canStart(): boolean {
@@ -143,7 +150,12 @@ export class FindDuplicatesComponent implements OnInit, OnDestroy {
       toCompare$ = this.trailService.getAll$().pipe(
         collection$items(),
         first(),
-        map(list => ({source: list.filter(t => t.collectionUuid === this.collectionUuid), target: list.filter(t => t.collectionUuid === this.withCollection)})),
+        map(list => ({
+          source: list.filter(t => t.collectionUuid === this.collectionUuid),
+          target: this.withCollection!.share ?
+            list.filter(t => t.owner === this.withCollection!.share!.owner && this.withCollection!.share!.trails.includes(t.uuid)) :
+            list.filter(t => t.collectionUuid === this.withCollection!.collection!.uuid)
+        })),
         switchMap(sourcesAndTarget => zip(
           trailToTrackMapper(sourcesAndTarget.source),
           trailToTrackMapper(sourcesAndTarget.target)

@@ -6,7 +6,6 @@ import { BrowserService } from '@trailence/services/browser/browser.service';
 import { MenuContentComponent } from '../../menus/menu-content/menu-content.component';
 import { TrailMenuService } from '@trailence/services/database/trail-menu.service';
 import { Router } from '@angular/router';
-import { TrailService } from '@trailence/services/database/trail.service';
 import { AuthService } from '@trailence/services/auth/auth.service';
 import { Subscriptions } from '@trailence/utils/rxjs/subscription-utils';
 import { firstValueFrom, of, switchMap } from 'rxjs';
@@ -16,6 +15,7 @@ import { TrailCollectionService } from '@trailence/services/database/trail-colle
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { TrackMetadataSnapshot } from '@trailence/model/snapshots';
 import { ChangesDetection } from '@trailence/utils/angular-helpers';
+import { getLoopTypeIcon } from '@trailence/model/dto/trail-loop-type';
 
 @Component({
   selector: 'app-trail-overview-condensed',
@@ -70,7 +70,6 @@ export class TrailOverviewCondensedComponent implements OnChanges, OnInit, OnDes
     private readonly router: Router,
     private readonly popoverController: PopoverController,
     private readonly trailMenuService: TrailMenuService,
-    private readonly trailService: TrailService,
     private readonly tagService: TagService,
     changesDetector: ChangeDetectorRef,
     ngZone: NgZone,
@@ -113,7 +112,7 @@ export class TrailOverviewCondensedComponent implements OnChanges, OnInit, OnDes
       this.positiveElevation = this.track.positiveElevation ? '+ ' + Math.round(this.i18n.elevationInUserUnit(this.track.positiveElevation)) : '';
       this.negativeElevation = this.track.negativeElevation ? '- ' + Math.round(this.i18n.elevationInUserUnit(this.track.negativeElevation)) : '';
       this.loopType = this.trail.loopType ? this.i18n.texts.loopType[this.trail.loopType] : '';
-      if (this.loopType) this.loopTypeIcon = this.trailService.getLoopTypeIcon(this.trail.loopType);
+      if (this.loopType) this.loopTypeIcon = getLoopTypeIcon(this.trail.loopType);
     }
   }
 

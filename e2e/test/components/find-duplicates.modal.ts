@@ -1,8 +1,8 @@
 import { App } from '../app/app';
 import { IonicInput } from './ionic/ion-input';
 import { IonicRadioGroup } from './ionic/ion-radio-group';
-import { IonicSelect } from './ionic/ion-select';
 import { ModalComponent } from './modal';
+import { SelectComponent } from './select.component';
 import { TrailComponent } from './trail.component';
 
 export class FindDuplicatesModal extends ModalComponent {
@@ -12,7 +12,7 @@ export class FindDuplicatesModal extends ModalComponent {
   }
 
   public async selectOtherCollection(name: string) {
-    await new IonicSelect(this.contentElement.$('>>>ion-radio-group').$('ion-select')).selectByText(name);
+    await new SelectComponent('single', this.contentElement.$('>>>ion-radio-group').$('app-select')).selectByText(name);
   }
 
   public async setSimilarityPercent(percent: number) {

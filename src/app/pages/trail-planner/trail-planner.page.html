@@ -201,6 +201,7 @@
         labelPlacement="floating"
         cancelText="{{i18n.texts.buttons.cancel}}"
         okText="{{i18n.texts.buttons.apply}}"
+        [interfaceOptions]="{cssClass: 'no-message compact-items'}"
       >
         @for (collection of collections; track collection.uuid) {
           <ion-select-option [value]="collection.uuid">{{getCollectionName(collection)}}</ion-select-option>

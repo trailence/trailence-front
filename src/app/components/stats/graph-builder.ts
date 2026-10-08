@@ -282,17 +282,15 @@ export class GraphBuilder implements GraphProvider<StatsConfig> {
     const collections: TrailCollection[] = [];
     const shares: Share[] = [];
     for (const src of cfg.source) {
-      if (src.type === 'collection') {
-        if (src.uuid === 'my_trails') {
-          const col = allCollections.find(c => c.type === TrailCollectionType.MY_TRAILS)
-          if (col && !collections.includes(col)) collections.push(col);
-        } else if (src.owner === this.injector.get(AuthService).email) {
-          const col = allCollections.find(c => c.uuid === src.uuid)
-          if (col && !collections.includes(col)) collections.push(col);
-        } else {
-          const share = allShares.find(s => s.uuid === src.uuid && s.owner === src.owner);
-          if (share && !shares.includes(share)) shares.push(share);
-        }
+      if (src.uuid === 'my_trails') {
+        const col = allCollections.find(c => c.type === TrailCollectionType.MY_TRAILS)
+        if (col && !collections.includes(col)) collections.push(col);
+      } else if (src.owner === this.injector.get(AuthService).email) {
+        const col = allCollections.find(c => c.uuid === src.uuid)
+        if (col && !collections.includes(col)) collections.push(col);
+      } else {
+        const share = allShares.find(s => s.uuid === src.uuid && s.owner === src.owner);
+        if (share && !shares.includes(share)) shares.push(share);
       }
     }
     return {collections, shares};

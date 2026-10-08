@@ -314,6 +314,7 @@ export class App {
   public static async waitModal(options?: {
     byRootElementName?: string,
     byTitle?: string,
+    byClassName?: string,
     timeout?: number,
   }): Promise<ChainablePromiseElement> {
     let page: ChainablePromiseElement | undefined = undefined;
@@ -346,7 +347,8 @@ export class App {
       context += ' with title: ' + title;
     }
     await browser.waitUntil(async () => {
-      const modals = await browser.$$('ion-app>ion-modal:not(.overlay-hidden)').getElements();
+      const selector = options?.byClassName ? 'ion-modal.' + options.byClassName : 'ion-modal';
+      const modals = await browser.$$('ion-app>' + selector + ':not(.overlay-hidden)').getElements();
       if (modals.length === 0) return false;
       for (const modal of modals) {
         const id = await modal.getAttribute('id');

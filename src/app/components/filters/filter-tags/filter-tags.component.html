@@ -1,5 +1,5 @@
-<ion-button fill="clear" color="dark" expand="true" id="filter-tags-button-{{id}}" style="text-transform: none; letter-spacing: inherit;">
-  <div>
+<ion-button fill="clear" color="dark" expand="true" id="filter-tags-button-{{id}}" style="text-transform: none; letter-spacing: inherit; text-align: left; width: 100%; --padding-top: 2px; --padding-bottom: 2px; --padding-start: 1px; --padding-end: 1px; margin: 0; font-size: 16px; min-height: 24px;">
+  <div style="width: 100%;">
     @switch (filter.type) {
       @case ('onlyWithAnyTag') { {{i18n.texts.tags_filter.onlyWithAnyTag}} }
       @case ('onlyWithoutAnyTag') { {{i18n.texts.tags_filter.onlyWithoutAnyTag}} }
@@ -13,7 +13,7 @@
             </span>
           }
         } @else {
-          {{i18n.texts.tags_filter.click_to_select}}
+          {{i18n.texts.tags_filter.all}}
         }
       }
     }

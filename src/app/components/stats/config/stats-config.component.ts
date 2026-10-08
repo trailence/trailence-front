@@ -1,10 +1,12 @@
-import { Component, Injector, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { StatsConfig, StatsTimeUnit, StatsValue } from '../stats-config';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
-import { IonSelect, IonSelectOption } from "@ionic/angular";
 import { FormsModule } from '@angular/forms';
-import { StatsSourceSelectionComponent } from "./source-selection/stats-source-selection.component";
-import { TrailActivity } from '@trailence/model/dto/trail-activity';
+import { SelectActivitiesComponent } from '@trailence/components/select/activity/select-activity.component';
+import { SelectItem } from '@trailence/components/select/select.interface';
+import { SelectComponent } from '@trailence/components/select/select.component';
+import { CollectionItem } from '@trailence/components/select/collection/select-collection';
+import { SelectCollectionComponent } from '@trailence/components/select/collection/selection-collection.component';
 
 @Component({
   selector: 'app-stats-config',
@@ -12,41 +14,32 @@ import { TrailActivity } from '@trailence/model/dto/trail-activity';
   styleUrl: './stats-config.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    IonSelect, IonSelectOption,
     FormsModule,
-    StatsSourceSelectionComponent
+    SelectComponent,
+    SelectActivitiesComponent,
+    SelectCollectionComponent,
   ]
 })
-export class StatsConfigComponent {
+export class StatsConfigComponent implements OnInit {
 
   @Input() config!: StatsConfig;
 
-  types = Object.values(StatsValue);
-  timeUnits = Object.values(StatsTimeUnit);
+  typesItems = Object.values(StatsValue).map(value => ({value, labelI18n: 'pages.stats.types.' + value}) as SelectItem<StatsValue>);
+  timeUnitsItems = Object.values(StatsTimeUnit).map(value => ({value, labelI18n: 'pages.stats.time_units.' + value}) as SelectItem<StatsTimeUnit>);
+
+  sources: CollectionItem[] = [];
 
   constructor(
     public readonly i18n: I18nService,
-    private readonly injector: Injector,
   ) {}
 
-  getActivityFilterText(): string {
-    if (this.config.activities.length === 0)
-      return this.i18n.texts.pages.stats.activities.all;
-    if (this.config.activities.length === 1)
-      return this.activityName(this.config.activities[0]);
-    if (this.config.activities.length === 2)
-      return this.activityName(this.config.activities[0]) + ' ' + this.i18n.texts.pages.stats.activities.or + ' ' + this.activityName(this.config.activities[1]);
-    return '' + this.config.activities.length + ' ' + this.i18n.texts.pages.stats.activities.n_activities;
+  ngOnInit(): void {
+    this.sources = this.config.source.map(s => ({...s}));
   }
 
-  private activityName(value: TrailActivity | undefined): string {
-    return this.i18n.texts.activity[value ?? 'unspecified'];
+  setSources(sources: CollectionItem[]): void {
+    this.config.source = sources.map(s => ({uuid: s.uuid, owner: s.owner}));
+    this.sources = sources;
   }
 
-  openActivitiesFilter(event: Event): void {
-    event.stopPropagation();
-    event.preventDefault();
-    void import('../../activity-popup/activity-popup.component')
-    .then(m => m.openActivitiesSelectionPopup(this.injector, this.config.activities, s => this.config.activities = s));
-  }
 }

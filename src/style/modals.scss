@@ -189,8 +189,16 @@ ion-alert .alert-wrapper.sc-ion-alert-md {
     padding-top: 15px;
     background-color: var(--modal-content-background);
   }
-  .alert-radio-group.sc-ion-alert-md {
+  .alert-radio-group.sc-ion-alert-md, .alert-checkbox-group.sc-ion-alert-md {
     background-color: var(--modal-content-background);
+  }
+}
+ion-alert.no-message .alert-wrapper .alert-message.sc-ion-alert-md {
+  padding: 0;
+}
+ion-alert.compact-items .alert-wrapper {
+  .alert-radio-group.sc-ion-alert-md button {
+    min-height: 36px;
   }
 }
 ion-modal:not(.modal-sheet) {

@@ -9,31 +9,13 @@ div.config-horizontal {
   flex-direction: row;
   align-items: center;
   flex-wrap: wrap;
+  margin-right: 6px;
   span {
-    margin-right: 10px;
+    margin-right: 4px;
   }
 }
-::ng-deep app-stats-config div.config-horizontal ion-select {
+::ng-deep app-stats-config div.config-horizontal app-select {
   color: var(--ion-color-secondary);
-  width: auto;
-  min-height: 30px;
-  margin-right: 5px;
-}
-
-div.fake-select {
-  position: relative;
-  ion-select {
-    pointer-events: none;
-    z-index: 0;
-  }
-  div.overlay {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 1;
-    pointer-events: all;
-    cursor: pointer;
-  }
+  max-width: calc(min(250px, 75vw));
+  display: block;
 }

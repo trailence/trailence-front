@@ -1,6 +1,5 @@
 import { App } from '../app/app';
 import { TestUtils } from '../utils/test-utils';
-import { ActivityModal } from './activity.modal';
 import { Component } from './component';
 import { EditTools } from './edit-tools.component';
 import { ElevationGraph } from './elevation-graph.component';
@@ -14,6 +13,7 @@ import { MenuContent } from './menu-content.component';
 import { PhotosComponent } from './photos.component';
 import { PublicationChecklistModal } from './publication-checklist.modal';
 import { RateAndComments } from './rate-and-comments.component';
+import { SelectModal } from './select.component';
 import { TagsPopup } from './tags-popup';
 import { ToolbarComponent } from './toolbar.component';
 
@@ -198,8 +198,8 @@ export class TrailComponent extends Component {
   public async setActivity(activity?: string) {
     const element = await this.getMetadataContentByTitle('Activity');
     await element.click();
-    const modal = new ActivityModal(await App.waitModal());
-    await modal.select(activity);
+    const modal = await SelectModal.waitModal('single');
+    await modal.selectByValue(activity ?? 'unspecified');
     await modal.apply();
   }
 

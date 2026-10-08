@@ -83,6 +83,8 @@ import { TrackPointReference } from '@trailence/utils/track-computed-data/types'
 import { LiveGroupDto } from '@trailence/model/dto/live-group';
 import { PRIMARY_TRACK_ARROW_COLOR, PRIMARY_TRACK_COLOR, PRIMARY_TRACK_COLOR_DONE, SECONDARY_TRACK_ARROW_COLOR, SECONDARY_TRACK_COLOR, SELECTED_TRACK_SECTION_COLOR } from './trail-colors';
 import { getLogger } from '@trailence/utils/console';
+import { getActivityIcon } from '@trailence/model/dto/trail-activity';
+import { getLoopTypeIcon } from '@trailence/model/dto/trail-loop-type';
 
 const logger = getLogger('trail.component');
 
@@ -284,6 +286,9 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   publishedTrail?: Trail;
   showTextHtml = false;
 
+  loopTypeIcon = getLoopTypeIcon;
+  activityIcon = getActivityIcon;
+
   private _lock?: () => void;
   editingDescription = false;
   editingSourceUrl = false;
@@ -407,10 +412,10 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     new MenuItem(),
     new MenuItem()
       .setVisible(() => !!this.recording)
-      .setIcon(() => this.trailService.getActivityIcon(this.recording?.trail?.activity))
+      .setIcon(() => getActivityIcon(this.recording?.trail?.activity))
       .setI18nLabel('metadata.activity')
       .setAction(() =>
-        import('../activity-popup/activity-popup.component')
+        import('../select/activity/select-activity-popup')
         .then(m => this.recording ? m.openActivityDialog(this.injector, [this.recording.trail], true) : undefined)
         .then(() => this.refreshMapToolbarTop())
       ),
@@ -431,7 +436,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     public readonly i18n: I18nService,
     private readonly browser: BrowserService,
     private readonly auth: AuthService,
-    public readonly trailService: TrailService,
+    private readonly trailService: TrailService,
     private readonly traceRecorder: TraceRecorderService,
     private readonly tagService: TagService,
     private readonly photoService: PhotoService,
@@ -1919,7 +1924,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   openActivityDialog(): void {
     const trail = !!this.trail1 && !this.trail2 && this.editable && !this.recording ? {trail: this.trail1, isRecording: false} : !this.trail1 && this.recording ? {trail: this.recording.trail, isRecording: true} : undefined;
     if (!trail) return;
-    void import('../activity-popup/activity-popup.component')
+    void import('../select/activity/select-activity-popup')
     .then(m => m.openActivityDialog(this.injector, [trail.trail], trail.isRecording))
     .then(() => this.refreshMapToolbarTop());
   }
