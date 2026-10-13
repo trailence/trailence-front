@@ -16,7 +16,8 @@
           "/assets/i18n/*.json",
           "/assets/*.js",
           "/assets/*.mjs",
-          "/assets/*.css"
+          "/assets/*.css",
+          "/assets/countries/*.json"
         ]
       }
     },

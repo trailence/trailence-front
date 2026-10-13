@@ -1,4 +1,5 @@
 import * as L from 'leaflet';
+import { earthBBox, EarthBBox } from './latlng';
 
 export class LeafletUtils {
 
@@ -100,4 +101,8 @@ export class BoundsBuilder {
   }
 
   public getBounds(): L.LatLngBounds | undefined { return this._bounds; }
+}
+
+export function latLngBoundsToEarthBBox(bounds: L.LatLngBounds): EarthBBox {
+  return earthBBox(bounds.getNorthEast(), bounds.getSouthWest());
 }

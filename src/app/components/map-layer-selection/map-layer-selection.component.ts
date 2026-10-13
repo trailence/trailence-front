@@ -5,6 +5,8 @@ import { IonRadio, IonRadioGroup, IonCheckbox, IonHeader, IonToolbar, IonIcon, I
 import { environment } from '@env/environment';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { EarthBBox } from '@trailence/utils/latlng';
+import { CountriesBordersService } from '@trailence/services/geolocation/countries-borders.service';
 
 @Component({
     selector: 'app-map-layer-selection',
@@ -21,6 +23,7 @@ export class MapLayerSelectionComponent implements OnInit {
   @Input() multiple = false;
   @Input() buttons = false;
   @Input() popup = false;
+  @Input() bbox?: EarthBBox;
   @Input() initialSelection: string[] = [];
   @Input() onSelectionChanged?: (selection: string[]) => void;
 
@@ -37,6 +40,7 @@ export class MapLayerSelectionComponent implements OnInit {
     public readonly i18n: I18nService,
     service: MapLayersService,
     private readonly modalController: ModalController,
+    private readonly bordersService: CountriesBordersService,
   ) {
     for (const layer of service.layers) {
       if (layer.regional) {
@@ -60,6 +64,17 @@ export class MapLayerSelectionComponent implements OnInit {
     if (this.initialSelection.length > 0) this.selection = [...this.initialSelection];
     if (this.onSelectionChanged) {
       this.selectionChange.subscribe(event => this.onSelectionChanged!(event));
+    }
+    console.log('bbox', this.bbox)
+    if (this.bbox) {
+      const regions = Array.from(this.regionalLayers.entries()).map(r => ({name: r[0], code: r[1][0].layer.regional!.code}));
+      void this.bordersService.getOverlappingCountriesSorted(this.bbox, regions.map(r => r.code))
+      .then(overlapping => {
+        console.log('overlapping', overlapping);
+        const newRegions = [...overlapping.map(code => regions.find(r => r.code === code)!.name), ...this.sortedRegions.filter(sr => !overlapping.includes(regions.find(r => r.name === sr)!.code))];
+        this.sortedRegions = newRegions;
+        console.log('result', newRegions);
+      })
     }
   }
 
@@ -110,7 +125,7 @@ export class MapLayerSelectionComponent implements OnInit {
   }
 
   close(): void {
-    this.modalController.dismiss();
+    void this.modalController.dismiss();
   }
 
 }

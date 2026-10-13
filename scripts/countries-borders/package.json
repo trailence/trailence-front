@@ -1,0 +1,14 @@
+{
+  "name": "countries-border",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^26.6.3"
+  },
+  "scripts": {
+    "generate-borders": "node --import=tsx ./src/generate-borders.ts"
+  },
+  "dependencies": {
+  },
+  "allowScripts": {
+  }
+}
