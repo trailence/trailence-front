@@ -20,7 +20,7 @@ import { TrailHoverCursor } from './hover-cursor';
 import { Router, RouterLink } from '@angular/router';
 import { TagService } from '@trailence/services/database/tag.service';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
-import { PhotoService } from '@trailence/services/database/photo.service';
+import { MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE, PhotoService } from '@trailence/services/database/photo.service';
 import { Photo } from '@trailence/model/photo';
 import { PhotoComponent } from '../photo/photo.component';
 import { BrowserService } from '@trailence/services/browser/browser.service';
@@ -1188,7 +1188,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     if (!this.trail1$ || !this.recording$) return;
     let photosOnMap = new Map<string, L.Marker>();
     const photosByKey = new Map<string, Photo[]>();
-    const dateToPoint = new Map<string, Map<number, L.LatLngExpression | null>>();
+    const dateToPoint = new Map<string, Map<number, L.LatLngLiteral | null>>();
     const getTrack = (trail: Trail) =>
       this.showOriginal$.pipe(
         switchMap(showOriginal => showOriginal ? trail.originalTrackUuid$ : trail.currentTrackUuid$),
@@ -1310,27 +1310,36 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     );
   }
 
-  private getPhotosWithPosition(photos: Photo[], getTrack: () => Observable<Track | null>, dateToPoint: Map<string, Map<number, L.LatLngExpression | null>>) {
+  private getPhotosWithPosition(photos: Photo[], getTrack: () => Observable<Track | null>, dateToPoint: Map<string, Map<number, L.LatLngLiteral | null>>) {
     const withPos = photos.filter(p => p.latitude !== undefined && p.longitude !== undefined).map(p => ({photo:p, point: {lat: p.latitude!, lng: p.longitude!} as L.LatLngExpression}));
     const withDateOnly = photos.filter(p => (p.latitude === undefined || p.longitude === undefined) && p.dateTaken !== undefined);
     if (withDateOnly.length === 0) return of(withPos);
     return getTrack().pipe(map(track => this.getPhotoPositionFromDate(track, withDateOnly, dateToPoint)), map(result => [...result, ...withPos]));
   }
 
-  private getPhotoPositionFromDate(track: Track | null, photos: Photo[], dateToPoint: Map<string, Map<number, L.LatLngExpression | null>>) {
+  private getPhotoPositionFromDate(track: Track | null, photos: Photo[], dateToPoint: Map<string, Map<number, L.LatLngLiteral | null>>) {
     if (!track) return [];
     let cache = dateToPoint.get(track.uuid);
     if (!cache) {
-      cache = new Map<number, L.LatLngExpression | null>();
+      cache = new Map<number, L.LatLngLiteral | null>();
       dateToPoint.set(track.uuid, cache);
     }
     return photos.map(photo => {
       const date = photo.dateTaken!;
-      let point: L.LatLngExpression | null | undefined = cache.get(date);
+      let point: L.LatLngLiteral | null | undefined = cache.get(date);
       if (point === undefined) {
-        const closest = TrackUtils.findClosestPointForTime(track, date);
+        const closest = TrackUtils.findClosestPointForTime(track, date, MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE);
         point = closest ? {lat: closest.pos.lat, lng: closest.pos.lng} : null;
         cache.set(date, point);
+      }
+      if (point && (photo.owner === this.auth.email || photo.owner.startsWith(SHARED_OWNER_PREFIX))) {
+        // save it
+        this.photoService.update(photo, p => {
+          if (p.latitude === undefined) {
+            p.latitude = point.lat;
+            p.longitude = point.lng;
+          }
+        });
       }
       return {photo, point};
     })

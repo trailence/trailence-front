@@ -356,6 +356,7 @@ export class TraceRecorderService {
     if (!recording || !this._table) return;
     const buffer = await binary.toArrayBuffer();
     const imported = await this.workerService.importPhoto(recording.trail.owner, recording.trail.uuid, '', recording.photos$.value.length + 1, buffer, this.preferencesService.preferences, Date.now(), recording.track.arrivalPoint?.pos.lat, recording.track.arrivalPoint?.pos.lng, false, undefined, true);
+    this.photoService.computeLocationFromTrack(imported.photo, recording.track);
     return await this.storePhoto(imported.photo, imported.blob);
   }
 

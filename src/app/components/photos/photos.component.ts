@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnChanges,
 import { IonToolbar, IonIcon, IonLabel, IonButton, IonFooter, IonButtons, IonCheckbox, IonTextarea, AlertController, IonSegment, IonSegmentButton } from "@ionic/angular";
 import { BehaviorSubject, combineLatest, firstValueFrom, map, Observable, of, switchMap, tap } from 'rxjs';
 import { Photo } from '@trailence/model/photo';
-import { PhotoService } from '@trailence/services/database/photo.service';
+import { MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE, PhotoService } from '@trailence/services/database/photo.service';
 import { FileService } from '@trailence/services/file/file.service';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { Progress, ProgressService } from '@trailence/services/progress/progress.service';
@@ -185,7 +185,7 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
     if (photo.dateTaken !== undefined) {
       let point: L.LatLngLiteral | null | undefined = this._dateToPosCache.get(photo.dateTaken);
       if (point === undefined && track) {
-        const closest = TrackUtils.findClosestPointForTime(track, photo.dateTaken);
+        const closest = TrackUtils.findClosestPointForTime(track, photo.dateTaken, MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE);
         point = closest ? {lat: closest.pos.lat, lng: closest.pos.lng} : null;
         this._dateToPosCache.set(photo.dateTaken, point);
       }

@@ -3,7 +3,7 @@ import { OwnedStore, UpdatesResponse } from './store/owned-store';
 import { PhotoDto } from '@trailence/model/dto/photo';
 import { Photo } from '@trailence/model/photo';
 import { VersionedDto } from '@trailence/model/dto/versioned';
-import { BehaviorSubject, catchError, combineLatest, defaultIfEmpty, EMPTY, first, firstValueFrom, from, map, Observable, of, share, switchMap, tap, throwError, timer, zip } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, defaultIfEmpty, EMPTY, first, firstValueFrom, from, map, Observable, of, share, switchMap, tap, throwError, timeout, timer, zip } from 'rxjs';
 import { environment } from '@env/environment';
 import { HttpService } from '../http/http.service';
 import { RequestLimiter } from '@trailence/utils/request-limiter';
@@ -29,8 +29,13 @@ import { WorkerService } from '@trailence/worker/web-app';
 import { SHARED_OWNER_PREFIX } from '@trailence/model/dto/trail-collection';
 import { AuthService } from '../auth/auth.service';
 import { getLogger } from '@trailence/utils/console';
+import { TrackService } from './track.service';
+import { Track } from '@trailence/model/track';
+import { TrackUtils } from '@trailence/utils/track-utils';
 
 const logger = getLogger('photo.service');
+
+export const MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE = 15 * 60 * 1000;
 
 @Injectable({providedIn: 'root'})
 export class PhotoService {
@@ -174,6 +179,7 @@ export class PhotoService {
           if (index >= 0) this._creating.splice(index, 1);
         });
         return this.injector.get(StoredFilesService).store(owner, 'photo', imported.photo.uuid, imported.blob).pipe(
+          switchMap(() => this.computeLocation(imported.photo)),
           switchMap(() => {
             if (fromModeration) return this.injector.get(ModerationService).createPhoto(imported.photo, imported.blob);
             if (fromRecording) return from(this.injector.get(TraceRecorderService).storePhoto(imported.photo, imported.blob));
@@ -192,6 +198,31 @@ export class PhotoService {
         return of(null);
       })
     );
+  }
+
+  public computeLocation(photo: Photo): Observable<Photo> {
+    const date = photo.dateTaken;
+    if (photo.latitude !== undefined || date === undefined) return of(photo);
+    return this.injector.get(TrailService).getTrail$(photo.trailUuid, photo.owner).pipe(
+      filterDefined(),
+      switchMap(trail => this.injector.get(TrackService).getFullTrack$(trail.currentTrackUuid, trail.owner)),
+      filterDefined(),
+      map(track => {
+        this.computeLocationFromTrack(photo, track);
+        return photo;
+      }),
+      first(),
+      timeout({first: 20000, with: () => of(photo)}),
+    );
+  }
+
+  public computeLocationFromTrack(photo: Photo, track: Track): void {
+    if (photo.dateTaken === undefined || photo.latitude !== undefined) return;
+    const closest = TrackUtils.findClosestPointForTime(track, photo.dateTaken, MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE);
+    if (closest) {
+      photo.latitude = closest.pos.lat;
+      photo.longitude = closest.pos.lng;
+    }
   }
 
   public setCover(trail: Trail, photo: Photo): void {

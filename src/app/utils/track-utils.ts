@@ -222,7 +222,7 @@ export class TrackUtils {
     return closestSegmentIndex >= 0 ? {segmentIndex: closestSegmentIndex, pointIndex: closestPointIndex} : undefined;
   }
 
-  public static findClosestPointForTime(track: Track, time: number): Point | undefined { // NOSONAR
+  public static findClosestPointForTime(track: Track, time: number, maxDiff: number): Point | undefined { // NOSONAR
     let previous: Point | undefined = undefined;
     for (const segment of track.segments) {
       for (const point of segment.points) {
@@ -231,15 +231,16 @@ export class TrackUtils {
         if (ptime === time) return point;
         const diff = Math.abs(ptime - time);
         if (ptime > time) {
-          if (diff > 15 * 60 * 1000) return previous;
+          if (diff > maxDiff) return previous;
           if (previous === undefined) return point;
           if (Math.abs(previous.time! - time) < diff) return previous;
           return point;
         }
-        previous = point;
+        if (diff <= maxDiff)
+          previous = point;
       }
     }
-    return undefined;
+    return previous;
   }
 
   // Duration utilities

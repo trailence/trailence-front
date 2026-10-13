@@ -31,6 +31,7 @@ import { detectLongBreaksFromTrack } from '../track-edition/time/break-detection
 import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
 import { ModerationCounters } from '@trailence/model/dto/moderation-counters';
 import { getLogger } from '@trailence/utils/console';
+import { MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE } from '../database/photo.service';
 
 const logger = getLogger('moderation.service');
 
@@ -406,7 +407,7 @@ export class ModerationService {
           }
         }
         if (p.dateTaken !== undefined) {
-          const closest = TrackUtils.findClosestPointForTime(track, p.dateTaken);
+          const closest = TrackUtils.findClosestPointForTime(track, p.dateTaken, MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE);
           if (closest) {
             photoDate = p.dateTaken;
             photoPos ??= {lat: closest.pos.lat, lng: closest.pos.lng};
