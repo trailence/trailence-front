@@ -3,6 +3,7 @@ import { ModalController } from '@ionic/angular';
 import { MapLayersService } from '@trailence/services/map/map-layers.service';
 import { MapTool, MapToolContext } from './tool.interface';
 import { Observable } from 'rxjs';
+import { latLngBoundsToEarthBBox } from '@trailence/utils/leaflet-utils';
 
 export class MapLayerSelectionTool extends MapTool {
 
@@ -11,7 +12,6 @@ export class MapLayerSelectionTool extends MapTool {
     this.icon = 'layers';
     this.execute = (ctx: MapToolContext) => this._execute(ctx);
   }
-
 
   private _execute(ctx: MapToolContext): Observable<any> {
     const modalController = ctx.injector.get(ModalController);
@@ -23,6 +23,7 @@ export class MapLayerSelectionTool extends MapTool {
           buttons: true,
           popup: true,
           enableOverlays: true,
+          bbox: latLngBoundsToEarthBBox(ctx.map.getBounds()),
           initialSelection: [ctx.mapComponent.getState().tilesName],
           onSelectionChanged: (selection: string[]) => {
             if (selection.length > 0) {

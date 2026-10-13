@@ -32,7 +32,7 @@
     "build-assets": "node --import=tsx src/icons/mapping/build.ts",
     "build-doc": "cd doc && node build/build.js",
     "circle": "dpdm ./src/main.ts --ext .ts,.d.ts,.tsx,.mjs,.js,.jsx,.json --tsconfig ./tsconfig.json --tree false --ignore-skip-warning node_modules ./",
-    "compile-scripts": "tsc -p tsconfig.scripts.json && node --check scripts/check-assets-version.js && node --check scripts/copy-assets-dependencies.js && node --check scripts/set-version.js && cd scripts/client && npm ci --ignore-scripts && tsc && cd ../osm && npm ci --ignore-scripts && tsc"
+    "compile-scripts": "tsc -p tsconfig.scripts.json && node --check scripts/check-assets-version.js && node --check scripts/copy-assets-dependencies.js && node --check scripts/set-version.js && cd scripts/client && npm ci --ignore-scripts && tsc && cd ../osm && npm ci --ignore-scripts && tsc && cd../countries-borders && npm ci --ignore-scripts && tsc"
   },
   "license": "Apache-2.0",
   "private": true,

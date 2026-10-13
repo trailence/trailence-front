@@ -1,6 +1,9 @@
+:host {
+  --layer-size: 125px;
+}
 .layer {
   display: inline-block;
-  margin: 5px;
+  margin: 5px 3px;
 
   .header {
     display: flex;
@@ -11,9 +14,11 @@
     margin-bottom: 3px;
 
     .name {
-      margin-left: 5px;
       font-size: 12px;
     }
+  }
+  img {
+    margin-left: calc(max(0, calc(100% - var(--layer-size)) / 2));
   }
 
   &.as-button {
