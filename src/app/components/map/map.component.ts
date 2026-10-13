@@ -513,6 +513,7 @@ export class MapComponent extends AbstractComponent {
     if (mode === RotateMode.NORTH) bearing = 0;
     else bearing ??= this.getState().bearing;
     (this._map$.value as any)?.setBearing(bearing, {animate: animated});
+    if (this.mapGeolocation.recorder.recording) this.mapGeolocation.recorder.setRotateMode(mode);
   }
 
   public enterFullScreen(): void {
@@ -587,6 +588,8 @@ export class MapComponent extends AbstractComponent {
     });
     map.on('zoom', () => {
       this.mapChanged(map);
+      if (map.getZoom() < FOLLOW_LOCATION_MIN_ZOOM && this._followingLocation$.value && this._locationMarker)
+        this._followingLocation$.next(false);
       this.refreshTools();
     });
     map.on('zoomstart', () => {
@@ -744,6 +747,7 @@ export class MapComponent extends AbstractComponent {
 
     // handle recording and position
     let previousPositions: L.LatLng[] | undefined;
+    let recordingStarted = false;
     this.whenAlive.add(
       combineLatest([
         this._mapState.live$,
@@ -780,6 +784,11 @@ export class MapComponent extends AbstractComponent {
           if (recording) {
             toolShowPosition.visible = false;
             phoneLockTool.visible = phoneLockTool.available;
+            if (!recordingStarted && this.visible && watched) {
+              const rotateMode = this.mapGeolocation.recorder.getRotateMode();
+              if (rotateMode) this.setRotation(rotateMode);
+              recordingStarted = true;
+            }
           } else {
             if (nbPosDisabled > 0) {
               toolShowPosition.visible = false;
@@ -788,6 +797,7 @@ export class MapComponent extends AbstractComponent {
               toolShowPosition.icon = showPosition ? 'pin-off' : 'pin';
             }
             phoneLockTool.visible = false;
+            recordingStarted = false;
           }
           // show position
           this.handlePosition(position, nbPosDisabled);

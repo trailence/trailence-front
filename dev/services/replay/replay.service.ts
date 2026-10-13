@@ -59,7 +59,9 @@ export class ReplayService {
       if (error) error({code: GeolocationPositionError.POSITION_UNAVAILABLE, message: 'Fake!'} as GeolocationPositionError);
     };
 
+    let stopped = false;
     window.navigator.geolocation.clearWatch = function() {
+      stopped = true;
       window.navigator.geolocation.getCurrentPosition = originalGetCurrentPosition;
       window.navigator.geolocation.watchPosition = originalWatchPosition;
       window.navigator.geolocation.clearWatch = originalClearWatch;
@@ -72,6 +74,7 @@ export class ReplayService {
     let startTime = Date.now();
     let totalIndex = 0;
     const sendNextPoint = (success: PositionCallback, error: PositionErrorCallback | null | undefined) => {
+      if (stopped) return;
       let nextNow = false;
       if ((window as any)['_isDemo']) {
         const step = (window as any)['_demoReplayStep'];

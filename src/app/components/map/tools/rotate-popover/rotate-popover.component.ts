@@ -62,17 +62,17 @@ export class RotatePopoverComponent {
 
   setNorth(): void {
     this.map.setRotation(RotateMode.NORTH, 0, true);
-    this.controller.dismiss();
+    void this.controller.dismiss();
   }
 
   setHeading(): void {
     this.map.setRotation(RotateMode.HEADING);
-    this.controller.dismiss();
+    void this.controller.dismiss();
   }
 
   seDeviceOrientation(): void {
     this.map.setRotation(RotateMode.DEVICE_ORIENTATION);
-    this.controller.dismiss();
+    void this.controller.dismiss();
   }
 
 }

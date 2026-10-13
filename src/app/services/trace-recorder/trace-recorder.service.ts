@@ -36,8 +36,14 @@ import { TrackComputedDataCacheService } from '../database/track-computed-data-c
 import { NetworkService } from '../network/network.service';
 import { TAKE_PHOTO_CANCELLED_ERROR } from '../camera/camera.interface';
 import { getLogger } from '@trailence/utils/console';
+import { RotateMode } from '@trailence/components/map/map-state';
 
 const logger = getLogger('trace-recorder.service');
+
+type TableEntry = RecordingDto | {key: string, photo: ArrayBuffer} | {key: string, rotateMode: RotateMode};
+const RECORDING_KEY = '1';
+const ROTATE_MODE_KEY = 'rotate-mode';
+const PHOTO_KEY_PREFIX = 'photo:';
 
 @Injectable({
   providedIn: 'root'
@@ -46,11 +52,12 @@ export class TraceRecorderService {
 
   private readonly _recording$ = new BehaviorSubject<Recording | null | undefined>(undefined);
   private _db?: Dexie;
-  private _table?: Dexie.Table<RecordingDto | {key: string, photo: ArrayBuffer}, string>;
+  private _table?: Dexie.Table<TableEntry, string>;
   private _email?: string;
   private _saving = false;
   private _saved = true;
   private _changesSubscription?: Subscription;
+  private _rotateMode?: RotateMode;
 
   constructor(
     auth: AuthService,
@@ -100,6 +107,7 @@ export class TraceRecorderService {
       this._table = undefined;
       this._saving = false;
       this._saved = true;
+      this._rotateMode = undefined;
     }
   }
 
@@ -112,8 +120,8 @@ export class TraceRecorderService {
     const storesV1: any = {};
     storesV1['record'] = 'key';
     this._db.version(1).stores(storesV1);
-    this._table = this._db.table<RecordingDto | {key: string, photo: ArrayBuffer}, string>('record');
-    this._table.get('1')
+    this._table = this._db.table<TableEntry, string>('record');
+    this._table.get(RECORDING_KEY)
     .then(dto => {
       const recording = dto ? Recording.fromDto(dto as RecordingDto, this.preferencesService, this.mapService, this.workerService, this.trackCacheService, this.networkService) : null;
       if (recording) {
@@ -125,6 +133,13 @@ export class TraceRecorderService {
     .catch(e => {
       logger.error('Error loading current trace', e);
       this._recording$.next(null);
+    });
+    this._table.get(ROTATE_MODE_KEY)
+    .then(dto => {
+      if (dto && (dto as any)['rotateMode']) this._rotateMode = (dto as any).rotateMode;
+    })
+    .catch(e => {
+      logger.error('Error loading rotate mode', e);
     });
   }
 
@@ -202,11 +217,11 @@ export class TraceRecorderService {
   public stop(save: boolean): Observable<Trail | null> {
     const recording = this._recording$.value;
     if (!recording) return of(null);
+    this._recording$.next(null);
     this.stopRecording(recording);
     logger.info('Recording stopped');
-    this._recording$.next(null);
     if (!save) {
-      if (this._table) void this._table.clear();
+      this.clearTable();
       return of(null);
     }
     if (!this._email) return of(null);
@@ -271,7 +286,7 @@ export class TraceRecorderService {
           if (this._table)
             for (const photo of recording.photos$.value) {
               const onPhotoDone = onSaved.add(() => progress.addWorkDone(1));
-              void this._table.get('photo:' + photo.uuid).then(p => {
+              void this._table.get(PHOTO_KEY_PREFIX + photo.uuid).then(p => {
                 const content = (p as {key: string, photo: ArrayBuffer}).photo;
                 return firstValueFrom(this.photoService.addPhoto(photo.owner, photo.trailUuid, photo.description, photo.index, content, photo.dateTaken, photo.latitude, photo.longitude, photo.isCover));
               })
@@ -286,7 +301,7 @@ export class TraceRecorderService {
         )
       ),
       defaultIfEmpty(null),
-      tap(() => { if (this._table) void this._table.clear(); }),
+      tap(() => this.clearTable()),
       catchError(e => {
         logger.error('Error saving recorded trail', e);
         this.errorService.addError(e);
@@ -294,6 +309,33 @@ export class TraceRecorderService {
         return of (null);
       }),
     );
+  }
+
+  private clearTable(): void {
+    if (!this._table) return;
+    void this._table.clear()
+    .then(() => {
+      if (this._rotateMode) this.saveRotateMode();
+    });
+  }
+
+  private saveRotateMode(): void {
+    if (this._rotateMode === RotateMode.HEADING || this._rotateMode === RotateMode.DEVICE_ORIENTATION) {
+      void this._table?.put({key: ROTATE_MODE_KEY, rotateMode: this._rotateMode}, ROTATE_MODE_KEY);
+    } else {
+      void this._table?.delete(ROTATE_MODE_KEY);
+    }
+  }
+
+  public setRotateMode(mode: RotateMode): void {
+    const newMode = mode === RotateMode.HEADING || mode === RotateMode.DEVICE_ORIENTATION ? mode : undefined;
+    if (this._rotateMode === newMode) return;
+    this._rotateMode = newMode;
+    this.saveRotateMode();
+  }
+
+  public getRotateMode(): RotateMode | undefined {
+    return this._rotateMode;
   }
 
   public takePhoto() {
@@ -320,8 +362,8 @@ export class TraceRecorderService {
   public async storePhoto(photo: Photo, blob: Blob) {
     const recording = this._recording$.value;
     if (!recording || !this._table) return null;
-    const key = 'photo:' + photo.uuid;
-    await this._table?.add({key, photo: await blob.arrayBuffer()}, 'photo:' + photo.uuid);
+    const key = PHOTO_KEY_PREFIX + photo.uuid;
+    await this._table?.add({key, photo: await blob.arrayBuffer()}, PHOTO_KEY_PREFIX + photo.uuid);
     recording.photos$.next([...recording.photos$.value, photo]);
     return photo;
   }
@@ -329,13 +371,13 @@ export class TraceRecorderService {
   public deletePhoto(uuid: string) {
     const recording = this._recording$.value;
     if (!recording) return;
-    void this._table?.delete('photo:' + uuid);
+    void this._table?.delete(PHOTO_KEY_PREFIX + uuid);
     recording.photos$.next(recording.photos$.value.filter(p => p.uuid !== uuid));
   }
 
   public getPhotoFile$(uuid: string): Observable<Blob> {
     if (!this._table) return throwError(() => new Error('Trace recorder not loaded'));
-    return from(this._table.get('photo:' + uuid).then(r => r ? Promise.resolve(new Blob([(r as {key: string, photo: ArrayBuffer}).photo], {type: 'image/jpeg'})) : Promise.reject()));
+    return from(this._table.get(PHOTO_KEY_PREFIX + uuid).then(r => r ? Promise.resolve(new Blob([(r as {key: string, photo: ArrayBuffer}).photo], {type: 'image/jpeg'})) : Promise.reject()));
   }
 
   private _geolocationListener?: (position: PointDto) => void;
@@ -561,7 +603,7 @@ export class TraceRecorderService {
       const t = this._table;
       this._saving = true;
       this._saved = true;
-      void this._table.put(recording.toDto(), '1').finally(() => {
+      void this._table.put(recording.toDto(), RECORDING_KEY).finally(() => {
         if (this._table !== t) return;
         this._saving = false;
         if (!this._saved) this.save(recording);
