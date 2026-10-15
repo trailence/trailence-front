@@ -45,6 +45,8 @@ export class TrailGraphComponent extends AbstractComponent {
 
   @Input() track1!: Track;
   @Input() track2?: Track;
+  @Input() timezoneOffset1?: number;
+  @Input() timezoneOffset2?: number;
   @Input() selectable = false;
   @Input() selection?: RangeReference[] | PointReference[];
   @Input() graphType!: GraphType;
@@ -111,7 +113,7 @@ export class TrailGraphComponent extends AbstractComponent {
     }
   }
 
-  public updateRecording(track: Track, track1?: Track, segmentIndexInTrack1?: number, pointIndexInTrack1?: number): void {
+  public updateRecording(track: Track, track1: Track | undefined, segmentIndexInTrack1: number | undefined, pointIndexInTrack1: number | undefined, timezoneOffset: number | undefined): void {
     this.ngZone.runOutsideAngular(() => {
       this.positionPlugin.track = track1;
       this.positionPlugin.segmentIndex = segmentIndexInTrack1;
@@ -121,7 +123,7 @@ export class TrailGraphComponent extends AbstractComponent {
       const datasetIndex = track === this.track1 ? 0 : track === this.track2 ? 1 : -1;
       if (datasetIndex < 0) return;
       const ds = this.chartData.datasets[datasetIndex];
-      this.updateRecordingData(ds, track);
+      this.updateRecordingData(ds, track, timezoneOffset);
     });
   }
 
@@ -257,10 +259,10 @@ export class TrailGraphComponent extends AbstractComponent {
 
   private buildInitialDatasets(): void {
     if (this.track1 && this.track2) {
-      this.buildDataSet(this.track1, this.primaryColor, 0.33, false, false);
-      this.buildDataSet(this.track2, this.secondaryColor, 1, false, false);
+      this.buildDataSet(this.track1, this.primaryColor, 0.33, false, false, this.timezoneOffset1);
+      this.buildDataSet(this.track2, this.secondaryColor, 1, false, false, this.timezoneOffset2);
     } else if (this.track1) {
-      this.buildDataSet(this.track1, this.primaryColor, 1, this.graphType === 'elevation', this.graphType === 'speed');
+      this.buildDataSet(this.track1, this.primaryColor, 1, this.graphType === 'elevation', this.graphType === 'speed', this.timezoneOffset1);
       if (this.graphType === 'elevation') {
         if (!this.chartPlugins.some(p => p instanceof ElevationLegendPlugin))
           this.chartPlugins.push(new ElevationLegendPlugin());
@@ -427,7 +429,7 @@ export class TrailGraphComponent extends AbstractComponent {
     };
   }
 
-  private buildDataSet(track: Track, colorBase: string, lineAlpha: number, withGradeFilling: boolean, withSpeedEstimation: boolean) {
+  private buildDataSet(track: Track, colorBase: string, lineAlpha: number, withGradeFilling: boolean, withSpeedEstimation: boolean, timezoneOffset: number | undefined) {
     const color = new Color(colorBase).setAlpha(lineAlpha).toString();
     const ds = {
       borderColor: color,
@@ -442,7 +444,7 @@ export class TrailGraphComponent extends AbstractComponent {
       data: [],
       track,
     } as any;
-    this.fillDataSet(ds, track);
+    this.fillDataSet(ds, track, timezoneOffset);
     if (withGradeFilling) {
       this.chartData!.datasets.push(ds, ...GradeDatasetBuilder.buildGradeDatasets(ds));
     } else {
@@ -456,22 +458,22 @@ export class TrailGraphComponent extends AbstractComponent {
     }
   }
 
-  private fillDataSet(ds: any, track: Track): void {
+  private fillDataSet(ds: any, track: Track, timezoneOffset: number | undefined): void {
     for (let segmentIndex = 0; segmentIndex < track.segments.length; segmentIndex++) {
       const points = track.segments[segmentIndex].points;
       for (let pointIndex = 0; pointIndex < points.length; pointIndex++) {
-        (ds.data as any[]).push(...this.createDataPoints(ds.data.at(-1), segmentIndex, pointIndex, track, points, ds.data, ds.data.length));
+        (ds.data as any[]).push(...this.createDataPoints(ds.data.at(-1), segmentIndex, pointIndex, track, points, ds.data, ds.data.length, timezoneOffset));
       }
     }
   }
 
-  private updateRecordingData(ds: any, track: Track): void { // NOSONAR
+  private updateRecordingData(ds: any, track: Track, timezoneOffset: number | undefined): void { // NOSONAR
     if (!this.canvas?.chart) return;
     let pointCount = 0;
     for (let segmentIndex = 0; segmentIndex < track.segments.length; segmentIndex++) {
       const points = track.segments[segmentIndex].points;
       for (let pointIndex = 0; pointIndex < points.length; ++pointIndex) {
-        const dataPoints = this.createDataPoints(pointCount === 0 ? undefined : ds.data[pointCount - 1], segmentIndex, pointIndex, track, points, ds.data, pointCount);
+        const dataPoints = this.createDataPoints(pointCount === 0 ? undefined : ds.data[pointCount - 1], segmentIndex, pointIndex, track, points, ds.data, pointCount, timezoneOffset);
         if (pointCount < ds.data.length) {
           // existing => update
           let nb = 1;
@@ -479,7 +481,7 @@ export class TrailGraphComponent extends AbstractComponent {
           ds.data.splice(pointCount, nb, ...dataPoints);
         } else {
           // new points
-          ds.data.push(...this.createDataPoints(pointCount === 0 ? undefined : ds.data[pointCount - 1], segmentIndex, pointIndex, track, points, ds.data, ds.data.length));
+          ds.data.push(...this.createDataPoints(pointCount === 0 ? undefined : ds.data[pointCount - 1], segmentIndex, pointIndex, track, points, ds.data, ds.data.length, timezoneOffset));
         }
         pointCount += dataPoints.length;
       }
@@ -491,14 +493,14 @@ export class TrailGraphComponent extends AbstractComponent {
     this.canvas?.chart?.update('none');
   }
 
-  public updateTrack(track: Track): void {
+  public updateTrack(track: Track, timezoneOffset: number | undefined): void {
     this.ngZone.runOutsideAngular(() => {
       if (!this.chartData) return;
       const datasetIndex = track === this.track1 ? 0 : track === this.track2 ? 1 : -1;
       if (datasetIndex < 0) return;
       const ds = this.chartData.datasets[datasetIndex];
       ds.data = [];
-      this.fillDataSet(ds, track);
+      this.fillDataSet(ds, track, timezoneOffset);
       if (this.chartPlugins.some(p => p instanceof ElevationLegendPlugin)) {
         for (let i = 0; i < this.chartData.datasets.length; ++i) {
           if ((this.chartData.datasets[i] as any).isGrade) {
@@ -514,7 +516,9 @@ export class TrailGraphComponent extends AbstractComponent {
   }
 
   private createDataPoints( // NOSONAR
-    previous: DataPoint | undefined, trackSegmentIndex: number, trackPointIndex: number, track: Track, points: Point[], dataPoints: DataPoint[], dataIndex: number
+    previous: DataPoint | undefined, trackSegmentIndex: number, trackPointIndex: number, track: Track,
+    points: Point[], dataPoints: DataPoint[], dataIndex: number,
+    timezoneOffset: number | undefined,
   ): DataPoint[] {
     const point = points[trackPointIndex];
 
@@ -560,6 +564,7 @@ export class TrailGraphComponent extends AbstractComponent {
       segmentIndex: trackSegmentIndex,
       pointIndex: trackPointIndex,
       time: point.time,
+      timezoneOffset,
       timeSinceStart,
       lat: point.pos.lat,
       lng: point.pos.lng,

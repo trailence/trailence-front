@@ -9,6 +9,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { LocaleKey } from './available-locales';
 import { getLogger } from '@trailence/utils/console';
 import { ErrorService } from '../progress/error.service';
+import { TypeUtils } from '@trailence/utils/type-utils';
 
 const logger = getLogger('i18n.service');
 
@@ -281,9 +282,9 @@ export class I18nService {
     return '' + hours + this.texts.duration.hours;
   }
 
-  public timestampToDateTimeString(timestamp?: number, showSeconds: boolean = false): string {
+  public timestampToDateTimeString(timestamp?: number, showSeconds: boolean = false, tzOffset: number | undefined = undefined): string {
     if (!timestamp) return '';
-    return this.timestampToDateString(timestamp) + ' ' + this.timestampToTimeString(timestamp, showSeconds);
+    return this.timestampToDateString(timestamp, tzOffset) + ' ' + this.timestampToTimeString(timestamp, showSeconds, tzOffset);
   }
 
   public timestampToRelativeDate(timestamp: number | null | undefined, forceRelative: boolean = false): string {
@@ -297,18 +298,18 @@ export class I18nService {
     return this.timestampToDateTimeString(timestamp);
   }
 
-  public timestampToDateString(timestamp?: number): string {
+  public timestampToDateString(timestamp?: number, tzOffset?: number): string {
     if (!timestamp) return '';
-    return this.getDateForFormat(timestamp, this.prefService.preferences.dateFormat);
+    return this.getDateForFormat(timestamp, this.prefService.preferences.dateFormat, tzOffset);
   }
 
-  public timestampToTimeString(timestamp?: number, showSeconds: boolean = false): string {
+  public timestampToTimeString(timestamp?: number, showSeconds: boolean = false, tzOffset?: number): string {
     if (!timestamp) return '';
-    return this.getTimeForFormat(timestamp, this.prefService.preferences.hourFormat, showSeconds);
+    return this.getTimeForFormat(timestamp, this.prefService.preferences.hourFormat, showSeconds, tzOffset);
   }
 
-  public getDateForFormat(timestamp: number, format: DateFormat): string {
-    const date = new Date(timestamp);
+  public getDateForFormat(timestamp: number, format: DateFormat, tzOffset?: number): string {
+    const date = TypeUtils.toOriginalDate(new Date(timestamp), tzOffset);
     return format
       .replace('dd', StringUtils.padLeft('' + date.getDate(), 2, '0'))
       .replace('mm', StringUtils.padLeft('' + (date.getMonth() + 1), 2, '0'))
@@ -318,8 +319,8 @@ export class I18nService {
       ;
   }
 
-  public getTimeForFormat(timestamp: number, format: HourFormat, showSeconds: boolean = false): string {
-    const date = new Date(timestamp);
+  public getTimeForFormat(timestamp: number, format: HourFormat, showSeconds: boolean = false, tzOffset?: number): string {
+    const date = TypeUtils.toOriginalDate(new Date(timestamp), tzOffset);
     const h = date.getHours();
     let s = '';
     if (format === 'H12') {

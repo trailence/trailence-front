@@ -83,9 +83,14 @@
 
   &.two-columns {
     .metadata-item-container:not(.force-one-column) {
-      min-width: 50%;
-      max-width: 50%;
       display: inline-block;
+      &:not(.force-fit-content) {
+        min-width: 50%;
+        max-width: 50%;
+      }
+      &.force-fit-content:nth-child(even) {
+        margin-left: 5px;
+      }
 
       .metadata-item .metadata-value {
         .metadata-primary + .metadata-secondary, .metadata-primary + .metadata-primary, .metadata-secondary + .metadata-secondary {

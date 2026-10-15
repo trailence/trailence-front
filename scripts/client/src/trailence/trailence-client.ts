@@ -302,8 +302,9 @@ export class TrailenceClient {
       'X-Index': photo.index,
     };
     if (photo.dateTaken) headers['X-DateTaken'] = photo.dateTaken;
-    if (photo.latitude) headers['X-Latitude'] = photo.latitude;
-    if (photo.longitude) headers['X-Longitude'] = photo.longitude;
+    if (photo.dateTakenTzOffset !== undefined) headers['X-DateTakenTz'] = photo.dateTakenTzOffset;
+    if (photo.latitude !== undefined) headers['X-Latitude'] = photo.latitude;
+    if (photo.longitude !== undefined) headers['X-Longitude'] = photo.longitude;
     const response = await fetch(this.url + '/api/photo/v1/' + photo.trailUuid + '/' + photo.uuid, {
       method: 'POST',
       headers,

@@ -35,6 +35,7 @@ export function processWorkerMessage(request: WorkerMessage): Promise<{response:
           request.payload.content,
           request.payload.preferences,
           request.payload.dateTaken,
+          request.payload.dateTakenTzOffset,
           request.payload.latitude,
           request.payload.longitude,
           request.payload.isCover,

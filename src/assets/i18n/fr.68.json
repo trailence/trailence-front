@@ -1553,7 +1553,8 @@
   },
   "go_to_position": "Aller à cette position",
   "datetime_popup": {
-    "time": "Heure"
+    "time": "Heure",
+    "timezone": "Fuseau horaire"
   },
   "recompute_metadata": "Recalcul des estimations de vos parcours",
   "you_are_offline": "Vous n'êtes pas connecté",

@@ -151,6 +151,7 @@ export class TraceRecorderService {
           if (!this._email) { reject(); return; }
           const track = new Track({ owner: this._email }, true, this.preferencesService, this.mapService, this.workerService, this.trackCacheService, this.networkService);
           const rawTrack = new Track({ owner: this._email }, true, this.preferencesService, this.mapService, this.workerService, this.trackCacheService, this.networkService);
+          const date = new Date();
           const trail = new Trail({
             owner: this._email,
             name: this.i18n.texts.trace_recorder.trail_name_start + ' ' + this.i18n.timestampToDateTimeString(Date.now()),
@@ -159,7 +160,9 @@ export class TraceRecorderService {
             currentTrackUuid: track.uuid,
             sourceType: TrailSourceType.TRAILENCE_RECORDER,
             source: this._email,
-            sourceDate: Date.now(),
+            sourceDate: date.getTime(),
+            date: date.getTime(),
+            dateTzOffset: -date.getTimezoneOffset(),
           });
           const recording = new Recording(
             trail,
@@ -288,7 +291,7 @@ export class TraceRecorderService {
               const onPhotoDone = onSaved.add(() => progress.addWorkDone(1));
               void this._table.get(PHOTO_KEY_PREFIX + photo.uuid).then(p => {
                 const content = (p as {key: string, photo: ArrayBuffer}).photo;
-                return firstValueFrom(this.photoService.addPhoto(photo.owner, photo.trailUuid, photo.description, photo.index, content, photo.dateTaken, photo.latitude, photo.longitude, photo.isCover));
+                return firstValueFrom(this.photoService.addPhoto(photo.owner, photo.trailUuid, photo.description, photo.index, content, photo.dateTaken, photo.dateTakenTzOffset, photo.latitude, photo.longitude, photo.isCover));
               })
               .catch(() => null)
               .then(() => onPhotoDone());
@@ -355,7 +358,8 @@ export class TraceRecorderService {
     const recording = this._recording$.value;
     if (!recording || !this._table) return;
     const buffer = await binary.toArrayBuffer();
-    const imported = await this.workerService.importPhoto(recording.trail.owner, recording.trail.uuid, '', recording.photos$.value.length + 1, buffer, this.preferencesService.preferences, Date.now(), recording.track.arrivalPoint?.pos.lat, recording.track.arrivalPoint?.pos.lng, false, undefined, true);
+    const date = new Date();
+    const imported = await this.workerService.importPhoto(recording.trail.owner, recording.trail.uuid, '', recording.photos$.value.length + 1, buffer, this.preferencesService.preferences, date.getTime(), -date.getTimezoneOffset(), recording.track.arrivalPoint?.pos.lat, recording.track.arrivalPoint?.pos.lng, false, undefined, true);
     this.photoService.computeLocationFromTrack(imported.photo, recording.track);
     return await this.storePhoto(imported.photo, imported.blob);
   }

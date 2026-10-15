@@ -43,7 +43,7 @@
               <ion-icon name="date"></ion-icon>
               <div class="metadata-content">
                 <div class="metadata-value">
-                  <div class="metadata-primary">{{i18n.timestampToDateTimeString(point1.point.time, true)}}</div>
+                  <div class="metadata-primary">{{i18n.timestampToDateTimeString(point1.point.time, true, context.trail.dateTzOffset)}}</div>
                 </div>
               </div>
             </div>
@@ -54,7 +54,7 @@
                 <ion-icon name="date"></ion-icon>
                 <div class="metadata-content">
                   <div class="metadata-value">
-                    <div class="metadata-primary">{{i18n.timestampToDateTimeString(point2.point.time)}}</div>
+                    <div class="metadata-primary">{{i18n.timestampToDateTimeString(point2.point.time, true, context.trail.dateTzOffset)}}</div>
                   </div>
                 </div>
               </div>

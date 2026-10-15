@@ -80,11 +80,11 @@ export class NetworkService implements INetworkService {
       if (count !== this.countPing) return;
       let status: PingResponse | null;
       if (response.status === 200) {
-        logger.info('Server ping response received: connected on ' + environment.apiBaseUrl);
         const ping = response.body as PingResponse;
+        logger.info('Server ping response received: connected on ' + environment.apiBaseUrl, ping);
         const minSupportedVersion = StringUtils.versionNameToVersionCode(ping.minSupportedVersion);
         if (minSupportedVersion === undefined || minSupportedVersion > trailenceAppVersionCode) {
-          logger.info("We are on an obselete version ! please update");
+          logger.info('We are on an obselete version ! please update');
           status = null;
           const i18n = this.injector.get(I18nService);
           this.injector.get(AlertController).create({

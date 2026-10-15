@@ -218,9 +218,9 @@
                     <div class="metadata-content">
                       <div class="metadata-title">{{ i18n.texts.metadata.trail_date }}</div>
                       <div class="metadata-value">
-                        <div class="metadata-primary">{{ i18n.timestampToDateTimeString(trail1.date ?? tracks[0].metadata.startDate) }}</div>
+                        <div class="metadata-primary">{{ i18n.timestampToDateTimeString(trail1.date ?? tracks[0].metadata.startDate, false, trail1.dateTzOffset) }}</div>
                         @if (tracks[1]) {
-                          <div class="metadata-secondary">{{ i18n.timestampToDateTimeString(trail2?.date ?? tracks[1].metadata.startDate) }}</div>
+                          <div class="metadata-secondary">{{ i18n.timestampToDateTimeString(trail2?.date ?? tracks[1].metadata.startDate, false, trail2?.dateTzOffset) }}</div>
                         }
                       </div>
                     </div>
@@ -488,8 +488,8 @@
       @if (bottomSheetTab === 'elevation' || bottomSheetTab === 'speed') {
         <app-trail-graph
           #graph
-          [track1]="graphTrack1 || tracks[0]"
-          [track2]="graphTrack2"
+          [track1]="graphTrack1 || tracks[0]" [timezoneOffset1]="trail1?.dateTzOffset"
+          [track2]="graphTrack2" [timezoneOffset1]="trail2?.dateTzOffset"
           (pointHover)="elevationGraphPointHover($event)"
           [selectable]="!selection.zoom$.value"
           [selection]="selection.selection$.value"

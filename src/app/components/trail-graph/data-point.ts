@@ -4,6 +4,7 @@ export interface DataPoint {
   segmentIndex: number;
   pointIndex: number;
   time?: number;
+  timezoneOffset?: number;
   timeSinceStart?: number;
   lat: number;
   lng: number;

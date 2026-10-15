@@ -9,7 +9,7 @@ import { openSelectMultiplePopup, openSelectSinglePopup } from './select-popup.c
 import { FitContentAndMoreDirective } from '@trailence/utils/fit-content-and-more.directive';
 import { AssetsService } from '@trailence/services/assets/assets.service';
 
-export type SelectStyle = 'inline' | 'outline';
+export type SelectStyle = 'inline' | 'outline' | 'fill';
 
 @Component({
   selector: 'app-select',

@@ -2,7 +2,19 @@ import { Component, Input, OnInit, ViewChild, ChangeDetectionStrategy } from '@a
 import { IonDatetime, ModalController, IonContent, IonFooter, IonToolbar, IonButtons, IonButton, IonHeader, IonTitle, IonIcon, IonLabel } from '@ionic/angular';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { PreferencesService } from '@trailence/services/preferences/preferences.service';
-import { TypeUtils } from '@trailence/utils/type-utils';
+import { StringUtils } from '@trailence/utils/string-utils';
+import { SelectComponent } from '../select/select.component';
+import { SelectItem } from '../select/select.interface';
+import { EXISTING_TIMEZONES } from '@trailence/utils/timezones';
+
+function toSelectItem(offset: number): SelectItem<number> {
+  let name = offset < 0 ? '-' : '+';
+  const minutes = Math.abs(offset);
+  name += StringUtils.padLeft('' + Math.floor(minutes/60), 2, '0') + ':' + StringUtils.padLeft('' + (minutes%60), 2, '0');
+  return {value: offset, fixedLabel: name};
+}
+
+const Timezones: SelectItem<number>[] = EXISTING_TIMEZONES.map(toSelectItem);
 
 @Component({
   'template': `
@@ -25,6 +37,15 @@ import { TypeUtils } from '@trailence/utils/type-utils';
   >
     <span slot="time-label">{{ i18n.texts.datetime_popup.time }}</span>
   </ion-datetime>
+  @if (withTimezone) {
+    <div class="timezone">
+      <div class="label">{{ i18n.texts.datetime_popup.timezone }}</div>
+      <div class="value">
+        <span>UTC</span>
+        <app-select [items]="timezones" [selection]="[selectedTimezone]" (selectionChange)="setTimezone($event)" selectStyle="fill" popupTitleKey="datetime_popup.timezone"></app-select>
+      </div>
+    </div>
+  }
 </ion-content>
 <ion-footer>
   <ion-toolbar color="footer">
@@ -38,9 +59,37 @@ import { TypeUtils } from '@trailence/utils/type-utils';
   </ion-toolbar>
 </ion-footer>
   `,
+  styles: `
+div.timezone {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: var(--ion-background-color-step-100);
+  color: var(--ion-text-color-step-350);
+  padding: 2px 16px;
+
+  div.label {
+    flex: none;
+  }
+  div.value {
+    flex: 1 1 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+
+    app-select {
+      margin-left: 6px;
+      min-width: 75px;
+      color: var(--ion-text-color);
+    }
+  }
+}
+  `,
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    IonDatetime, IonContent, IonFooter, IonToolbar, IonButtons, IonButton, IonHeader, IonTitle, IonIcon, IonLabel
+    IonDatetime, IonContent, IonFooter, IonToolbar, IonButtons, IonButton, IonHeader, IonTitle, IonIcon, IonLabel,
+    SelectComponent,
   ],
 })
 export class DateTimePopup implements OnInit {
@@ -48,9 +97,14 @@ export class DateTimePopup implements OnInit {
   @Input() timestamp?: number;
   @Input() defaultTimestamp?: number;
   @Input() maxTimestamp?: number;
+  @Input() withTimezone = false;
+  @Input() timezoneOffset?: number;
 
   dateIso8601?: string;
   maxIso8601?: string;
+  selectedTimezone?: number;
+
+  timezones = Timezones;
 
   @ViewChild('ion-datetime') ionDateTime?: IonDatetime;
 
@@ -63,11 +117,12 @@ export class DateTimePopup implements OnInit {
   ngOnInit(): void {
     this.dateIso8601 = this.getDateIso8601FromTimestamp(this.timestamp ?? this.defaultTimestamp) ?? '';
     this.maxIso8601 = this.getDateIso8601FromTimestamp(this.maxTimestamp);
+    this.selectedTimezone = this.timezoneOffset;
   }
 
   getDateIso8601FromTimestamp(timestamp?: number): string | undefined {
     if (timestamp) {
-      return TypeUtils.toIso8601NoTimezone(new Date(timestamp));
+      return StringUtils.dateToIso8601NoTimezone(new Date(timestamp));
     }
     return undefined;
   }
@@ -76,12 +131,16 @@ export class DateTimePopup implements OnInit {
     this.dateIso8601 = (date ?? undefined) as string | undefined;
   }
 
+  setTimezone(offset: (number | undefined)[]): void {
+    this.selectedTimezone = offset.length > 0 ? offset[0] : undefined;
+  }
+
   reset(): void {
     this.dateIso8601 = this.getDateIso8601FromTimestamp(this.defaultTimestamp) ?? '';
   }
 
   close(cancel: boolean): void {
-    this.modalController.dismiss(this.dateIso8601 ? new Date(this.dateIso8601).getTime() : undefined, cancel ? 'cancel' : 'ok');
+    void this.modalController.dismiss(this.dateIso8601 ? {timestamp: new Date(this.dateIso8601).getTime(), timezoneOffset: this.withTimezone ? this.selectedTimezone : undefined} : undefined, cancel ? 'cancel' : 'ok');
   }
 
 }

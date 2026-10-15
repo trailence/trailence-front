@@ -183,11 +183,13 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
       if (ref) return track.segments[ref.segmentIndex].points[ref.pointIndex].pos;
     }
     if (photo.dateTaken !== undefined) {
-      let point: L.LatLngLiteral | null | undefined = this._dateToPosCache.get(photo.dateTaken);
+      let timestamp = photo.dateTaken;
+      if (photo.dateTakenTzOffset !== undefined) timestamp += photo.dateTakenTzOffset * 60000;
+      let point: L.LatLngLiteral | null | undefined = this._dateToPosCache.get(timestamp);
       if (point === undefined && track) {
-        const closest = TrackUtils.findClosestPointForTime(track, photo.dateTaken, MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE);
+        const closest = TrackUtils.findClosestPointForTime(track, timestamp, MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE);
         point = closest ? {lat: closest.pos.lat, lng: closest.pos.lng} : null;
-        this._dateToPosCache.set(photo.dateTaken, point);
+        this._dateToPosCache.set(timestamp, point);
       }
       return point ?? pos;
     }
@@ -247,6 +249,7 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
                 p.longitude = undefined;
               } else {
                 p.dateTaken = undefined;
+                p.dateTakenTzOffset = undefined;
               }
             });
           }

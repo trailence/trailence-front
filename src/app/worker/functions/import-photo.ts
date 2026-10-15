@@ -12,7 +12,8 @@ export async function importPhoto( // NOSONAR
   description: string, index: number,
   content: ArrayBuffer,
   preferences: ComputedPreferences,
-  dateTaken?: number, latitude?: number, longitude?: number,
+  dateTaken?: number, dateTakenTzOffset?: number,
+  latitude?: number, longitude?: number,
   isCover?: boolean,
   photoUuid?: string,
 ): Promise<{jpeg: ArrayBuffer, photo: Partial<PhotoDto>}> {
@@ -20,7 +21,7 @@ export async function importPhoto( // NOSONAR
   const arr = new Uint8Array(content);
   let info: ImageInfo | undefined = undefined;
   if (dateTaken && latitude !== undefined && longitude !== undefined) {
-    info = {dateTaken, latitude, longitude};
+    info = {dateTaken, dateTakenTzOffset, latitude, longitude};
   } else {
     info = extractInfos(arr);
     if (!info?.dateTaken) {
@@ -29,6 +30,9 @@ export async function importPhoto( // NOSONAR
         if (info) info.dateTaken = date; else info = {dateTaken: date};
       }
     }
+    // default timezone to user timezone
+    if (info?.dateTaken !== undefined && info.dateTakenTzOffset === undefined)
+      info.dateTakenTzOffset = -new Date(info.dateTaken!).getTimezoneOffset();
     logger.info('extracted info from image', info);
   }
   const nextConvert: (s:number,q:number) => Promise<ArrayBuffer> = (currentMaxSize: number, currentMaxQuality: number) => {
@@ -73,6 +77,7 @@ export async function importPhoto( // NOSONAR
       latitude,
       longitude,
       dateTaken: dateTaken ?? info?.dateTaken,
+      dateTakenTzOffset: dateTakenTzOffset ?? info?.dateTakenTzOffset,
       cover: isCover ?? false,
     }
   };
@@ -94,6 +99,6 @@ function extractDateFromName(name: string): number | undefined {
   if (minute === undefined || Number.isNaN(minute) || minute < 0 || minute > 59) return undefined;
   const second = dateMatch[6] ? Number.parseInt(dateMatch[6]) : undefined;
   if (second === undefined || Number.isNaN(second) || second < 0 || second > 59) return undefined;
-  const date = new Date(year, month - 1, day, hour, minute, second).getTime();
+  const date = Date.UTC(year, month - 1, day, hour, minute, second);
   return date;
 }

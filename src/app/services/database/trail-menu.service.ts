@@ -404,6 +404,8 @@ export class TrailMenuService {
         timestamp: trail.date ?? defaultDate,
         defaultTimestamp: defaultDate,
         maxTimestamp: Date.now(),
+        withTimezone: true,
+        timezoneOffset: trail.dateTzOffset,
       },
       backdropDismiss: true,
       cssClass: 'small-modal',
@@ -411,7 +413,10 @@ export class TrailMenuService {
     await modal.present();
     const result = await modal.onDidDismiss();
     if (result.role !== 'ok') return false;
-    return new Promise<boolean>(resolve => this.injector.get(TrailService).doUpdate(trail, t => t.date = result.data, () => resolve(true)));
+    return new Promise<boolean>(resolve => this.injector.get(TrailService).doUpdate(trail, t => {
+      t.date = result.data.timestamp;
+      t.dateTzOffset = result.data.timezoneOffset;
+    }, () => resolve(true)));
   }
 
   public async startPublication(trail: Trail) {

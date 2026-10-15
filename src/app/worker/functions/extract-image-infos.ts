@@ -1,6 +1,7 @@
 import { getLogger } from '@trailence/utils/console';
 import { convertDMSToDD } from '@trailence/utils/coordinates-parser';
 import { ImageInfo, ImageUtils } from '@trailence/utils/image-utils';
+import { EXISTING_TIMEZONES } from '@trailence/utils/timezones';
 
 const logger = getLogger('extract-image-infos');
 
@@ -59,7 +60,7 @@ function extractInfosFromJpeg(image: Uint8Array): ImageInfo | undefined {
       case 0xD0: case 0xD1: case 0xD2: case 0xD3: case 0xD4: case 0xD5: case 0xD6: case 0xD7: break;
       case 0xD9: return; // end of image
       case 0xE1: { // EXIF
-        return extractInfosFromExif(image, offset + 2, data);
+        return toImageInfo(extractInfosFromExif(image, offset + 2, data));
       }
       default: {
         logger.warn("Unknown JPEG Marker "+ image[offset - 1] + " at " + (offset - 1));
@@ -87,7 +88,54 @@ function skipEntropyData(image: Uint8Array, offset: number): number {
   return offset;
 }
 
-function extractInfosFromExif(data: Uint8Array, offset: number, view: DataView): ImageInfo | undefined {
+interface ImageInfoInternal {
+  latitude?: number;
+  longitude?: number;
+  gpsDateUtc?: number;
+  dateTakenUtc?: number;
+  dateTakenTzOffset?: number;
+  legacyTimezoneOffsetHours?: number;
+}
+
+function toImageInfo(internal: ImageInfoInternal | undefined): ImageInfo | undefined {
+  if (!internal) return undefined;
+  const info = {} as ImageInfo;
+  info.latitude = internal.latitude;
+  info.longitude = internal.longitude;
+  if (internal.dateTakenUtc !== undefined) {
+    info.dateTaken = internal.dateTakenUtc;
+    if (internal.dateTakenTzOffset !== undefined) {
+      info.dateTakenTzOffset = internal.dateTakenTzOffset;
+    }
+    if (info.dateTakenTzOffset === undefined && internal.gpsDateUtc !== undefined) {
+      // we may guess the timezone my doing a diff between the 2 dates
+      const diffMinutes = Math.floor((internal.dateTakenUtc - internal.gpsDateUtc) / 60000);
+      let bestTzIndex: number | undefined = undefined;
+      let bestTzDiff: number = 0;
+      for (let i = 0; i < EXISTING_TIMEZONES.length; ++i) {
+        const tzOffset = EXISTING_TIMEZONES[i];
+        const diff = Math.abs(tzOffset - diffMinutes);
+        if (bestTzIndex === undefined || (diff < bestTzDiff)) {
+          bestTzIndex = i;
+          bestTzDiff = diff;
+        }
+      }
+      if (bestTzIndex !== undefined && bestTzDiff < 15) {
+        info.dateTakenTzOffset = EXISTING_TIMEZONES[bestTzIndex];
+      }
+    }
+    if (info.dateTakenTzOffset === undefined && internal.legacyTimezoneOffsetHours !== undefined) {
+      info.dateTakenTzOffset = internal.legacyTimezoneOffsetHours * 60;
+    }
+    if (info.dateTakenTzOffset === undefined) {
+      // no timezone info
+      // TODO
+    }
+  }
+  return (info.latitude === undefined && info.longitude !== undefined) || info.dateTaken !== undefined ? info : undefined;
+}
+
+function extractInfosFromExif(data: Uint8Array, offset: number, view: DataView): ImageInfoInternal | undefined {
   // Exif header
   if (offset + 6 >= data.length ||
     data[offset++] !== 0x45 ||
@@ -112,14 +160,14 @@ function extractInfosFromExif(data: Uint8Array, offset: number, view: DataView):
     return undefined;
   }
   offset += 2;
-  const info = {} as ImageInfo;
+  const info = {} as ImageInfoInternal;
   const nextIFD = view.getUint32(offset, littleEndian);
   offset = tiffStartOffset + nextIFD;
   extractInfosFromExifSection(data, tiffStartOffset, offset, littleEndian, info, view);
   return info;
 }
 
-function extractInfosFromExifSection(data: Uint8Array, start: number, offset: number, littleEndian: boolean, info: ImageInfo, view: DataView): void {
+function extractInfosFromExifSection(data: Uint8Array, start: number, offset: number, littleEndian: boolean, info: ImageInfoInternal, view: DataView): void {
   const nbEntries = view.getUint16(offset, littleEndian);
   offset += 2;
   for (let i = 0; i < nbEntries; i++) {
@@ -132,25 +180,42 @@ function extractInfosFromExifSection(data: Uint8Array, start: number, offset: nu
     offset += 4;
     const addressOrValue = view.getUint32(offset, littleEndian);
     offset += 4;
-    if (tag === 0x8825) {
-      // GPS Info
-      const gps = extractLatLngFromExifGpsInfo(data, start, start + addressOrValue, littleEndian, view);
-      info.latitude = gps?.lat;
-      info.longitude = gps?.lng;
-    }
-    if (tag === 0x8769) {
-      // EXIF
-      extractInfosFromExifSection(data, start, start + addressOrValue, littleEndian, info, view);
-    }
-    if (tag === 0x9003) {
-      // date/time original
-      const str = readExifString(data, start + addressOrValue, nbComponents);
-      info.dateTaken = toDate(str);
+    switch (tag) {
+      case 0x8769:
+        // EXIF
+        extractInfosFromExifSection(data, start, start + addressOrValue, littleEndian, info, view);
+        break;
+      case 0x8825: {
+        // GPS Info
+        const gps = extractLatLngFromExifGpsInfo(data, start, start + addressOrValue, littleEndian, view);
+        info.latitude = gps?.position?.lat;
+        info.longitude = gps?.position?.lng;
+        info.gpsDateUtc = gps?.dateUtc;
+        break;
+      }
+      case 0x882A: {
+        // TimeZoneOffset
+        if (nbComponents === 1 || nbComponents === 2)
+          info.legacyTimezoneOffsetHours = view.getInt16(offset - 4, littleEndian);
+        break;
+      }
+      case 0x9003: {
+        // date/time original
+        const str = readExifString(data, start + addressOrValue, nbComponents);
+        info.dateTakenUtc = toDateTimeUTC(str);
+        break;
+      }
+      case 0x9011: {
+        // timezone original
+        const str = readExifString(data, start + addressOrValue, nbComponents);
+        info.dateTakenTzOffset = toTimezoneOffset(str);
+        break;
+      }
     }
   }
 }
 
-function toDate(str: string): number | undefined {
+function toDateTimeUTC(str: string): number | undefined {
   if (str.length === 0) return;
   const datetime = str.split(' ');
   if (datetime.length !== 2) return;
@@ -166,10 +231,20 @@ function toDate(str: string): number | undefined {
       const minute = Number.parseInt(t[1]);
       const second = Number.parseInt(t[2]);
       if (!Number.isNaN(hour) && !Number.isNaN(minute) && !Number.isNaN(second) && hour >= 0 && hour < 24 && minute >= 0 && minute < 60 && second >= 0 && second < 60) {
-        return new Date(year, month - 1, day, hour, minute, second).getTime();
+        return Date.UTC(year, month - 1, day, hour, minute, second);
       }
     }
   }
+  return undefined;
+}
+
+function toTimezoneOffset(str: string): number | undefined {
+  if (str.length !== 6 || str[3] !== ':') return undefined;
+  const sign = str[0] === '+' ? 1 : (str[0] === '-' ? -1 : undefined); // NOSONAR
+  if (sign === undefined) return undefined;
+  const hours = Number.parseInt(str.substring(1, 3));
+  const minutes = Number.parseInt(str.substring(4));
+  if (!Number.isNaN(hours) && !Number.isNaN(minutes)) return (hours * 60 + minutes) * sign;
   return undefined;
 }
 
@@ -182,13 +257,18 @@ function readExifString(data: Uint8Array, offset: number, size: number): string 
   return s;
 }
 
-function extractLatLngFromExifGpsInfo(data: Uint8Array, start: number, offset: number, littleEndian: boolean, view: DataView): {lat: number, lng: number} | undefined {
+function extractLatLngFromExifGpsInfo(
+  data: Uint8Array, start: number, offset: number, littleEndian: boolean, view: DataView
+): {position: {lat: number, lng: number} | undefined, dateUtc: number | undefined}
+{
   const nbEntries = view.getUint16(offset, littleEndian);
   offset += 2;
   let latRef = undefined;
   let lat = undefined;
   let lngRef = undefined;
   let lng = undefined;
+  let timestampSeconds: number | undefined = undefined;
+  let date: {year: number, month: number, day: number} | undefined = undefined;
   for (let i = 0; i < nbEntries; i++) {
     const tag = view.getUint16(offset, littleEndian);
     offset += 2;
@@ -220,13 +300,36 @@ function extractLatLngFromExifGpsInfo(data: Uint8Array, start: number, offset: n
         view.getUint32(start + addressOrValue + 16, littleEndian),
         view.getUint32(start + addressOrValue + 20, littleEndian),
       ];
+    } else if (tag === 0x0007 && format === 5 && nbComponents === 3) {
+      const hoursNumerator = view.getUint32(start + addressOrValue, littleEndian);
+      const hoursDenominator = view.getUint32(start + addressOrValue + 4, littleEndian);
+      const minutesNumerator = view.getUint32(start + addressOrValue + 8, littleEndian);
+      const minutesDenominator = view.getUint32(start + addressOrValue + 12, littleEndian);
+      const secondsNumerator = view.getUint32(start + addressOrValue + 16, littleEndian);
+      const secondsDenominator = view.getUint32(start + addressOrValue + 20, littleEndian);
+      timestampSeconds = Math.floor((secondsNumerator / secondsDenominator) + (minutesNumerator / minutesDenominator) * 60 + (hoursNumerator / hoursDenominator) * 60 * 60);
+    } else if (tag === 0x001D && format === 2) {
+      const str = readExifString(data, start + addressOrValue, nbComponents);
+      const d = str.split(':');
+      if (d.length === 3) {
+        const year = Number.parseInt(d[0]);
+        const month = Number.parseInt(d[1]);
+        const day = Number.parseInt(d[2]);
+        if (!Number.isNaN(year) && !Number.isNaN(month) && !Number.isNaN(day) && month > 0 && month < 13 && day > 0 && day < 32) {
+          date = {year, month, day};
+        }
+      }
     }
   }
+  let position: {lat: number, lng: number} | undefined = undefined;
   if (latRef && lat && lngRef && lng) {
-    return {
+    position = {
       lat: convertDMSToDD(String.fromCharCode(latRef), lat[0] / lat[1], lat[2] / lat[3], lat[4] / lat[5]), // NOSONAR
       lng: convertDMSToDD(String.fromCharCode(lngRef), lng[0] / lng[1], lng[2] / lng[3], lng[4] / lng[5]), // NOSONAR
     }
   }
-  return undefined;
+  let dateUtc: number | undefined = undefined;
+  if (timestampSeconds !== undefined && date !== undefined)
+    dateUtc = Date.UTC(date.year, date.month - 1, date.day, Math.floor(timestampSeconds / (60 * 60)), Math.floor((timestampSeconds % (60 * 60)) / 60), timestampSeconds % 60);
+  return { position, dateUtc };
 }

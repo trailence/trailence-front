@@ -135,6 +135,7 @@ export class LinkPlugin extends FetchSourcePlugin {
         description: p.description,
         pos: p.latitude !== undefined && p.longitude !== undefined ? {lat: PointDtoMapper.readCoordValue(p.latitude), lng: PointDtoMapper.readCoordValue(p.longitude)} : undefined,
         time: p.dateTaken,
+        tzOffset: p.dateTakenTzOffset,
       })),
     };
   }
@@ -216,6 +217,7 @@ interface TrailLinkPhoto {
 
   description: string;
   dateTaken?: number;
+  dateTakenTzOffset?: number;
   latitude?: number;
   longitude?: number;
   isCover: boolean;

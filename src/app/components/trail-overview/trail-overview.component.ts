@@ -222,6 +222,7 @@ export class TrailOverviewComponent extends AbstractComponent {
             this.trail!.name$,
             this.trail!.location$,
             this.trail!.date$,
+            this.trail!.dateTzOffset$,
             this.trail!.loopType$,
             this.trail!.activity$,
             this.trackData$(this.trail!, owner),
@@ -238,7 +239,7 @@ export class TrailOverviewComponent extends AbstractComponent {
         ),
         debounceTimeExtended(0, 10)
       ),
-      ([i18nState, trailName, trailLocation, trailDate, loopType, activity, [track, trackStartDate], isInMySelection, info]) => { // NOSONAR
+      ([i18nState, trailName, trailLocation, trailDate, trailTzOffset, loopType, activity, [track, trackStartDate], isInMySelection, info]) => { // NOSONAR
         const force = i18nState !== previousI18nState;
         let changed = force;
         previousI18nState = i18nState;
@@ -264,7 +265,7 @@ export class TrailOverviewComponent extends AbstractComponent {
           name = info.nameTranslations[this.preferencesService.preferences.lang];
         if (this.updateMeta(this.meta, 'name', name, undefined, force)) changed = true;
         if (this.updateMeta(this.meta, 'location', trailLocation, undefined, force)) changed = true;
-        if (this.updateMeta(this.meta, 'date', trailDate ?? trackStartDate, timestamp => this.dateWithoutTime ? this.i18n.timestampToDateString(timestamp) : this.i18n.timestampToDateTimeString(timestamp), force)) changed = true;
+        if (this.updateMeta(this.meta, 'date', trailDate ?? trackStartDate, timestamp => this.dateWithoutTime ? this.i18n.timestampToDateString(timestamp) : this.i18n.timestampToDateTimeString(timestamp, false, trailTzOffset), force)) changed = true;
         if (this.updateMeta(this.meta, 'loopType', loopType, type => type ? this.i18n.texts.loopType[type] : '', force)) changed = true;
         if (this.updateMeta(this.meta, 'loopTypeIcon', loopType, type => getLoopTypeIcon(type), force)) changed = true;
         if (this.updateMeta(this.meta, 'activity', activity, activity => activity ? this.i18n.texts.activity[activity] : '', force)) changed = true;

@@ -5,12 +5,12 @@ import { AuthService } from '../auth/auth.service';
 import { HttpService } from '../http/http.service';
 import { environment } from '@env/environment';
 import { NetworkService } from '../network/network.service';
-import { StringUtils } from '@trailence/utils/string-utils';
 import Trailence from '../trailence.service';
 import { I18nService } from '../i18n/i18n.service';
 import { FiltersUtils } from '@trailence/components/trails-list/filters';
 import { DEFAULT_LOCALE_KEY, LocaleKey, toLocaleKey } from '../i18n/available-locales';
 import { getLogger } from '@trailence/utils/console';
+import { UrlUtils } from '@trailence/utils/url-utils';
 
 const logger = getLogger('preferences.service');
 
@@ -307,7 +307,7 @@ export class PreferencesService implements OnDestroy {
   private getDefaultLanguage(): LocaleKey { // NOSONAR
     let s = globalThis.location.search;
     if (s.length > 0) {
-      const params = StringUtils.parseQueryParams(s);
+      const params = UrlUtils.parseQueryParams(s);
       let l = params['lang'];
       if ('string' === typeof l) {
         l = l.toLowerCase();

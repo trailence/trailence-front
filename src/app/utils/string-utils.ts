@@ -1,4 +1,4 @@
-import { Params } from '@angular/router';
+import { TypeUtils } from './type-utils';
 
 const illegalRe = /[\/\?<>\\:\*\|"]/g; // NOSONAR
 const controlRe = /[\x00-\x1f\x80-\x9f]/g; // NOSONAR
@@ -43,17 +43,29 @@ export class StringUtils {
     return sanitized;
   }
 
-  public static parseQueryParams(url: string): Params {
-    const q = url.indexOf('?');
-    if (q < 0) return {};
-    const query = url.substring(q + 1);
-    const queryParams: Params = {};
-    const search = /([^&=]+)=?([^&]*)/g;
-    const decode = (s: string) => decodeURIComponent(s.replaceAll('+', ' '));
-    let match;
-    while (match = search.exec(query))
-      queryParams[decode(match[1])] = decode(match[2]);
-    return queryParams;
+  public static timestampToIso8601(timestamp: number, tzOffset?: number): string {
+    const localDate = new Date(timestamp);
+    if (tzOffset === undefined || tzOffset === 0) return localDate.toISOString();
+    const realDate = TypeUtils.toOriginalDate(new Date(timestamp), tzOffset);
+    return StringUtils.dateToIso8601(realDate, tzOffset);
+  }
+
+  public static dateToIso8601(date: Date, tzOffset: number): string {
+    if (tzOffset === 0) return date.toISOString();
+    return this.dateToIso8601NoTimezone(date) +
+      (tzOffset > 0 ? '+' : '-') +
+      StringUtils.padLeft('' + Math.abs(Math.floor(tzOffset / 60)), 2, '0') +
+      ':' + StringUtils.padLeft('' + Math.abs(tzOffset % 60), 2, '0');
+  }
+
+  public static dateToIso8601NoTimezone(date: Date): string {
+    return StringUtils.padLeft('' + date.getFullYear(), 4, '0') + '-' +
+      StringUtils.padLeft('' + (date.getMonth() + 1), 2, '0') + '-' +
+      StringUtils.padLeft('' + date.getDate(), 2, '0') + 'T' +
+      StringUtils.padLeft('' + date.getHours(), 2, '0') + ':' +
+      StringUtils.padLeft('' + date.getMinutes(), 2, '0') + ':' +
+      StringUtils.padLeft('' + date.getSeconds(), 2, '0') + '.' +
+      StringUtils.padLeft('' + date.getMilliseconds(), 3, '0');
   }
 
   public static versionCodeToVersionName(v?: number): string {

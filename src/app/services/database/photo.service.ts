@@ -165,12 +165,13 @@ export class PhotoService {
     owner: string, trailUuid: string,
     description: string, index: number,
     content: ArrayBuffer,
-    dateTaken?: number, latitude?: number, longitude?: number,
+    dateTaken?: number, dateTakenTzOffset?: number,
+    latitude?: number, longitude?: number,
     isCover?: boolean,
     fromModeration?: boolean,
     fromRecording?: boolean,
   ): Observable<Photo | null> {
-    return from(this.injector.get(WorkerService).importPhoto(owner, trailUuid, description, index, content, this.preferences.preferences, dateTaken, latitude, longitude, isCover)).pipe(
+    return from(this.injector.get(WorkerService).importPhoto(owner, trailUuid, description, index, content, this.preferences.preferences, dateTaken, dateTakenTzOffset, latitude, longitude, isCover)).pipe(
       switchMap(imported => {
         const time = Date.now();
         this._creating.push({owner, uuid: imported.photo.uuid, time});
@@ -218,7 +219,9 @@ export class PhotoService {
 
   public computeLocationFromTrack(photo: Photo, track: Track): void {
     if (photo.dateTaken === undefined || photo.latitude !== undefined) return;
-    const closest = TrackUtils.findClosestPointForTime(track, photo.dateTaken, MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE);
+    let timestamp = photo.dateTaken;
+    if (photo.dateTakenTzOffset !== undefined) timestamp += photo.dateTakenTzOffset * 60000;
+    const closest = TrackUtils.findClosestPointForTime(track, timestamp, MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE);
     if (closest) {
       photo.latitude = closest.pos.lat;
       photo.longitude = closest.pos.lng;
@@ -251,7 +254,7 @@ export class PhotoService {
     this.delete(photo, () => {
       this.injector.get(StoredFilesService).deleteFile(photo.owner, 'photo', photo.uuid).pipe(
         switchMap(() => from(blob.arrayBuffer())),
-        switchMap(content =>  this.addPhoto(photo.owner, photo.trailUuid, photo.description, photo.index, content, photo.dateTaken, photo.latitude, photo.longitude, photo.isCover, photo.fromModeration, photo.fromRecording)),
+        switchMap(content =>  this.addPhoto(photo.owner, photo.trailUuid, photo.description, photo.index, content, photo.dateTaken, photo.dateTakenTzOffset, photo.latitude, photo.longitude, photo.isCover, photo.fromModeration, photo.fromRecording)),
         first()
       ).subscribe(() => {
         if (ondone) ondone();
@@ -431,8 +434,9 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> implements StoreWithCleanin
               'X-Index': dto.index,
             };
             if (dto.dateTaken) headers['X-DateTaken'] = dto.dateTaken;
-            if (dto.latitude) headers['X-Latitude'] = dto.latitude;
-            if (dto.longitude) headers['X-Longitude'] = dto.longitude;
+            if (dto.dateTakenTzOffset !== undefined) headers['X-DateTakenTz'] = dto.dateTakenTzOffset;
+            if (dto.latitude !== undefined) headers['X-Latitude'] = dto.latitude;
+            if (dto.longitude !== undefined) headers['X-Longitude'] = dto.longitude;
             return this.http.post<PhotoDto>(environment.apiBaseUrl + '/photo/v1/' + dto.trailUuid + '/' + dto.uuid + '/' + encodeURIComponent(dto.owner), blob, headers).pipe(
               tap(() => this.quotaService.updateQuotas(q => {
                 if (!dto.owner.startsWith(SHARED_OWNER_PREFIX)) {

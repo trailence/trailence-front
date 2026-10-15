@@ -36,13 +36,16 @@ export function buildTooltip(context: any, container: HTMLElement, isSelecting: 
   html += buildInfo(points, i18n.texts.trailGraph.time_duration, pt => {
     const s1 = i18n.durationToString(pt.raw.timeSinceStart);
     const s2 = i18n.durationToString(pt.raw.estimatedDuration);
+    let time: string;
     if (s1.length === 0) {
-      if (s2.length === 0) return '';
-      return '≈ ' + s2;
+      if (s2.length === 0) time = '';
+      else time = '≈ ' + s2;
     } else {
-      if (s2.length === 0) return s1;
-      return s1 + ' (≈ ' + s2 + ')';
+      if (s2.length === 0) time = s1;
+      else time = s1 + ' (≈ ' + s2 + ')';
     }
+    if (pt.raw.time !== undefined) time += ', ' + i18n.timestampToTimeString(pt.raw.time, true, pt.raw.timezoneOffset);
+    return time;
   });
   html += buildInfo(points, i18n.texts.trailGraph.speed, pt => {
     const s1 = pt.raw.speedInMeters ? i18n.getSpeedStringInUserUnit(i18n.getSpeedInUserUnit(pt.raw.speedInMeters)) : '';

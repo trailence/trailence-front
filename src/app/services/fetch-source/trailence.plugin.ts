@@ -191,6 +191,7 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
         description: pt.description,
         location: pt.location,
         date: pt.date,
+        dateTzOffset: pt.dateTzOffset,
         loopType: pt.loopType,
         activity: pt.activity,
 
@@ -239,6 +240,7 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
           photos: pt.photos.sort((p1, p2) => p1.index - p2.index).map(p => ({
             description: p.description,
             time: p.date,
+            tzOffset: p.dateTzOffset,
             pos: p.latitude && p.longitude ? {lat: PointDtoMapper.readCoordValue(p.latitude), lng: PointDtoMapper.readCoordValue(p.longitude)} : undefined,
             url: environment.apiBaseUrl + '/public/trails/v1/photo/' + pt.uuid + '/' + p.uuid,
           })),
@@ -416,6 +418,7 @@ export interface PublicTrail {
   description: string;
   location: string;
   date: number;
+  dateTzOffset?: number;
 
   distance: number;
   positiveElevation?: number;
@@ -455,6 +458,7 @@ export interface PublicPhoto {
   uuid: string;
   description: string;
   date?: number;
+  dateTzOffset?: number;
   latitude?: number;
   longitude?: number;
   index: number;

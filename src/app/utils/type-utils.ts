@@ -32,14 +32,9 @@ export class TypeUtils {
     return d;
   }
 
-  public static toIso8601NoTimezone(date: Date): string {
-    return StringUtils.padLeft('' + date.getFullYear(), 4, '0') + '-' +
-      StringUtils.padLeft('' + (date.getMonth() + 1), 2, '0') + '-' +
-      StringUtils.padLeft('' + date.getDate(), 2, '0') + 'T' +
-      StringUtils.padLeft('' + date.getHours(), 2, '0') + ':' +
-      StringUtils.padLeft('' + date.getMinutes(), 2, '0') + ':' +
-      StringUtils.padLeft('' + date.getSeconds(), 2, '0') + '.' +
-      StringUtils.padLeft('' + date.getMilliseconds(), 3, '0');
+  public static toOriginalDate(localDate: Date, tzOffset?: number): Date {
+    if (tzOffset === undefined) return localDate;
+    return new Date(localDate.getTime() + localDate.getTimezoneOffset() * 60 * 1000 + tzOffset * 60 * 1000);
   }
 
   public static addOrUndefined(n1: number | undefined, n2: number | undefined): number | undefined {

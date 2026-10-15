@@ -13,4 +13,5 @@ export interface ImageInfo {
   latitude?: number;
   longitude?: number;
   dateTaken?: number;
+  dateTakenTzOffset?: number;
 }

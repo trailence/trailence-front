@@ -219,6 +219,7 @@ function doImportPhotos(
             originalPhoto.index,
             buffer,
             originalPhoto.dateTaken,
+            originalPhoto.dateTakenTzOffset,
             originalPhoto.latitude,
             originalPhoto.longitude,
             originalPhoto.isCover

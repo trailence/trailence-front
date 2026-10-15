@@ -1325,7 +1325,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       dateToPoint.set(track.uuid, cache);
     }
     return photos.map(photo => {
-      const date = photo.dateTaken!;
+      let date = photo.dateTaken!;
+      if (photo.dateTakenTzOffset !== undefined) date += photo.dateTakenTzOffset * 60000;
       let point: L.LatLngLiteral | null | undefined = cache.get(date);
       if (point === undefined) {
         const closest = TrackUtils.findClosestPointForTime(track, date, MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE);
@@ -1421,7 +1422,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             }
           }
           if (pt && this.graph) {
-            this.graph.updateRecording(r.track, track, closestPoint?.segmentIndex, closestPoint?.pointIndex);
+            this.graph.updateRecording(r.track, track, closestPoint?.segmentIndex, closestPoint?.pointIndex, r.trail.dateTzOffset);
           }
           if (!remaining) return of({remaining, closestPoint, undefined, track, _map});
           return remaining.computed.timeEstimation$.pipe(first(), map(timeEstimation => ({remaining, closestPoint, timeEstimation, track, _map})))

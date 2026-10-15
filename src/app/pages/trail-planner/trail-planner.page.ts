@@ -229,7 +229,7 @@ export class TrailPlannerPage extends AbstractPage {
   updateGraph(track: Track): void {
     const graph = this._children$.value.find(c => c instanceof TrailGraphComponent) as TrailGraphComponent;
     if (graph) {
-      graph.updateTrack(track);
+      graph.updateTrack(track, undefined);
     }
   }
 

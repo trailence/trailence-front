@@ -65,6 +65,18 @@ export class GpxFormatRaw {
         if (location && location.length > 0) trailDto.location = location;
         const activity = XmlUtils.getChildText(extensions, 'activity');
         if (activity && activity.length > 0) trailDto.activity = TypeUtils.valueToEnum(activity, TrailActivity);
+        const dateUtc = XmlUtils.getChildText(extensions, 'date_utc');
+        if (dateUtc && dateUtc.length > 0) {
+          const dateTzOffset = XmlUtils.getChildText(extensions, 'date_tz_offset');
+          if (dateTzOffset && dateTzOffset.length > 0) {
+            const date = Number.parseInt(dateUtc);
+            const dateOffset = Number.parseInt(dateTzOffset);
+            if (!Number.isNaN(date) && !Number.isNaN(dateOffset)) {
+              trailDto.date = date;
+              trailDto.dateTzOffset = dateOffset;
+            }
+          }
+        }
         const source = XmlUtils.getChild(extensions, 'source');
         if (source) {
           const sourceType = XmlUtils.getChildText(source, 'type');
@@ -108,6 +120,7 @@ export class GpxFormatRaw {
             const photo: Partial<PhotoDto> = {
               description: photoNode.textContent ?? '',
               dateTaken: TypeUtils.toInteger(photoNode.getAttribute('date')),
+              dateTakenTzOffset: TypeUtils.toInteger(photoNode.getAttribute('dateTzOffset')),
               latitude: TypeUtils.toFloat(photoNode.getAttribute('lat')),
               longitude: TypeUtils.toFloat(photoNode.getAttribute('lng')),
               index: TypeUtils.toInteger(photoNode.getAttribute('index')) ?? 1,

@@ -74,19 +74,19 @@
             <div class="photo-footer">
               <div class="metadata-container {{metaColumns}}">
                 @if (photoWithInfo.photo.dateTaken) {
-                  <div class="metadata-item-container">
+                  <div class="metadata-item-container force-fit-content">
                     <div class="metadata-item">
                       <ion-icon name="date"></ion-icon>
                       <div class="metadata-content">
                         <div class="metadata-value">
-                          <div class="metadata-primary">{{i18n.timestampToDateTimeString(photoWithInfo.photo.dateTaken)}}</div>
+                          <div class="metadata-primary">{{i18n.timestampToDateTimeString(photoWithInfo.photo.dateTaken, true, photoWithInfo.photo.dateTakenTzOffset)}}</div>
                         </div>
                       </div>
                     </div>
                   </div>
                 }
                 @if (photoWithInfo.blobSize) {
-                  <div class="metadata-item-container">
+                  <div class="metadata-item-container force-fit-content">
                     <div class="metadata-item">
                       <ion-icon name="file"></ion-icon>
                       <div class="metadata-content">

@@ -315,6 +315,7 @@ export class FetchSourceService {
                   description: p.description,
                   uuid: p.url,
                   dateTaken: p.time,
+                  dateTakenTzOffset: p.tzOffset,
                   index,
                 });
                 photo.latitude = p.pos?.lat;

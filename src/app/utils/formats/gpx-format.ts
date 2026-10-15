@@ -14,6 +14,7 @@ import { WorkerService } from '@trailence/worker/web-app';
 import { TrackComputedDataCacheService } from '@trailence/services/database/track-computed-data-cache.service';
 import { NetworkService } from '@trailence/services/network/network.service';
 import { distance } from '../latlng';
+import { StringUtils } from '../string-utils';
 
 export interface ImportedTrail {
   trail: Trail;
@@ -129,6 +130,10 @@ export class GpxFormat {
         if (trail.activity?.length) {
           gpx += '<ext:activity>' + XmlUtils.escapeHtml(trail.activity) + '</ext:activity>';
         }
+        if (trail.date && trail.dateTzOffset !== undefined) {
+          gpx += '<ext:date_utc>' + trail.date + '</ext:date_utc>';
+          gpx += '<ext:date_tz_offset>' + trail.dateTzOffset + '</ext:date_tz_offset>';
+        }
         if (trail.sourceType) {
           gpx += '<ext:source><type>' + XmlUtils.escapeHtml(trail.sourceType) + '</type>';
           if (trail.sourceDate) gpx += '<date>' + trail.sourceDate + '</date>';
@@ -158,6 +163,7 @@ export class GpxFormat {
             gpx += '<ext:photo';
             gpx += ' filename="' + photosFilenames.get(photo)! + '"';
             if (photo.dateTaken) gpx += ' date="' + photo.dateTaken + '"';
+            if (photo.dateTakenTzOffset !== undefined) gpx += ' dateTzOffset="' + photo.dateTakenTzOffset + '"';
             if (photo.latitude !== undefined) gpx += ' lat="' + photo.latitude + '"';
             if (photo.longitude !== undefined) gpx += ' lng="' + photo.longitude + '"';
             gpx += ' index="' + photo.index + '"';
@@ -176,14 +182,14 @@ export class GpxFormat {
       for (const segment of track.segments) {
         gpx += '<trkseg>';
         for (const point of segment.points) {
-          gpx += this.writePoint(point, 'trkpt');
+          gpx += this.writePoint(point, 'trkpt', trail.dateTzOffset);
         }
         gpx += '</trkseg>';
       }
       if (tracks.length > 1 && track.wayPoints.length > 0) {
         gpx += '<extensions>';
         for (const wp of track.wayPoints) {
-          this.writePoint(wp, 'ext:wpt');
+          this.writePoint(wp, 'ext:wpt', trail.dateTzOffset);
         }
         gpx += '</extensions>';
       }
@@ -191,7 +197,7 @@ export class GpxFormat {
     }
     if (tracks.at(-1)!.wayPoints.length > 0) {
       for (const wp of tracks.at(-1)!.wayPoints) {
-        gpx += this.writePoint(wp, 'wpt');
+        gpx += this.writePoint(wp, 'wpt', trail.dateTzOffset);
       }
     }
     gpx += '</gpx>';
@@ -199,7 +205,7 @@ export class GpxFormat {
     return result;
   }
 
-  private static writePoint(point: PointDescriptor | WayPoint, elementName: string): string { // NOSONAR
+  private static writePoint(point: PointDescriptor | WayPoint, elementName: string, tzOffset: number | undefined): string { // NOSONAR
     const pt = point instanceof WayPoint ? point.point : point;
     const wp = point instanceof WayPoint ? point : undefined;
     let gpx = '<' + elementName;
@@ -208,7 +214,7 @@ export class GpxFormat {
       gpx += '<ele>' + pt.ele.toFixed(1) + '</ele>';
     }
     if (pt.time !== undefined) {
-      gpx += '<time>' + new Date(pt.time).toISOString() + '</time>';
+      gpx += '<time>' + StringUtils.timestampToIso8601(pt.time, tzOffset) + '</time>';
     }
     if (wp?.name && wp.name.length > 0) {
       gpx += '<name>' + XmlUtils.escapeHtml(wp.name) + '</name>';

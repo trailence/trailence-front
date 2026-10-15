@@ -8,6 +8,7 @@ export class Photo extends Owned {
   private readonly _trailUuid$: BehaviorSubject<string>;
   private readonly _description$: BehaviorSubject<string>;
   private readonly _dateTaken$: BehaviorSubject<number | undefined>;
+  private readonly _dateTakenTzOffset$: BehaviorSubject<number | undefined>;
   private readonly _latitude$: BehaviorSubject<number | undefined>;
   private readonly _longitude$: BehaviorSubject<number | undefined>;
   private readonly _isCover$: BehaviorSubject<boolean>;
@@ -23,6 +24,7 @@ export class Photo extends Owned {
     this._trailUuid$ = new BehaviorSubject(dto.trailUuid);
     this._description$ = new BehaviorSubject(dto.description ?? '');
     this._dateTaken$ = new BehaviorSubject(dto.dateTaken);
+    this._dateTakenTzOffset$ = new BehaviorSubject(dto.dateTakenTzOffset);
     this._latitude$ = new BehaviorSubject(dto.latitude === undefined || dto.latitude === null ? undefined : PointDtoMapper.readCoordValue(dto.latitude));
     this._longitude$ = new BehaviorSubject(dto.longitude === undefined || dto.longitude === null ? undefined : PointDtoMapper.readCoordValue(dto.longitude));
     this._isCover$ = new BehaviorSubject(dto.cover ?? false);
@@ -40,6 +42,10 @@ export class Photo extends Owned {
   public get dateTaken(): number | undefined { return this._dateTaken$.value; }
   public get dateTaken$(): Observable<number | undefined> { return this._dateTaken$; }
   public set dateTaken(value: number | undefined) { this.setValue(value, this._dateTaken$); }
+
+  public get dateTakenTzOffset(): number | undefined { return this._dateTakenTzOffset$.value; }
+  public get dateTakenTzOffset$(): Observable<number | undefined> { return this._dateTakenTzOffset$; }
+  public set dateTakenTzOffset(value: number | undefined) { this.setValue(value, this._dateTakenTzOffset$); }
 
   public get latitude(): number | undefined { return this._latitude$.value; }
   public get latitude$(): Observable<number | undefined> { return this._latitude$; }
@@ -68,6 +74,7 @@ export class Photo extends Owned {
       trailUuid: this.trailUuid,
       description: this.description,
       dateTaken: this.dateTaken,
+      dateTakenTzOffset: this.dateTakenTzOffset,
       latitude: this.latitude === undefined ? undefined : PointDtoMapper.writeCoordValue(this.latitude),
       longitude: this.longitude === undefined ? undefined : PointDtoMapper.writeCoordValue(this.longitude),
       cover: this.isCover,

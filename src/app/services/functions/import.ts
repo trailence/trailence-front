@@ -240,6 +240,7 @@ function importGpxTrail(
                 photoDto.index ?? 1,
                 photoFile,
                 photoDto.dateTaken,
+                photoDto.dateTakenTzOffset,
                 photoDto.latitude,
                 photoDto.longitude,
                 photoDto.cover,

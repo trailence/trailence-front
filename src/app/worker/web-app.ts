@@ -72,14 +72,15 @@ export class WorkerService {
     description: string, index: number,
     content: ArrayBuffer,
     preferences: ComputedPreferences,
-    dateTaken?: number, latitude?: number, longitude?: number,
+    dateTaken?: number, dateTakenTzOffset?: number,
+    latitude?: number, longitude?: number,
     isCover?: boolean,
     photoUuid?: string,
     fromRecording?: boolean,
   ): Promise<{blob: Blob, photo: Photo}> {
     return this.request<{jpeg: ArrayBuffer, photo: PhotoDto}>({
       request: WorkerRequest.IMPORT_PHOTO,
-      payload: {owner, trailUuid, description, index, content, preferences, dateTaken, latitude, longitude, isCover, photoUuid},
+      payload: {owner, trailUuid, description, index, content, preferences, dateTaken, dateTakenTzOffset, latitude, longitude, isCover, photoUuid},
       transferable: [content],
     })
     .then(result => ({

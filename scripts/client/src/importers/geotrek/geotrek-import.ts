@@ -769,7 +769,7 @@ export class GeoTrekImport extends Importer {
         const file = await (await fetch(info.url)).arrayBuffer();
         const module = await import('@trailence/worker/functions/import-photo.js');
         photos.push(await (
-          module.importPhoto(owner, trailUuid, info.description, photos.length + 1, file, preferences, undefined, undefined, undefined, undefined, info.uuid)
+          module.importPhoto(owner, trailUuid, info.description, photos.length + 1, file, preferences, undefined, undefined, undefined, undefined, undefined, info.uuid)
           .then(result => ({blob: new Blob([result.jpeg], {type: 'image/jpeg'}), photo: new Photo(result.photo)}))
         ));
       } catch (e) {

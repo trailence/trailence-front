@@ -11,6 +11,7 @@ export class Trail extends Owned {
   private readonly _description$: BehaviorSubject<string>;
   private readonly _location$: BehaviorSubject<string>;
   private readonly _date$: BehaviorSubject<number | undefined>;
+  private readonly _dateTzOffset$: BehaviorSubject<number | undefined>;
   private readonly _loopType$: BehaviorSubject<TrailLoopType | undefined>;
   private readonly _activity$: BehaviorSubject<TrailActivity | undefined>;
   private readonly _sourceUrl$: BehaviorSubject<string | undefined>;
@@ -42,6 +43,7 @@ export class Trail extends Owned {
     this._description$ = new BehaviorSubject<string>(dto.description ?? '');
     this._location$ = new BehaviorSubject<string>(dto.location ?? '');
     this._date$ = new BehaviorSubject<number | undefined>(dto.date);
+    this._dateTzOffset$ = new BehaviorSubject<number | undefined>(dto.dateTzOffset);
     this._loopType$ = new BehaviorSubject<TrailLoopType | undefined>(TypeUtils.valueToEnum(dto.loopType, TrailLoopType));
     this._activity$ = new BehaviorSubject<TrailActivity | undefined>(TypeUtils.valueToEnum(dto.activity, TrailActivity));
     if (!dto.originalTrackUuid) throw new Error('Missing originalTrackUuid');
@@ -79,6 +81,10 @@ export class Trail extends Owned {
   public get date$(): Observable<number | undefined> { return this._date$; }
   public set date(value: number) { this.setValue(value, this._date$); }
 
+  public get dateTzOffset(): number | undefined { return this._dateTzOffset$.value; }
+  public get dateTzOffset$(): Observable<number | undefined> { return this._dateTzOffset$; }
+  public set dateTzOffset(value: number) { this.setValue(value, this._dateTzOffset$); }
+
   public get loopType(): TrailLoopType | undefined { return this._loopType$.value; }
   public get loopType$(): Observable<TrailLoopType | undefined> { return this._loopType$; }
   public set loopType(value: TrailLoopType | undefined) { this.setValue(value, this._loopType$); }
@@ -104,7 +110,7 @@ export class Trail extends Owned {
   public set sourceUrl(value: string | undefined) { this.setValue(value, this._sourceUrl$); }
 
   public get changes$(): Observable<any> {
-    return combineLatest([this.name$, this.description$, this.location$, this.date$, this.loopType$, this.activity$, this.originalTrackUuid$, this.currentTrackUuid$, this.collectionUuid$, this.sourceUrl$]).pipe(
+    return combineLatest([this.name$, this.description$, this.location$, this.date$, this.dateTzOffset$, this.loopType$, this.activity$, this.originalTrackUuid$, this.currentTrackUuid$, this.collectionUuid$, this.sourceUrl$]).pipe(
       skip(1),
     );
   }
@@ -121,6 +127,7 @@ export class Trail extends Owned {
       description: this.description,
       location: this.location,
       date: this.date,
+      dateTzOffset: this.dateTzOffset,
       loopType: this.loopType,
       activity: this.activity,
       sourceType: this.sourceType,

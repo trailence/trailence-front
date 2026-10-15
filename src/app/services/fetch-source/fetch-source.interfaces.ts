@@ -130,6 +130,7 @@ export interface PhotoInfo {
   description?: string;
   pos?: L.LatLngLiteral;
   time?: number;
+  tzOffset?: number;
 }
 
 export interface SearchResult {

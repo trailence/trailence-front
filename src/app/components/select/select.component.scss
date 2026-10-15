@@ -17,6 +17,15 @@ div.select {
     padding: 4px;
     min-height: var(--select-min-height, 30px);
   }
+  &.style-fill {
+    background-color: var(--ion-background-color-step-300);
+    border-radius: 5px;
+    padding: 4px;
+    min-height: var(--select-min-height, 30px);
+    &:hover {
+      background-color: var(--ion-background-color-step-500);
+    }
+  }
 }
 
 div.select-multiple {

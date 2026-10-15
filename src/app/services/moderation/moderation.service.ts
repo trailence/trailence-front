@@ -276,8 +276,9 @@ export class ModerationService {
       'X-Index': photo.index,
     };
     if (photo.dateTaken) headers['X-DateTaken'] = photo.dateTaken;
-    if (photo.latitude) headers['X-Latitude'] = photo.latitude;
-    if (photo.longitude) headers['X-Longitude'] = photo.longitude;
+    if (photo.dateTakenTzOffset !== undefined) headers['X-DateTakenTz'] = photo.dateTakenTzOffset;
+    if (photo.latitude !== undefined) headers['X-Latitude'] = photo.latitude;
+    if (photo.longitude !== undefined) headers['X-Longitude'] = photo.longitude;
     return this.http.post<PhotoDto>(environment.apiBaseUrl + '/moderation/v1/photoFromReview/' + photo.uuid + '/' + photo.owner + '/' + photo.trailUuid, blob, headers).pipe(
       map(dto => {
         const photo = new Photo(dto, true, false);
@@ -397,6 +398,7 @@ export class ModerationService {
         const p = photos[index];
         let photoPos: L.LatLngLiteral | undefined;
         let photoDate: number | undefined;
+        let photoDateTz: number | undefined
 
         if (p.latitude !== undefined && p.longitude !== undefined) {
           const pos = {lat: p.latitude, lng: p.longitude};
@@ -404,12 +406,16 @@ export class ModerationService {
           if (ref) {
             photoPos = track.segments[ref.segmentIndex].points[ref.pointIndex].pos;
             photoDate = track.segments[ref.segmentIndex].points[ref.pointIndex].time;
+            photoDateTz = trail.dateTzOffset;
           }
         }
         if (p.dateTaken !== undefined) {
-          const closest = TrackUtils.findClosestPointForTime(track, p.dateTaken, MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE);
+          let timestamp = p.dateTaken;
+          if (p.dateTakenTzOffset !== undefined) timestamp += p.dateTakenTzOffset * 60000;
+          const closest = TrackUtils.findClosestPointForTime(track, timestamp, MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE);
           if (closest) {
             photoDate = p.dateTaken;
+            photoDateTz = p.dateTakenTzOffset;
             photoPos ??= {lat: closest.pos.lat, lng: closest.pos.lng};
           }
         }
@@ -419,6 +425,7 @@ export class ModerationService {
           lat: photoPos ? PointDtoMapper.writeCoordValue(photoPos.lat) : undefined,
           lng: photoPos ? PointDtoMapper.writeCoordValue(photoPos.lng) : undefined,
           date: photoDate,
+          dateTzOffset: photoDateTz,
           description: p.description,
         })
       }
@@ -433,6 +440,7 @@ export class ModerationService {
       description: trail.description,
       location: trail.location,
       date: trail.date!,
+      dateTzOffset: trail.dateTzOffset,
       distance: Math.floor(track.metadata.distance),
       positiveElevation: TypeUtils.floor(track.metadata.positiveElevation),
       negativeElevation: TypeUtils.floor(track.metadata.negativeElevation),
@@ -595,6 +603,7 @@ interface CreatePublicTrailDto {
   description: string;
   location: string;
   date: number;
+  dateTzOffset?: number;
 
   distance: number;
   positiveElevation?: number;
@@ -635,6 +644,7 @@ interface CreatePublicTrailPhotoDto {
   lat?: number;
   lng?: number;
   date?: number;
+  dateTzOffset?: number;
   description: string;
 }
 

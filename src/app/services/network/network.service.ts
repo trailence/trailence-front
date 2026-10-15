@@ -27,8 +27,8 @@ export class NetworkService implements INetworkService, OnDestroy {
     if ((globalThis as any).navigator.connection) {
       (globalThis as any).navigator.connection.addEventListener('change', () => this.updateStatus(false));
     }
-    this._server$.subscribe(connected => logger.info("Server reachable = " + connected));
-    this._internet$.subscribe(connected => logger.info("Network connection = " + connected));
+    this._server$.subscribe(connected => logger.info('Server reachable', connected));
+    this._internet$.subscribe(connected => logger.info('Network connection', connected));
     httpService.addResponseInterceptor(response => {
       if (response.status === 0 && response.request.url.startsWith(environment.apiBaseUrl)) {
         if (this._server$.value) {
