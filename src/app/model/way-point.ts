@@ -56,8 +56,8 @@ export class WayPoint {
   public toDto(): WayPointDto {
     const p = this._point.pos;
     return {
-      l: PointDtoMapper.writeCoordValue(p.lat),
-      n: PointDtoMapper.writeCoordValue(p.lng),
+      l: PointDtoMapper.writeLatitudeValue(p.lat),
+      n: PointDtoMapper.writeLongitudeValue(p.lng),
       e: this._point.ele === undefined ? undefined : PointDtoMapper.writeElevationValue(this._point.ele),
       t: this._point.time,
       na: this._name.value,

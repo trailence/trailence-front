@@ -131,13 +131,27 @@ export class Pois {
   }
 
   private boundsToTiles(bounds: L.LatLngBounds): number[] {
-    const minX = Math.floor((bounds.getWest() + 180) / 2);
-    const maxX = Math.floor((bounds.getEast() + 180) / 2);
-    const minY = Math.floor((bounds.getNorth() + 90) / 2);
-    const maxY = Math.floor((bounds.getNorth() + 90) / 2);
-    const tiles: number[] = [];
+    const minX = Math.floor(Math.min(bounds.getWest() + 180, bounds.getEast() + 180) / 2);
+    const maxX = Math.floor(Math.max(bounds.getWest() + 180, bounds.getEast() + 180) / 2);
+    const minY = Math.floor(Math.min(bounds.getNorth() + 90, bounds.getSouth() + 90) / 2);
+    const maxY = Math.floor(Math.max(bounds.getNorth() + 90, bounds.getSouth() + 90) / 2);
+    const xs = new Set<number>();
     for (let x = minX; x <= maxX; ++x) {
-      for (let y = minY; y <= maxY; ++y) {
+      let v = x;
+      while (v < 0) v += 180;
+      while (v >= 180) v -= 180;
+      xs.add(v);
+    }
+    const ys = new Set<number>();
+    for (let y = minY; y <= maxY; ++y) {
+      let v = y;
+      while (v < 0) v += 90;
+      while (v >= 90) v -= 90;
+      ys.add(v);
+    }
+    const tiles: number[] = [];
+    for (const y of ys) {
+      for (const x of xs) {
         tiles.push(y * 180 + x);
       }
     }

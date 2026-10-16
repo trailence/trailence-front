@@ -1,3 +1,4 @@
+import { normalizeLatitude, normalizeLongitude } from '@trailence/utils/latlng';
 import { PointDto } from './dto/point';
 import { PointDescriptor } from './point-descriptor';
 
@@ -26,8 +27,8 @@ export class PointDtoMapper {
   private static toPoint(dto: PointDto, previous?: PointDescriptor): PointDescriptor {
     return {
       pos: {
-        lat: this.toCoord(dto.l, previous?.pos.lat),
-        lng: this.toCoord(dto.n, previous?.pos.lng),
+        lat: normalizeLatitude(this.toCoord(dto.l, previous?.pos.lat)),
+        lng: normalizeLongitude(this.toCoord(dto.n, previous?.pos.lng)),
       },
       ele: this.toValue(dto.e, previous?.ele, ELEVATION_FACTOR),
       time: this.toValue(dto.t, previous?.time, 1),
@@ -68,8 +69,8 @@ export class PointDtoMapper {
   public static toDto(point: PointDescriptor, previous?: PointDescriptor): PointDto {
     const pos = point.pos;
     if (!previous) return {
-      l: this.writeCoordValue(pos.lat),
-      n: this.writeCoordValue(pos.lng),
+      l: this.writeLatitudeValue(pos.lat),
+      n: this.writeLongitudeValue(pos.lng),
       e: point.ele === undefined ? undefined : Math.round(point.ele * ELEVATION_FACTOR),
       t: point.time,
       pa: point.posAccuracy === undefined ? undefined : Math.round(point.posAccuracy * POSITION_ACCURACY_FACTOR),
@@ -79,8 +80,8 @@ export class PointDtoMapper {
     };
     const prevPos = previous.pos;
     const dto: PointDto = {};
-    if (pos.lat !== prevPos.lat) dto.l = this.diffCoord(pos.lat, prevPos.lat);
-    if (pos.lng !== prevPos.lng) dto.n = this.diffCoord(pos.lng, prevPos.lng);
+    if (pos.lat !== prevPos.lat) dto.l = this.diffLatitude(pos.lat, prevPos.lat);
+    if (pos.lng !== prevPos.lng) dto.n = this.diffLongitude(pos.lng, prevPos.lng);
     dto.e = this.diff(point.ele, previous.ele, ELEVATION_FACTOR);
     dto.t = this.diff(point.time, previous.time, 1);
     dto.pa = this.diff(point.posAccuracy, previous.posAccuracy, POSITION_ACCURACY_FACTOR)
@@ -90,17 +91,26 @@ export class PointDtoMapper {
     return dto;
   }
 
-  public static writeCoordValue(value: number): number {
-    return Math.floor(value * POSITION_FACTOR);
+  public static writeLatitudeValue(value: number): number {
+    return Math.floor(normalizeLatitude(value) * POSITION_FACTOR);
+  }
+
+  public static writeLongitudeValue(value: number): number {
+    return Math.floor(normalizeLongitude(value) * POSITION_FACTOR);
   }
 
   public static writeElevationValue(value: number): number {
     return Math.floor(value * ELEVATION_FACTOR);
   }
 
-  private static diffCoord(newValue: number, previousValue: number | undefined): number | undefined {
-    if (previousValue === undefined) return Math.floor(newValue * POSITION_FACTOR);
-    return Math.floor(newValue * POSITION_FACTOR) - Math.floor(previousValue * POSITION_FACTOR);
+  private static diffLatitude(newValue: number, previousValue: number | undefined): number | undefined {
+    if (previousValue === undefined) return this.writeLatitudeValue(newValue);
+    return Math.floor(normalizeLatitude(newValue) * POSITION_FACTOR) - Math.floor(normalizeLatitude(previousValue) * POSITION_FACTOR);
+  }
+
+  private static diffLongitude(newValue: number, previousValue: number | undefined): number | undefined {
+    if (previousValue === undefined) return this.writeLatitudeValue(newValue);
+    return Math.floor(normalizeLongitude(newValue) * POSITION_FACTOR) - Math.floor(normalizeLongitude(previousValue) * POSITION_FACTOR);
   }
 
   private static diff(newValue: number | undefined, previousValue: number | undefined, factor: number): number  | undefined {

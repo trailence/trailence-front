@@ -5,7 +5,8 @@ import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extend
 import { SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
 import { EventEmitter } from '@angular/core';
 import { getGradeRange, gradeColors } from '../../trail-graph/grade-values';
-import { distance } from '@trailence/utils/latlng';
+import { distance, EarthPoint } from '@trailence/utils/latlng';
+import { LeafletUtils } from '@trailence/utils/leaflet-utils';
 
 export class MapTrackPath {
 
@@ -20,6 +21,7 @@ export class MapTrackPath {
 
   private _map?: L.Map;
   private _path?: L.Polyline[];
+  private _pathOffset: EarthPoint = {lat: 0, lng: 0};
   private _subscription?: Subscription;
   private readonly _pathUpdated$ = new EventEmitter<any>();
 
@@ -28,6 +30,7 @@ export class MapTrackPath {
   public get path(): L.Polyline[] {
     if (!this._path) {
       this._path = this._eleColors ? this.buildPolyLinesWithEleColors(this._track) : this.buildPolyLinesDefaultColor(this._track);
+      this._pathOffset = {lat: 0, lng: 0};
       this._path.forEach(p => {
         p.on('click', e => {
           (e.originalEvent as any).fromTrack = this.fromTrack; // NOSONAR
@@ -36,13 +39,39 @@ export class MapTrackPath {
           const el = p?.getElement();
           if (el) (el as any)._mapTrack = this.fromTrack;
         });
+        const adjustOffset = (map: L.Map) => {
+          const offset = this.getOffsetForMap(map);
+          if (offset.lat !== this._pathOffset.lat || offset.lng !== this._pathOffset.lng) {
+            p.setLatLngs(this.applyOffset(p.getLatLngs(), offset.lat - this._pathOffset.lat, offset.lng - this._pathOffset.lng));
+            this._pathOffset = offset;
+          }
+        };
+        let map: L.Map | undefined;
+        let mapListener: () => void | undefined;
+        p.addEventListener('add', event => {
+          map = event.target._map as L.Map;
+          adjustOffset(map);
+          const m = map;
+          mapListener = () => { adjustOffset(m); };
+          map.addEventListener('zoom', mapListener);
+          map.addEventListener('move', mapListener);
+
+        });
+        p.addEventListener('remove', () => {
+          map?.removeEventListener('zoom', mapListener);
+          map?.removeEventListener('move', mapListener);
+          map = undefined;
+        });
       });
       if (!this._subscription && this._track instanceof Track) {
         this._subscription = this._track.segmentChanges$.pipe(
           debounceTimeExtended(100, 100, 100),
         ).subscribe(() => {
           if (this._path && this._map && !this._eleColors) {
-            this._path[0].setLatLngs((this._track as Track).getAllPositionsSegmented());
+            let points: any = this.adjustPointsToAvoidGoingAroundEarth((this._track as Track).getAllPositionsSegmented());
+            if (this._pathOffset.lat !== 0 || this._pathOffset.lng !== 0)
+              points = this.applyOffset(points, this._pathOffset.lat, this._pathOffset.lng);
+            this._path[0].setLatLngs(points);
             this._pathUpdated$.emit();
             return;
           }
@@ -55,13 +84,62 @@ export class MapTrackPath {
     return this._path;
   }
 
+  private getOffsetForMap(map: L.Map): EarthPoint {
+    if (this._track instanceof Track) {
+      const departure = this._track.departurePoint;
+      if (!departure) return {lat: 0, lng: 0};
+      const mapPoint = LeafletUtils.pointToMap(departure.pos, map);
+      return {lat: mapPoint.lat - departure.pos.lat, lng: mapPoint.lng - departure.pos.lng};
+    }
+    if (this._track.points.length === 0) return {lat: 0, lng: 0};
+    const departure = this._track.points[0];
+    const mapPoint = LeafletUtils.pointToMap(L.latLng(departure.lat, departure.lng), map);
+    return {lat: mapPoint.lat - departure.lat, lng: mapPoint.lng - departure.lng};
+  }
+
+  private applyOffset(points: L.LatLng[] | L.LatLng[][] | L.LatLng[][][], latOffset: number, lngOffset: number): L.LatLng[] | L.LatLng[][] | L.LatLng[][][] {
+    return points.map(p => {
+      if (Array.isArray(p)) return this.applyOffset(p, latOffset, lngOffset);
+      return L.latLng(p.lat + latOffset, p.lng + lngOffset);
+    }) as any;
+  }
+
+  private adjustPointsToAvoidGoingAroundEarth(points: {lat: number, lng: number, ele?: number}[][]): {lat: number, lng: number, ele?: number}[][] {
+    let previous: L.LatLngExpression | undefined = undefined;
+    const result: {lat: number, lng: number, ele?: number}[][] = [];
+    for (const segment of points) {
+      const s: {lat: number, lng: number, ele?: number}[] = [];
+      result.push(s);
+      for (const point of segment) {
+        if (previous === undefined) {
+          previous = point;
+          s.push(point);
+          continue;
+        }
+        let lat = point.lat;
+        // going from 80 to -80 => 80 - -80 = 160
+        while (previous.lat - lat > 160) lat += 180;
+        // going from -80 to 80 => -80 - 80 = -160
+        while (previous.lat - lat < -160) lat -= 180;
+        let lng = point.lng;
+        while (previous.lng - lng > 340) lng += 360;
+        while (previous.lng - lng < -340) lng -= 360;
+        const p = lat === point.lat && lng === point.lng ? point : {lat, lng, ele: point.ele};
+        s.push(p);
+        previous = p;
+      }
+    }
+    return result;
+  }
+
   private buildPolyLinesDefaultColor(track: Track | SimplifiedTrackSnapshot): L.Polyline[] {
-    let points: L.LatLngExpression[][];
+    let points: (L.LatLng | L.LatLngLiteral)[][];
     if (track instanceof Track) {
       points = track.getAllPositionsSegmented();
     } else {
-      points = [track.points as L.LatLngExpression[]];
+      points = [track.points as L.LatLngLiteral[]];
     }
+    points = this.adjustPointsToAvoidGoingAroundEarth(points);
     return [L.polyline(points, {
       color: this._color,
       smoothFactor: this._smoothFactor,
@@ -72,9 +150,10 @@ export class MapTrackPath {
   }
 
   private buildPolyLinesWithEleColors(track: Track | SimplifiedTrackSnapshot): L.Polyline[] { // NOSONAR
-    const segments: {lat: number, lng: number, ele?: number}[][] = track instanceof Track ?
+    let segments: {lat: number, lng: number, ele?: number}[][] = track instanceof Track ?
       track.segments.map(s => s.points.map(p => ({lat: p.pos.lat, lng: p.pos.lng, ele: p.ele})))
       : [track.points];
+    segments = this.adjustPointsToAvoidGoingAroundEarth(segments);
 
     const polylines: {points: L.LatLngLiteral[], color: string, d: number, startEle: number | undefined}[] = [];
     for (const segment of segments) {

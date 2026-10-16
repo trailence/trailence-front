@@ -53,7 +53,7 @@ const Timezones: SelectItem<number>[] = EXISTING_TIMEZONES.map(toSelectItem);
       <ion-button color="secondary" (click)="reset()">{{i18n.texts.buttons.reset}}</ion-button>
     </ion-buttons>
     <ion-buttons slot="end">
-      <ion-button color="success" (click)="close(false)">{{i18n.texts.buttons.apply}}</ion-button>
+      <ion-button color="success" (click)="close(false)" [disabled]="!dateIso8601">{{i18n.texts.buttons.apply}}</ion-button>
       <ion-button (click)="close(true)">{{i18n.texts.buttons.cancel}}</ion-button>
     </ion-buttons>
   </ion-toolbar>

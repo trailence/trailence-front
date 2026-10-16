@@ -1,3 +1,4 @@
+import { LeafletUtils } from '@trailence/utils/leaflet-utils';
 import * as L from 'leaflet';
 
 export class MapCursors {
@@ -10,11 +11,16 @@ export class MapCursors {
   public addTo(map: L.Map): void {
     if (this._map) return;
     this._map = map;
-    for (const marker of this._cursors) marker.addTo(map);
+    for (const marker of this._cursors) {
+      marker.setLatLng(LeafletUtils.pointToMap(marker.getLatLng(), map));
+      marker.addTo(map);
+    }
   }
 
   public addCursor(position: L.LatLngExpression): void {
-    const marker = new L.CircleMarker(position, { radius: 3, className: 'cursor' });
+    const pos = this._map ? LeafletUtils.pointToMap(L.latLng(position), this._map) : position;
+    const marker = new L.CircleMarker(pos, { radius: 3, className: 'cursor' });
+    (marker as any)._cursor_pos = position;
     this._cursors.push(marker);
     if (this._map) {
       marker.addTo(this._map);
@@ -23,7 +29,8 @@ export class MapCursors {
   }
 
   public removeCursor(position: L.LatLngExpression): void {
-    const index = this._cursors.findIndex(m => m.getLatLng().equals(position));
+    const pos = L.latLng(position);
+    const index = this._cursors.findIndex(m => pos.equals((m as any)._cursor_pos));
     if (index < 0) return;
     const marker = this._cursors[index];
     this._cursors.splice(index, 1);

@@ -1,5 +1,5 @@
 import * as L from 'leaflet';
-import { earthBBox, EarthBBox } from './latlng';
+import { earthBBox, EarthBBox, normalizeLatitude, normalizeLongitude, normalizePoint } from './latlng';
 
 export class LeafletUtils {
 
@@ -22,43 +22,55 @@ export class LeafletUtils {
     }
   }
 
-  public static normalizeBounds(bounds: L.LatLngBounds): L.LatLngBounds {
-    let modified = false;
-    let north = bounds.getNorth();
-    if (north > 90) {
-      north = 90;
-      modified = true;
+  public static toNormalizedPoint(point: L.LatLng): L.LatLng {
+    return L.latLng(normalizeLatitude(point.lat), normalizeLongitude(point.lng));
+  }
+
+  public static boundsToMap(bounds: L.LatLngBounds, map: L.Map): L.LatLngBounds {
+    const originalSw = bounds.getSouthWest();
+    const sw = this.pointToMap(originalSw, map);
+    if (sw.lat === originalSw.lat && sw.lng === originalSw.lng) return bounds;
+    const originalNe = bounds.getNorthEast();
+    const ne = {lat: originalNe.lat + sw.lat - originalSw.lat, lng: originalNe.lng + sw.lng - originalSw.lng};
+    return L.latLngBounds(sw, ne);
+  }
+
+  public static pointToMap(point: L.LatLng, map: L.Map): L.LatLng {
+    const bounds = map.getBounds();
+    const lat = this.toMapLatitude(point.lat, bounds);
+    const lng = this.toMapLongitude(point.lng, bounds);
+    if (lat !== point.lat || lng !== point.lng) return L.latLng(lat, lng);
+    return point;
+  }
+
+  private static toMapLongitude(longitude: number, mapBounds: L.LatLngBounds): number {
+    let val = normalizeLongitude(longitude);
+    let min = Math.min(mapBounds.getWest(), mapBounds.getEast());
+    let max = Math.max(mapBounds.getWest(), mapBounds.getEast());
+    if (val >= min && val <= max) return val;
+    while (val > max) {
+      val -= 360;
     }
-    let south = bounds.getSouth();
-    if (south < -90) {
-      south = -90;
-      modified = true;
+    while (val < min) {
+      val += 360;
     }
-    let east = bounds.getEast();
-    let west = bounds.getWest();
-    if (east - west > 360) {
-      west = -180;
-      east = 180;
-      modified = true;
-    } else {
-      while (west < -180) {
-        west += 360;
-        east += 360;
-        modified = true;
-      }
-      while (east > 180) {
-        east -= 360;
-        west -= 360;
-        modified = true;
-      }
-      if (west < -180 || west > 180 || east < -180 || east > 180) {
-        west = -180;
-        east = 180;
-        modified = true;
-      }
+    if (val >= min && val <= max) return val;
+    return longitude;
+  }
+
+  private static toMapLatitude(latitude: number, mapBounds: L.LatLngBounds): number {
+    let val = normalizeLatitude(latitude);
+    let min = Math.min(mapBounds.getSouth(), mapBounds.getNorth());
+    let max = Math.max(mapBounds.getSouth(), mapBounds.getNorth());
+    if (val >= min && val <= max) return val;
+    while (val > max) {
+      val -= 360;
     }
-    if (!modified) return bounds;
-    return L.latLngBounds({lat: south, lng: west}, {lat: north, lng: east});
+    while (val < min) {
+      val += 360;
+    }
+    if (val >= min && val <= max) return val;
+    return latitude;
   }
 
 }

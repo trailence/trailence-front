@@ -32,6 +32,7 @@ import { TrackComputedDataCacheService } from '../database/track-computed-data-c
 import { ModerationCounters } from '@trailence/model/dto/moderation-counters';
 import { getLogger } from '@trailence/utils/console';
 import { MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE } from '../database/photo.service';
+import { normalizePoint } from '@trailence/utils/latlng';
 
 const logger = getLogger('moderation.service');
 
@@ -372,7 +373,7 @@ export class ModerationService {
     const tile128ByZoom: number[] = [];
     await step(1, () => {
       const crs = L.CRS.EPSG3857;
-      const departure = track.departurePoint!.pos;
+      const departure = normalizePoint(track.departurePoint!.pos);
       for (let zoom = 1; zoom <= 10; ++zoom) {
         const point = crs.latLngToPoint(departure, zoom);
         tile128ByZoom.push(Math.floor(point.y / 128) * (4 << zoom) + Math.floor(point.x / 128));
@@ -422,8 +423,8 @@ export class ModerationService {
         result.push({
           uuid: p.uuid,
           index,
-          lat: photoPos ? PointDtoMapper.writeCoordValue(photoPos.lat) : undefined,
-          lng: photoPos ? PointDtoMapper.writeCoordValue(photoPos.lng) : undefined,
+          lat: photoPos ? PointDtoMapper.writeLatitudeValue(photoPos.lat) : undefined,
+          lng: photoPos ? PointDtoMapper.writeLongitudeValue(photoPos.lng) : undefined,
           date: photoDate,
           dateTzOffset: photoDateTz,
           description: p.description,

@@ -3,6 +3,25 @@ export const EARTH_RADIUS = 6371000; // meters
 export type EarthPoint = {lat: number, lng: number};
 export type EarthBBox = {minlat: number, maxlat: number, minlng: number, maxlng: number};
 
+export function normalizePoint(point: EarthPoint): EarthPoint {
+  const n = {lat: normalizeLatitude(point.lat), lng: normalizeLongitude(point.lng)};
+  if (n.lat !== point.lat || n.lng !== point.lng) return n;
+  return point;
+}
+
+export function normalizeLatitude(latitude: number): number {
+  while (latitude < -90) latitude += 180;
+  while (latitude > 90) latitude -= 180;
+  return latitude;
+}
+
+export function normalizeLongitude(longitude: number): number {
+  while (longitude < -180) longitude += 360;
+  while (longitude > 180) longitude -= 360;
+  return longitude;
+}
+
+
 export function distance(latlng1: EarthPoint, latlng2: EarthPoint) {
   const rad = Math.PI / 180,
   lat1 = latlng1.lat * rad,

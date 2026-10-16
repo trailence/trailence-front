@@ -1,7 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import { BehaviorSubject, catchError, EMPTY, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { FetchSourcePlugin, SearchBubblesResult, SearchBubblesTileResult, SearchResult } from '../fetch-source/fetch-source.interfaces';
-import { LeafletUtils } from '@trailence/utils/leaflet-utils';
 import { MenuItem } from '@trailence/components/menus/menu-item';
 import { NetworkService } from '../network/network.service';
 import { I18nService } from '../i18n/i18n.service';
@@ -128,9 +127,6 @@ export class SearchTrailsService {
   private lastSearchBounds?: L.LatLngBounds;
   private lastSearchZoom?: number;
   private setSearchBounds(bounds?: L.LatLngBounds, zoom?: number, forceRefresh: boolean = false): void {
-    if (bounds) {
-      bounds = LeafletUtils.normalizeBounds(bounds);
-    }
     this.searchBounds = bounds;
     this.searchZoom = zoom;
     this._searchMessage$.next(undefined);

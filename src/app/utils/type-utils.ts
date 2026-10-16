@@ -1,5 +1,3 @@
-import { StringUtils } from './string-utils';
-
 export class TypeUtils {
 
   public static toFloat(s: string | null | undefined): number | undefined {

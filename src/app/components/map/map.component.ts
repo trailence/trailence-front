@@ -37,7 +37,7 @@ import { AssetsService } from '@trailence/services/assets/assets.service';
 import { RotateTool } from './tools/rotate-tool';
 import { GeolocationService } from '@trailence/services/geolocation/geolocation.service';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
-import { bearing, EarthPoint } from '@trailence/utils/latlng';
+import { bearing, EarthPoint, normalizePoint } from '@trailence/utils/latlng';
 import { MotionService } from '@trailence/services/motion/motion.service';
 import { FullScreenTool } from './tools/fullscreen-tool';
 import { ToastController } from '@ionic/angular';
@@ -693,11 +693,12 @@ export class MapComponent extends AbstractComponent {
   }
 
   private getEventTrack(track: Track, map: L.Map, mouse: L.Point, mapTrack: MapTrack, result: MapTrackPointReference[]): void {
-    const mouseLatLng = map.layerPointToLatLng(mouse);
-    const mouseDiffLatLng = map.layerPointToLatLng([mouse.x + this.eventPixelMaxDistance, mouse.y + this.eventPixelMaxDistance]);
+    const mouseLatLng = normalizePoint(map.layerPointToLatLng(mouse));
+    const mouseDiffLatLng = normalizePoint(map.layerPointToLatLng([mouse.x + this.eventPixelMaxDistance, mouse.y + this.eventPixelMaxDistance]));
     const maxLatDiff = Math.abs(mouseDiffLatLng.lat - mouseLatLng.lat);
     const maxLngDiff = Math.abs(mouseDiffLatLng.lng - mouseLatLng.lng);
 
+    mouse = map.latLngToLayerPoint(mouseLatLng); // in case it was normalized
     for (let segmentIndex = 0; segmentIndex < track.segments.length; ++segmentIndex) {
       const segment = track.segments[segmentIndex];
       for (let pointIndex = 0; pointIndex < segment.points.length; ++pointIndex) {

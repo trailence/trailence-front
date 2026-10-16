@@ -51,9 +51,9 @@ export class MapTrack implements MapElement {
   public get track(): Track | SimplifiedTrackSnapshot { return this._track; }
 
   public get bounds(): L.LatLngBounds | undefined {
-    if (this._track instanceof Track) return this._track.metadata.bounds;
     const pathBounds = this._path.getBounds(false);
     if (pathBounds) return pathBounds;
+    if (this._track instanceof Track) return this._track.metadata.bounds;
     return this.boundsFromSimplifiedPoints(this._track.points);
   }
   private boundsFromSimplifiedPoints(points: SimplifiedPoint[]): L.LatLngBounds | undefined {

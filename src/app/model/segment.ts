@@ -6,6 +6,7 @@ import { SegmentDto } from './dto/segment';
 import * as L from 'leaflet';
 import { Track } from './track';
 import { TrackUtils } from '../utils/track-utils';
+import { normalizeLatitude, normalizeLongitude } from '@trailence/utils/latlng';
 
 export class Segment {
 
@@ -263,7 +264,7 @@ export class PointImpl implements Point {
     private _next: PointImpl | undefined,
     private readonly _changes$: Subject<string>,
   ) {
-    this._pos = L.latLng(descriptor.pos.lat, descriptor.pos.lng);
+    this._pos = L.latLng(normalizeLatitude(descriptor.pos.lat), normalizeLongitude(descriptor.pos.lng));
     this._ele = descriptor.ele;
     this._time = descriptor.time;
     this._posAccuracy = descriptor.posAccuracy;

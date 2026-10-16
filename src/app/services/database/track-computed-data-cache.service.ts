@@ -191,7 +191,7 @@ export class TrackComputedDataCacheService implements OnDestroy {
       this.cleanupTable(this.tableGuideposts),
       this.cleanupTable(this.tableOsmWaysMatch),
       this.cleanupTable(this.tableOsmStats),
-    ]).then(r => 'all_ways: ' + r[0] + + ', guideposts: ' + r[1] + ', ways_match: ' + r[2] + ', stats: ' + r[3]);
+    ]).then(r => 'all_ways: ' + r[0] + ', guideposts: ' + r[1] + ', ways_match: ' + r[2] + ', stats: ' + r[3]);
   }
 
   private cleanupTable<T extends CacheItem>(table: DbTable<T>): Promise<number> {

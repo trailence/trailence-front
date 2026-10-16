@@ -75,8 +75,8 @@ export class Photo extends Owned {
       description: this.description,
       dateTaken: this.dateTaken,
       dateTakenTzOffset: this.dateTakenTzOffset,
-      latitude: this.latitude === undefined ? undefined : PointDtoMapper.writeCoordValue(this.latitude),
-      longitude: this.longitude === undefined ? undefined : PointDtoMapper.writeCoordValue(this.longitude),
+      latitude: this.latitude === undefined ? undefined : PointDtoMapper.writeLatitudeValue(this.latitude),
+      longitude: this.longitude === undefined ? undefined : PointDtoMapper.writeLongitudeValue(this.longitude),
       cover: this.isCover,
       index: this.index
     };

@@ -1,5 +1,6 @@
 import * as L from 'leaflet';
 import { MapElement } from '../map-element';
+import { LeafletUtils } from '@trailence/utils/leaflet-utils';
 
 const BUBBLE_MAX_PIXELS = 50;
 const BUBBLE_MIN_PIXELS = 20;
@@ -22,6 +23,10 @@ export class MapBubble implements MapElement {
     this._overlay = L.svgOverlay(MapBubble.createSvgElement(100, bgColor, borderColor, text, textSize, textColor), _bubbleBounds, {
       interactive: true,
       className: 'bubble',
+    });
+    this._overlay.addEventListener('add', event => {
+      const map = event.target._map as L.Map;
+      this._overlay.setBounds(LeafletUtils.boundsToMap(this._overlay.getBounds(), map));
     });
     this._overlay.on('click', () => {
       if (this._map) this._onclick(this._map);

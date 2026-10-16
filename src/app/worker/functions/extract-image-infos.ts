@@ -92,8 +92,8 @@ interface ImageInfoInternal {
   latitude?: number;
   longitude?: number;
   gpsDateUtc?: number;
-  dateTakenUtc?: number;
-  dateTakenTzOffset?: number;
+  dateTakenOriginal?: DateTimeNoTimezone;
+  dateTakenOriginalTzOffset?: number;
   legacyTimezoneOffsetHours?: number;
 }
 
@@ -102,14 +102,16 @@ function toImageInfo(internal: ImageInfoInternal | undefined): ImageInfo | undef
   const info = {} as ImageInfo;
   info.latitude = internal.latitude;
   info.longitude = internal.longitude;
-  if (internal.dateTakenUtc !== undefined) {
-    info.dateTaken = internal.dateTakenUtc;
-    if (internal.dateTakenTzOffset !== undefined) {
-      info.dateTakenTzOffset = internal.dateTakenTzOffset;
+  console.log(internal); // TODO
+  if (internal.dateTakenOriginal !== undefined) {
+    if (internal.dateTakenOriginalTzOffset !== undefined) {
+      console.log('using tz offset original'); // TODO
+      info.dateTakenTzOffset = internal.dateTakenOriginalTzOffset;
+      info.dateTaken = internal.dateTakenOriginal.withTzOffset(internal.dateTakenOriginalTzOffset);
     }
     if (info.dateTakenTzOffset === undefined && internal.gpsDateUtc !== undefined) {
       // we may guess the timezone my doing a diff between the 2 dates
-      const diffMinutes = Math.floor((internal.dateTakenUtc - internal.gpsDateUtc) / 60000);
+      const diffMinutes = Math.floor((internal.dateTakenOriginal.asUTC() - internal.gpsDateUtc) / 60000);
       let bestTzIndex: number | undefined = undefined;
       let bestTzDiff: number = 0;
       for (let i = 0; i < EXISTING_TIMEZONES.length; ++i) {
@@ -121,15 +123,20 @@ function toImageInfo(internal: ImageInfoInternal | undefined): ImageInfo | undef
         }
       }
       if (bestTzIndex !== undefined && bestTzDiff < 15) {
+        console.log('using diff from gps', EXISTING_TIMEZONES[bestTzIndex]); // TODO
         info.dateTakenTzOffset = EXISTING_TIMEZONES[bestTzIndex];
+        info.dateTaken = internal.dateTakenOriginal.withTzOffset(info.dateTakenTzOffset);
       }
     }
     if (info.dateTakenTzOffset === undefined && internal.legacyTimezoneOffsetHours !== undefined) {
+      console.log('using legacy tz'); // TODO
       info.dateTakenTzOffset = internal.legacyTimezoneOffsetHours * 60;
+      info.dateTaken = internal.dateTakenOriginal.withTzOffset(info.dateTakenTzOffset);
     }
     if (info.dateTakenTzOffset === undefined) {
-      // no timezone info
-      // TODO
+      // no timezone info => default to user timezone
+      console.log('using user timezone'); // TODO
+      info.dateTaken = internal.dateTakenOriginal.inUserTimezone();
     }
   }
   return (info.latitude === undefined && info.longitude !== undefined) || info.dateTaken !== undefined ? info : undefined;
@@ -202,20 +209,43 @@ function extractInfosFromExifSection(data: Uint8Array, start: number, offset: nu
       case 0x9003: {
         // date/time original
         const str = readExifString(data, start + addressOrValue, nbComponents);
-        info.dateTakenUtc = toDateTimeUTC(str);
+        info.dateTakenOriginal = toDateTimeNoTimezone(str);
         break;
       }
       case 0x9011: {
         // timezone original
         const str = readExifString(data, start + addressOrValue, nbComponents);
-        info.dateTakenTzOffset = toTimezoneOffset(str);
+        info.dateTakenOriginalTzOffset = toTimezoneOffset(str);
         break;
       }
     }
   }
 }
 
-function toDateTimeUTC(str: string): number | undefined {
+class DateTimeNoTimezone {
+  constructor(
+    private readonly year: number,
+    private readonly month: number,
+    private readonly day: number,
+    private readonly hours: number,
+    private readonly minutes: number,
+    private readonly seconds: number,
+  ) {}
+
+  asUTC(): number {
+    return Date.UTC(this.year, this.month, this.day, this.hours, this.minutes, this.seconds);
+  }
+
+  withTzOffset(minutes: number): number {
+    return this.asUTC() - minutes * 60000;
+  }
+
+  inUserTimezone(): number {
+    return new Date(this.year, this.month, this.day, this.hours, this.minutes, this.seconds).getTime();
+  }
+}
+
+function toDateTimeNoTimezone(str: string): DateTimeNoTimezone | undefined {
   if (str.length === 0) return;
   const datetime = str.split(' ');
   if (datetime.length !== 2) return;
@@ -231,7 +261,7 @@ function toDateTimeUTC(str: string): number | undefined {
       const minute = Number.parseInt(t[1]);
       const second = Number.parseInt(t[2]);
       if (!Number.isNaN(hour) && !Number.isNaN(minute) && !Number.isNaN(second) && hour >= 0 && hour < 24 && minute >= 0 && minute < 60 && second >= 0 && second < 60) {
-        return Date.UTC(year, month - 1, day, hour, minute, second);
+        return new DateTimeNoTimezone(year, month - 1, day, hour, minute, second);
       }
     }
   }

@@ -1,3 +1,4 @@
+import { LeafletUtils } from '@trailence/utils/leaflet-utils';
 import * as L from 'leaflet';
 
 export class MapAnchor {
@@ -28,6 +29,10 @@ export class MapAnchor {
       }),
       interactive: interactive,
       title
+    });
+    this.marker.addEventListener('add', (event) => {
+      const map = event.target._map as L.Map;
+      this.marker.setLatLng(LeafletUtils.pointToMap(this.marker.getLatLng(), map));
     });
     if (interactive) {
       this.marker.on('click', e => {

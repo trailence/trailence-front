@@ -22,6 +22,8 @@ import { TrackComputedDataCacheService } from '../database/track-computed-data-c
 import { NetworkService } from '../network/network.service';
 import { Filters } from '../preferences/preferences';
 import { getLogger } from '@trailence/utils/console';
+import { normalizePoint } from '@trailence/utils/latlng';
+import { LeafletUtils } from '@trailence/utils/leaflet-utils';
 
 const logger = getLogger('trailence.plugin');
 
@@ -368,10 +370,27 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
     const startX = Math.floor(topLeft.x / 128);
     const endX = Math.floor(bottomRight.x / 128);
     const nbTilesByY = (4 << zoom);
+    const nbTilesByX = (2 << zoom);
+    const xs = new Set<number>();
+    for (let x = startX; x <= endX; ++x) {
+      let v = x;
+      while (v < 0) v += nbTilesByY;
+      while (v >= nbTilesByY) v -= nbTilesByY;
+      xs.add(v);
+    }
+    const ys = new Set<number>();
+    for (let y = startY; y <= endY; ++y) {
+      let v = y;
+      while (v < 0) v += nbTilesByX;
+      while (v >= nbTilesByX) v -= nbTilesByX;
+      ys.add(v);
+    }
     const tiles: number[] = [];
-    for (let y = startY; y <= endY; y++)
-      for (let x = startX; x <= endX; x++)
+    for (const y of ys) {
+      for (const x of xs) {
         tiles.push(y * nbTilesByY + x);
+      }
+    }
     const textSearch = filters.search.trim();
     const searchFilters = {
       duration: filters.duration,

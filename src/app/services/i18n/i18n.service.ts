@@ -320,7 +320,8 @@ export class I18nService {
   }
 
   public getTimeForFormat(timestamp: number, format: HourFormat, showSeconds: boolean = false, tzOffset?: number): string {
-    const date = TypeUtils.toOriginalDate(new Date(timestamp), tzOffset);
+    const localDate = new Date(timestamp);
+    const date = TypeUtils.toOriginalDate(localDate, tzOffset);
     const h = date.getHours();
     let s = '';
     if (format === 'H12') {
@@ -340,6 +341,18 @@ export class I18nService {
     }
     if (format === 'H12') {
       s += ' ' + (h >= 12 ? 'PM' : 'AM');
+    }
+    if (tzOffset !== undefined && tzOffset !== null) {
+      const tzDiff = tzOffset + localDate.getTimezoneOffset();
+      if (tzDiff) {
+        const hoursDiff = Math.floor(tzDiff / 60);
+        s += ' (' + (hoursDiff >= 0 ? '+' : '') + hoursDiff;
+        const minutesDiff = Math.abs(tzDiff) % 60;
+        if (minutesDiff !== 0) {
+          s += ':' + StringUtils.padLeft('' + minutesDiff, 2, '0');
+        }
+        s += ')';
+      }
     }
     return s;
   }

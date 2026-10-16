@@ -185,13 +185,27 @@ export class Ways {
   }
 
   private boundsToTiles(bounds: L.LatLngBounds): number[] {
-    const minX = Math.floor((bounds.getWest() + 180) * 8);
-    const maxX = Math.floor((bounds.getEast() + 180) * 8);
-    const minY = Math.floor((bounds.getNorth() + 90) * 8);
-    const maxY = Math.floor((bounds.getNorth() + 90) * 8);
-    const tiles: number[] = [];
+    const minX = Math.floor(Math.min(bounds.getWest() + 180, bounds.getEast() + 180) * 8);
+    const maxX = Math.floor(Math.max(bounds.getWest() + 180, bounds.getEast() + 180) * 8);
+    const minY = Math.floor(Math.min(bounds.getNorth() + 90, bounds.getSouth() + 90) * 8);
+    const maxY = Math.floor(Math.max(bounds.getNorth() + 90, bounds.getSouth() + 90) * 8);
+    const xs = new Set<number>();
     for (let x = minX; x <= maxX; ++x) {
-      for (let y = minY; y <= maxY; ++y) {
+      let v = x;
+      while (v < 0) v += 360 * 8;
+      while (v >= 360 * 8) v -= 360 * 8;
+      xs.add(v);
+    }
+    const ys = new Set<number>();
+    for (let y = minY; y <= maxY; ++y) {
+      let v = y;
+      while (v < 0) v += 180 * 8;
+      while (v >= 180 * 8) v -= 180 * 8;
+      ys.add(v);
+    }
+    const tiles: number[] = [];
+    for (const y of ys) {
+      for (const x of xs) {
         tiles.push(y * 360 * 8 + x);
       }
     }
