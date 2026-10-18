@@ -1553,7 +1553,9 @@
   },
   "go_to_position": "Ir a esta ubicación",
   "datetime_popup": {
-    "time": "Hora"
+    "time": "Hora",
+    "timezone": "Zona horaria",
+    "timezone_unspecified": "Sin zona horaria"
   },
   "recompute_metadata": "Recalculando las estimaciones de tus rutas",
   "you_are_offline": "Estás sin conexión",

@@ -1553,7 +1553,9 @@
   },
   "go_to_position": "Go to this position",
   "datetime_popup": {
-    "time": "Time"
+    "time": "Time",
+    "timezone": "Time zone",
+    "timezone_unspecified": "No time zone"
   },
   "recompute_metadata": "Recalculating estimates of your trails",
   "you_are_offline": "You are offline",

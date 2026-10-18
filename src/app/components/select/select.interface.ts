@@ -4,6 +4,8 @@ export interface SelectItem<T> {
   icon?: string;
   fixedLabel?: string;
   labelI18n?: string;
+  selectFixedLabel?: string;
+  selectI18nLabel?: string;
 }
 
 export interface SelectGroup {

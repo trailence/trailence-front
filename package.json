@@ -17,11 +17,8 @@
     "install-android-dev": "cross-env ENV=dev npm run install-android",
     "install-android-local": "cross-env ENV=local npm run install-android",
     "set-version": "node ./scripts/set-version.js",
-    "check-i18n": "node --import=tsx ./scripts/check-i18n.ts",
-    "check-assets-version": "node ./scripts/check-assets-version.js",
-    "check-release-note": "node --import=tsx ./scripts/check-release-note.ts",
     "notes-to-fastlane": "node --import=tsx ./scripts/notes-to-fastlane.ts",
-    "release": "npm run check-i18n && npm run check-assets-version && npm run check-release-note -- %NEWVERSION% && npm run set-version -- %NEWVERSION% && ng build --configuration=production",
+    "release": "cd scripts/release && npm run check-all -- --version=%NEWVERSION% && npm run set-version -- %NEWVERSION% && ng build --configuration=production",
     "with-env": "cross-env",
     "instrument": "node ./scripts/instrument.js",
     "analyze-bundle": "ng build --configuration=analyze-bundle --progress=false --stats-json > build.output && node ./scripts/extract-initial-bundle.js ./build.output",
@@ -32,7 +29,7 @@
     "build-assets": "node --import=tsx src/icons/mapping/build.ts",
     "build-doc": "cd doc && node build/build.js",
     "circle": "dpdm ./src/main.ts --ext .ts,.d.ts,.tsx,.mjs,.js,.jsx,.json --tsconfig ./tsconfig.json --tree false --ignore-skip-warning node_modules ./",
-    "compile-scripts": "tsc -p tsconfig.scripts.json && node --check scripts/check-assets-version.js && node --check scripts/copy-assets-dependencies.js && node --check scripts/set-version.js && cd scripts/client && npm ci --ignore-scripts && tsc && cd ../osm && npm ci --ignore-scripts && tsc && cd ../countries-borders && npm ci --ignore-scripts && tsc"
+    "compile-scripts": "tsc -p tsconfig.scripts.json && node --check scripts/copy-assets-dependencies.js && node --check scripts/set-version.js && cd scripts/release && npm ci --ignore-scripts && tsc && cd ../client && npm ci --ignore-scripts && tsc && cd ../osm && npm ci --ignore-scripts && tsc && cd ../countries-borders && npm ci --ignore-scripts && tsc"
   },
   "license": "Apache-2.0",
   "private": true,

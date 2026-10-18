@@ -1188,7 +1188,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     if (!this.trail1$ || !this.recording$) return;
     let photosOnMap = new Map<string, L.Marker>();
     const photosByKey = new Map<string, Photo[]>();
-    const dateToPoint = new Map<string, Map<number, L.LatLngLiteral | null>>();
+    const dateToPoint = new Map<string, {tzOffset?: number, cache: Map<number, L.LatLngLiteral | null>}>();
     const getTrack = (trail: Trail) =>
       this.showOriginal$.pipe(
         switchMap(showOriginal => showOriginal ? trail.originalTrackUuid$ : trail.currentTrackUuid$),
@@ -1217,9 +1217,9 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           ]).pipe(
             debounceTimeExtended(50, 100, 3),
             switchMap(([p1, p2, p3]) => combineLatest([
-              trail1 && p1.length > 0 ? this.getPhotosWithPosition(p1, () => getTrack(trail1), dateToPoint) : of([]),
-              trail2 && p2.length > 0 ? this.getPhotosWithPosition(p2, () => getTrack(trail2), dateToPoint) : of([]),
-              recording && p3.length > 0 ? this.getPhotosWithPosition(p3, () => of(recording.track), dateToPoint) : of([]),
+              trail1 && p1.length > 0 ? this.getPhotosWithPosition(p1, trail1, () => getTrack(trail1), dateToPoint) : of([]),
+              trail2 && p2.length > 0 ? this.getPhotosWithPosition(p2, trail2, () => getTrack(trail2), dateToPoint) : of([]),
+              recording && p3.length > 0 ? this.getPhotosWithPosition(p3, recording.trail, () => of(recording.track), dateToPoint) : of([]),
             ])),
             debounceTimeExtended(0, 100, 3),
             map(([p1, p2, p3]) => [...p1, ...p2, ...p3]),
@@ -1310,28 +1310,29 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     );
   }
 
-  private getPhotosWithPosition(photos: Photo[], getTrack: () => Observable<Track | null>, dateToPoint: Map<string, Map<number, L.LatLngLiteral | null>>) {
+  private getPhotosWithPosition(photos: Photo[], trail: Trail, getTrack: () => Observable<Track | null>, dateToPoint: Map<string, {tzOffset?: number, cache: Map<number, L.LatLngLiteral | null>}>) {
     const withPos = photos.filter(p => p.latitude !== undefined && p.longitude !== undefined).map(p => ({photo:p, point: {lat: p.latitude!, lng: p.longitude!} as L.LatLngExpression}));
     const withDateOnly = photos.filter(p => (p.latitude === undefined || p.longitude === undefined) && p.dateTaken !== undefined);
     if (withDateOnly.length === 0) return of(withPos);
-    return getTrack().pipe(map(track => this.getPhotoPositionFromDate(track, withDateOnly, dateToPoint)), map(result => [...result, ...withPos]));
+    return getTrack().pipe(map(track => this.getPhotoPositionFromDate(trail, track, withDateOnly, dateToPoint)), map(result => [...result, ...withPos]));
   }
 
-  private getPhotoPositionFromDate(track: Track | null, photos: Photo[], dateToPoint: Map<string, Map<number, L.LatLngLiteral | null>>) {
+  private getPhotoPositionFromDate(trail: Trail, track: Track | null, photos: Photo[], dateToPoint: Map<string, {tzOffset?: number, cache: Map<number, L.LatLngLiteral | null>}>) {
     if (!track) return [];
     let cache = dateToPoint.get(track.uuid);
     if (!cache) {
-      cache = new Map<number, L.LatLngLiteral | null>();
+      cache = {tzOffset: trail.dateTzOffset, cache: new Map<number, L.LatLngLiteral | null>()};
       dateToPoint.set(track.uuid, cache);
     }
-    return photos.map(photo => {
+    const result = photos.map(photo => {
       let date = photo.dateTaken!;
       if (photo.dateTakenTzOffset !== undefined) date += photo.dateTakenTzOffset * 60000;
-      let point: L.LatLngLiteral | null | undefined = cache.get(date);
-      if (point === undefined) {
-        const closest = TrackUtils.findClosestPointForTime(track, date, MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE);
+      let point: L.LatLngLiteral | null | undefined = cache.cache.get(date);
+      if (point === undefined || (point === null && trail.dateTzOffset !== cache.tzOffset)) {
+        let closest = TrackUtils.findClosestPointForTime(track, date, MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE);
+        if (!closest && trail.dateTzOffset) closest = TrackUtils.findClosestPointForTime(track, date, MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE, trail.dateTzOffset);
         point = closest ? {lat: closest.pos.lat, lng: closest.pos.lng} : null;
-        cache.set(date, point);
+        cache.cache.set(date, point);
       }
       if (point && (photo.owner === this.auth.email || photo.owner.startsWith(SHARED_OWNER_PREFIX))) {
         // save it
@@ -1345,6 +1346,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       return {photo, point};
     })
     .filter(p => !!p.point) as {photo: Photo, point: L.LatLngExpression}[];
+    cache.tzOffset = trail.dateTzOffset;
+    return result;
   }
 
   private createPhotoMarker(point: L.LatLngExpression, photos: Photo[], photosByKey: Map<string, Photo[]>, key: string, withError: boolean = true): Observable<{key: string, marker: L.Marker} | undefined | null> {

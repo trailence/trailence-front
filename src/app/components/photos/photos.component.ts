@@ -123,7 +123,7 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
           }),
           switchMap(t => {
             this.tabIndex = t ? this.trails.indexOf(t) : 0;
-            if (!t) return of([[] as Photo[], {track: null, canEdit: false, canAdd: false}] as [Photo[], {track: Track | null, canEdit: boolean, canAdd: boolean}]);
+            if (!t) return of({photos: [], track: null, trail: null, canEdit: false, canAdd: false});
             const photos = t === this.traceRecorder.current?.trail ? this.traceRecorder.current.photos$ : this.photoService.getTrailPhotos$(t);
             const track = this.trackService.getFullTrack$(t.currentTrackUuid, t.owner).pipe(
               map(track => ({
@@ -132,7 +132,7 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
                 canAdd: auth?.email === t.owner || t.owner.startsWith(SHARED_OWNER_PREFIX)
               })),
             );
-            return combineLatest([photos, track]);
+            return combineLatest([photos, track]).pipe(map(result => ({photos: result[0], track: result[1].track, trail: t, canEdit: result[1].canEdit, canAdd: result[1].canAdd})));
           }),
         )),
       ).subscribe(result => {
@@ -149,17 +149,17 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
             this.canTakePhoto = this.deviceCanTakePhoto;
           }
         }
-        this.canEdit = result[1].canEdit;
-        this.canAdd = result[1].canAdd;
+        this.canEdit = result.canEdit;
+        this.canAdd = result.canAdd;
         this.canPositionOnMap = this.canEdit && !this.traceRecorder.current;
-        result[0].sort((p1, p2) => p1.index - p2.index);
-        this.photos = result[0].map(p => {
+        result.photos.sort((p1, p2) => p1.index - p2.index);
+        this.photos = result.photos.map(p => {
           return {
             photo: p,
             selected: this.photos?.find(prev => prev.photo.owner === p.owner && prev.photo.uuid === p.uuid)?.selected ?? false,
             editing: this.photos?.find(prev => prev.photo.owner === p.owner && prev.photo.uuid === p.uuid)?.editing ?? null,
             blobSize: this.photos?.find(prev => prev.photo.owner === p.owner && prev.photo.uuid === p.uuid)?.blobSize,
-            positionOnMap: !!this.getPhotoPosition(p, result[1].track),
+            positionOnMap: !!this.getPhotoPosition(p, result.track, result.trail),
           } as PhotoWithInfo;
         });
         this.nbSelected = this.photos.reduce((p, pi) => p + (pi.selected ? 1 : 0), 0);
@@ -174,7 +174,7 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
   }
 
   private readonly _dateToPosCache = new Map<number, L.LatLngLiteral | null>();
-  private getPhotoPosition(photo: Photo, track: Track | null): L.LatLngLiteral | undefined {
+  private getPhotoPosition(photo: Photo, track: Track | null, trail: Trail | null): L.LatLngLiteral | undefined {
     let pos: L.LatLngLiteral | undefined = undefined;
     if (photo.latitude !== undefined && photo.longitude !== undefined) {
       pos = {lat: photo.latitude, lng: photo.longitude};
@@ -187,7 +187,8 @@ export class PhotosComponent  implements OnInit, OnChanges, OnDestroy {
       if (photo.dateTakenTzOffset !== undefined) timestamp += photo.dateTakenTzOffset * 60000;
       let point: L.LatLngLiteral | null | undefined = this._dateToPosCache.get(timestamp);
       if (point === undefined && track) {
-        const closest = TrackUtils.findClosestPointForTime(track, timestamp, MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE);
+        let closest = TrackUtils.findClosestPointForTime(track, timestamp, MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE);
+        if (!closest && trail?.dateTzOffset) closest = TrackUtils.findClosestPointForTime(track, timestamp, MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE, trail.dateTzOffset);
         point = closest ? {lat: closest.pos.lat, lng: closest.pos.lng} : null;
         this._dateToPosCache.set(timestamp, point);
       }

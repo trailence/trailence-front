@@ -137,6 +137,9 @@
       margin-left: 2px;
       overflow: hidden;
     }
+    &:not(.with-tabs) {
+      width: 100%;
+    }
     > div {
       &.shown {
         width: 100%;

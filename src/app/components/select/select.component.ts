@@ -109,6 +109,8 @@ export class SelectComponent<T> implements OnInit, OnChanges {
   };
 
   _label(item: SelectItem<T>): string {
+    if (item.selectFixedLabel !== undefined) return item.selectFixedLabel;
+    if (item.selectI18nLabel !== undefined) return this.i18n.translateWithArguments(item.selectI18nLabel, []);
     if (item.fixedLabel !== undefined) return item.fixedLabel;
     return this.i18n.translateWithArguments(item.labelI18n!, []);
   }

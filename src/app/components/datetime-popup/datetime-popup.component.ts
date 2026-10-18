@@ -14,7 +14,7 @@ function toSelectItem(offset: number): SelectItem<number> {
   return {value: offset, fixedLabel: name};
 }
 
-const Timezones: SelectItem<number>[] = EXISTING_TIMEZONES.map(toSelectItem);
+const Timezones: SelectItem<number | 'none'>[] = [...EXISTING_TIMEZONES.map(toSelectItem), {value: 'none', labelI18n: 'datetime_popup.timezone_unspecified', selectFixedLabel: ''}];
 
 @Component({
   'template': `
@@ -102,7 +102,7 @@ export class DateTimePopup implements OnInit {
 
   dateIso8601?: string;
   maxIso8601?: string;
-  selectedTimezone?: number;
+  selectedTimezone: number | 'none' = 'none';
 
   timezones = Timezones;
 
@@ -117,7 +117,7 @@ export class DateTimePopup implements OnInit {
   ngOnInit(): void {
     this.dateIso8601 = this.getDateIso8601FromTimestamp(this.timestamp ?? this.defaultTimestamp) ?? '';
     this.maxIso8601 = this.getDateIso8601FromTimestamp(this.maxTimestamp);
-    this.selectedTimezone = this.timezoneOffset;
+    this.selectedTimezone = this.timezoneOffset ?? 'none';
   }
 
   getDateIso8601FromTimestamp(timestamp?: number): string | undefined {
@@ -131,8 +131,8 @@ export class DateTimePopup implements OnInit {
     this.dateIso8601 = (date ?? undefined) as string | undefined;
   }
 
-  setTimezone(offset: (number | undefined)[]): void {
-    this.selectedTimezone = offset.length > 0 ? offset[0] : undefined;
+  setTimezone(offset: (number | undefined | 'none')[]): void {
+    this.selectedTimezone = (offset.length > 0 ? offset[0] : undefined) ?? 'none';
   }
 
   reset(): void {
@@ -140,7 +140,7 @@ export class DateTimePopup implements OnInit {
   }
 
   close(cancel: boolean): void {
-    void this.modalController.dismiss(this.dateIso8601 ? {timestamp: new Date(this.dateIso8601).getTime(), timezoneOffset: this.withTimezone ? this.selectedTimezone : undefined} : undefined, cancel ? 'cancel' : 'ok');
+    void this.modalController.dismiss(this.dateIso8601 ? {timestamp: new Date(this.dateIso8601).getTime(), timezoneOffset: this.withTimezone ? this.selectedTimezone === 'none' ? undefined : this.selectedTimezone : undefined} : undefined, cancel ? 'cancel' : 'ok');
   }
 
 }

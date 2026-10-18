@@ -1,0 +1,18 @@
+{
+  "name": "release",
+  "type": "module",
+  "devDependencies": {
+    "@types/jsdom": "^30.0.0",
+    "@types/node": "^26.6.3"
+  },
+  "scripts": {
+    "check-i18n": "node --import=tsx src/main.ts check-i18n",
+    "check-assets-version": "node --import=tsx src/main.ts check-assets-version",
+    "check-release-notes": "node --import=tsx src/main.ts check-release-notes",
+    "check-all": "node --import=tsx src/main.ts check-all"
+  },
+  "dependencies": {
+    "jsdom": "^30.1.1"
+  },
+  "allowScripts": {}
+}

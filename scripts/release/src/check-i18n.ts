@@ -1,11 +1,10 @@
-const fs = require('node:fs');
-const jsdom = require('jsdom');
-import { AvailableLocales, LocaleKey } from '../src/app/services/i18n/available-locales';
+import fs from 'node:fs';
+import jsdom from 'jsdom';
+import { AvailableLocales, LocaleKey } from '@trailence/services/i18n/available-locales';
 
 const knownLanguages = Object.keys(AvailableLocales);
-const errors: string[] = [];
 
-function readI18nDir(path: string, withFlagsIcons: boolean, checkJsonVersion: (version: number) => void, knownLanguages: string[]) {
+function readI18nDir(path: string, withFlagsIcons: boolean, checkJsonVersion: (version: number, errors: string[]) => void, knownLanguages: string[], errors: string[]) {
   const languages = new Map();
   const dir = fs.opendirSync(path);
   try {
@@ -64,31 +63,31 @@ function readI18nDir(path: string, withFlagsIcons: boolean, checkJsonVersion: (v
       else if (jsonVersion !== l.versions['json']) errors.push('JSON files have different versions: ' + jsonVersion + ', ' + l.versions['json']);
     }
   }
-  if (checkJsonVersion) checkJsonVersion(jsonVersion!);
+  if (checkJsonVersion) checkJsonVersion(jsonVersion!, errors);
 
   return languages;
 }
 
-function checkKeys(object1: any, object2: any, lang1: string, lang2: string, path: string, dirname: string) {
+function checkKeys(object1: any, object2: any, lang1: string, lang2: string, path: string, dirname: string, errors: string[]) {
   for (const k of Object.keys(object1)) {
     if (k === lang2) continue;
     const v = object1[k];
     if (object2[k] === undefined) {
-      errors.push('Directory' + dirname + ': Key ' + path + '/' + k + ' present in ' + lang1 + ' is missing in ' + lang2);
+      errors.push('Directory ' + dirname + ': Key ' + path + '/' + k + ' present in ' + lang1 + ' is missing in ' + lang2);
       continue;
     }
     const v2 = object2[k];
     if (typeof v !== typeof v2) {
-      errors.push('Directory' + dirname + ': Key ' + path + '/' + k + ' in lang1 is a ' + (typeof v) + ' but is a ' + (typeof v2) + ' in ' + lang2);
+      errors.push('Directory ' + dirname + ': Key ' + path + '/' + k + ' in lang1 is a ' + (typeof v) + ' but is a ' + (typeof v2) + ' in ' + lang2);
       continue;
     }
     if (typeof v === 'string') continue;
-    checkKeys(v, v2, lang1, lang2, path + '/' + k, dirname);
+    checkKeys(v, v2, lang1, lang2, path + '/' + k, dirname, errors);
   }
 }
 
-function checkDir(dir: string, withFlagsIcons: boolean, checkJsonVersion: (version: number) => void, knownLanguages: string[]) {
-  const languages = readI18nDir(dir, withFlagsIcons, checkJsonVersion, knownLanguages);
+function checkDir(dir: string, withFlagsIcons: boolean, checkJsonVersion: (version: number, errors: string[]) => void, knownLanguages: string[], errors: string[]) {
+  const languages = readI18nDir(dir, withFlagsIcons, checkJsonVersion, knownLanguages, errors);
   for (const l of languages.values()) {
     const json = JSON.parse(fs.readFileSync(dir + '/' + l.language + '.' + l.versions['json'] + '.json', { encoding: 'utf-8'}));
     l['jsonContent'] = json;
@@ -97,59 +96,74 @@ function checkDir(dir: string, withFlagsIcons: boolean, checkJsonVersion: (versi
   for (const l1 of languages.values()) {
     for (const l2 of languages.values()) {
       if (l1.language === l2.language) continue;
-      checkKeys(l1['jsonContent'], l2['jsonContent'], l1.language, l2.language, '', dir);
-      console.log('json from ' + l1.language + ' is valid against ' + l2.language);
+      checkKeys(l1['jsonContent'], l2['jsonContent'], l1.language, l2.language, '', dir, errors);
     }
   }
 }
 
-function checkJsonVersionI18n(version: number) {
-  let file = fs.readFileSync('./src/app/services/i18n/i18n.service.ts', 'utf-8');
-  if (file.indexOf("const TEXTS_VERSION = '" + version + "';") < 0) throw 'TEXTS_VERSION is invalid in i18n service';
-  file = fs.readFileSync('./server_pages/src/generate_trail_page.js', 'utf-8');
-  if (file.indexOf("const TEXTS_VERSION = '" + version + "';") < 0) throw 'TEXTS_VERSION is invalid in generate_trail_page.js';
+function checkJsonVersionI18n(baseDir: string, version: number, errors: string[]) {
+  let file = fs.readFileSync(baseDir + '/src/app/services/i18n/i18n.service.ts', 'utf-8');
+  if (file.indexOf("const TEXTS_VERSION = '" + version + "';") < 0) {
+    errors.push('TEXTS_VERSION is invalid in i18n service');
+  }
+  file = fs.readFileSync(baseDir + '/server_pages/src/generate_trail_page.js', 'utf-8');
+  if (file.indexOf("const TEXTS_VERSION = '" + version + "';") < 0) {
+    errors.push('TEXTS_VERSION is invalid in generate_trail_page.js');
+  }
 }
 
-function checkJsonVersionI18nAdmin(version: number) {
-  let file = fs.readFileSync('./src/app/admin/services/i18n-admin.service.ts', 'utf-8');
-  if (file.indexOf("const TEXTS_VERSION = '" + version + "';") < 0) throw 'TEXTS_VERSION is invalid in i18n admin service';
+function checkJsonVersionI18nAdmin(baseDir: string, version: number, errors: string[]) {
+  let file = fs.readFileSync(baseDir + '/src/app/admin/services/i18n-admin.service.ts', 'utf-8');
+  if (file.indexOf("const TEXTS_VERSION = '" + version + "';") < 0) {
+    errors.push('TEXTS_VERSION is invalid in i18n admin service');
+  }
 }
 
-function checkNginxLocales(file: string, includePublicPages: boolean) {
+function checkNginxLocales(file: string, includePublicPages: boolean, errors: string[]) {
   let content = fs.readFileSync(file, 'utf-8');
   let i = content.indexOf(')/trail/');
-  if (i < 0) throw new Error('Cannot find path for ^<locale>/trail/ in ' + file);
+  if (i < 0) {
+    errors.push('Cannot find path for ^<locale>/trail/ in ' + file);
+    return;
+  }
   let j = content.lastIndexOf('(', i);
   let langs = content.substring(j + 1, i).split('|');
   for (const lang of langs) {
-    if (!knownLanguages.includes(lang)) throw new Error('Unknown language ' + lang + ' in ' + file);
+    if (!knownLanguages.includes(lang)) {
+      errors.push('Unknown language ' + lang + ' in ' + file);
+    }
   }
   for (const lang of knownLanguages) {
-    if (!langs.includes(lang)) throw new Error('Missing language ' + lang + ' in ' + file);
+    if (!langs.includes(lang)) {
+      errors.push('Missing language ' + lang + ' in ' + file);
+    }
   }
 
   if (includePublicPages) {
     i = content.indexOf(')/([a-z\\-]+)$');
-    if (i < 0) throw new Error('Cannot find path for ^<locale>/([a-z\\-]+)$ in ' + file);
+    if (i < 0) {
+      errors.push('Cannot find path for ^<locale>/([a-z\\-]+)$ in ' + file);
+      return;
+    }
     j = content.lastIndexOf('(', i);
     langs = content.substring(j + 1, i).split('|');
     for (const lang of langs) {
-      if (!knownLanguages.includes(lang)) throw new Error('Unknown language ' + lang + ' in ' + file);
+      if (!knownLanguages.includes(lang)) errors.push('Unknown language ' + lang + ' in ' + file);
     }
     for (const lang of knownLanguages) {
-      if (!langs.includes(lang)) throw new Error('Missing language ' + lang + ' in ' + file);
+      if (!langs.includes(lang)) errors.push('Missing language ' + lang + ' in ' + file);
     }
   }
 }
 
-function checkSitemap() {
-  const sitemap = new jsdom.JSDOM(fs.readFileSync('./site/sitemap-base.xml', 'utf-8'), {contentType: 'application/xml'}).window.document.querySelector('urlset');
+function checkSitemap(baseDir: string, errors: string[]) {
+  const sitemap = new jsdom.JSDOM(fs.readFileSync(baseDir + '/site/sitemap-base.xml', 'utf-8'), {contentType: 'application/xml'}).window.document.querySelector('urlset')!;
   const expected: string[] = [];
   const found: string[] = [];
   for (let i = 0; i < sitemap.children.length; ++i) {
     const url = sitemap.children.item(i)!
     const loc = url.getElementsByTagName('loc')[0];
-    const locValue = loc.childNodes.item(0).nodeValue;
+    const locValue = loc.childNodes.item(0).nodeValue!;
     found.push(locValue);
     const links = url.getElementsByTagNameNS('http://www.w3.org/1999/xhtml', 'link');
     if (links.length === 0) continue;
@@ -159,29 +173,26 @@ function checkSitemap() {
       const lang = link.getAttribute('hreflang');
       if (lang && lang !== 'x-default') {
         langs.push(lang);
-        expected.push(link.getAttribute("href"));
+        expected.push(link.getAttribute("href")!);
       }
     }
     for (const lang of langs) {
-      if (!knownLanguages.includes(lang)) throw new Error('Unknown language ' + lang + ' in sitemap-base.xml for url ' + locValue);
+      if (!knownLanguages.includes(lang)) errors.push('Unknown language ' + lang + ' in sitemap-base.xml for url ' + locValue);
     }
     for (const lang of knownLanguages) {
-      if (!langs.includes(lang)) throw new Error('Missing language ' + lang + ' in sitemap-base.xml for url ' + locValue);
+      if (!langs.includes(lang)) errors.push('Missing language ' + lang + ' in sitemap-base.xml for url ' + locValue);
     }
   }
   for (const e of expected)
-    if (!found.includes(e)) throw new Error('Expected URL ' + e + ' not found in staemap-base.xml');
+    if (!found.includes(e)) errors.push('Expected URL ' + e + ' not found in staemap-base.xml');
 }
 
-checkNginxLocales('./docker/default.conf.template', true);
-checkNginxLocales('./docker/local/context/default.conf.template', true);
-checkNginxLocales('./server_pages/test/default.conf.template', false);
-checkSitemap();
-checkDir('./src/assets/i18n', true, checkJsonVersionI18n, knownLanguages);
-checkDir('./src/assets/admin/i18n', false, checkJsonVersionI18nAdmin, ['en', 'fr']);
-
-if (errors.length > 0) {
-  for (const error of errors)
-    console.error(error);
-  process.exit(1);
+export function checkI18n(baseDir: string, errors: string[]) {
+  console.log('Checking i18n...')
+  checkNginxLocales(baseDir + '/docker/default.conf.template', true, errors);
+  checkNginxLocales(baseDir + '/docker/local/context/default.conf.template', true, errors);
+  checkNginxLocales(baseDir + '/server_pages/test/default.conf.template', false, errors);
+  checkSitemap(baseDir, errors);
+  checkDir(baseDir + '/src/assets/i18n', true, (version, errors) => checkJsonVersionI18n(baseDir, version, errors), knownLanguages, errors);
+  checkDir(baseDir + '/src/assets/admin/i18n', false, (version, errors) => checkJsonVersionI18nAdmin(baseDir, version, errors), ['en', 'fr'], errors);
 }

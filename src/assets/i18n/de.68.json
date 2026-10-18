@@ -1553,7 +1553,9 @@
   },
   "go_to_position": "Zu dieser Position gehen",
   "datetime_popup": {
-    "time": "Uhrzeit"
+    "time": "Uhrzeit",
+    "timezone": "Zeitzone",
+    "timezone_unspecified": "Keine Zeitzone"
   },
   "recompute_metadata": "Schätzungen Ihrer Touren werden neu berechnet",
   "you_are_offline": "Sie sind offline",

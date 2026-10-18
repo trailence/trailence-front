@@ -222,12 +222,15 @@ export class TrackUtils {
     return closestSegmentIndex >= 0 ? {segmentIndex: closestSegmentIndex, pointIndex: closestPointIndex} : undefined;
   }
 
-  public static findClosestPointForTime(track: Track, time: number, maxDiff: number): Point | undefined { // NOSONAR
+  public static findClosestPointForTime(track: Track, time: number, maxDiff: number, tzOffset?: number): Point | undefined { // NOSONAR
     let previous: Point | undefined = undefined;
     for (const segment of track.segments) {
       for (const point of segment.points) {
-        const ptime = point.time;
+        let ptime = point.time;
         if (ptime === undefined) continue;
+        if (tzOffset !== undefined) {
+          ptime += tzOffset * 60000;
+        }
         if (ptime === time) return point;
         const diff = Math.abs(ptime - time);
         if (ptime > time) {

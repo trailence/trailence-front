@@ -15,8 +15,8 @@ import { getLogger } from '@trailence/utils/console';
 
 const logger = getLogger('pois');
 
-const CACHE_EXPIRATION = 90 * 24 * 60 * 60 * 1000;
-const CACHE_NULL = -CACHE_EXPIRATION + 3 * 60 * 60 * 1000;
+const CACHE_EXPIRATION = 6 * 30 * 24 * 60 * 60 * 1000; // 6 months
+const CACHE_NULL = -4 * 30 * 24 * 60 * 60 * 1000; // 6 - 4 = 2 months
 
 export class Pois {
 
