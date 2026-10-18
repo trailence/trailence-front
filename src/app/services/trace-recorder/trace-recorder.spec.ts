@@ -88,28 +88,28 @@ describe('Test Trace Recorder', () => {
     await recorder.start();
     expect(geoListener).toBeDefined();
     geoListener!({l: 10, n: 20, e: 30, t: 1, pa: 1000, ea: 1000});
-    geoListener!({l: 100, n: 200, e: 300, t: 4000, pa: 100, ea: 10});
-    geoListener!({l: 102, n: 202, e: 302, t: 10000, pa: 100, ea: 10});
+    geoListener!({l: 30, n: 40, e: 300, t: 4000, pa: 100, ea: 10});
+    geoListener!({l: 32, n: 42, e: 302, t: 10000, pa: 100, ea: 10});
     const result = await firstValueFrom(recorder.stop(true));
     expect(geoListener).toBeUndefined();
     expect(result).not.toBeNull();
 
     const original = await firstValueFrom(trackService.getFullTrackReady$(result!.originalTrackUuid, userEmail));
     expect(original.getAllPositions()).toHaveSize(2);
-    expect(original.departurePoint!.pos.lat).toBe(100);
-    expect(original.departurePoint!.pos.lng).toBe(200);
+    expect(original.departurePoint!.pos.lat).toBe(30);
+    expect(original.departurePoint!.pos.lng).toBe(40);
     expect(original.departurePoint!.ele).toBe(300);
-    expect(original.arrivalPoint!.pos.lat).toBe(102);
-    expect(original.arrivalPoint!.pos.lng).toBe(202);
+    expect(original.arrivalPoint!.pos.lat).toBe(32);
+    expect(original.arrivalPoint!.pos.lng).toBe(42);
     expect(original.arrivalPoint!.ele).toBe(302);
 
     const improved = await firstValueFrom(trackService.getFullTrackReady$(result!.currentTrackUuid, userEmail));
     expect(improved.getAllPositions()).toHaveSize(2);
-    expect(improved.departurePoint!.pos.lat).toBe(100);
-    expect(improved.departurePoint!.pos.lng).toBe(200);
+    expect(improved.departurePoint!.pos.lat).toBe(30);
+    expect(improved.departurePoint!.pos.lng).toBe(40);
     expect(improved.departurePoint!.ele).toBe(300);
-    expect(improved.arrivalPoint!.pos.lat).toBe(102);
-    expect(improved.arrivalPoint!.pos.lng).toBe(202);
+    expect(improved.arrivalPoint!.pos.lat).toBe(32);
+    expect(improved.arrivalPoint!.pos.lng).toBe(42);
     expect(improved.arrivalPoint!.ele).toBe(302);
   });
 

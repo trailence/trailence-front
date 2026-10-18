@@ -4,7 +4,12 @@ import { versionNameToVersionCode } from './utils/parse-version';
 import { extractVersionNote } from './utils/version-notes';
 
 const versionCode = versionNameToVersionCode(process.argv[2]);
-const release = extractVersionNote(versionCode);
+const errors: string[] = [];
+const release = extractVersionNote('.', versionCode, errors);
+if (errors.length > 0) {
+  console.error(errors);
+  process.exit(1);
+}
 
 for (const lang of knownLanguages) {
   const fastLaneLang = (fastlaneLanguages as any)[lang];

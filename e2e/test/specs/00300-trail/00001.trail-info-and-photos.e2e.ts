@@ -158,10 +158,14 @@ describe('Trail Page', () => {
     await browser.waitUntil(() => photosComponent.getPhotosContainers().length.then(nb => nb === 2));
     await browser.waitUntil(async () => {
       let photos = await photosComponent.collectPhotosInfos();
-      return photos.size === 2 &&
-        photos.get('20230605_101849.jpg') &&
-        photos.get('20230605_101849.jpg')!.metadata.get('date') === '6/5/2023 10:18 AM' &&
-        (photos.get('20230605_101849.jpg')!.metadata.get('file')?.indexOf('KB') ?? -1) > 0;
+      if (photos.size !== 2) throw Error('Expected 2 photos, found ' + photos.size);
+      const photo = photos.get('20230605_101849.jpg');
+      if (!photo) throw Error('Photo not found');
+      let meta = photo.metadata.get('date');
+      if (meta !== '6/5/2023 10:18:49 AM') throw Error('Expected date 6/5/2023 10:18:49 AM, found ' + meta);
+      meta = photo.metadata.get('file');
+      if ((meta?.indexOf('KB') ?? -1) <= 0) throw Error('Expected a size in KB, found ' + meta);
+      return true;
     });
   });
 
@@ -171,7 +175,7 @@ describe('Trail Page', () => {
     let photos = await photosComponent.collectPhotosInfos();
     expect(photos.size).toBe(3);
     expect(photos.get('20240823_123625.jpg')).toBeDefined();
-    expect(photos.get('20240823_123625.jpg')?.metadata.get('date')).toBe('8/23/2024 12:36 PM');
+    expect(photos.get('20240823_123625.jpg')?.metadata.get('date')).toBe('8/23/2024 12:36:25 PM (+2)');
     const location = photos.get('20240823_123625.jpg')!.metadata.get('location')!;
     expect(location).toBeDefined();
     const i = location.indexOf(' ');
