@@ -51,7 +51,7 @@ describe('Login and Logout', () => {
     await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My trails'));
   });
 
-  it('Logout', async () => await App.logout(false));
+  it('Logout again', async () => await App.logout(false));
 
   it('Login with redirect on preferences', async () => {
     const loginPage = await App.start('/preferences');

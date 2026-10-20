@@ -1,3 +1,4 @@
+import { App } from '../app/app';
 import { Component } from './component';
 import { IonicButton } from './ionic/ion-button';
 
@@ -25,6 +26,10 @@ export class ModalComponent extends Component {
     await element.waitForDisplayed();
     const button = new IonicButton(element);
     return button;
+  }
+
+  public async waitClosed(timeout?: number) {
+    await App.waitModalClosed(this.getElement(), timeout);
   }
 
 }

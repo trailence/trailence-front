@@ -30,7 +30,7 @@ describe('Trail Page', () => {
     expect(await alert.getInputValue()).toBe('Randonnée du 05/06/2023 à 08:58');
     await alert.setInputValue('My test trail')
     await alert.clickButtonWithRole('ok');
-    await browser.waitUntil(() => alert.isDisplayed().then(d => !d));
+    await App.waitAlertClosed(alert);
     await browser.waitUntil(() => new TrailPage(trailPage.owner, trailPage.uuid).header.getTitle().then(title => title === 'My test trail'));
     trailPage = new TrailPage(trailPage.owner, trailPage.uuid);
   });

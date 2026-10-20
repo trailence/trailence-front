@@ -54,8 +54,10 @@ export class HeaderComponent extends Component {
     }
     const popover = await TestUtils.retry(async () => {
       const menu = new IonicButton(this.getElement().$('ion-buttons[slot=end] app-header-user-menu ion-button.user-button'));
-      await menu.click();
-      return await App.waitPopover(10000);
+      await (menu.click().catch(_ => true));
+      const p = await App.waitPopover(10000);
+      if (!(await p.$('ion-list ion-item#item-synchro').isDisplayed())) throw new Error('User menu not found in popover');
+      return p;
     }, 3, 100);
     const userMenu = new UserMenu(popover, 'ion-list');
     await userMenu.waitDisplayed();
@@ -140,36 +142,46 @@ export class UserMenu extends Component {
           result = true;
           break;
         }
-        if (text === 'Yes') {
-          if (alreadyClickOnSynchronizeNow) {
-            try {
-              await browser.waitUntil(() => localChanges.getText().then(text => text === 'No'), { timeout: 10000 });
-              result = true;
-              break;
-            } catch (_) {
-              // try to re-open the menu
-            }
-            await this.close();
-            const menu = await App.openUserMenu();
-            return await menu.synchronizeLocalChanges(maxTrials, trial + 1, false);
+        console.log('Synchro text found: <' + text + '>');
+        if (text !== 'Yes') {
+          try {
+            await browser.waitUntil(() => localChanges.getText().then(text => text === 'No' || text === 'Yes'), { timeout: 3000 });
+          } catch (_) {
+            // ignore
           }
-          await item.click();
-          const popover = $('ion-app>ion-popover:not(.overlay-hidden).popover-nested');
-          await popover.waitForDisplayed();
-          const viewport = popover.$('>>>div.popover-viewport');
-          await viewport.waitForExist();
-          const syncItem = viewport.$('>>>ion-list ion-item:first-child');
-          await syncItem.waitForDisplayed();
-          await syncItem.click();
-          await browser.waitUntil(() => App.getPopoverContainer().isDisplayed().then(d => !d));
-          const page = await Page.getActivePageElement();
-          const header = new HeaderComponent(page);
-          await header.waitDisplayed();
-          const menu = await header.openUserMenu();
-          return await menu.synchronizeLocalChanges(maxTrials, trial + 1, true);
+          continue;
         }
-      } catch (_) {
+        if (alreadyClickOnSynchronizeNow) {
+          try {
+            await browser.waitUntil(() => localChanges.getText().then(text => text === 'No'), { timeout: 10000 });
+            result = true;
+            break;
+          } catch (e) {
+            // try to re-open the menu
+            console.log('Synchronize still needed, try to re-open menu', e);
+          }
+          await this.close();
+          const menu = await App.openUserMenu();
+          return await menu.synchronizeLocalChanges(maxTrials, trial + 1, false);
+        }
+        console.log('Try to force synchronize now');
+        await item.click();
+        const popover = $('ion-app>ion-popover:not(.overlay-hidden).popover-nested');
+        await popover.waitForDisplayed();
+        const viewport = popover.$('>>>div.popover-viewport');
+        await viewport.waitForExist();
+        const syncItem = viewport.$('>>>ion-list ion-item:first-child');
+        await syncItem.waitForDisplayed();
+        await syncItem.click();
+        await browser.waitUntil(() => App.getPopoverContainer().isDisplayed().then(d => !d));
+        const page = await Page.getActivePageElement();
+        const header = new HeaderComponent(page);
+        await header.waitDisplayed();
+        const menu = await header.openUserMenu();
+        return await menu.synchronizeLocalChanges(maxTrials, trial + 1, true);
+      } catch (e) {
         // continue
+        console.log('Error while synchronizing, try again', e);
       }
     }
     expect(result).withContext('Synchro after ' + trial + ' trials').toBeTrue();

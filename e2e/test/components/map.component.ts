@@ -101,13 +101,14 @@ export class MapComponent extends Component {
 
   public async selectLayer(name: string) {
     await this.rightToolbar.clickByIcon('layers');
-    const modal = (await App.waitModal()).$('>>>ion-radio-group');
-    await browser.waitUntil(() => modal.isExisting());
-    await browser.waitUntil(() => modal.$('div.layer.layer-' + name).isExisting());
-    await Component.scrollIntoView(modal.$('div.layer.layer-' + name));
-    await browser.waitUntil(() => modal.$('div.layer.layer-' + name).isDisplayed());
-    await modal.$('div.layer.layer-' + name).click();
-    await browser.waitUntil(() => modal.isDisplayed().then(d => !d));
+    const modal = await App.waitModal();
+    const radio = modal.$('>>>ion-radio-group');
+    await browser.waitUntil(() => radio.isExisting());
+    await browser.waitUntil(() => radio.$('div.layer.layer-' + name).isExisting());
+    await Component.scrollIntoView(radio.$('div.layer.layer-' + name));
+    await browser.waitUntil(() => radio.$('div.layer.layer-' + name).isDisplayed());
+    await radio.$('div.layer.layer-' + name).click();
+    await App.waitModalClosed(modal);
   }
 
   public async isLayerAvailable(name: string) {

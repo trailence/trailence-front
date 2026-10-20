@@ -10,7 +10,7 @@ import { TrailOverview } from './trail-overview.component';
 
 export class TrailsList extends Component {
 
-  public get toolbar() { return new ToolbarComponent(this.getElement().$('app-toolbar')); }
+  public get toolbar() { return new ToolbarComponent(this.getElement().$('app-toolbar.trails-list-toolbar')); }
 
   public get items() { return this.getElement().$('div.trails').$$('div.metadata-container.trail'); }
 

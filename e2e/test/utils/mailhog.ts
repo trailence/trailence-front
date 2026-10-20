@@ -5,7 +5,10 @@ export class MailHog {
 
   public async open(newTab: boolean = false) {
     if (newTab) {
-      await browser.newWindow('http://localhost:8025', { type: 'tab' });
+      const ctx = await browser.newWindow('http://localhost:8025', { type: 'tab' });
+      if (browser.isBidi) {
+        await (ctx as WebdriverIO.BrowsingContext).activate();
+      }
     } else {
       await browser.url('http://localhost:8025');
     }

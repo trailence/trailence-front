@@ -23,7 +23,7 @@ export const baseConfig: Options.Testrunner = {
         // do something
     //},
     stopOnSpecFailure: true,
-    stopSpecOnExpectationFailure: true,
+    oneFailurePerSpec: true,
   },
   reporters: [
     'spec'

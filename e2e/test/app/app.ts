@@ -296,7 +296,7 @@ export class App {
   }
 
   public static getPopoverContent(popoverContainer: ChainablePromiseElement): ChainablePromiseElement {
-    return popoverContainer.$('>>>.popover-viewport');
+    return popoverContainer.$('>>>.popover-viewport', { strict: false });
   }
 
   public static async closePopover() {
@@ -368,12 +368,20 @@ export class App {
     return page;
   }
 
+  public static async waitModalClosed(modal: ChainablePromiseElement, timeout?: number) {
+    await browser.waitUntil(() => modal.isExisting().then(e => !e), {timeout});
+  }
+
   public static async waitAlert(timeout?: number) {
     const alert = $('ion-app>ion-alert:not(.overlay-hidden)');
     await alert.waitForDisplayed({timeout});
     const content = alert.$('>>>.alert-wrapper');
     await content.waitForExist({timeout});
     return new IonicAlert(content);
+  }
+
+  public static async waitAlertClosed(alert: ChainablePromiseElement, timeout?: number) {
+    await this.waitModalClosed(alert, timeout);
   }
 
   public static async waitNoProgress(timeout?: number) {
