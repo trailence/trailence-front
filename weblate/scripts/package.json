@@ -1,0 +1,15 @@
+{
+  "name": "weblate-scripts",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "@types/xml-escape": "^1.1.3"
+  },
+  "scripts": {
+    "weblate": "node --import=tsx src/main.ts"
+  },
+  "dependencies": {
+    "xml-escape": "1.1.0"
+  },
+  "allowScripts": {}
+}

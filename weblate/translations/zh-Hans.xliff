@@ -1,0 +1,3939 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.1">
+<file original="Trailence" product-name="Trailence" source-language="en-US" target-language="zh-Hans" datatype="javascript">
+<body>
+<trans-unit resname="tools/filters">
+  <source xml:space="preserve">Filters</source>
+</trans-unit>
+<trans-unit resname="tools/import">
+  <source xml:space="preserve">Import</source>
+</trans-unit>
+<trans-unit resname="tools/import_gpx_description">
+  <source xml:space="preserve">Import GPX files</source>
+</trans-unit>
+<trans-unit resname="tools/importing">
+  <source xml:space="preserve">Importing</source>
+</trans-unit>
+<trans-unit resname="tools/sort">
+  <source xml:space="preserve">Sort</source>
+</trans-unit>
+<trans-unit resname="tools/more">
+  <source xml:space="preserve">More</source>
+</trans-unit>
+<trans-unit resname="tools/display">
+  <source xml:space="preserve">Display</source>
+</trans-unit>
+<trans-unit resname="tools/display_detailed">
+  <source xml:space="preserve">Detailed with photos</source>
+</trans-unit>
+<trans-unit resname="tools/display_detailed_small_map">
+  <source xml:space="preserve">Detailed with map</source>
+</trans-unit>
+<trans-unit resname="tools/display_detailed_elevation">
+  <source xml:space="preserve">Detailed with elevation</source>
+</trans-unit>
+<trans-unit resname="tools/display_condensed">
+  <source xml:space="preserve">Compact</source>
+</trans-unit>
+<trans-unit resname="tools/search_text">
+  <source xml:space="preserve">By name</source>
+</trans-unit>
+<trans-unit resname="pages/home/menu_label">
+  <source xml:space="preserve">Home</source>
+</trans-unit>
+<trans-unit resname="pages/home/hero/h1">
+  <source xml:space="preserve">Plan, record, organize and share your trails.</source>
+</trans-unit>
+<trans-unit resname="pages/home/hero/sub">
+  <source xml:space="preserve">Your hiking companion and GPS track manager. Open to all your outdoor activities.</source>
+</trans-unit>
+<trans-unit resname="pages/home/hero/chips/0">
+  <source xml:space="preserve">Free</source>
+</trans-unit>
+<trans-unit resname="pages/home/hero/chips/1">
+  <source xml:space="preserve">Open source</source>
+</trans-unit>
+<trans-unit resname="pages/home/hero/chips/2">
+  <source xml:space="preserve">No trackers</source>
+</trans-unit>
+<trans-unit resname="pages/home/hero/chips/3">
+  <source xml:space="preserve">No ads</source>
+</trans-unit>
+<trans-unit resname="pages/home/hero/chips/4">
+  <source xml:space="preserve">Web + Android</source>
+</trans-unit>
+<trans-unit resname="pages/home/try_now_button">
+  <source xml:space="preserve">Try it now</source>
+</trans-unit>
+<trans-unit resname="pages/home/try_note">
+  <source xml:space="preserve">No account required — try it right away.</source>
+</trans-unit>
+<trans-unit resname="pages/home/download_app_button">
+  <source xml:space="preserve">Download the app</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/eyebrow">
+  <source xml:space="preserve">What Trailence does for you</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/h2">
+  <source xml:space="preserve">From the trail to sharing.</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/on_field/h3">
+  <source xml:space="preserve">Out there</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/on_field/text">
+  <source xml:space="preserve">Record your track, follow an existing trail, and stay on course with directions and live stats (elevation gain, distance, time remaining). Take photos that attach directly to the trail. Offline maps and printing included.</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/organize/h3">
+  <source xml:space="preserve">Organize</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/organize/text">
+  <source xml:space="preserve">Group your trails into collections, add tags, sort and filter to find anything. Edit, compare, and manage your library however you like.</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/analyze/h3">
+  <source xml:space="preserve">Analyze</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/analyze/text">
+  <source xml:space="preserve">Detailed elevation profile, trail description, waypoints, estimated walking time, breaks, path waymarking, path characteristics. Plan your outing in advance — and review it when you get back.</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/enrich/h3">
+  <source xml:space="preserve">Enrich &amp; share</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/enrich/text">
+  <source xml:space="preserve">Attach your photos and find them again on the map. Share your trails with friends or the community, import and export as GPX, print for your outing.</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/h3">
+  <source xml:space="preserve">And so much more</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/lead">
+  <source xml:space="preserve">One app for everything you do outdoors — from scouting the map to reliving the outing.</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/features/0">
+  <source xml:space="preserve">Offline maps</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/features/1">
+  <source xml:space="preserve">IGN, OSM basemaps, …</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/features/2">
+  <source xml:space="preserve">Import / export GPX</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/features/3">
+  <source xml:space="preserve">Trail printing</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/features/4">
+  <source xml:space="preserve">Geotagged photos</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/features/5">
+  <source xml:space="preserve">Elevation profile</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/features/6">
+  <source xml:space="preserve">Tags &amp; collections</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/features/7">
+  <source xml:space="preserve">Search &amp; filters</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/features/8">
+  <source xml:space="preserve">Live group tracking</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/features/9">
+  <source xml:space="preserve">Waypoints</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/features/10">
+  <source xml:space="preserve">Web ↔ Android sync</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/features/11">
+  <source xml:space="preserve">Sharing &amp; links</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/features/12">
+  <source xml:space="preserve">Estimated walking time</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/features/13">
+  <source xml:space="preserve">Path waymarking</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/features/14">
+  <source xml:space="preserve">Trail markers</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/features/15">
+  <source xml:space="preserve">Path surfaces &amp; types</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/features/16">
+  <source xml:space="preserve">Distance &amp; time remaining</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/features/17">
+  <source xml:space="preserve">Trail creation</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/features/18">
+  <source xml:space="preserve">Map rotation</source>
+</trans-unit>
+<trans-unit resname="pages/home/features/and_more/features/19">
+  <source xml:space="preserve">Track editor</source>
+</trans-unit>
+<trans-unit resname="pages/home/manifesto/eyebrow">
+  <source xml:space="preserve">What makes Trailence different</source>
+</trans-unit>
+<trans-unit resname="pages/home/manifesto/h2">
+  <source xml:space="preserve">Your trails, your tracks, your data.</source>
+</trans-unit>
+<trans-unit resname="pages/home/manifesto/block1/h3">
+  <source xml:space="preserve">Open, free, shared</source>
+</trans-unit>
+<trans-unit resname="pages/home/manifesto/block1/text">
+  <source xml:space="preserve">Auditable code under the Apache-2.0 license. Nothing is hidden: you can check it and contribute. Trailence will always be free and open source — no &apos;premium&apos; accounts. An open trail database that anyone can help grow.</source>
+</trans-unit>
+<trans-unit resname="pages/home/manifesto/block2/h3">
+  <source xml:space="preserve">No ads, no trackers</source>
+</trans-unit>
+<trans-unit resname="pages/home/manifesto/block2/text">
+  <source xml:space="preserve">No ads, no trackers, nothing to resell. We don&apos;t live off your data — we protect it. And it stays yours: export it or delete everything, anytime.</source>
+</trans-unit>
+<trans-unit resname="pages/home/manifesto/block3/h3">
+  <source xml:space="preserve">Your data, everywhere</source>
+</trans-unit>
+<trans-unit resname="pages/home/manifesto/block3/text">
+  <source xml:space="preserve">One account, with your trails synced across Web and Android. Find them on every device, wherever you are.</source>
+</trans-unit>
+<trans-unit resname="pages/home/community/eyebrow">
+  <source xml:space="preserve">The open database</source>
+</trans-unit>
+<trans-unit resname="pages/home/community/h2">
+  <source xml:space="preserve">An open, documented, quality trail database — a work in progress.</source>
+</trans-unit>
+<trans-unit resname="pages/home/community/text">
+  <source xml:space="preserve">No locked-down copyright, no empty listings: real trails, documented and verified. It starts small and grows with you — &lt;b&gt;help us build the first truly open trail database.&lt;/b&gt;</source>
+</trans-unit>
+<trans-unit resname="pages/home/community/search_route_button">
+  <source xml:space="preserve">Search for a trail</source>
+</trans-unit>
+<trans-unit resname="pages/home/community/search_route_button_sub">
+  <source xml:space="preserve">No account needed.</source>
+</trans-unit>
+<trans-unit resname="pages/home/join/h2">
+  <source xml:space="preserve">Ready to get started?</source>
+</trans-unit>
+<trans-unit resname="pages/home/join/text">
+  <source xml:space="preserve">Create a free account to find your tracks on all your devices — Web and Android.</source>
+</trans-unit>
+<trans-unit resname="pages/home/join/create_account_button">
+  <source xml:space="preserve">Create an account</source>
+</trans-unit>
+<trans-unit resname="pages/home/join/login_button">
+  <source xml:space="preserve">Log in</source>
+</trans-unit>
+<trans-unit resname="pages/home/join/email_privacy">
+  <source xml:space="preserve">Your email is used &lt;b&gt;only&lt;/b&gt; to confirm your sign-up and reset your password. No newsletters, ever, and never shared with third parties.</source>
+</trans-unit>
+<trans-unit resname="pages/home/footer/slogan">
+  <source xml:space="preserve">Your outdoor companion and GPS track manager — free and open source.</source>
+</trans-unit>
+<trans-unit resname="pages/home/footer/resources/title">
+  <source xml:space="preserve">Resources</source>
+</trans-unit>
+<trans-unit resname="pages/home/footer/resources/search_route">
+  <source xml:space="preserve">Search for a trail</source>
+</trans-unit>
+<trans-unit resname="pages/home/footer/resources/contribute">
+  <source xml:space="preserve">Contribute</source>
+</trans-unit>
+<trans-unit resname="pages/home/footer/resources/contact">
+  <source xml:space="preserve">Contact</source>
+</trans-unit>
+<trans-unit resname="pages/home/footer/resources/github">
+  <source xml:space="preserve">Source code (GitHub)</source>
+</trans-unit>
+<trans-unit resname="pages/home/footer/download">
+  <source xml:space="preserve">Download</source>
+</trans-unit>
+<trans-unit resname="pages/home/footer/or_use_web">
+  <source xml:space="preserve">…or use the web version — nothing to install.</source>
+</trans-unit>
+<trans-unit resname="pages/home/footer/privacy_policy">
+  <source xml:space="preserve">Privacy policy</source>
+</trans-unit>
+<trans-unit resname="pages/installApk/title">
+  <source xml:space="preserve">Android app</source>
+</trans-unit>
+<trans-unit resname="pages/installApk/stores/intro">
+  <source xml:space="preserve">Trailence can be installed from one of the following stores:</source>
+</trans-unit>
+<trans-unit resname="pages/installApk/stores/else1">
+  <source xml:space="preserve">If you can&apos;t (or prefer not to) use these stores, you can still install Trailence via its APK file.</source>
+</trans-unit>
+<trans-unit resname="pages/installApk/stores/else2">
+  <source xml:space="preserve">Once installed, Trailence will let you know when updates are available. If you choose to install it, the new version will be automatically downloaded and installed - no need to repeat the full setup process.</source>
+</trans-unit>
+<trans-unit resname="pages/installApk/stores/else3">
+  <source xml:space="preserve">To install Trailence manually, follow these steps:</source>
+</trans-unit>
+<trans-unit resname="pages/installApk/download">
+  <source xml:space="preserve">Download the installation file</source>
+</trans-unit>
+<trans-unit resname="pages/installApk/meta_description">
+  <source xml:space="preserve">Instructions for installing the Trailence Android app</source>
+</trans-unit>
+<trans-unit resname="pages/installApk/steps/0/beforeImg">
+  <source xml:space="preserve">A window similar to the one below may appear</source>
+</trans-unit>
+<trans-unit resname="pages/installApk/steps/0/afterImg">
+  <source xml:space="preserve">Confirm the download, then open the file</source>
+</trans-unit>
+<trans-unit resname="pages/installApk/steps/1/beforeImg">
+  <source xml:space="preserve">If this is the first time you are installing an app this way, an alert similar to the one below may appear</source>
+</trans-unit>
+<trans-unit resname="pages/installApk/steps/1/afterImg">
+  <source xml:space="preserve">Go to settings to allow installation</source>
+</trans-unit>
+<trans-unit resname="pages/installApk/steps/2/beforeImg">
+  <source xml:space="preserve">A window will then appear</source>
+</trans-unit>
+<trans-unit resname="pages/installApk/steps/2/afterImg">
+  <source xml:space="preserve">Click on Allow from this source</source>
+</trans-unit>
+<trans-unit resname="pages/installApk/steps/3/beforeImg">
+  <source xml:space="preserve">A window will then appear to confirm the installation</source>
+</trans-unit>
+<trans-unit resname="pages/installApk/steps/3/afterImg">
+  <source xml:space="preserve">Click on Install</source>
+</trans-unit>
+<trans-unit resname="pages/installApk/steps/4/beforeImg">
+  <source xml:space="preserve">A window similar to the one below will then appear</source>
+</trans-unit>
+<trans-unit resname="pages/installApk/steps/4/afterImg">
+  <source xml:space="preserve">Click on More details in the middle of the screen</source>
+</trans-unit>
+<trans-unit resname="pages/installApk/steps/5/beforeImg">
+  <source xml:space="preserve">The screen will then display an Install without scanning button</source>
+</trans-unit>
+<trans-unit resname="pages/installApk/steps/5/afterImg">
+  <source xml:space="preserve">You can click on it, or request a scan if you prefer</source>
+</trans-unit>
+<trans-unit resname="pages/installApk/steps/6/beforeImg">
+  <source xml:space="preserve">Finally, the application is installed</source>
+</trans-unit>
+<trans-unit resname="pages/installApk/steps/6/afterImg">
+  <source xml:space="preserve"></source>
+</trans-unit>
+<trans-unit resname="pages/login/meta_description">
+  <source xml:space="preserve">Connect to your Trailence account</source>
+</trans-unit>
+<trans-unit resname="pages/login/title">
+  <source xml:space="preserve">Sign in</source>
+</trans-unit>
+<trans-unit resname="pages/login/email">
+  <source xml:space="preserve">Email</source>
+</trans-unit>
+<trans-unit resname="pages/login/password">
+  <source xml:space="preserve">Password</source>
+</trans-unit>
+<trans-unit resname="pages/login/signin_button">
+  <source xml:space="preserve">Sign in</source>
+</trans-unit>
+<trans-unit resname="pages/login/offline">
+  <source xml:space="preserve">Please connect to the Internet to sign in</source>
+</trans-unit>
+<trans-unit resname="pages/login/incorrect_message">
+  <source xml:space="preserve">Invalid email or password</source>
+</trans-unit>
+<trans-unit resname="pages/login/error_message">
+  <source xml:space="preserve">Authentication error, please retry</source>
+</trans-unit>
+<trans-unit resname="pages/login/captcha_message">
+  <source xml:space="preserve">Following several attempts, we need to check you are not a robot</source>
+</trans-unit>
+<trans-unit resname="pages/login/locked_message">
+  <source xml:space="preserve">Your account has been locked, please use the forgot password button</source>
+</trans-unit>
+<trans-unit resname="pages/login/forgot_password">
+  <source xml:space="preserve">Forgot password?</source>
+</trans-unit>
+<trans-unit resname="pages/login/create_account">
+  <source xml:space="preserve">Create an account</source>
+</trans-unit>
+<trans-unit resname="pages/login/try_without_account">
+  <source xml:space="preserve">Try without an account</source>
+</trans-unit>
+<trans-unit resname="pages/login/reset_password/title">
+  <source xml:space="preserve">Reset password</source>
+</trans-unit>
+<trans-unit resname="pages/login/reset_password/email">
+  <source xml:space="preserve">Email</source>
+</trans-unit>
+<trans-unit resname="pages/login/reset_password/new_password1">
+  <source xml:space="preserve">New password</source>
+</trans-unit>
+<trans-unit resname="pages/login/reset_password/new_password2">
+  <source xml:space="preserve">Confirm the new password</source>
+</trans-unit>
+<trans-unit resname="pages/login/reset_password/verification_code_explaination">
+  <source xml:space="preserve">We have just sent a 6-digit code to your email address. Please enter it below</source>
+</trans-unit>
+<trans-unit resname="pages/login/reset_password/in_progress">
+  <source xml:space="preserve">Resetting password...</source>
+</trans-unit>
+<trans-unit resname="pages/login/reset_password/error">
+  <source xml:space="preserve">An error occurred, please go back and retry</source>
+</trans-unit>
+<trans-unit resname="pages/login/reset_password/errors/email">
+  <source xml:space="preserve">Please enter a valid email</source>
+</trans-unit>
+<trans-unit resname="pages/login/reset_password/errors/password">
+  <source xml:space="preserve">Must contain at least 8 characters</source>
+</trans-unit>
+<trans-unit resname="pages/login/reset_password/errors/passwordsDontMatch">
+  <source xml:space="preserve">Passwords don&apos;t match</source>
+</trans-unit>
+<trans-unit resname="pages/login/reset_password/errors/mail_already_sent">
+  <source xml:space="preserve">A request was already made for your account less than 10 minutes ago.</source>
+</trans-unit>
+<trans-unit resname="pages/login/reset_password/errors/mail_error">
+  <source xml:space="preserve">An error has occurred, please try again.</source>
+</trans-unit>
+<trans-unit resname="pages/login/signing_in">
+  <source xml:space="preserve">Signing in...</source>
+</trans-unit>
+<trans-unit resname="pages/login/downloading_data">
+  <source xml:space="preserve">Loading your data...</source>
+</trans-unit>
+<trans-unit resname="pages/register/meta_description">
+  <source xml:space="preserve">Create an account on Trailence</source>
+</trans-unit>
+<trans-unit resname="pages/register/title">
+  <source xml:space="preserve">Create an account</source>
+</trans-unit>
+<trans-unit resname="pages/register/offline">
+  <source xml:space="preserve">Please connect to the Internet to create an account on Trailence</source>
+</trans-unit>
+<trans-unit resname="pages/register/step1">
+  <source xml:space="preserve">Enter your information</source>
+</trans-unit>
+<trans-unit resname="pages/register/email">
+  <source xml:space="preserve">Email</source>
+</trans-unit>
+<trans-unit resname="pages/register/password1">
+  <source xml:space="preserve">Password</source>
+</trans-unit>
+<trans-unit resname="pages/register/password2">
+  <source xml:space="preserve">Confirm the password</source>
+</trans-unit>
+<trans-unit resname="pages/register/step2">
+  <source xml:space="preserve">Confirm your email</source>
+</trans-unit>
+<trans-unit resname="pages/register/code_text">
+  <source xml:space="preserve">We have just sent a 6-digit code to your email address. Please enter it below</source>
+</trans-unit>
+<trans-unit resname="pages/register/step3">
+  <source xml:space="preserve">Account created</source>
+</trans-unit>
+<trans-unit resname="pages/register/connection">
+  <source xml:space="preserve">Signing in...</source>
+</trans-unit>
+<trans-unit resname="pages/register/continue">
+  <source xml:space="preserve">Continue</source>
+</trans-unit>
+<trans-unit resname="pages/register/back">
+  <source xml:space="preserve">Back</source>
+</trans-unit>
+<trans-unit resname="pages/register/errors/network">
+  <source xml:space="preserve">An error has occurred, please try again</source>
+</trans-unit>
+<trans-unit resname="pages/register/errors/passwordsDontMatch">
+  <source xml:space="preserve">The passwords don&apos;t match</source>
+</trans-unit>
+<trans-unit resname="pages/register/errors/invalidEmail">
+  <source xml:space="preserve">Please enter a valid email address</source>
+</trans-unit>
+<trans-unit resname="pages/trails/collection">
+  <source xml:space="preserve">Collection</source>
+</trans-unit>
+<trans-unit resname="pages/trails/share_from">
+  <source xml:space="preserve">Share from</source>
+</trans-unit>
+<trans-unit resname="pages/trails/your_share">
+  <source xml:space="preserve">Your share</source>
+</trans-unit>
+<trans-unit resname="pages/trails/shared_collection">
+  <source xml:space="preserve">Shared collection</source>
+</trans-unit>
+<trans-unit resname="pages/trails/shared_collection_by">
+  <source xml:space="preserve">Collection shared by {{1}}</source>
+</trans-unit>
+<trans-unit resname="pages/trails/edit_filters_popup_title">
+  <source xml:space="preserve">Filter trails</source>
+</trans-unit>
+<trans-unit resname="pages/trails/edit_sort_popup_title">
+  <source xml:space="preserve">Sort trails</source>
+</trans-unit>
+<trans-unit resname="pages/trails/missing_trails_because_offline">
+  <source xml:space="preserve">Some trails cannot be displayed because you are offline</source>
+</trans-unit>
+<trans-unit resname="pages/trails/sorts/trail_date">
+  <source xml:space="preserve">Date of the trail</source>
+</trans-unit>
+<trans-unit resname="pages/trails/sorts/creation_date">
+  <source xml:space="preserve">Creation in Trailence</source>
+</trans-unit>
+<trans-unit resname="pages/trails/sorts/update_date">
+  <source xml:space="preserve">Last update in Trailence</source>
+</trans-unit>
+<trans-unit resname="pages/trails/sorts/distance">
+  <source xml:space="preserve">Distance</source>
+</trans-unit>
+<trans-unit resname="pages/trails/sorts/duration">
+  <source xml:space="preserve">Duration</source>
+</trans-unit>
+<trans-unit resname="pages/trails/sorts/estimatedDuration">
+  <source xml:space="preserve">Estimated hiking duration</source>
+</trans-unit>
+<trans-unit resname="pages/trails/sorts/positive_elevation">
+  <source xml:space="preserve">Positive elevation</source>
+</trans-unit>
+<trans-unit resname="pages/trails/sorts/negative_elevation">
+  <source xml:space="preserve">Negative elevation</source>
+</trans-unit>
+<trans-unit resname="pages/trails/sorts/highest_altitude">
+  <source xml:space="preserve">Highest point</source>
+</trans-unit>
+<trans-unit resname="pages/trails/sorts/lowest_altitude">
+  <source xml:space="preserve">Lowest point</source>
+</trans-unit>
+<trans-unit resname="pages/trails/sorts/rating">
+  <source xml:space="preserve">Rating</source>
+</trans-unit>
+<trans-unit resname="pages/trails/filters/duration">
+  <source xml:space="preserve">Duration</source>
+</trans-unit>
+<trans-unit resname="pages/trails/filters/estimatedDuration">
+  <source xml:space="preserve">Estimated hiking duration</source>
+</trans-unit>
+<trans-unit resname="pages/trails/filters/distance">
+  <source xml:space="preserve">Distance</source>
+</trans-unit>
+<trans-unit resname="pages/trails/filters/positive_elevation">
+  <source xml:space="preserve">Positive elevation</source>
+</trans-unit>
+<trans-unit resname="pages/trails/filters/negative_elevation">
+  <source xml:space="preserve">Negative elevation</source>
+</trans-unit>
+<trans-unit resname="pages/trails/filters/activity">
+  <source xml:space="preserve">Activity</source>
+</trans-unit>
+<trans-unit resname="pages/trails/filters/select_activities_button">
+  <source xml:space="preserve">Click to select</source>
+</trans-unit>
+<trans-unit resname="pages/trails/filters/tags">
+  <source xml:space="preserve">Tags</source>
+</trans-unit>
+<trans-unit resname="pages/trails/filters/rate">
+  <source xml:space="preserve">Rating</source>
+</trans-unit>
+<trans-unit resname="pages/trails/filters/onlyVisibleOnMap">
+  <source xml:space="preserve">In the list, show only trails visible on the map</source>
+</trans-unit>
+<trans-unit resname="pages/trails/filters/onlyWithPhotos">
+  <source xml:space="preserve">Only trails with photos</source>
+</trans-unit>
+<trans-unit resname="pages/trails/filters/reset_button">
+  <source xml:space="preserve">Reset all filters</source>
+</trans-unit>
+<trans-unit resname="pages/trails/filters/preset">
+  <source xml:space="preserve">My filters</source>
+</trans-unit>
+<trans-unit resname="pages/trails/filters/load">
+  <source xml:space="preserve">Load</source>
+</trans-unit>
+<trans-unit resname="pages/trails/filters/save">
+  <source xml:space="preserve">Save</source>
+</trans-unit>
+<trans-unit resname="pages/trails/filters/remove">
+  <source xml:space="preserve">Delete</source>
+</trans-unit>
+<trans-unit resname="pages/trails/filters/save_new">
+  <source xml:space="preserve">New filter...</source>
+</trans-unit>
+<trans-unit resname="pages/trails/filters/no_saved_filter">
+  <source xml:space="preserve">No saved filter</source>
+</trans-unit>
+<trans-unit resname="pages/trails/filters/save_title">
+  <source xml:space="preserve">Save filter</source>
+</trans-unit>
+<trans-unit resname="pages/trails/filters/save_name">
+  <source xml:space="preserve">Filter name</source>
+</trans-unit>
+<trans-unit resname="pages/trails/filters/enum_or">
+  <source xml:space="preserve">or</source>
+</trans-unit>
+<trans-unit resname="pages/trails/tabs/list">
+  <source xml:space="preserve">List</source>
+</trans-unit>
+<trans-unit resname="pages/trails/tabs/map">
+  <source xml:space="preserve">Map</source>
+</trans-unit>
+<trans-unit resname="pages/trails/open_trail">
+  <source xml:space="preserve">Open</source>
+</trans-unit>
+<trans-unit resname="pages/trails/empty_list/collection">
+  <source xml:space="preserve">No trail yet in this collection</source>
+</trans-unit>
+<trans-unit resname="pages/trails/empty_list/share">
+  <source xml:space="preserve">No trail in this share</source>
+</trans-unit>
+<trans-unit resname="pages/trails/empty_list/filter">
+  <source xml:space="preserve">No trail matches your filters</source>
+</trans-unit>
+<trans-unit resname="pages/trails/empty_list/filter_search">
+  <source xml:space="preserve">No trail matches your filters in this area</source>
+</trans-unit>
+<trans-unit resname="pages/trails/empty_list/filter_search_enlarge_button">
+  <source xml:space="preserve">Broaden search area</source>
+</trans-unit>
+<trans-unit resname="pages/trails/empty_list/all_collections">
+  <source xml:space="preserve">You have no trails at the moment</source>
+</trans-unit>
+<trans-unit resname="pages/trails/empty_list/my_selection">
+  <source xml:space="preserve">You don&apos;t have any trails in your selection</source>
+</trans-unit>
+<trans-unit resname="pages/trails/empty_list/search">
+  <source xml:space="preserve">No trails found in this area.</source>
+</trans-unit>
+<trans-unit resname="pages/trails/empty_list/launch_search">
+  <source xml:space="preserve">Move around the map to the area where you want to search for trails, then click “Search in this area”.</source>
+</trans-unit>
+<trans-unit resname="pages/trails/empty_list/only_bubbles">
+  <source xml:space="preserve">Zoom in on the map and click “Search in this area”, or click directly on the bubbles to see available trails.</source>
+</trans-unit>
+<trans-unit resname="pages/trails/search_trail_placeholder">
+  <source xml:space="preserve">Search a trail</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/share_global">
+  <source xml:space="preserve">Create a share</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/share_trail">
+  <source xml:space="preserve">Create a share</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/share_trails">
+  <source xml:space="preserve">Create a share with these trails</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/delete_confirm_single/title">
+  <source xml:space="preserve">Delete trail</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/delete_confirm_single/message">
+  <source xml:space="preserve">Are you sure you want to delete {{}}?</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/delete_confirm_single/yes">
+  <source xml:space="preserve">Yes, delete</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/delete_confirm_single/no">
+  <source xml:space="preserve">Cancel, keep</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/delete_confirm_multiple/title">
+  <source xml:space="preserve">Delete {{}} trails</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/delete_confirm_multiple/message">
+  <source xml:space="preserve">Are you sure you want to delete these {{}} trails?</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/delete_confirm_multiple/yes">
+  <source xml:space="preserve">Yes, delete</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/delete_confirm_multiple/no">
+  <source xml:space="preserve">Cancel, keep</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/deleting_trails">
+  <source xml:space="preserve">Deleting</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/move_to_collection">
+  <source xml:space="preserve">Move to...</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/copy_to_collection">
+  <source xml:space="preserve">Copy into...</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/new_collection">
+  <source xml:space="preserve">New collection...</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/copying">
+  <source xml:space="preserve">Copying</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/moving">
+  <source xml:space="preserve">Moving</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/export">
+  <source xml:space="preserve">Export</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/export_collection">
+  <source xml:space="preserve">Export collection</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/open_gpx">
+  <source xml:space="preserve">Open GPX with</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/edit_collection">
+  <source xml:space="preserve">Rename</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/modify">
+  <source xml:space="preserve">Edit</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/prepare">
+  <source xml:space="preserve">Prepare</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/share_section">
+  <source xml:space="preserve">Share</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/rename">
+  <source xml:space="preserve">Title</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/edit_date">
+  <source xml:space="preserve">Date</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/rename_popup/title">
+  <source xml:space="preserve">Rename trail</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/rename_popup/name">
+  <source xml:space="preserve">Name</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/edit_location">
+  <source xml:space="preserve">Location</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/edit_activity">
+  <source xml:space="preserve">Activity</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/copy_photos_alert/title">
+  <source xml:space="preserve">Copy photos</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/copy_photos_alert/message_singular">
+  <source xml:space="preserve">The copied trail contains photos. Would you like to make a copy of the photos as well?</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/copy_photos_alert/message_plural">
+  <source xml:space="preserve">The copied trails contain photos. Would you like to make a copy of the photos as well?</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/copying_photos">
+  <source xml:space="preserve">Copying photos</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/copy_photo_error">
+  <source xml:space="preserve">Error copying photo {{1}}</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/add_to_my_selection">
+  <source xml:space="preserve">Add to my selection</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/remove_from_my_selection">
+  <source xml:space="preserve">Remove from my selection</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/copy_link">
+  <source xml:space="preserve">Copy link</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/share_link">
+  <source xml:space="preserve">Share link</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/create_link">
+  <source xml:space="preserve">Create a public link</source>
+</trans-unit>
+<trans-unit resname="pages/trails/actions/edit_link">
+  <source xml:space="preserve">Public link</source>
+</trans-unit>
+<trans-unit resname="pages/trails/tags/menu_item">
+  <source xml:space="preserve">Tags</source>
+</trans-unit>
+<trans-unit resname="pages/trails/tags/collection_menu_item">
+  <source xml:space="preserve">Edit tags</source>
+</trans-unit>
+<trans-unit resname="pages/trails/tags/popup/title_trail">
+  <source xml:space="preserve">Trail tags</source>
+</trans-unit>
+<trans-unit resname="pages/trails/tags/popup/title_trails">
+  <source xml:space="preserve">Trails tags</source>
+</trans-unit>
+<trans-unit resname="pages/trails/tags/popup/title_collection">
+  <source xml:space="preserve">Collection tags</source>
+</trans-unit>
+<trans-unit resname="pages/trails/tags/popup/add_tag_label">
+  <source xml:space="preserve">New tag</source>
+</trans-unit>
+<trans-unit resname="pages/trails/tags/popup/confirm_delete/title">
+  <source xml:space="preserve">Delete tag</source>
+</trans-unit>
+<trans-unit resname="pages/trails/tags/popup/confirm_delete/message">
+  <source xml:space="preserve">Are you sure you want to delete this tag? It is currently used on {{1}} trail(s)</source>
+</trans-unit>
+<trans-unit resname="pages/trails/tags/popup/confirm_delete/yes">
+  <source xml:space="preserve">Yes, delete</source>
+</trans-unit>
+<trans-unit resname="pages/trails/tags/popup/confirm_delete/no">
+  <source xml:space="preserve">Cancel, keep</source>
+</trans-unit>
+<trans-unit resname="pages/trails/search/sources">
+  <source xml:space="preserve">Sources</source>
+</trans-unit>
+<trans-unit resname="pages/trails/search/searching">
+  <source xml:space="preserve">Searching</source>
+</trans-unit>
+<trans-unit resname="pages/trails/search/error">
+  <source xml:space="preserve">Error searching tracks</source>
+</trans-unit>
+<trans-unit resname="pages/trails/search/needs_zoom">
+  <source xml:space="preserve">Map too wide, zoom in more</source>
+</trans-unit>
+<trans-unit resname="pages/trails/search/too_much_results">
+  <source xml:space="preserve">Too many results</source>
+</trans-unit>
+<trans-unit resname="pages/trails/search/search_in_this_area">
+  <source xml:space="preserve">Search in this area</source>
+</trans-unit>
+<trans-unit resname="pages/trails/search/clear_search_results">
+  <source xml:space="preserve">Clear results</source>
+</trans-unit>
+<trans-unit resname="pages/trail/title_compare">
+  <source xml:space="preserve">Compare</source>
+</trans-unit>
+<trans-unit resname="pages/trail/title_compare_and">
+  <source xml:space="preserve">and</source>
+</trans-unit>
+<trans-unit resname="pages/trail/tabs/details">
+  <source xml:space="preserve">Details</source>
+</trans-unit>
+<trans-unit resname="pages/trail/tabs/map">
+  <source xml:space="preserve">Map</source>
+</trans-unit>
+<trans-unit resname="pages/trail/tabs/photos">
+  <source xml:space="preserve">Photos</source>
+</trans-unit>
+<trans-unit resname="pages/trail/tabs/waypoints">
+  <source xml:space="preserve">Waypoints</source>
+</trans-unit>
+<trans-unit resname="pages/trail/tabs/comments">
+  <source xml:space="preserve">Reviews</source>
+</trans-unit>
+<trans-unit resname="pages/trail/show_original">
+  <source xml:space="preserve">Show original trace</source>
+</trans-unit>
+<trans-unit resname="pages/trail/show_osm">
+  <source xml:space="preserve">Show the route following known paths</source>
+</trans-unit>
+<trans-unit resname="pages/trail/show_breaks">
+  <source xml:space="preserve">Show breaks</source>
+</trans-unit>
+<trans-unit resname="pages/trail/show_guideposts">
+  <source xml:space="preserve">Show guideposts</source>
+</trans-unit>
+<trans-unit resname="pages/trail/show_intersections">
+  <source xml:space="preserve">Show intersections</source>
+</trans-unit>
+<trans-unit resname="pages/trail/map_elements/photos">
+  <source xml:space="preserve">Photos</source>
+</trans-unit>
+<trans-unit resname="pages/trail/map_elements/breaks">
+  <source xml:space="preserve">Breaks</source>
+</trans-unit>
+<trans-unit resname="pages/trail/map_elements/guideposts">
+  <source xml:space="preserve">Guideposts</source>
+</trans-unit>
+<trans-unit resname="pages/trail/map_elements/waypoints">
+  <source xml:space="preserve">Waypoints</source>
+</trans-unit>
+<trans-unit resname="pages/trail/map_elements/marked_trails">
+  <source xml:space="preserve">Trail markings</source>
+</trans-unit>
+<trans-unit resname="pages/trail/map_elements/elevation_colors">
+  <source xml:space="preserve">Elevation profile colors on the route</source>
+</trans-unit>
+<trans-unit resname="pages/trail/reverse_way">
+  <source xml:space="preserve">Reverse direction</source>
+</trans-unit>
+<trans-unit resname="pages/trail/open_in_app">
+  <source xml:space="preserve">Open in</source>
+</trans-unit>
+<trans-unit resname="pages/trail/open_in_trailence">
+  <source xml:space="preserve">View original trail</source>
+</trans-unit>
+<trans-unit resname="pages/trail/actions/open">
+  <source xml:space="preserve">Open trail</source>
+</trans-unit>
+<trans-unit resname="pages/trail/actions/go_to_departure">
+  <source xml:space="preserve">Go to departure</source>
+</trans-unit>
+<trans-unit resname="pages/trail/actions/download_map">
+  <source xml:space="preserve">Download map</source>
+</trans-unit>
+<trans-unit resname="pages/trail/actions/compare">
+  <source xml:space="preserve">Compare</source>
+</trans-unit>
+<trans-unit resname="pages/trail/actions/compare_with">
+  <source xml:space="preserve">Compare with...</source>
+</trans-unit>
+<trans-unit resname="pages/trail/actions/compare_with_explanation">
+  <source xml:space="preserve">To compare this trail with another, open the other trail&apos;s menu and click « Compare with this trail ».</source>
+</trans-unit>
+<trans-unit resname="pages/trail/actions/compare_with_this_one">
+  <source xml:space="preserve">Compare with this trail</source>
+</trans-unit>
+<trans-unit resname="pages/trail/actions/merge_trails">
+  <source xml:space="preserve">Merge these trails</source>
+</trans-unit>
+<trans-unit resname="pages/trail/actions/merged_trail_name">
+  <source xml:space="preserve">Merged trail</source>
+</trans-unit>
+<trans-unit resname="pages/trail/no_tag_message">
+  <source xml:space="preserve">No tag on this trail</source>
+</trans-unit>
+<trans-unit resname="pages/trail/no_photo_message">
+  <source xml:space="preserve">No photo on this trail</source>
+</trans-unit>
+<trans-unit resname="pages/trail/photo_no_description">
+  <source xml:space="preserve">Description</source>
+</trans-unit>
+<trans-unit resname="pages/trail/take_photo">
+  <source xml:space="preserve">Take a photo</source>
+</trans-unit>
+<trans-unit resname="pages/trail/comparison_message">
+  <source xml:space="preserve">These trails are {{1}}% similar</source>
+</trans-unit>
+<trans-unit resname="pages/trail/propose_to_publish/be_the_first">
+  <source xml:space="preserve">No trails in this area yet. Be the first to share one and help the community 🙏</source>
+</trans-unit>
+<trans-unit resname="pages/trail/propose_to_publish/improve_region">
+  <source xml:space="preserve">This area needs more trails. Help the community by sharing yours 🙏</source>
+</trans-unit>
+<trans-unit resname="pages/trail/propose_to_publish/participate_region">
+  <source xml:space="preserve">There are still only a few trails in this area. Contribute by sharing yours with the community 🙏</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/description/placeholder">
+  <source xml:space="preserve">Describe the trail here</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/waypoints/title">
+  <source xml:space="preserve">Waypoints</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/title">
+  <source xml:space="preserve">Reviews</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/you">
+  <source xml:space="preserve">You</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/rate/global">
+  <source xml:space="preserve">Average rating:</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/rate/global_on_nb">
+  <source xml:space="preserve"> based on {{1}} reviews</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/rate/no_rate">
+  <source xml:space="preserve">No rating yet</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/rate/yours">
+  <source xml:space="preserve">Your rating:</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/rate/write_a_review">
+  <source xml:space="preserve">⭐ Rate and review this trail</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/rate/change_rate_or_review">
+  <source xml:space="preserve">Edit my rating or add a comment</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/rate/modal/title">
+  <source xml:space="preserve">Rate and review</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/rate/modal/rate_title">
+  <source xml:space="preserve">Give a rating</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/rate/modal/comment_title">
+  <source xml:space="preserve">Leave a comment</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/rate/modal/comment_advise/header">
+  <source xml:space="preserve">A few guidelines and tips before posting:</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/rate/modal/comment_advise/items/0">
+  <source xml:space="preserve">Briefly share your overall impression of the trail.</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/rate/modal/comment_advise/items/1">
+  <source xml:space="preserve">Mention any difficulties you encountered.</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/rate/modal/comment_advise/items/2">
+  <source xml:space="preserve">Highlight any sections that require extra attention.</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/rate/modal/comment_advise/items/3">
+  <source xml:space="preserve">Feel free to point out what you particularly liked or disliked to help the community.</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/rate/modal/comment_advise/items/4">
+  <source xml:space="preserve">Be polite and respectful: no offensive, abusive, or discriminatory language.</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/rate/modal/comment_advise/footer">
+  <source xml:space="preserve">🙏 Thank you for your contribution!</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/rate/modal/send_error">
+  <source xml:space="preserve">Error while sending your review</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/delete_comment_confirmation/title">
+  <source xml:space="preserve">Delete comment</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/delete_comment_confirmation/message">
+  <source xml:space="preserve">Are you sure you want to delete this comment?</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/delete_reply_confirmation/title">
+  <source xml:space="preserve">Delete reply</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/delete_reply_confirmation/message">
+  <source xml:space="preserve">Are you sure you want to delete this reply?</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/reply">
+  <source xml:space="preserve">Reply</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/reply_placeholder">
+  <source xml:space="preserve">Enter your reply here</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/reply_send_error">
+  <source xml:space="preserve">Error while sending your reply</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/load_more_comments">
+  <source xml:space="preserve">Show more comments</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/has_done_this_trail">
+  <source xml:space="preserve">followed this trail ✅</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/filter_has_done_this_trail">
+  <source xml:space="preserve">Include people who followed this trail</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/show_reviews_with_rate">
+  <source xml:space="preserve">Active filter: ratings of {{1}}/5</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/not_authenticated">
+  <source xml:space="preserve">Log in to see the reviews</source>
+</trans-unit>
+<trans-unit resname="pages/trail/sections/comments/not_connected">
+  <source xml:space="preserve">Internet connection required to fetch reviews</source>
+</trans-unit>
+<trans-unit resname="pages/trail/remaining_metadata_title">
+  <source xml:space="preserve">Remaining</source>
+</trans-unit>
+<trans-unit resname="pages/trail/created_in_trailence_on">
+  <source xml:space="preserve">Created in Trailence on</source>
+</trans-unit>
+<trans-unit resname="pages/trail/last_update_on">
+  <source xml:space="preserve">Last updated on</source>
+</trans-unit>
+<trans-unit resname="pages/trail/published_by">
+  <source xml:space="preserve">Published by</source>
+</trans-unit>
+<trans-unit resname="pages/trail/published__by">
+  <source xml:space="preserve">By</source>
+</trans-unit>
+<trans-unit resname="pages/trail/published_on">
+  <source xml:space="preserve">Published on</source>
+</trans-unit>
+<trans-unit resname="pages/trail/published__on">
+  <source xml:space="preserve">On</source>
+</trans-unit>
+<trans-unit resname="pages/trail/published_from">
+  <source xml:space="preserve">from</source>
+</trans-unit>
+<trans-unit resname="pages/trail/select_photo_position">
+  <source xml:space="preserve">Select where the photo was taken on the trail</source>
+</trans-unit>
+<trans-unit resname="pages/trail/source/trailence_recorder">
+  <source xml:space="preserve">Track recorded in Trailence</source>
+</trans-unit>
+<trans-unit resname="pages/trail/source/trailence_planner">
+  <source xml:space="preserve">Trail planned in Trailence</source>
+</trans-unit>
+<trans-unit resname="pages/trail/source/with_date">
+  <source xml:space="preserve"> on {{1}}</source>
+</trans-unit>
+<trans-unit resname="pages/trail/source/with_owner">
+  <source xml:space="preserve"> by {{1}}</source>
+</trans-unit>
+<trans-unit resname="pages/trail/source/file_import">
+  <source xml:space="preserve">Imported from file {{1}}</source>
+</trans-unit>
+<trans-unit resname="pages/trail/source/file_import_unknown">
+  <source xml:space="preserve">Imported from a file</source>
+</trans-unit>
+<trans-unit resname="pages/trail/source/external">
+  <source xml:space="preserve">Found on {{1}}</source>
+</trans-unit>
+<trans-unit resname="pages/trail/source/following">
+  <source xml:space="preserve"> by following :*:{{1}}:*:{{2}}:*:</source>
+</trans-unit>
+<trans-unit resname="pages/trail/source/following_a_deleted_track">
+  <source xml:space="preserve"> by following a trail (now deleted)</source>
+</trans-unit>
+<trans-unit resname="pages/trail/source/initially_found_on">
+  <source xml:space="preserve"> initially found on :*:{{1}}:*:{{2}}:*:</source>
+</trans-unit>
+<trans-unit resname="pages/trail/source/following_found_on">
+  <source xml:space="preserve"> by following a trail found on :*:{{1}}:*:{{2}}:*:</source>
+</trans-unit>
+<trans-unit resname="pages/trail/source/source_url">
+  <source xml:space="preserve">Source:</source>
+</trans-unit>
+<trans-unit resname="pages/trail/source/source_advise">
+  <source xml:space="preserve">💡 It is recommended to consult the source before following the trail, in order to get the most up-to-date information.</source>
+</trans-unit>
+<trans-unit resname="pages/trail/source/add_source_url">
+  <source xml:space="preserve">Add a source (link)</source>
+</trans-unit>
+<trans-unit resname="pages/trail/my_feedback/you_leave_a_rate">
+  <source xml:space="preserve">You rated this trail {{1}}/5 on {{2}}</source>
+</trans-unit>
+<trans-unit resname="pages/trail/my_feedback/you_leave_a_comment">
+  <source xml:space="preserve">You left a comment on this trail on {{1}}</source>
+</trans-unit>
+<trans-unit resname="pages/trail/my_feedback/you_leave_a_rate_and_a_comment_same_date">
+  <source xml:space="preserve">You rated this trail {{1}}/5 with a comment on {{2}}</source>
+</trans-unit>
+<trans-unit resname="pages/trail/my_feedback/you_leave_a_rate_and_a_comment_different_date">
+  <source xml:space="preserve">You rated this trail {{1}}/5 on {{2}} and left a comment on {{3}}</source>
+</trans-unit>
+<trans-unit resname="pages/trail/my_feedback/invite_to_rate_title">
+  <source xml:space="preserve">🙏 Join the community!</source>
+</trans-unit>
+<trans-unit resname="pages/trail/my_feedback/invite_to_rate_button">
+  <source xml:space="preserve">⭐ Rate this trail</source>
+</trans-unit>
+<trans-unit resname="pages/collection_form/title">
+  <source xml:space="preserve">Collection</source>
+</trans-unit>
+<trans-unit resname="pages/collection_form/collection_name">
+  <source xml:space="preserve">Name</source>
+</trans-unit>
+<trans-unit resname="pages/collection_form/shared/toggle_label">
+  <source xml:space="preserve">Shared collection</source>
+</trans-unit>
+<trans-unit resname="pages/collection_form/shared/explanation">
+  <source xml:space="preserve">Users with whom this collection is shared can edit, add or delete items, but they cannot delete the collection itself.</source>
+</trans-unit>
+<trans-unit resname="pages/collection_form/shared/explanation_anonymous">
+  <source xml:space="preserve">Shared collections are not available without an account.</source>
+</trans-unit>
+<trans-unit resname="pages/collection_form/shared/by">
+  <source xml:space="preserve">Shared by</source>
+</trans-unit>
+<trans-unit resname="pages/location_popup/title">
+  <source xml:space="preserve">Trail location</source>
+</trans-unit>
+<trans-unit resname="pages/location_popup/location">
+  <source xml:space="preserve">Location</source>
+</trans-unit>
+<trans-unit resname="pages/location_popup/search_from_departure">
+  <source xml:space="preserve">Suggest locations based on departure</source>
+</trans-unit>
+<trans-unit resname="pages/location_popup/radius">
+  <source xml:space="preserve">Within a radius of</source>
+</trans-unit>
+<trans-unit resname="pages/location_popup/search">
+  <source xml:space="preserve">Search</source>
+</trans-unit>
+<trans-unit resname="pages/import_gpx_popup/title">
+  <source xml:space="preserve">Import new trail</source>
+</trans-unit>
+<trans-unit resname="pages/import_gpx_popup/message">
+  <source xml:space="preserve">Please select the collection into which you want to import the file{{1}}</source>
+</trans-unit>
+<trans-unit resname="pages/import_tags_popup/title_import">
+  <source xml:space="preserve">Import tags</source>
+</trans-unit>
+<trans-unit resname="pages/import_tags_popup/title_copy">
+  <source xml:space="preserve">Copy tags</source>
+</trans-unit>
+<trans-unit resname="pages/import_tags_popup/message_import">
+  <source xml:space="preserve">The following tags were found in the imported files</source>
+</trans-unit>
+<trans-unit resname="pages/import_tags_popup/message_copy">
+  <source xml:space="preserve">The following tags are present on the copied trails</source>
+</trans-unit>
+<trans-unit resname="pages/import_tags_popup/tag">
+  <source xml:space="preserve">Tag</source>
+</trans-unit>
+<trans-unit resname="pages/import_tags_popup/status">
+  <source xml:space="preserve">Status</source>
+</trans-unit>
+<trans-unit resname="pages/import_tags_popup/status_exists">
+  <source xml:space="preserve">Exists</source>
+</trans-unit>
+<trans-unit resname="pages/import_tags_popup/status_does_not_exist">
+  <source xml:space="preserve">Does not exist</source>
+</trans-unit>
+<trans-unit resname="pages/import_tags_popup/message2">
+  <source xml:space="preserve">What do you want to do with these tags?</source>
+</trans-unit>
+<trans-unit resname="pages/import_tags_popup/import_existing_only">
+  <source xml:space="preserve">Import only the existing tags</source>
+</trans-unit>
+<trans-unit resname="pages/import_tags_popup/import_and_create">
+  <source xml:space="preserve">Import all tags by creating the missing ones</source>
+</trans-unit>
+<trans-unit resname="pages/import_tags_popup/import_all">
+  <source xml:space="preserve">Import all</source>
+</trans-unit>
+<trans-unit resname="pages/import_tags_popup/ignore_all_import">
+  <source xml:space="preserve">Do not import any tags</source>
+</trans-unit>
+<trans-unit resname="pages/import_tags_popup/copy_existing_only">
+  <source xml:space="preserve">Copy only the existing tags</source>
+</trans-unit>
+<trans-unit resname="pages/import_tags_popup/copy_and_create">
+  <source xml:space="preserve">Copy all tags by creating the missing ones</source>
+</trans-unit>
+<trans-unit resname="pages/import_tags_popup/copy_all">
+  <source xml:space="preserve">Copy all</source>
+</trans-unit>
+<trans-unit resname="pages/import_tags_popup/ignore_all_copy">
+  <source xml:space="preserve">Do not copy any tags</source>
+</trans-unit>
+<trans-unit resname="pages/import_from_sources/title">
+  <source xml:space="preserve">Import data</source>
+</trans-unit>
+<trans-unit resname="pages/import_from_sources/message1">
+  <source xml:space="preserve">We found the following sources:</source>
+</trans-unit>
+<trans-unit resname="pages/import_from_sources/message2">
+  <source xml:space="preserve">Would you like to try importing additional data from these sources?</source>
+</trans-unit>
+<trans-unit resname="pages/import_from_sources/message_internet">
+  <source xml:space="preserve">You must be connected to the Internet in order to import from these sources</source>
+</trans-unit>
+<trans-unit resname="pages/share_popup/title">
+  <source xml:space="preserve">Share</source>
+</trans-unit>
+<trans-unit resname="pages/share_popup/type/question">
+  <source xml:space="preserve">What would you like to share?</source>
+</trans-unit>
+<trans-unit resname="pages/share_popup/type/collection">
+  <source xml:space="preserve">The whole collection</source>
+</trans-unit>
+<trans-unit resname="pages/share_popup/type/tags">
+  <source xml:space="preserve">Some tags</source>
+</trans-unit>
+<trans-unit resname="pages/share_popup/type/explanation/collection">
+  <source xml:space="preserve">All trails in the collection will be shared. If you add, remove, or edit a trail in the collection, the share will be automatically updated.</source>
+</trans-unit>
+<trans-unit resname="pages/share_popup/type/explanation/tags">
+  <source xml:space="preserve">Only trails in the collection with the selected tags (on the next page) will be shared. If you tag a new trail with one of the selected tags, it will be automatically added to the share. Likewise, if you remove a tag from a trail, the share will be updated.</source>
+</trans-unit>
+<trans-unit resname="pages/share_popup/tags/question">
+  <source xml:space="preserve">Which tags?</source>
+</trans-unit>
+<trans-unit resname="pages/share_popup/name">
+  <source xml:space="preserve">Give a name to this share</source>
+</trans-unit>
+<trans-unit resname="pages/share_popup/name_info">
+  <source xml:space="preserve">This name will be visible to you and the person you&apos;re sharing with</source>
+</trans-unit>
+<trans-unit resname="pages/share_popup/who_question">
+  <source xml:space="preserve">With whom? (up to 20 people)</source>
+</trans-unit>
+<trans-unit resname="pages/share_popup/includePhotos">
+  <source xml:space="preserve">Share photos with trails</source>
+</trans-unit>
+<trans-unit resname="pages/share_popup/photos_info">
+  <source xml:space="preserve">Photos associated with shared trails will be visible to the person you are sharing with</source>
+</trans-unit>
+<trans-unit resname="pages/share_popup/email_info">
+  <source xml:space="preserve">An email will be sent to the person to inform them of this share</source>
+</trans-unit>
+<trans-unit resname="pages/share_popup/language">
+  <source xml:space="preserve">In which language should we send the mail?</source>
+</trans-unit>
+<trans-unit resname="pages/share_popup/share_description/COLLECTION">
+  <source xml:space="preserve">Share the whole collection {{1}}</source>
+</trans-unit>
+<trans-unit resname="pages/share_popup/share_description/TRAIL">
+  <source xml:space="preserve">Share {{1}} trail(s)</source>
+</trans-unit>
+<trans-unit resname="pages/share_popup/share_description/TAGS">
+  <source xml:space="preserve">Share the following tags: {{1}}</source>
+</trans-unit>
+<trans-unit resname="pages/trail_link/title">
+  <source xml:space="preserve">Public link</source>
+</trans-unit>
+<trans-unit resname="pages/trail_link/explanation">
+  <source xml:space="preserve">Anyone with this link can view your trail, including its waypoints and photos.&lt;br/&gt;Tags and collection will not be visible.&lt;br/&gt;Any changes you make to the trail will be reflected automatically.</source>
+</trans-unit>
+<trans-unit resname="pages/trail_link/offline">
+  <source xml:space="preserve">Please connect to the Internet to generate the link</source>
+</trans-unit>
+<trans-unit resname="pages/trail_link/anonymous">
+  <source xml:space="preserve">This functionality is not available without an account.</source>
+</trans-unit>
+<trans-unit resname="pages/trail_link/waiting">
+  <source xml:space="preserve">Creating link...</source>
+</trans-unit>
+<trans-unit resname="pages/trail_link/copy">
+  <source xml:space="preserve">Copy</source>
+</trans-unit>
+<trans-unit resname="pages/trail_link/copied">
+  <source xml:space="preserve">Link copied to clipboard</source>
+</trans-unit>
+<trans-unit resname="pages/trail_link/share">
+  <source xml:space="preserve">Share</source>
+</trans-unit>
+<trans-unit resname="pages/trail_link/share_title">
+  <source xml:space="preserve">Trailence public link</source>
+</trans-unit>
+<trans-unit resname="pages/trail_link/delete/title">
+  <source xml:space="preserve">Delete public link</source>
+</trans-unit>
+<trans-unit resname="pages/trail_link/delete/message">
+  <source xml:space="preserve">Are you sure you want to delete this link?</source>
+</trans-unit>
+<trans-unit resname="pages/find_duplicates/title">
+  <source xml:space="preserve">Search for similar trails</source>
+</trans-unit>
+<trans-unit resname="pages/find_duplicates/menu_label">
+  <source xml:space="preserve">Search for similar trails</source>
+</trans-unit>
+<trans-unit resname="pages/find_duplicates/option_inside_collection">
+  <source xml:space="preserve">Inside collection {{1}}</source>
+</trans-unit>
+<trans-unit resname="pages/find_duplicates/option_between_collections">
+  <source xml:space="preserve">Between trails of collection {{1}} and those of collection</source>
+</trans-unit>
+<trans-unit resname="pages/find_duplicates/option_all">
+  <source xml:space="preserve">Between all trails of all collections</source>
+</trans-unit>
+<trans-unit resname="pages/find_duplicates/threshold">
+  <source xml:space="preserve">With a similarity of at least</source>
+</trans-unit>
+<trans-unit resname="pages/find_duplicates/end_message">
+  <source xml:space="preserve">End of search</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/title">
+  <source xml:space="preserve">Preferences</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/display_section_title">
+  <source xml:space="preserve">Display</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/language">
+  <source xml:space="preserve">Language</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/theme">
+  <source xml:space="preserve">Theme</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/themes/light">
+  <source xml:space="preserve">Light</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/themes/dark">
+  <source xml:space="preserve">Dark</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/themes/system">
+  <source xml:space="preserve">System default</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/larger_touch_targets">
+  <source xml:space="preserve">Larger touch targets</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/larger_texts">
+  <source xml:space="preserve">Larger texts</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/distance_unit">
+  <source xml:space="preserve">Distance unit</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/distance_units/meters">
+  <source xml:space="preserve">Meters / Kilometers</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/distance_units/imperial">
+  <source xml:space="preserve">Feet / Miles</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/elevation_units_long/meters">
+  <source xml:space="preserve">meters</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/elevation_units_long/imperial">
+  <source xml:space="preserve">feet</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/date_format">
+  <source xml:space="preserve">Date format</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/time_format">
+  <source xml:space="preserve">Time format</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/appearance_and_privacy">
+  <source xml:space="preserve">Appearance and privacy</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/alias">
+  <source xml:space="preserve">How would you like to appear publicly?</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/alias_explaination">
+  <source xml:space="preserve">When you publish a trail or leave a comment on a public trail, you can choose to remain anonymous or display a name of your choice. If you choose a name, please make sure it does not contain any offensive, abusive, or discriminatory language.</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/anonymous">
+  <source xml:space="preserve">Anonymous</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/alias_name">
+  <source xml:space="preserve">Using name</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/avatar">
+  <source xml:space="preserve">Profile picture</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/avatar_pending">
+  <source xml:space="preserve">Picture pending approval</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/create_avatar">
+  <source xml:space="preserve">Add a profile picture</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/delete_avatar_error">
+  <source xml:space="preserve">Error while deleting profile picture</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/avatar_public">
+  <source xml:space="preserve">Publicly visible photo</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/avatar_private">
+  <source xml:space="preserve">Private photo, visible only to you</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/trace_recorder">
+  <source xml:space="preserve">Trace recording</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/traceMinMeters">
+  <source xml:space="preserve">Minimum distance between each recorded point</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/traceMinMeters_explaination">
+  <source xml:space="preserve">If the value is too low, the track quality may decrease due to GPS imprecision.&lt;br/&gt;A value that is too high also leads to a low-quality track with long straight lines.&lt;br/&gt;Additionally, shorter distances result in more recorded points, which can increase battery consumption.&lt;br/&gt;We recommend setting the value between 5 and 15 meters (approximately 16 to 50 feet) for a good balance.</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/traceMinMillis">
+  <source xml:space="preserve">Minimum time between each recorded point</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/traceMinMillis_explaination">
+  <source xml:space="preserve">If you want to limit the number of recorded points, in order to reduce battery consumption, you can use a longer minimum time between each point.&lt;br/&gt;The minimum distance between each point is also taken into account, so both the minimum distance and the minimum time must be reached before recording a new point.&lt;br/&gt;We recommend a value between 2 and 5 seconds.</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/elevation_calibration">
+  <source xml:space="preserve">Altitude</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/elevation_calibration_explaination">
+  <source xml:space="preserve">The altitude recorded by the GPS often shows a discrepancy compared to reality.&lt;br/&gt;Here, you can adjust it by specifying a correction value.&lt;br/&gt;For example, if your GPS is always about {{1}} {{2}} higher than the real altitude, you can enter &lt;b&gt;-{{1}}&lt;/b&gt;.&lt;br/&gt;Since every device is different, the configuration is done per device.</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/elevation_calibration_this_device">
+  <source xml:space="preserve">this device</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/offline_map">
+  <source xml:space="preserve">Offline maps</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/offlineMapMaxKeepDays">
+  <source xml:space="preserve">Number of days a downloaded map is valid</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/offlineMapMaxKeepDays_explaination">
+  <source xml:space="preserve">When you download a map to make it available offline, this setting defines how long it will be retained. It also prevents re-downloading a map if it was recently downloaded, saving time.</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/offline_maps/title">
+  <source xml:space="preserve">Downloaded maps</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/offline_maps/items">
+  <source xml:space="preserve">Items</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/offline_maps/size">
+  <source xml:space="preserve">Size</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/offline_maps/remove_all">
+  <source xml:space="preserve">Remove all</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/more_maps_layers">
+  <source xml:space="preserve">More map layers</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/photos">
+  <source xml:space="preserve">Photos</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/photos_max_pixels">
+  <source xml:space="preserve">Maximum width/height of photos</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/photos_max_pixels_explaination">
+  <source xml:space="preserve">When you add a photo larger than the maximum size, it will be automatically resized.</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/photos_max_quality">
+  <source xml:space="preserve">Photo quality (%)</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/photos_max_quality_explaination">
+  <source xml:space="preserve">Photos are automatically converted to JPEG format, and this setting determines the compression quality. 100% provides maximum quality with low compression. We recommend 90%, which maintains very good quality while still allowing good compression.</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/photos_max_size_kb">
+  <source xml:space="preserve">Maximum photo file size (KB)</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/photos_max_size_kb_explaination">
+  <source xml:space="preserve">When you store a photo, the maximum pixel size and quality are applied. If the result is a file size larger than this value, the size and quality will be slightly reduced until the file size is below this threshold.</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/photos_cache">
+  <source xml:space="preserve">Downloaded photos</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/photos_cache_explaination">
+  <source xml:space="preserve">When a photo is displayed, it is downloaded and then cached on your device. This avoids having to download a photo each time, and therefore makes the display faster. It also allows you to view photos offline. So, if you plan to follow a trail that contains photos, and you want to be able to view the photos offline during your hike, by viewing the photos before you start the hike while you have network access, they will be available offline.</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/photos_cache_total">
+  <source xml:space="preserve">Total file size</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/photos_cache_expired">
+  <source xml:space="preserve">Expired file size</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/photos_cache_remove_all">
+  <source xml:space="preserve">Remove all</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/photos_cache_remove_expired">
+  <source xml:space="preserve">Remove expired files</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/photos_cache_max_days">
+  <source xml:space="preserve">Retention of downloaded photos (days)</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/thunderforest_explaination">
+  <source xml:space="preserve">You can add maps from thunderforest.com if you have an account on their web site (a free account is available). Enter your API key below</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/time_calculation/title">
+  <source xml:space="preserve">Calculation of hike duration</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/time_calculation/base_speed">
+  <source xml:space="preserve">Speed on flat terrain</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/time_calculation/base_speed_explaination">
+  <source xml:space="preserve">This speed is used to estimate the hike duration. It is weighted according to the elevation and duration. By default the value is 3.1 mi/h (5 km/h), which corresponds to the average speed of a hiker.</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/time_calculation/long_breaks_title">
+  <source xml:space="preserve">Detection of long stops</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/time_calculation/long_break_explaination">
+  <source xml:space="preserve">When displaying a hike&apos;s duration, we distinguish short stops (to take a break, admire the view, etc.) and long stops (like a picnic).&lt;br/&gt;&lt;br/&gt;Short stops are included in the total duration, as it&apos;s normal to have brief pauses. However, when a long stop is detected, its duration is deducted from the hike time so the time shown doesn&apos;t depend on how long you took a nap 😉. The deducted time appears in the &lt;i&gt;Breaks&lt;/i&gt; section.&lt;br/&gt;&lt;br/&gt;To detect long stops, you can configure two parameters: a perimeter and a minimum duration. A stop is considered long when you stay within this perimeter for at least the set minimum time.</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/time_calculation/long_break_minimum_duration">
+  <source xml:space="preserve">Minimum stop duration</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/time_calculation/long_break_maximum_distance">
+  <source xml:space="preserve">Maximum perimeter</source>
+</trans-unit>
+<trans-unit resname="pages/preferences/reset_all">
+  <source xml:space="preserve">Restore all settings to default</source>
+</trans-unit>
+<trans-unit resname="pages/edit_avatar/title">
+  <source xml:space="preserve">Profile picture</source>
+</trans-unit>
+<trans-unit resname="pages/edit_avatar/edit">
+  <source xml:space="preserve">Edit picture</source>
+</trans-unit>
+<trans-unit resname="pages/edit_avatar/select_file">
+  <source xml:space="preserve">Load file</source>
+</trans-unit>
+<trans-unit resname="pages/edit_avatar/is_public">
+  <source xml:space="preserve">Publicly visible</source>
+</trans-unit>
+<trans-unit resname="pages/edit_avatar/error_saving">
+  <source xml:space="preserve">Error while saving profile picture</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/title">
+  <source xml:space="preserve">My account</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/created_at">
+  <source xml:space="preserve">Member since</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/quotas/title">
+  <source xml:space="preserve">Quotas</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/quotas/collections">
+  <source xml:space="preserve">Collections</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/quotas/trails">
+  <source xml:space="preserve">Trails</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/quotas/tracks-size">
+  <source xml:space="preserve">Traces storage</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/quotas/tags">
+  <source xml:space="preserve">Tags</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/quotas/trail-tags">
+  <source xml:space="preserve">Tagged trails</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/quotas/photos">
+  <source xml:space="preserve">Photos</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/quotas/photos-size">
+  <source xml:space="preserve">Photos storage</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/quotas/shares">
+  <source xml:space="preserve">Shares</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/devices">
+  <source xml:space="preserve">Connected devices</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/devices_table/connected_since">
+  <source xml:space="preserve">Connected since</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/devices_table/last_usage">
+  <source xml:space="preserve">Latest usage</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/devices_table/this_device">
+  <source xml:space="preserve">This device</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/devices_table/deleted_at">
+  <source xml:space="preserve">Deleted on</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/devices_table/mobile_app">
+  <source xml:space="preserve">Mobile application</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/devices_table/web_app">
+  <source xml:space="preserve">Web application</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/devices_table/systems/android">
+  <source xml:space="preserve">Android</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/devices_table/systems/ios">
+  <source xml:space="preserve">iOS</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/devices_table/systems/windows">
+  <source xml:space="preserve">Windows</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/devices_table/browsers/chrome">
+  <source xml:space="preserve">Google Chrome</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/devices_table/browsers/edge">
+  <source xml:space="preserve">Microsoft Edge</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/devices_table/browsers/firefox">
+  <source xml:space="preserve">Mozilla Firefox</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/not_connected">
+  <source xml:space="preserve">You are not connected</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/change_password/button">
+  <source xml:space="preserve">Change my password</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/change_password/button_new">
+  <source xml:space="preserve">Create my account</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/change_password/current_password">
+  <source xml:space="preserve">Current password</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/change_password/new_password1">
+  <source xml:space="preserve">New password</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/change_password/new_password2">
+  <source xml:space="preserve">Confirm the new password</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/change_password/new_password1_new">
+  <source xml:space="preserve">Password</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/change_password/new_password2_new">
+  <source xml:space="preserve">Confirm your password</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/change_password/verification_code_explaination">
+  <source xml:space="preserve">We have just sent a 6-digit code to your email address, please enter it below</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/change_password/in_progress">
+  <source xml:space="preserve">Changing your password...</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/change_password/error">
+  <source xml:space="preserve">An error occurred, please go back and try again</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/change_password/errors/current_password">
+  <source xml:space="preserve">Please enter your current password</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/change_password/errors/passwordsDontMatch">
+  <source xml:space="preserve">The 2 passwords don&apos;t match</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/change_password/errors/mail_already_sent">
+  <source xml:space="preserve">A request was already made for your account less than 10 minutes ago.</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/change_password/errors/mail_error">
+  <source xml:space="preserve">An error has occurred, please try again.</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/delete_me/button">
+  <source xml:space="preserve">Delete my account</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/delete_me/button_new">
+  <source xml:space="preserve">Delete my data</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/delete_me/confirm_message">
+  <source xml:space="preserve">Do you confirm that you want to permanently delete your account and all your data from Trailence?</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/delete_me/code_message">
+  <source xml:space="preserve">We have just sent a 6-digit code to your email address, please enter it below</source>
+</trans-unit>
+<trans-unit resname="pages/myaccount/delete_me/done">
+  <source xml:space="preserve">Your account and data have been deleted.</source>
+</trans-unit>
+<trans-unit resname="pages/link/stop_change_password/in_progress">
+  <source xml:space="preserve">Thank you for reporting the problem to us, we are canceling the password change request for your account...</source>
+</trans-unit>
+<trans-unit resname="pages/link/stop_change_password/done">
+  <source xml:space="preserve">Thank you for reporting the problem to us, we have canceled all password change requests for your account.</source>
+</trans-unit>
+<trans-unit resname="pages/link/stop_registration/in_progress">
+  <source xml:space="preserve">Thank you for reporting the problem to us, we are canceling the request to create your account...</source>
+</trans-unit>
+<trans-unit resname="pages/link/stop_registration/done">
+  <source xml:space="preserve">Thank you for reporting the problem to us, we have canceled the request to create your account.</source>
+</trans-unit>
+<trans-unit resname="pages/link/stop_deletion/in_progress">
+  <source xml:space="preserve">Thank you for reporting the problem to us, we are canceling the request to delete your account...</source>
+</trans-unit>
+<trans-unit resname="pages/link/stop_deletion/done">
+  <source xml:space="preserve">Thank you for reporting the problem to us, we have canceled the request to delete your account.</source>
+</trans-unit>
+<trans-unit resname="pages/link/share/in_progress">
+  <source xml:space="preserve">We are loading data for your share link...</source>
+</trans-unit>
+<trans-unit resname="pages/link/share/error">
+  <source xml:space="preserve">Your link is not valid. It is possible that the share of this link has been removed.</source>
+</trans-unit>
+<trans-unit resname="pages/trailplanner/title">
+  <source xml:space="preserve">Trail planner</source>
+</trans-unit>
+<trans-unit resname="pages/trailplanner/please_zoom">
+  <source xml:space="preserve">To see possible paths and place points, please zoom in to at least level</source>
+</trans-unit>
+<trans-unit resname="pages/trailplanner/start">
+  <source xml:space="preserve">Start</source>
+</trans-unit>
+<trans-unit resname="pages/trailplanner/stop">
+  <source xml:space="preserve">Pause</source>
+</trans-unit>
+<trans-unit resname="pages/trailplanner/reset">
+  <source xml:space="preserve">Reset</source>
+</trans-unit>
+<trans-unit resname="pages/trailplanner/resume">
+  <source xml:space="preserve">Resume</source>
+</trans-unit>
+<trans-unit resname="pages/trailplanner/undo">
+  <source xml:space="preserve">Undo</source>
+</trans-unit>
+<trans-unit resname="pages/trailplanner/show_routes">
+  <source xml:space="preserve">Display circuits</source>
+</trans-unit>
+<trans-unit resname="pages/trailplanner/show_trails">
+  <source xml:space="preserve">Display my trails</source>
+</trans-unit>
+<trans-unit resname="pages/trailplanner/put_free_point">
+  <source xml:space="preserve">Free point</source>
+</trans-unit>
+<trans-unit resname="pages/trailplanner/back_to_non_free_point">
+  <source xml:space="preserve">Follow paths</source>
+</trans-unit>
+<trans-unit resname="pages/trailplanner/meta/from">
+  <source xml:space="preserve">From</source>
+</trans-unit>
+<trans-unit resname="pages/trailplanner/meta/to">
+  <source xml:space="preserve">to</source>
+</trans-unit>
+<trans-unit resname="pages/trailplanner/legend/permissive">
+  <source xml:space="preserve">Passage tolerated (can be closed at any time)</source>
+</trans-unit>
+<trans-unit resname="pages/trailplanner/legend/forbidden">
+  <source xml:space="preserve">Passage forbidden</source>
+</trans-unit>
+<trans-unit resname="pages/trailplanner/save/trail_name">
+  <source xml:space="preserve">Trail name</source>
+</trans-unit>
+<trans-unit resname="pages/trailplanner/save/collection">
+  <source xml:space="preserve">In which collection</source>
+</trans-unit>
+<trans-unit resname="pages/trailplanner/reset_confirmation/title">
+  <source xml:space="preserve">Reset</source>
+</trans-unit>
+<trans-unit resname="pages/trailplanner/reset_confirmation/message">
+  <source xml:space="preserve">Are you sure you want to reset the entire planned trail?</source>
+</trans-unit>
+<trans-unit resname="pages/export_popup/which_tracks">
+  <source xml:space="preserve">Which track do you want to export?</source>
+</trans-unit>
+<trans-unit resname="pages/export_popup/track_original">
+  <source xml:space="preserve">The original one</source>
+</trans-unit>
+<trans-unit resname="pages/export_popup/track_original_explaination">
+  <source xml:space="preserve">Only the original track (either imported or recorded by GPS), without improvement or modification</source>
+</trans-unit>
+<trans-unit resname="pages/export_popup/track_current">
+  <source xml:space="preserve">The current one</source>
+</trans-unit>
+<trans-unit resname="pages/export_popup/track_current_explaination">
+  <source xml:space="preserve">The current track in Trailence, including improvements and changes</source>
+</trans-unit>
+<trans-unit resname="pages/export_popup/track_both">
+  <source xml:space="preserve">Both</source>
+</trans-unit>
+<trans-unit resname="pages/export_popup/track_both_explaination">
+  <source xml:space="preserve">Both will be exported in the same file. This will allow you to re-import the 2 tracks into Trailence as a single trail, ideal for a backup. However, it may not open properly if you import the file into another application.</source>
+</trans-unit>
+<trans-unit resname="pages/export_popup/include_photos">
+  <source xml:space="preserve">Include photos</source>
+</trans-unit>
+<trans-unit resname="pages/export_popup/include_photos_explaination">
+  <source xml:space="preserve">Photos will be included in a ZIP file, that can be imported in Trailence</source>
+</trans-unit>
+<trans-unit resname="pages/photos_popup/title">
+  <source xml:space="preserve">Photos</source>
+</trans-unit>
+<trans-unit resname="pages/photos_popup/importing">
+  <source xml:space="preserve">Import</source>
+</trans-unit>
+<trans-unit resname="pages/photos_popup/add_photos_buttons">
+  <source xml:space="preserve">Add photos</source>
+</trans-unit>
+<trans-unit resname="pages/photos_popup/selected_plural">
+  <source xml:space="preserve">selected photos</source>
+</trans-unit>
+<trans-unit resname="pages/photos_popup/selected_single">
+  <source xml:space="preserve">selected photo</source>
+</trans-unit>
+<trans-unit resname="pages/photos_popup/deleting">
+  <source xml:space="preserve">Deleting photos</source>
+</trans-unit>
+<trans-unit resname="pages/photos_popup/position/available">
+  <source xml:space="preserve">Located on the trail</source>
+</trans-unit>
+<trans-unit resname="pages/photos_popup/position/not_available">
+  <source xml:space="preserve">Not located on the trail</source>
+</trans-unit>
+<trans-unit resname="pages/photos_popup/position/clear_title">
+  <source xml:space="preserve">Remove photo position</source>
+</trans-unit>
+<trans-unit resname="pages/photos_popup/position/clear_message">
+  <source xml:space="preserve">Are you sure you want to remove this photo&apos;s position?</source>
+</trans-unit>
+<trans-unit resname="pages/photos_popup/buttons/edit">
+  <source xml:space="preserve">Edit photo</source>
+</trans-unit>
+<trans-unit resname="pages/import_popup/title">
+  <source xml:space="preserve">Import</source>
+</trans-unit>
+<trans-unit resname="pages/import_popup/from_file_title">
+  <source xml:space="preserve">From a GPX or ZIP file</source>
+</trans-unit>
+<trans-unit resname="pages/import_popup/from_file_button">
+  <source xml:space="preserve">Choose...</source>
+</trans-unit>
+<trans-unit resname="pages/import_popup/from_url_title">
+  <source xml:space="preserve">From URL</source>
+</trans-unit>
+<trans-unit resname="pages/import_popup/url_placeholder">
+  <source xml:space="preserve">URL</source>
+</trans-unit>
+<trans-unit resname="pages/import_popup/unknown_source">
+  <source xml:space="preserve">No supported source matches this URL</source>
+</trans-unit>
+<trans-unit resname="pages/import_popup/fetch_error">
+  <source xml:space="preserve">The trail could not be retrieved correctly</source>
+</trans-unit>
+<trans-unit resname="pages/import_popup/from_clipboard_title">
+  <source xml:space="preserve">From clipboard</source>
+</trans-unit>
+<trans-unit resname="pages/import_popup/from_clipboard_button">
+  <source xml:space="preserve">Read clipboard</source>
+</trans-unit>
+<trans-unit resname="pages/import_popup/nothing_found_in_clipboard">
+  <source xml:space="preserve">No trail found in the clipboard</source>
+</trans-unit>
+<trans-unit resname="pages/import_popup/button_import">
+  <source xml:space="preserve">Import from {{1}}</source>
+</trans-unit>
+<trans-unit resname="pages/import_popup/link_source">
+  <source xml:space="preserve">a Trailence link</source>
+</trans-unit>
+<trans-unit resname="pages/pdf_popup/title">
+  <source xml:space="preserve">Create PDF</source>
+</trans-unit>
+<trans-unit resname="pages/pdf_popup/menu_label">
+  <source xml:space="preserve">Create PDF</source>
+</trans-unit>
+<trans-unit resname="pages/pdf_popup/options/model">
+  <source xml:space="preserve">Template</source>
+</trans-unit>
+<trans-unit resname="pages/pdf_popup/options/models/BIG_MAP">
+  <source xml:space="preserve">Large map on a single page</source>
+</trans-unit>
+<trans-unit resname="pages/pdf_popup/options/models/ONE_PAGE">
+  <source xml:space="preserve">Condensed</source>
+</trans-unit>
+<trans-unit resname="pages/pdf_popup/options/include/title">
+  <source xml:space="preserve">Include</source>
+</trans-unit>
+<trans-unit resname="pages/pdf_popup/options/include/description">
+  <source xml:space="preserve">Trail description</source>
+</trans-unit>
+<trans-unit resname="pages/pdf_popup/options/include/waypoints">
+  <source xml:space="preserve">Waypoints</source>
+</trans-unit>
+<trans-unit resname="pages/pdf_popup/options/include/elevation">
+  <source xml:space="preserve">Elevation profile</source>
+</trans-unit>
+<trans-unit resname="pages/pdf_popup/options/include/qrcode">
+  <source xml:space="preserve">QR code link</source>
+</trans-unit>
+<trans-unit resname="pages/pdf_popup/options/include/no_qrcode_message">
+  <source xml:space="preserve">This trail has no public link</source>
+</trans-unit>
+<trans-unit resname="pages/pdf_popup/options/include/avatar">
+  <source xml:space="preserve">My profile picture</source>
+</trans-unit>
+<trans-unit resname="pages/pdf_popup/options/include/avatar_size/small">
+  <source xml:space="preserve">Small size</source>
+</trans-unit>
+<trans-unit resname="pages/pdf_popup/options/include/avatar_size/large">
+  <source xml:space="preserve">Large size</source>
+</trans-unit>
+<trans-unit resname="pages/pdf_popup/options/include/photo">
+  <source xml:space="preserve">Photo</source>
+</trans-unit>
+<trans-unit resname="pages/pdf_popup/options/map_layer">
+  <source xml:space="preserve">Map layer</source>
+</trans-unit>
+<trans-unit resname="pages/pdf_popup/preview/title">
+  <source xml:space="preserve">PDF preview</source>
+</trans-unit>
+<trans-unit resname="pages/pdf_popup/progress_message">
+  <source xml:space="preserve">Generating PDF...</source>
+</trans-unit>
+<trans-unit resname="pages/pdf_popup/qr_code_link">
+  <source xml:space="preserve">Open in Trailence</source>
+</trans-unit>
+<trans-unit resname="pages/pdf_popup/download_button">
+  <source xml:space="preserve">Save PDF</source>
+</trans-unit>
+<trans-unit resname="pages/pdf_popup/error_downloading_tile">
+  <source xml:space="preserve">Error downloading map</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/title">
+  <source xml:space="preserve">Live group tracking</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/explaination_title">
+  <source xml:space="preserve">How a group works</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/explaination">
+  <source xml:space="preserve">A live tracking group lets you share your location during an activity.&lt;br/&gt;Anyone can join a group using a link or a QR code, without necessarily needing a Trailence account.&lt;br/&gt;Each member’s location is regularly recorded and shared with the other group members, so you can easily find each other if needed.&lt;br/&gt;Of course, location sharing only works when a network connection is available. However, you can disable your network during your activity and only turn it on when necessary.&lt;br/&gt;A group is automatically deleted if it is more than one week old.</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/group_name">
+  <source xml:space="preserve">Group name</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/my_name">
+  <source xml:space="preserve">My name / alias</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/create_error">
+  <source xml:space="preserve">Error while creating group</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/save_error">
+  <source xml:space="preserve">Error while saving</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/create_offline">
+  <source xml:space="preserve">Please connect to the Internet to create a group</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/save_offline">
+  <source xml:space="preserve">Please connect to the Internet to modify the group</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/member_not_localized">
+  <source xml:space="preserve">Not located</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/member_localized">
+  <source xml:space="preserve">Located</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/link_button">
+  <source xml:space="preserve">Link</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/join_group">
+  <source xml:space="preserve">Join group</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/joining_offline">
+  <source xml:space="preserve">Please connect to the Internet to join the group</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/joining_error">
+  <source xml:space="preserve">Error joining group</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/stop">
+  <source xml:space="preserve">Stop</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/leave">
+  <source xml:space="preserve">Leave</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/offline">
+  <source xml:space="preserve">No Internet connection</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/rename_me">
+  <source xml:space="preserve">Name</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/nb_members_singular">
+  <source xml:space="preserve">{{1}} person</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/nb_members_plural">
+  <source xml:space="preserve">{{1}} people</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/updated_at">
+  <source xml:space="preserve">Updated</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/date_from">
+  <source xml:space="preserve">From</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/date_to">
+  <source xml:space="preserve">to</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/remove_trail_attachment">
+  <source xml:space="preserve">Remove the trail attachment</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/confirm/stop/title">
+  <source xml:space="preserve">Stop group</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/confirm/stop/message">
+  <source xml:space="preserve">Once stopped, the group is permanently deleted.&lt;br/&gt;All members automatically leave the group, and the link no longer works.&lt;br/&gt;&lt;br/&gt;Are you sure you want to stop the group?</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/confirm/leave/title">
+  <source xml:space="preserve">Leave the group</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/confirm/leave/message">
+  <source xml:space="preserve">Are you sure you want to leave the group?</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/no_trail">
+  <source xml:space="preserve">The group will not be attached to any trail.</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/no_trail_explaination">
+  <source xml:space="preserve">This means the group will be accessible from a dedicated screen, where you will only see the group members and their locations. However, when the group is attached to a trail, you can view the group directly from the trail screen. This is much more convenient if you plan to follow this trail with the group.&lt;br/&gt;&lt;br/&gt;To create a group attached to a trail, open the trail, then from its menu select “Create a live tracking group”.&lt;br/&gt;You can also attach an existing group by opening the trail, then from its menu select “Attach to a live tracking group”.</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/share_trail">
+  <source xml:space="preserve">Share the trail with group members</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/explaination_trail_restricted_access">
+  <source xml:space="preserve">This trail was shared with you. Only members who also have access to this trail will be able to see it.</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/explaination_trail_needs_public_link">
+  <source xml:space="preserve">Only members you have shared this trail with can see it. To allow all members to see it, you can create a public link for this trail.</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/trail_menu/attach">
+  <source xml:space="preserve">Attach to a live tracking group</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/trail_menu/create">
+  <source xml:space="preserve">Create a live tracking group</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/listening_info_message">
+  <source xml:space="preserve">Group tracking is active. Your location will be recorded and shared with group members when a network connection is available.</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/pause">
+  <source xml:space="preserve">Pause recording</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/resume">
+  <source xml:space="preserve">Resume recording</source>
+</trans-unit>
+<trans-unit resname="pages/live_group/paused">
+  <source xml:space="preserve">Recording paused</source>
+</trans-unit>
+<trans-unit resname="pages/donation/meta_description">
+  <source xml:space="preserve">Support the Trailence project</source>
+</trans-unit>
+<trans-unit resname="pages/donation/title">
+  <source xml:space="preserve">Contribute</source>
+</trans-unit>
+<trans-unit resname="pages/donation/header">
+  <source xml:space="preserve">Thank you for considering helping this project!</source>
+</trans-unit>
+<trans-unit resname="pages/donation/text">
+  <source xml:space="preserve">Trailence is free, ad-free, and open-source.&lt;br/&gt;&lt;br/&gt;In order to remain so, we would like to ask for your help.&lt;br/&gt;&lt;br/&gt;We are transparent about our costs, and what your donations are used for.&lt;br/&gt;&amp;nbsp; - We currently pay 67 euros per year for hosting (a basic server + the domain name).&lt;br/&gt;&amp;nbsp; - We have 100GB of storage space for 20 euros.&lt;br/&gt;&amp;nbsp; - We paid $25 to Google to be listed on the Google Play Store.&lt;br/&gt;</source>
+</trans-unit>
+<trans-unit resname="pages/donation/button">
+  <source xml:space="preserve">Make a donation</source>
+</trans-unit>
+<trans-unit resname="pages/donation/goals/goal">
+  <source xml:space="preserve">Objective</source>
+</trans-unit>
+<trans-unit resname="pages/donation/goals/raised">
+  <source xml:space="preserve">raised</source>
+</trans-unit>
+<trans-unit resname="pages/donation/goals/thanks">
+  <source xml:space="preserve">Thanks!</source>
+</trans-unit>
+<trans-unit resname="pages/donation/goals/descriptions/past_costs">
+  <source xml:space="preserve">Cover our expenses since 2025</source>
+</trans-unit>
+<trans-unit resname="pages/donation/goals/descriptions/future_costs">
+  <source xml:space="preserve">Ensure sustainability by covering expenses for 2 additional years</source>
+</trans-unit>
+<trans-unit resname="pages/donation/goals/descriptions/increase_capacity">
+  <source xml:space="preserve">Increase capacity for all users (more storage, server can serve more users)</source>
+</trans-unit>
+<trans-unit resname="pages/donation/developer/title">
+  <source xml:space="preserve">Are you a developer?</source>
+</trans-unit>
+<trans-unit resname="pages/donation/developer/message">
+  <source xml:space="preserve">You can also contribute to the code. Trailence is open-source and available on </source>
+</trans-unit>
+<trans-unit resname="pages/donation/developer/message2">
+  <source xml:space="preserve">In particular, one contribution we’re looking for is developing the app for iOS. Since we use Ionic, only a few native features are required.</source>
+</trans-unit>
+<trans-unit resname="pages/donation/translations/title">
+  <source xml:space="preserve">Help us translate Trailence!</source>
+</trans-unit>
+<trans-unit resname="pages/donation/translations/message">
+  <source xml:space="preserve">We&apos;d love to make Trailence available in even more languages. If you&apos;d like to help by translating Trailence into a new language or improving existing translations, feel free to get in touch!</source>
+</trans-unit>
+<trans-unit resname="pages/contact/meta_description">
+  <source xml:space="preserve">Contact form, question, report a problem...</source>
+</trans-unit>
+<trans-unit resname="pages/contact/title">
+  <source xml:space="preserve">Contact</source>
+</trans-unit>
+<trans-unit resname="pages/contact/email">
+  <source xml:space="preserve">Your email to reply to you</source>
+</trans-unit>
+<trans-unit resname="pages/contact/type">
+  <source xml:space="preserve">Type of request</source>
+</trans-unit>
+<trans-unit resname="pages/contact/types/question">
+  <source xml:space="preserve">Question</source>
+</trans-unit>
+<trans-unit resname="pages/contact/types/bug">
+  <source xml:space="preserve">Report a problem</source>
+</trans-unit>
+<trans-unit resname="pages/contact/types/feature">
+  <source xml:space="preserve">Suggest an improvement</source>
+</trans-unit>
+<trans-unit resname="pages/contact/types/other">
+  <source xml:space="preserve">Other</source>
+</trans-unit>
+<trans-unit resname="pages/contact/message">
+  <source xml:space="preserve">Your message</source>
+</trans-unit>
+<trans-unit resname="pages/contact/send_button">
+  <source xml:space="preserve">Send</source>
+</trans-unit>
+<trans-unit resname="pages/contact/sent">
+  <source xml:space="preserve">Your message has been sent</source>
+</trans-unit>
+<trans-unit resname="pages/contact/error">
+  <source xml:space="preserve">An error occurred, please try again</source>
+</trans-unit>
+<trans-unit resname="pages/contact/retry_with_captcha">
+  <source xml:space="preserve">We need to check you are not a robot, please click again on Send</source>
+</trans-unit>
+<trans-unit resname="pages/contact/network_needed">
+  <source xml:space="preserve">Please connect to the Internet to send a message</source>
+</trans-unit>
+<trans-unit resname="pages/contact/accept_send_data">
+  <source xml:space="preserve">I agree to send technical data about the application to help solve the issue</source>
+</trans-unit>
+<trans-unit resname="pages/contact/show_data">
+  <source xml:space="preserve">Show this data</source>
+</trans-unit>
+<trans-unit resname="pages/contact/email_alternative">
+  <source xml:space="preserve">You can also contact us by email:</source>
+</trans-unit>
+<trans-unit resname="pages/stats/title">
+  <source xml:space="preserve">My statistics</source>
+</trans-unit>
+<trans-unit resname="pages/stats/config_title">
+  <source xml:space="preserve">Configuration</source>
+</trans-unit>
+<trans-unit resname="pages/stats/type_title">
+  <source xml:space="preserve">Statistics on</source>
+</trans-unit>
+<trans-unit resname="pages/stats/time_unit_title">
+  <source xml:space="preserve">By</source>
+</trans-unit>
+<trans-unit resname="pages/stats/source_title">
+  <source xml:space="preserve">Among</source>
+</trans-unit>
+<trans-unit resname="pages/stats/filter_title">
+  <source xml:space="preserve">Taking into account only trails</source>
+</trans-unit>
+<trans-unit resname="pages/stats/activity_filter_title">
+  <source xml:space="preserve">with activity</source>
+</trans-unit>
+<trans-unit resname="pages/stats/types/nb_trails">
+  <source xml:space="preserve">Number of trails</source>
+</trans-unit>
+<trans-unit resname="pages/stats/types/distance">
+  <source xml:space="preserve">Distance</source>
+</trans-unit>
+<trans-unit resname="pages/stats/types/positive-elevation">
+  <source xml:space="preserve">Positive elevation</source>
+</trans-unit>
+<trans-unit resname="pages/stats/types/negative-elevation">
+  <source xml:space="preserve">Negative elevation</source>
+</trans-unit>
+<trans-unit resname="pages/stats/types/duration">
+  <source xml:space="preserve">Duration</source>
+</trans-unit>
+<trans-unit resname="pages/stats/time_units/year">
+  <source xml:space="preserve">Year</source>
+</trans-unit>
+<trans-unit resname="pages/stats/time_units/month">
+  <source xml:space="preserve">Month</source>
+</trans-unit>
+<trans-unit resname="pages/stats/time_units/month_of_year">
+  <source xml:space="preserve">Month all years combined</source>
+</trans-unit>
+<trans-unit resname="pages/privacy_policy/title">
+  <source xml:space="preserve">Privacy Policy</source>
+</trans-unit>
+<trans-unit resname="pages/photo_editor/title">
+  <source xml:space="preserve">Photo editor</source>
+</trans-unit>
+<trans-unit resname="pages/photo_editor/rotate_clockwise">
+  <source xml:space="preserve">Rotate right</source>
+</trans-unit>
+<trans-unit resname="pages/photo_editor/rotate_counterclockwise">
+  <source xml:space="preserve">Rotate left</source>
+</trans-unit>
+<trans-unit resname="pages/photo_editor/crop">
+  <source xml:space="preserve">Crop</source>
+</trans-unit>
+<trans-unit resname="pages/photo_editor/blur">
+  <source xml:space="preserve">Blur</source>
+</trans-unit>
+<trans-unit resname="pages/avatar_moderation/menu_title">
+  <source xml:space="preserve">Profile pictures</source>
+</trans-unit>
+<trans-unit resname="pages/avatar_moderation/validate">
+  <source xml:space="preserve">Validate</source>
+</trans-unit>
+<trans-unit resname="pages/avatar_moderation/reject">
+  <source xml:space="preserve">Reject</source>
+</trans-unit>
+<trans-unit resname="menu/collections">
+  <source xml:space="preserve">Collections</source>
+</trans-unit>
+<trans-unit resname="menu/shared_with_me">
+  <source xml:space="preserve">Shared with me</source>
+</trans-unit>
+<trans-unit resname="menu/nothing_shared_with_me">
+  <source xml:space="preserve">No trail shared with you</source>
+</trans-unit>
+<trans-unit resname="menu/shared_by_me">
+  <source xml:space="preserve">Shared by me</source>
+</trans-unit>
+<trans-unit resname="menu/nothing_shared_by_me">
+  <source xml:space="preserve">You are not sharing any trails</source>
+</trans-unit>
+<trans-unit resname="menu/my_publications">
+  <source xml:space="preserve">My publications</source>
+</trans-unit>
+<trans-unit resname="menu/start_trace">
+  <source xml:space="preserve">Start a trace</source>
+</trans-unit>
+<trans-unit resname="menu/current_trace">
+  <source xml:space="preserve">Trace in progress</source>
+</trans-unit>
+<trans-unit resname="menu/planner">
+  <source xml:space="preserve">Plan a trail</source>
+</trans-unit>
+<trans-unit resname="menu/search_trail">
+  <source xml:space="preserve">Find a trail</source>
+</trans-unit>
+<trans-unit resname="menu/no_share_for_anonymous">
+  <source xml:space="preserve">Sharing features are not available without an account</source>
+</trans-unit>
+<trans-unit resname="menu/anonymous_account">
+  <source xml:space="preserve">Trial without account</source>
+</trans-unit>
+<trans-unit resname="menu/help">
+  <source xml:space="preserve">Help</source>
+</trans-unit>
+<trans-unit resname="menu/create_live_group">
+  <source xml:space="preserve">Create a live tracking group</source>
+</trans-unit>
+<trans-unit resname="menu/one_live_group">
+  <source xml:space="preserve">Live group tracking</source>
+</trans-unit>
+<trans-unit resname="menu/several_live_groups">
+  <source xml:space="preserve">{{1}} live tracking groups</source>
+</trans-unit>
+<trans-unit resname="collection_menu/delete_confirm/title">
+  <source xml:space="preserve">Delete collection</source>
+</trans-unit>
+<trans-unit resname="collection_menu/delete_confirm/message">
+  <source xml:space="preserve">Are you sure you want to delete collection {{}}?</source>
+</trans-unit>
+<trans-unit resname="collection_menu/delete_confirm/yes">
+  <source xml:space="preserve">Yes, delete</source>
+</trans-unit>
+<trans-unit resname="collection_menu/delete_confirm/no">
+  <source xml:space="preserve">Cancel, keep</source>
+</trans-unit>
+<trans-unit resname="collection_menu/deleting">
+  <source xml:space="preserve">Deleting collection</source>
+</trans-unit>
+<trans-unit resname="my_trails">
+  <source xml:space="preserve">My trails</source>
+</trans-unit>
+<trans-unit resname="all_collections">
+  <source xml:space="preserve">All collections</source>
+</trans-unit>
+<trans-unit resname="my_selection">
+  <source xml:space="preserve">My selection</source>
+</trans-unit>
+<trans-unit resname="publications/draft_name">
+  <source xml:space="preserve">Drafts</source>
+</trans-unit>
+<trans-unit resname="publications/submit_name">
+  <source xml:space="preserve">Under review</source>
+</trans-unit>
+<trans-unit resname="publications/reject_name">
+  <source xml:space="preserve">Changes requested</source>
+</trans-unit>
+<trans-unit resname="publications/my_public_trails_name">
+  <source xml:space="preserve">Published</source>
+</trans-unit>
+<trans-unit resname="publications/publish">
+  <source xml:space="preserve">Publish</source>
+</trans-unit>
+<trans-unit resname="publications/publish_confirmation">
+  <source xml:space="preserve">By confirming the publication of this trail, you affirm that you have complied with the rules and confirm that this trail can be made public</source>
+</trans-unit>
+<trans-unit resname="publications/publish_message_placeholder">
+  <source xml:space="preserve">If you would like to leave a message for the moderator who will review your trail, you can enter it here.</source>
+</trans-unit>
+<trans-unit resname="publications/reject_to_draft">
+  <source xml:space="preserve">Improve</source>
+</trans-unit>
+<trans-unit resname="publications/checklist">
+  <source xml:space="preserve">Checklist</source>
+</trans-unit>
+<trans-unit resname="publications/modify">
+  <source xml:space="preserve">Edit</source>
+</trans-unit>
+<trans-unit resname="publications/remove">
+  <source xml:space="preserve">Delete</source>
+</trans-unit>
+<trans-unit resname="publications/compare_current">
+  <source xml:space="preserve">Compare to current publication</source>
+</trans-unit>
+<trans-unit resname="publications/exit_compare_current">
+  <source xml:space="preserve">Stop comparison</source>
+</trans-unit>
+<trans-unit resname="publications/check_public_trails_around">
+  <source xml:space="preserve">Show public trails</source>
+</trans-unit>
+<trans-unit resname="publications/exit_check_public_trails_around">
+  <source xml:space="preserve">Hide public trails</source>
+</trans-unit>
+<trans-unit resname="publications/show_html_text">
+  <source xml:space="preserve">Texts in HTML</source>
+</trans-unit>
+<trans-unit resname="publications/exit_show_html_text">
+  <source xml:space="preserve">Normal texts</source>
+</trans-unit>
+<trans-unit resname="publications/remove_publication_title">
+  <source xml:space="preserve">Delete published trail</source>
+</trans-unit>
+<trans-unit resname="publications/remove_publication_message">
+  <source xml:space="preserve">Please indicate the reason why you want this trail to be removed</source>
+</trans-unit>
+<trans-unit resname="publications/remove_publication_sent">
+  <source xml:space="preserve">Your removal request has been sent</source>
+</trans-unit>
+<trans-unit resname="publications/remove_publication_error">
+  <source xml:space="preserve">Error while sending your removal request</source>
+</trans-unit>
+<trans-unit resname="publications/start_popup/header">
+  <source xml:space="preserve">Thank you for contributing to the Trailence community!</source>
+</trans-unit>
+<trans-unit resname="publications/start_popup/text_before">
+  <source xml:space="preserve">You’re about to publish your trail, which will make it visible to all users. Here’s some important information about how publishing works:</source>
+</trans-unit>
+<trans-unit resname="publications/start_popup/bullets/0/text">
+  <source xml:space="preserve">The published trail is a copy of your original trail. This means any changes you make to the trail you’re about to publish will not affect your original, private trail. Likewise, if you later modify your original trail, it won’t affect the published version.</source>
+</trans-unit>
+<trans-unit resname="publications/start_popup/bullets/1/text">
+  <source xml:space="preserve">At first, the trail will be saved as a “Draft”. This lets you prepare it for publication and make any adjustments you’d like compared to your original trail.</source>
+</trans-unit>
+<trans-unit resname="publications/start_popup/bullets/2/text">
+  <source xml:space="preserve">During this phase, you’ll be guided by a checklist to help you review key points before publishing. Among them:</source>
+</trans-unit>
+<trans-unit resname="publications/start_popup/bullets/2/bullets/0/text">
+  <source xml:space="preserve">Any offensive, abusive, or discriminatory content is strictly forbidden.</source>
+</trans-unit>
+<trans-unit resname="publications/start_popup/bullets/2/bullets/1/text">
+  <source xml:space="preserve">Remove any personal information you don’t wish to make public.</source>
+</trans-unit>
+<trans-unit resname="publications/start_popup/bullets/2/bullets/2/text">
+  <source xml:space="preserve">Do not include photos where people are recognizable.</source>
+</trans-unit>
+<trans-unit resname="publications/start_popup/bullets/3/text">
+  <source xml:space="preserve">Once your draft is ready, you can submit it for review. A moderator may then check it to ensure the rules are respected.</source>
+</trans-unit>
+<trans-unit resname="publications/start_popup/bullets/4/text">
+  <source xml:space="preserve">After validation, your track will be visible to the entire community!</source>
+</trans-unit>
+<trans-unit resname="publications/start_popup/bullets/5/text">
+  <source xml:space="preserve">You’ll still be able to edit or remove your published track at any time if you wish.</source>
+</trans-unit>
+<trans-unit resname="publications/start_popup/text_after">
+  <source xml:space="preserve">Thank you for your participation — and happy publishing!</source>
+</trans-unit>
+<trans-unit resname="publications/edit_popup/title">
+  <source xml:space="preserve">Edit a published trail</source>
+</trans-unit>
+<trans-unit resname="publications/edit_popup/message">
+  <source xml:space="preserve">The trail will be copied to your drafts. Editing works just like for a first publication: once your changes are made, they will be reviewed by a moderator. Do you confirm you want to edit this publication?</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/iam_author/title">
+  <source xml:space="preserve">Copyright and permissions</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/iam_author/description_start">
+  <source xml:space="preserve">©️ Make sure you are the author of the information you publish, or that you have obtained explicit permission from the author to publish it on Trailence.</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/name/title">
+  <source xml:space="preserve">Trail name</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/name/description_start">
+  <source xml:space="preserve">The name should be short and clearly describe the goal of the track. Here are a few examples:</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/name/description_bullets/0">
+  <source xml:space="preserve">&lt;b&gt;Emerald Lake and Yoho Valley&lt;/b&gt;: clear and to the point.</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/name/description_bullets/1">
+  <source xml:space="preserve">&lt;b&gt;Mount Hood via Timberline Trail&lt;/b&gt;: indicates both the destination and the chosen route if there are several options.</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/name/description_bullets/2">
+  <source xml:space="preserve">&lt;b&gt;From Bondi to Coogee via the Coastal Walk&lt;/b&gt;: describes the starting point, destination, and route if relevant.</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/description/title">
+  <source xml:space="preserve">Trail description</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/description/description_start">
+  <source xml:space="preserve">The description should help users quickly understand what to expect along the trail. Consider including:</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/description/description_bullets/0">
+  <source xml:space="preserve">Any potential difficulties (type and where they occur)</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/description/description_bullets/1">
+  <source xml:space="preserve">Viewpoints, points of interest, or notable features</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/description/description_bullets/2">
+  <source xml:space="preserve">The type of path (trail, wide track, road…) and an idea of the proportions if necessary</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/description/description_bullets/3">
+  <source xml:space="preserve">Whether the trail is mostly in forest, open terrain, or at altitude…</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/description/description_bullets/4">
+  <source xml:space="preserve">Any advice on the best time of year to hike it</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/description/description_bullets/5">
+  <source xml:space="preserve">If the trail is varied, a description of the main stages (e.g. forest at the start, chapel halfway, panoramic ridge at the end…)</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/description/description_bullets/6">
+  <source xml:space="preserve">Finish with practical information if relevant: parking availability, water points, etc.</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/date/title">
+  <source xml:space="preserve">Date provided</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/date/set_date">
+  <source xml:space="preserve">Set date</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/location/title">
+  <source xml:space="preserve">Location provided</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/location/set_location">
+  <source xml:space="preserve">Set location</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/activity/title">
+  <source xml:space="preserve">Type of activity provided</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/activity/description_start">
+  <source xml:space="preserve">Choose the primary activity for this route. It helps other users better understand its duration and identify routes that are suitable and actually accessible for that activity.</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/track/title">
+  <source xml:space="preserve">Track quality</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/track/description_start">
+  <source xml:space="preserve">If possible, try to improve the quality of your track:</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/track/description_bullets/0">
+  <source xml:space="preserve">Fix any elevation values that seem incorrect.</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/track/description_bullets/1">
+  <source xml:space="preserve">If you left the main route (for a short technical break 🤭 for example), try to remove those sections from the track.</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/track/description_end">
+  <source xml:space="preserve">👉 To do this, use the Edit button on the map.</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/waypoints/title">
+  <source xml:space="preserve">Waypoints</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/waypoints/description_start">
+  <source xml:space="preserve">Consider adding waypoints to your trail:</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/waypoints/description_bullets/0">
+  <source xml:space="preserve">They can be used to mark specific spots: a viewpoint, a landmark, a water source…</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/waypoints/description_bullets/1">
+  <source xml:space="preserve">Most importantly, they help give directions, especially at places where the route isn’t obvious on site (like at a crossroads, or if the trail is poorly marked).</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/waypoints/description_end">
+  <source xml:space="preserve">👉 To do this, use the Edit button on the map, select the desired location, and open the Waypoint menu.</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/photos/title">
+  <source xml:space="preserve">Photos</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/photos/description_start">
+  <source xml:space="preserve">Consider adding photos that make people want to follow your trail: beautiful landscapes, scenic viewpoints, unusual spots…</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/photos/description_bullets/0">
+  <source xml:space="preserve">📍 Check that each photo is correctly positioned on the trail if this wasn’t done automatically.</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/photos/description_bullets/1">
+  <source xml:space="preserve">⚠️ Do not publish photos where people are recognizable.</source>
+</trans-unit>
+<trans-unit resname="publications/checklist_items/photos/description_bullets/2">
+  <source xml:space="preserve">🙏 Also avoid sharing photos of private property without permission.</source>
+</trans-unit>
+<trans-unit resname="publications/moderation/menu_title">
+  <source xml:space="preserve">Moderation</source>
+</trans-unit>
+<trans-unit resname="publications/moderation/menu_trails">
+  <source xml:space="preserve">Trails</source>
+</trans-unit>
+<trans-unit resname="publications/moderation/menu_comments">
+  <source xml:space="preserve">Comments</source>
+</trans-unit>
+<trans-unit resname="publications/moderation/menu_remove">
+  <source xml:space="preserve">Removals</source>
+</trans-unit>
+<trans-unit resname="publications/moderation/publishing">
+  <source xml:space="preserve">Publishing</source>
+</trans-unit>
+<trans-unit resname="publications/moderation/error_publishing">
+  <source xml:space="preserve">Error while publishing</source>
+</trans-unit>
+<trans-unit resname="publications/moderation/error_updating_trail">
+  <source xml:space="preserve">Error updating trail</source>
+</trans-unit>
+<trans-unit resname="publications/moderation/error_translating">
+  <source xml:space="preserve">Error translating text</source>
+</trans-unit>
+<trans-unit resname="publications/moderation/publish_confirmation">
+  <source xml:space="preserve">Do you confirm this trail can be made public?</source>
+</trans-unit>
+<trans-unit resname="publications/moderation/reject">
+  <source xml:space="preserve">Decline</source>
+</trans-unit>
+<trans-unit resname="publications/moderation/reject_message_placeholder">
+  <source xml:space="preserve">Please enter a message here to explain why this trail cannot be published.</source>
+</trans-unit>
+<trans-unit resname="publications/moderation/message_from_author">
+  <source xml:space="preserve">Author&apos;s message</source>
+</trans-unit>
+<trans-unit resname="publications/moderation/previous_moderator_message">
+  <source xml:space="preserve">Previous message from moderator</source>
+</trans-unit>
+<trans-unit resname="publications/moderation/moderator_message">
+  <source xml:space="preserve">Moderator&apos;s message</source>
+</trans-unit>
+<trans-unit resname="publications/moderation/refresh">
+  <source xml:space="preserve">Refresh</source>
+</trans-unit>
+<trans-unit resname="publications/moderation/comments/reviewed_button">
+  <source xml:space="preserve">Validate</source>
+</trans-unit>
+<trans-unit resname="buttons/apply">
+  <source xml:space="preserve">Apply</source>
+</trans-unit>
+<trans-unit resname="buttons/cancel">
+  <source xml:space="preserve">Cancel</source>
+</trans-unit>
+<trans-unit resname="buttons/confirm">
+  <source xml:space="preserve">Confirm</source>
+</trans-unit>
+<trans-unit resname="buttons/close">
+  <source xml:space="preserve">Close</source>
+</trans-unit>
+<trans-unit resname="buttons/create">
+  <source xml:space="preserve">Create</source>
+</trans-unit>
+<trans-unit resname="buttons/delete">
+  <source xml:space="preserve">Delete</source>
+</trans-unit>
+<trans-unit resname="buttons/download">
+  <source xml:space="preserve">Download</source>
+</trans-unit>
+<trans-unit resname="buttons/edit">
+  <source xml:space="preserve">Edit</source>
+</trans-unit>
+<trans-unit resname="buttons/next">
+  <source xml:space="preserve">Continue</source>
+</trans-unit>
+<trans-unit resname="buttons/ok">
+  <source xml:space="preserve">Ok</source>
+</trans-unit>
+<trans-unit resname="buttons/previous">
+  <source xml:space="preserve">Back</source>
+</trans-unit>
+<trans-unit resname="buttons/quit">
+  <source xml:space="preserve">Quit</source>
+</trans-unit>
+<trans-unit resname="buttons/save">
+  <source xml:space="preserve">Save</source>
+</trans-unit>
+<trans-unit resname="buttons/send">
+  <source xml:space="preserve">Send</source>
+</trans-unit>
+<trans-unit resname="buttons/start">
+  <source xml:space="preserve">Start</source>
+</trans-unit>
+<trans-unit resname="buttons/reset">
+  <source xml:space="preserve">Reset</source>
+</trans-unit>
+<trans-unit resname="buttons/retry">
+  <source xml:space="preserve">Retry</source>
+</trans-unit>
+<trans-unit resname="buttons/understood">
+  <source xml:space="preserve">Understood</source>
+</trans-unit>
+<trans-unit resname="buttons/undo">
+  <source xml:space="preserve">Undo</source>
+</trans-unit>
+<trans-unit resname="buttons/redo">
+  <source xml:space="preserve">Redo</source>
+</trans-unit>
+<trans-unit resname="buttons/yes">
+  <source xml:space="preserve">Yes</source>
+</trans-unit>
+<trans-unit resname="buttons/no">
+  <source xml:space="preserve">No</source>
+</trans-unit>
+<trans-unit resname="order_way">
+  <source xml:space="preserve">Order</source>
+</trans-unit>
+<trans-unit resname="order_asc">
+  <source xml:space="preserve">Ascending</source>
+</trans-unit>
+<trans-unit resname="order_desc">
+  <source xml:space="preserve">Descending</source>
+</trans-unit>
+<trans-unit resname="selected_single">
+  <source xml:space="preserve">selected</source>
+</trans-unit>
+<trans-unit resname="selected_plural">
+  <source xml:space="preserve">selected</source>
+</trans-unit>
+<trans-unit resname="way_points/DA">
+  <source xml:space="preserve">D A</source>
+</trans-unit>
+<trans-unit resname="way_points/D">
+  <source xml:space="preserve">D</source>
+</trans-unit>
+<trans-unit resname="way_points/A">
+  <source xml:space="preserve">A</source>
+</trans-unit>
+<trans-unit resname="way_points/position">
+  <source xml:space="preserve">Location</source>
+</trans-unit>
+<trans-unit resname="way_points/distance">
+  <source xml:space="preserve">Distance</source>
+</trans-unit>
+<trans-unit resname="way_points/altitude">
+  <source xml:space="preserve">Altitude</source>
+</trans-unit>
+<trans-unit resname="way_points/time">
+  <source xml:space="preserve">Time</source>
+</trans-unit>
+<trans-unit resname="way_points/duration">
+  <source xml:space="preserve">Duration</source>
+</trans-unit>
+<trans-unit resname="way_points/description_placeholder">
+  <source xml:space="preserve">Description</source>
+</trans-unit>
+<trans-unit resname="way_points/name_placeholder">
+  <source xml:space="preserve">Name</source>
+</trans-unit>
+<trans-unit resname="trailGraph/distance">
+  <source xml:space="preserve">Distance</source>
+</trans-unit>
+<trans-unit resname="trailGraph/elevation">
+  <source xml:space="preserve">Altitude</source>
+</trans-unit>
+<trans-unit resname="trailGraph/time_duration">
+  <source xml:space="preserve">Time</source>
+</trans-unit>
+<trans-unit resname="trailGraph/elevation_grade">
+  <source xml:space="preserve">Grade</source>
+</trans-unit>
+<trans-unit resname="trailGraph/location">
+  <source xml:space="preserve">Location</source>
+</trans-unit>
+<trans-unit resname="trailGraph/precision">
+  <source xml:space="preserve">Accuracy</source>
+</trans-unit>
+<trans-unit resname="trailGraph/speed">
+  <source xml:space="preserve">Speed</source>
+</trans-unit>
+<trans-unit resname="trailGraph/legend_estimated_speed">
+  <source xml:space="preserve">Estimated speed</source>
+</trans-unit>
+<trans-unit resname="offline_map/download_trail">
+  <source xml:space="preserve">Maps corresponding to the trail will be downloaded to be available offline</source>
+</trans-unit>
+<trans-unit resname="offline_map/download_map">
+  <source xml:space="preserve">Maps of the currently displayed area will be downloaded to be available offline</source>
+</trans-unit>
+<trans-unit resname="offline_map/select_layers">
+  <source xml:space="preserve">Select the layers to download</source>
+</trans-unit>
+<trans-unit resname="offline_map/parameters">
+  <source xml:space="preserve">Parameters</source>
+</trans-unit>
+<trans-unit resname="offline_map/max_zoom">
+  <source xml:space="preserve">Maximum zoom level to download</source>
+</trans-unit>
+<trans-unit resname="offline_map/max_zoom_explaination">
+  <source xml:space="preserve">The higher you select a zoom level, the more you will be able to zoom during your hike when you are offline, but consequently the longer the download will take and the more storage space will be required on your device.</source>
+</trans-unit>
+<trans-unit resname="offline_map/max_zoom_reco">
+  <source xml:space="preserve">A value between 15 and 17 is recommended. Below 15, the level of detail is often too low to see small paths clearly. Above 17, the download size is large, and is generally not necessary to perfectly follow a trail.</source>
+</trans-unit>
+<trans-unit resname="offline_map/padding">
+  <source xml:space="preserve">Extend the area to download (%)</source>
+</trans-unit>
+<trans-unit resname="offline_map/padding_explaination_for_trail">
+  <source xml:space="preserve">Percentage of the area to download around the trail area (100% means only the trail area). Allows you to see more around the trail in offline mode.</source>
+</trans-unit>
+<trans-unit resname="offline_map/padding_explaination_for_map">
+  <source xml:space="preserve">Percentage of the area to download around the currently displayed area (100% means only the displayed area). Allows you to see a larger area in offline mode.</source>
+</trans-unit>
+<trans-unit resname="offline_map/percent_done">
+  <source xml:space="preserve">downloaded</source>
+</trans-unit>
+<trans-unit resname="offline_map/remaining">
+  <source xml:space="preserve">remaining element(s)</source>
+</trans-unit>
+<trans-unit resname="offline_map/todo">
+  <source xml:space="preserve">element(s) to download</source>
+</trans-unit>
+<trans-unit resname="offline_map/downloading/progress_title">
+  <source xml:space="preserve">Downloading from {{1}}</source>
+</trans-unit>
+<trans-unit resname="layers_popup/title">
+  <source xml:space="preserve">Map layer</source>
+</trans-unit>
+<trans-unit resname="layers_popup/overlays_title">
+  <source xml:space="preserve">Add layers</source>
+</trans-unit>
+<trans-unit resname="layers_popup/regional_title">
+  <source xml:space="preserve">By country or region</source>
+</trans-unit>
+<trans-unit resname="trace_recorder/trail_name_start">
+  <source xml:space="preserve">Trail of</source>
+</trans-unit>
+<trans-unit resname="trace_recorder/pause">
+  <source xml:space="preserve">Pause</source>
+</trans-unit>
+<trans-unit resname="trace_recorder/resume">
+  <source xml:space="preserve">Resume</source>
+</trans-unit>
+<trans-unit resname="trace_recorder/stop">
+  <source xml:space="preserve">Stop</source>
+</trans-unit>
+<trans-unit resname="trace_recorder/start_this_trail">
+  <source xml:space="preserve">Start this trail</source>
+</trans-unit>
+<trans-unit resname="trace_recorder/notif_message">
+  <source xml:space="preserve">Following your position in Trailence</source>
+</trans-unit>
+<trans-unit resname="trace_recorder/disclosure_popup/title">
+  <source xml:space="preserve">Use your location</source>
+</trans-unit>
+<trans-unit resname="trace_recorder/disclosure_popup/message">
+  <source xml:space="preserve">Trailence collects location data to enable track recording during your trail, even when the app is closed or not in use.</source>
+</trans-unit>
+<trans-unit resname="trace_recorder/disclosure_popup/button_turnon">
+  <source xml:space="preserve">Turn on</source>
+</trans-unit>
+<trans-unit resname="trace_recorder/disabled_popup/title">
+  <source xml:space="preserve">GPS disabled</source>
+</trans-unit>
+<trans-unit resname="trace_recorder/disabled_popup/message">
+  <source xml:space="preserve">Your GPS is disabled, please enable it to start a track.</source>
+</trans-unit>
+<trans-unit resname="trace_recorder/denied_popup/title">
+  <source xml:space="preserve">Location access not allowed</source>
+</trans-unit>
+<trans-unit resname="trace_recorder/denied_popup/message">
+  <source xml:space="preserve">Location access is not allowed for Trailence. Please allow it in your device settings to use location features.</source>
+</trans-unit>
+<trans-unit resname="trace_recorder/confirm_popup/resume_message">
+  <source xml:space="preserve">Please confirm you want to resume the trail</source>
+</trans-unit>
+<trans-unit resname="trace_recorder/confirm_popup/pause_message">
+  <source xml:space="preserve">Please confirm you want to pause the trail</source>
+</trans-unit>
+<trans-unit resname="trace_recorder/confirm_popup/stop_message">
+  <source xml:space="preserve">Please confirm the end of the trail</source>
+</trans-unit>
+<trans-unit resname="trace_recorder/saving">
+  <source xml:space="preserve">Saving trail</source>
+</trans-unit>
+<trans-unit resname="trace_recorder/empty_trail">
+  <source xml:space="preserve">Your trail is empty, so it has not been saved</source>
+</trans-unit>
+<trans-unit resname="trace_recorder/follow_this_trail">
+  <source xml:space="preserve">Follow this trail</source>
+</trans-unit>
+<trans-unit resname="trace_recorder/follow_this_trail_confirmation">
+  <source xml:space="preserve">Do you want to follow the trail {{1}}?</source>
+</trans-unit>
+<trans-unit resname="trace_recorder/not_native_message">
+  <source xml:space="preserve">It’s recommended to use the Android app to record a track. Using the web app may lead to limitations: lower GPS accuracy, and especially the risk of recording stopping when you’re no longer on the app (screen off, switching to another page, or using a different app), as the browser may stop sending GPS coordinates.</source>
+</trans-unit>
+<trans-unit resname="waiting_for_gps">
+  <source xml:space="preserve">Waiting for GPS signal...</source>
+</trans-unit>
+<trans-unit resname="bytes/bytes">
+  <source xml:space="preserve">Bytes</source>
+</trans-unit>
+<trans-unit resname="bytes/kb">
+  <source xml:space="preserve">KB</source>
+</trans-unit>
+<trans-unit resname="bytes/mb">
+  <source xml:space="preserve">MB</source>
+</trans-unit>
+<trans-unit resname="bytes/gb">
+  <source xml:space="preserve">GB</source>
+</trans-unit>
+<trans-unit resname="duration/days">
+  <source xml:space="preserve">d</source>
+</trans-unit>
+<trans-unit resname="duration/hours">
+  <source xml:space="preserve">h</source>
+</trans-unit>
+<trans-unit resname="duration/minutes">
+  <source xml:space="preserve">m</source>
+</trans-unit>
+<trans-unit resname="logout/title">
+  <source xml:space="preserve">Sign out</source>
+</trans-unit>
+<trans-unit resname="logout/title_anonymous">
+  <source xml:space="preserve">Leave trial mode</source>
+</trans-unit>
+<trans-unit resname="logout/text">
+  <source xml:space="preserve">Do you also want to delete all your data on this device?</source>
+</trans-unit>
+<trans-unit resname="logout/text_info">
+  <source xml:space="preserve">Your data is stored on our servers and will be downloaded the next time you log in.</source>
+</trans-unit>
+<trans-unit resname="logout/text_warning">
+  <source xml:space="preserve">You have local data that will be lost if you delete it!</source>
+</trans-unit>
+<trans-unit resname="logout/button_delete">
+  <source xml:space="preserve">Delete</source>
+</trans-unit>
+<trans-unit resname="logout/button_keep">
+  <source xml:space="preserve">Keep</source>
+</trans-unit>
+<trans-unit resname="synchro/in_progress">
+  <source xml:space="preserve">Synchronization in progress</source>
+</trans-unit>
+<trans-unit resname="synchro/offline">
+  <source xml:space="preserve">Offline</source>
+</trans-unit>
+<trans-unit resname="synchro/last_sync">
+  <source xml:space="preserve">Last synchronization</source>
+</trans-unit>
+<trans-unit resname="synchro/not_yet">
+  <source xml:space="preserve">Not yet</source>
+</trans-unit>
+<trans-unit resname="synchro/local_changes">
+  <source xml:space="preserve">Local changes</source>
+</trans-unit>
+<trans-unit resname="synchro/yes">
+  <source xml:space="preserve">Yes</source>
+</trans-unit>
+<trans-unit resname="synchro/no">
+  <source xml:space="preserve">No</source>
+</trans-unit>
+<trans-unit resname="synchro/sync_now">
+  <source xml:space="preserve">Synchronize now</source>
+</trans-unit>
+<trans-unit resname="synchro/reset_all">
+  <source xml:space="preserve">Reset everything and download again from the server</source>
+</trans-unit>
+<trans-unit resname="confirm_delete_share/title">
+  <source xml:space="preserve">Delete a share</source>
+</trans-unit>
+<trans-unit resname="confirm_delete_share/message">
+  <source xml:space="preserve">Are you sure you want to delete {{}}?</source>
+</trans-unit>
+<trans-unit resname="confirm_delete_share/yes">
+  <source xml:space="preserve">Yes, delete</source>
+</trans-unit>
+<trans-unit resname="confirm_delete_share/no">
+  <source xml:space="preserve">Cancel, keep</source>
+</trans-unit>
+<trans-unit resname="search_place/placeholder">
+  <source xml:space="preserve">Search for a place</source>
+</trans-unit>
+<trans-unit resname="search_place/tap_enter">
+  <source xml:space="preserve">Enter key ↵ to start the search</source>
+</trans-unit>
+<trans-unit resname="search_place/no_result">
+  <source xml:space="preserve">No result</source>
+</trans-unit>
+<trans-unit resname="loopType/ow">
+  <source xml:space="preserve">Point to point</source>
+</trans-unit>
+<trans-unit resname="loopType/lp">
+  <source xml:space="preserve">Loop</source>
+</trans-unit>
+<trans-unit resname="loopType/hl">
+  <source xml:space="preserve">Half loop</source>
+</trans-unit>
+<trans-unit resname="loopType/sl">
+  <source xml:space="preserve">Small loop</source>
+</trans-unit>
+<trans-unit resname="loopType/ob">
+  <source xml:space="preserve">Out and back</source>
+</trans-unit>
+<trans-unit resname="activities_groups/pedestrian">
+  <source xml:space="preserve">Pedestrian</source>
+</trans-unit>
+<trans-unit resname="activities_groups/bike">
+  <source xml:space="preserve">Bike</source>
+</trans-unit>
+<trans-unit resname="activities_groups/snow">
+  <source xml:space="preserve">On snow</source>
+</trans-unit>
+<trans-unit resname="activities_groups/water">
+  <source xml:space="preserve">On water</source>
+</trans-unit>
+<trans-unit resname="activities_groups/others">
+  <source xml:space="preserve">Others</source>
+</trans-unit>
+<trans-unit resname="activity/walking">
+  <source xml:space="preserve">Walking</source>
+</trans-unit>
+<trans-unit resname="activity/hiking">
+  <source xml:space="preserve">Hiking</source>
+</trans-unit>
+<trans-unit resname="activity/trail">
+  <source xml:space="preserve">Trail running</source>
+</trans-unit>
+<trans-unit resname="activity/moutain-biking">
+  <source xml:space="preserve">Mountain biking</source>
+</trans-unit>
+<trans-unit resname="activity/gravel-biking">
+  <source xml:space="preserve">Gravel biking</source>
+</trans-unit>
+<trans-unit resname="activity/road-biking">
+  <source xml:space="preserve">Road biking</source>
+</trans-unit>
+<trans-unit resname="activity/snowshoeing">
+  <source xml:space="preserve">Snowshoeing</source>
+</trans-unit>
+<trans-unit resname="activity/on-water">
+  <source xml:space="preserve">Boat</source>
+</trans-unit>
+<trans-unit resname="activity/skiing">
+  <source xml:space="preserve">Skiing</source>
+</trans-unit>
+<trans-unit resname="activity/running">
+  <source xml:space="preserve">Running</source>
+</trans-unit>
+<trans-unit resname="activity/horseback-riding">
+  <source xml:space="preserve">Horseback riding</source>
+</trans-unit>
+<trans-unit resname="activity/via-ferrata">
+  <source xml:space="preserve">Via ferrata</source>
+</trans-unit>
+<trans-unit resname="activity/rock-climbing">
+  <source xml:space="preserve">Rock climbing</source>
+</trans-unit>
+<trans-unit resname="activity/canoe">
+  <source xml:space="preserve">Canoeing / Kayaking</source>
+</trans-unit>
+<trans-unit resname="activity/unspecified">
+  <source xml:space="preserve">Unspecified</source>
+</trans-unit>
+<trans-unit resname="tags_filter/onlyWithAnyTag">
+  <source xml:space="preserve">Trails having at least one tag</source>
+</trans-unit>
+<trans-unit resname="tags_filter/onlyWithoutAnyTag">
+  <source xml:space="preserve">Trails having no tag</source>
+</trans-unit>
+<trans-unit resname="tags_filter/include_and">
+  <source xml:space="preserve">Trails having all the following tags</source>
+</trans-unit>
+<trans-unit resname="tags_filter/include_or">
+  <source xml:space="preserve">Trails having at least one of the following tags</source>
+</trans-unit>
+<trans-unit resname="tags_filter/exclude">
+  <source xml:space="preserve">Trails having none of the following tags</source>
+</trans-unit>
+<trans-unit resname="tags_filter/all">
+  <source xml:space="preserve">All</source>
+</trans-unit>
+<trans-unit resname="tags_filter/popup/title">
+  <source xml:space="preserve">Filter on tags</source>
+</trans-unit>
+<trans-unit resname="update/download_android">
+  <source xml:space="preserve">Download Android application</source>
+</trans-unit>
+<trans-unit resname="update/update_android">
+  <source xml:space="preserve">View update</source>
+</trans-unit>
+<trans-unit resname="update/not_allowed">
+  <source xml:space="preserve">If you don&apos;t want to allow automatic update, you can still download it and install it manually.</source>
+</trans-unit>
+<trans-unit resname="update/download_manually">
+  <source xml:space="preserve">Download manually</source>
+</trans-unit>
+<trans-unit resname="update/updating">
+  <source xml:space="preserve">Updating</source>
+</trans-unit>
+<trans-unit resname="update/downloading">
+  <source xml:space="preserve">Downloading</source>
+</trans-unit>
+<trans-unit resname="update/installing">
+  <source xml:space="preserve">Installing update</source>
+</trans-unit>
+<trans-unit resname="update/release_notes/popup/updated">
+  <source xml:space="preserve">Trailence has been updated!</source>
+</trans-unit>
+<trans-unit resname="update/release_notes/popup/available">
+  <source xml:space="preserve">Update available!</source>
+</trans-unit>
+<trans-unit resname="update/release_notes/popup/news">
+  <source xml:space="preserve">What&apos;s new</source>
+</trans-unit>
+<trans-unit resname="update/release_notes/popup/later">
+  <source xml:space="preserve">Later</source>
+</trans-unit>
+<trans-unit resname="update/release_notes/popup/download">
+  <source xml:space="preserve">Install</source>
+</trans-unit>
+<trans-unit resname="update/release_notes/version">
+  <source xml:space="preserve">Version</source>
+</trans-unit>
+<trans-unit resname="metadata/collection">
+  <source xml:space="preserve">Collection</source>
+</trans-unit>
+<trans-unit resname="metadata/title">
+  <source xml:space="preserve">Title</source>
+</trans-unit>
+<trans-unit resname="metadata/tags">
+  <source xml:space="preserve">Tags</source>
+</trans-unit>
+<trans-unit resname="metadata/description">
+  <source xml:space="preserve">Description</source>
+</trans-unit>
+<trans-unit resname="metadata/trail_date">
+  <source xml:space="preserve">Trail date</source>
+</trans-unit>
+<trans-unit resname="metadata/trail_location">
+  <source xml:space="preserve">Location</source>
+</trans-unit>
+<trans-unit resname="metadata/loop_type">
+  <source xml:space="preserve">Type</source>
+</trans-unit>
+<trans-unit resname="metadata/activity">
+  <source xml:space="preserve">Activity</source>
+</trans-unit>
+<trans-unit resname="metadata/duration">
+  <source xml:space="preserve">Duration</source>
+</trans-unit>
+<trans-unit resname="metadata/distance">
+  <source xml:space="preserve">Distance</source>
+</trans-unit>
+<trans-unit resname="metadata/positiveElevation">
+  <source xml:space="preserve">Ascent</source>
+</trans-unit>
+<trans-unit resname="metadata/negativeElevation">
+  <source xml:space="preserve">Descent</source>
+</trans-unit>
+<trans-unit resname="metadata/breaksDuration">
+  <source xml:space="preserve">Breaks</source>
+</trans-unit>
+<trans-unit resname="metadata/estimatedDuration">
+  <source xml:space="preserve">Estimated duration</source>
+</trans-unit>
+<trans-unit resname="metadata/averageSpeed">
+  <source xml:space="preserve">Average speed</source>
+</trans-unit>
+<trans-unit resname="metadata/maxSpeed">
+  <source xml:space="preserve">Max speed</source>
+</trans-unit>
+<trans-unit resname="metadata/highestAltitude">
+  <source xml:space="preserve">Highest altitude</source>
+</trans-unit>
+<trans-unit resname="metadata/lowestAltitude">
+  <source xml:space="preserve">Lowest altitude</source>
+</trans-unit>
+<trans-unit resname="metadata/current_position">
+  <source xml:space="preserve">Current position</source>
+</trans-unit>
+<trans-unit resname="metadata/current_altitude">
+  <source xml:space="preserve">Current altitude</source>
+</trans-unit>
+<trans-unit resname="metadata/remaining_time">
+  <source xml:space="preserve">Remaining time</source>
+</trans-unit>
+<trans-unit resname="metadata/remaining_distance">
+  <source xml:space="preserve">Remaining distance</source>
+</trans-unit>
+<trans-unit resname="metadata/remaining_ascent">
+  <source xml:space="preserve">Remaining ascent</source>
+</trans-unit>
+<trans-unit resname="metadata/remaining_descent">
+  <source xml:space="preserve">Remaining descent</source>
+</trans-unit>
+<trans-unit resname="synchronizing_your_data">
+  <source xml:space="preserve">Downloading your tracks</source>
+</trans-unit>
+<trans-unit resname="errors/modal_title_singular">
+  <source xml:space="preserve">Error</source>
+</trans-unit>
+<trans-unit resname="errors/modal_title_plural">
+  <source xml:space="preserve">Errors</source>
+</trans-unit>
+<trans-unit resname="errors/import/file_not_imported">
+  <source xml:space="preserve">File &apos;{{1}}&apos; cannot be imported: {{2}}</source>
+</trans-unit>
+<trans-unit resname="errors/import/not_gpx">
+  <source xml:space="preserve">This file is not a valid GPX</source>
+</trans-unit>
+<trans-unit resname="errors/download_offline_map">
+  <source xml:space="preserve">{{1}} error(s) while downloading offline maps</source>
+</trans-unit>
+<trans-unit resname="errors/stores/save_photo">
+  <source xml:space="preserve">Error sending photo {{1}} to the server</source>
+</trans-unit>
+<trans-unit resname="errors/stores/save_track">
+  <source xml:space="preserve">Error sending track to the server</source>
+</trans-unit>
+<trans-unit resname="errors/stores/delete_tracks">
+  <source xml:space="preserve">Error deleting tracks on the server</source>
+</trans-unit>
+<trans-unit resname="errors/stores/get_track">
+  <source xml:space="preserve">Error downloading a track from the server</source>
+</trans-unit>
+<trans-unit resname="errors/stores/save_tracks">
+  <source xml:space="preserve">Error saving tracks on your device</source>
+</trans-unit>
+<trans-unit resname="errors/stores/update_track">
+  <source xml:space="preserve">Error updating a track on the server</source>
+</trans-unit>
+<trans-unit resname="errors/stores/create_items">
+  <source xml:space="preserve">Error sending your data to the server (new {{1}})</source>
+</trans-unit>
+<trans-unit resname="errors/stores/get_updates">
+  <source xml:space="preserve">Error requesting updates from the server ({{1}})</source>
+</trans-unit>
+<trans-unit resname="errors/stores/send_updates">
+  <source xml:space="preserve">Error sending your updates to the server ({{1}})</source>
+</trans-unit>
+<trans-unit resname="errors/stores/delete_items">
+  <source xml:space="preserve">Error deleting data on the server ({{1}})</source>
+</trans-unit>
+<trans-unit resname="errors/import_photo">
+  <source xml:space="preserve">Cannot import photo {{1}}</source>
+</trans-unit>
+<trans-unit resname="errors/invalid_format">
+  <source xml:space="preserve">Invalid/unsupported format</source>
+</trans-unit>
+<trans-unit resname="errors/search_places">
+  <source xml:space="preserve">Error searching places</source>
+</trans-unit>
+<trans-unit resname="errors/search_routes">
+  <source xml:space="preserve">Error searching circuits</source>
+</trans-unit>
+<trans-unit resname="errors/password_strength">
+  <source xml:space="preserve">The password is not strong enough</source>
+</trans-unit>
+<trans-unit resname="errors/photos_error_no_network">
+  <source xml:space="preserve">Some photos cannot be displayed because you are not connected or have no network</source>
+</trans-unit>
+<trans-unit resname="errors/photos_error">
+  <source xml:space="preserve">Some photos could not be downloaded</source>
+</trans-unit>
+<trans-unit resname="export/trail">
+  <source xml:space="preserve">Trail</source>
+</trans-unit>
+<trans-unit resname="export/photo">
+  <source xml:space="preserve">Photo</source>
+</trans-unit>
+<trans-unit resname="osm/from">
+  <source xml:space="preserve">From</source>
+</trans-unit>
+<trans-unit resname="osm/to">
+  <source xml:space="preserve">to</source>
+</trans-unit>
+<trans-unit resname="administration">
+  <source xml:space="preserve">Administration</source>
+</trans-unit>
+<trans-unit resname="quota_error/trail_collections">
+  <source xml:space="preserve">You have exceeded the maximum number of collections, new ones cannot be saved on the server!</source>
+</trans-unit>
+<trans-unit resname="quota_error/trails">
+  <source xml:space="preserve">You have exceeded the maximum number of trails, new ones cannot be saved on the server!</source>
+</trans-unit>
+<trans-unit resname="quota_error/tracks">
+  <source xml:space="preserve">You have exceeded the maximum number of tracks, new ones cannot be saved on the server!</source>
+</trans-unit>
+<trans-unit resname="quota_error/tags">
+  <source xml:space="preserve">You have exceeded the maximum number of tags, new ones cannot be saved on the server!</source>
+</trans-unit>
+<trans-unit resname="quota_error/trails_tags">
+  <source xml:space="preserve">You have exceeded the maximum number of tagged trails, new ones cannot be saved on the server!</source>
+</trans-unit>
+<trans-unit resname="quota_error/photos">
+  <source xml:space="preserve">You have exceeded the maximum number of photos, new ones cannot be saved on the server!</source>
+</trans-unit>
+<trans-unit resname="quota_error/shares">
+  <source xml:space="preserve">You have exceeded the maximum number of shares, new ones cannot be saved on the server!</source>
+</trans-unit>
+<trans-unit resname="quota_reached/trail_collections">
+  <source xml:space="preserve">You have reached the maximum number of collections</source>
+</trans-unit>
+<trans-unit resname="quota_reached/trails">
+  <source xml:space="preserve">You have reached the maximum number of trails</source>
+</trans-unit>
+<trans-unit resname="quota_reached/tracks">
+  <source xml:space="preserve">You have reached the maximum number of tracks</source>
+</trans-unit>
+<trans-unit resname="quota_reached/tags">
+  <source xml:space="preserve">You have reached the maximum number of tags</source>
+</trans-unit>
+<trans-unit resname="quota_reached/trails_tags">
+  <source xml:space="preserve">You have reached the maximum number of tagged trails</source>
+</trans-unit>
+<trans-unit resname="quota_reached/photos">
+  <source xml:space="preserve">You have reached the maximum number of photos</source>
+</trans-unit>
+<trans-unit resname="quota_reached/shares">
+  <source xml:space="preserve">You have reached the maximum number of shares</source>
+</trans-unit>
+<trans-unit resname="quota_reached/photos_max">
+  <source xml:space="preserve">Your quota for photos is {{1}} and you already have {{2}}: you cannot add {{3}} new one(s)</source>
+</trans-unit>
+<trans-unit resname="quota_reached/photos_max_by_trail">
+  <source xml:space="preserve">There are already {{1}}/{{2}} photos on this trail: you cannot add {{3}} new one(s)</source>
+</trans-unit>
+<trans-unit resname="obsolete_message/title">
+  <source xml:space="preserve">Update required</source>
+</trans-unit>
+<trans-unit resname="obsolete_message/message">
+  <source xml:space="preserve">Your application is in an outdated version and needs to be updated. By using this version, your changes cannot be saved to the server and may be lost.</source>
+</trans-unit>
+<trans-unit resname="downloading_elevation">
+  <source xml:space="preserve">Downloading altitudes</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/title">
+  <source xml:space="preserve">Edit</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/categories/track">
+  <source xml:space="preserve">Track</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/categories/way_point">
+  <source xml:space="preserve">Waypoint</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/categories/elevation">
+  <source xml:space="preserve">Altitude</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/categories/path">
+  <source xml:space="preserve">Path</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/categories/selection">
+  <source xml:space="preserve">Selection</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/categories/elevation_provider">
+  <source xml:space="preserve">Use an elevation provider</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/categories/join_departure_and_arrival">
+  <source xml:space="preserve">Join departure and arrival</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/categories/improvements">
+  <source xml:space="preserve">Improvements</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/categories/set_elevation_on_range">
+  <source xml:space="preserve">Change altitude</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/categories/time">
+  <source xml:space="preserve">Time</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/stop_interactive">
+  <source xml:space="preserve">Stop</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/remove_unprobable_elevations">
+  <source xml:space="preserve">Adjust implausible elevations</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/remove_unprobable_points">
+  <source xml:space="preserve">Remove implausible points</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/remove_breaks_moves">
+  <source xml:space="preserve">Remove moves during breaks</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/slope_threshold/button_label">
+  <source xml:space="preserve">Smooth with an elevation threshold</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/slope_threshold/elevation_threshold">
+  <source xml:space="preserve">Elevation threshold</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/slope_threshold/max_distance">
+  <source xml:space="preserve">Maximum distance</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/slope_threshold/explaination">
+  <source xml:space="preserve">The purpose of smoothing is to remove GPS inaccuracies.&lt;br/&gt;Because of these inaccuracies, it often happens that over a few meters the altitude goes up and down by a few meters, whereas in reality the slope is continuous.&lt;br/&gt;Smoothing therefore works as follows:&lt;ul&gt;&lt;li&gt;We look for sections where the altitude varied within the configured threshold, over a configured maximum distance.&lt;/li&gt;&lt;li&gt;For each section found, we take the start altitude and the end altitude, and smooth it into a continuous slope.&lt;/li&gt;&lt;li&gt;To avoid losing the high or low points of the trail, if we find such a point in the middle of a section, we reduce the section to keep that point.&lt;/li&gt;&lt;/ul&gt;</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/selection/title">
+  <source xml:space="preserve">Selection</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/selection/extend_selection">
+  <source xml:space="preserve">Expand selection to...</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/selection/close">
+  <source xml:space="preserve">Close selection</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/selection/select_target_point">
+  <source xml:space="preserve">Select a point on the map or elevation chart to extend the selection to that point</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/selection/remove_all_next_points">
+  <source xml:space="preserve">Remove all points after this one</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/selection/remove_all_previous_points">
+  <source xml:space="preserve">Remove all points before this one</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/selection/rectangle">
+  <source xml:space="preserve">Select an area</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/remove_selection/button_single_label">
+  <source xml:space="preserve">Delete the selected point</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/remove_selection/button_multiple_label">
+  <source xml:space="preserve">Delete the selected section</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/remove_selection/button_single_label_and_join">
+  <source xml:space="preserve">Delete the selected point and reconnect the track</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/remove_selection/button_multiple_label_and_join">
+  <source xml:space="preserve">Delete the selected section and reconnect the track</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/remove_selection/button_single_label_and_open">
+  <source xml:space="preserve">Delete the selected point and split the track into two</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/remove_selection/button_multiple_label_and_open">
+  <source xml:space="preserve">Delete the selected section and split the track into two</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/replace_elevation_with_provider">
+  <source xml:space="preserve">Replace altitudes</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/improve_elevation_with_provider">
+  <source xml:space="preserve">Improve altitudes</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/fill_missing_elevation_with_provider">
+  <source xml:space="preserve">Fill in missing elevations</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/calibrate_elevation">
+  <source xml:space="preserve">Calibrate altitude</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/calibrate_elevation_message">
+  <source xml:space="preserve">The known altitude shows an average difference of {{1}} {{2}} compared to the altitude recorded on this trail.</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/arrival_to_departure">
+  <source xml:space="preserve">Finish at the departure point</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/departure_to_arrival">
+  <source xml:space="preserve">Start at the arrival point</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/back_to_departure">
+  <source xml:space="preserve">Create a return to the start by following the same route</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/start_from_arrival">
+  <source xml:space="preserve">Fill in the missing start by following the return path back to the finish</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/arrival_to_start">
+  <source xml:space="preserve">Fill in the missing end by returning to the starting point along the outgoing path</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/back_to_original_track">
+  <source xml:space="preserve">Back to original track without improvements</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/follow-osm-path">
+  <source xml:space="preserve">Replace the selection with the nearest OpenStreetMap path</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/reverse_way">
+  <source xml:space="preserve">Reverse direction</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/remove_time">
+  <source xml:space="preserve">Remove time data</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/link_to_next_segment_with_line">
+  <source xml:space="preserve">Connect to the next section with a straight line</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/link_to_next_segment_follow">
+  <source xml:space="preserve">Connect to the next section by following the path</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/toggle_show_only_modified_track/button_label_hide">
+  <source xml:space="preserve">Show only modified track (blue)</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/toggle_show_only_modified_track/button_label_show">
+  <source xml:space="preserve">Show unmodified track</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/way_points/create_waypoint">
+  <source xml:space="preserve">Create a waypoint</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/way_points/remove_waypoint">
+  <source xml:space="preserve">Remove the waypoint</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/way_points/edit_waypoint">
+  <source xml:space="preserve">Edit the waypoint</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/way_points/move_waypoint">
+  <source xml:space="preserve">Move the waypoint</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/way_points/move_waypoint_index">
+  <source xml:space="preserve">Change order</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/way_points/move_waypoint_index_submenu">
+  <source xml:space="preserve">Move to position</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/way_points/popup/title">
+  <source xml:space="preserve">Waypoint</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/way_points/select_new_position">
+  <source xml:space="preserve">Select the new position</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/way_points/remove_waypoint_confirmation">
+  <source xml:space="preserve">Do you confirm that you want to delete this waypoint?</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/set_elevation_on_range/with_start">
+  <source xml:space="preserve">Using the one from the first selected point</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/set_elevation_on_range/with_end">
+  <source xml:space="preserve">Using the one from the last selected point</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/set_elevation_on_range/smoothing">
+  <source xml:space="preserve">By smoothing from the first to the last selected point</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/set_elevation_on_range/manual_value">
+  <source xml:space="preserve">By entering a fixed altitude manually</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/set_elevation_on_range/manual_diff">
+  <source xml:space="preserve">By entering a difference to apply</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/apply_default_improvements">
+  <source xml:space="preserve">Apply default improvements (those used when recording a track)</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/merge_segments">
+  <source xml:space="preserve">Connect pause and resume points</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/add_points/free/title">
+  <source xml:space="preserve">Add free points</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/tools/add_points/osm/title">
+  <source xml:space="preserve">Add points using OpenStreetMap paths</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/no_modification">
+  <source xml:space="preserve">No changes were made by this function</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/close_confirmation/title">
+  <source xml:space="preserve">Close track editor</source>
+</trans-unit>
+<trans-unit resname="track_edit_tools/close_confirmation/message">
+  <source xml:space="preserve">You have unsaved changes. Are you sure you want to close the track editor?</source>
+</trans-unit>
+<trans-unit resname="go_to_position">
+  <source xml:space="preserve">Go to this position</source>
+</trans-unit>
+<trans-unit resname="datetime_popup/time">
+  <source xml:space="preserve">Time</source>
+</trans-unit>
+<trans-unit resname="datetime_popup/timezone">
+  <source xml:space="preserve">Time zone</source>
+</trans-unit>
+<trans-unit resname="datetime_popup/timezone_unspecified">
+  <source xml:space="preserve">No time zone</source>
+</trans-unit>
+<trans-unit resname="recompute_metadata">
+  <source xml:space="preserve">Recalculating estimates of your trails</source>
+</trans-unit>
+<trans-unit resname="you_are_offline">
+  <source xml:space="preserve">You are offline</source>
+</trans-unit>
+<trans-unit resname="toast_anonymous_account">
+  <source xml:space="preserve">When using the app without an account, your data is stored only in your browser and may be automatically deleted if your browser runs out of space. To save and sync your data, you can export it, create an account, and then import it again.</source>
+</trans-unit>
+<trans-unit resname="notifications/menu/no_unread">
+  <source xml:space="preserve">Notifications</source>
+</trans-unit>
+<trans-unit resname="notifications/menu/unread_single">
+  <source xml:space="preserve">1 unread notification</source>
+</trans-unit>
+<trans-unit resname="notifications/menu/unread_plural">
+  <source xml:space="preserve">{{1}} unread notifications</source>
+</trans-unit>
+<trans-unit resname="notifications/load_more">
+  <source xml:space="preserve">See more</source>
+</trans-unit>
+<trans-unit resname="notifications/error_loading">
+  <source xml:space="preserve">Error loading notifications</source>
+</trans-unit>
+<trans-unit resname="notifications/none">
+  <source xml:space="preserve">You don&apos;t have any notifications at the moment</source>
+</trans-unit>
+<trans-unit resname="notifications/items/unknown">
+  <source xml:space="preserve">This notification is unknown in this version of Trailence</source>
+</trans-unit>
+<trans-unit resname="notifications/items/publications/accepted/text">
+  <source xml:space="preserve">Your trail :*:/trail/trailence/{{2}}:*:{{1}}:*: has been published! Thank you for contributing to the community 🎉</source>
+</trans-unit>
+<trans-unit resname="notifications/items/publications/rejected/text">
+  <source xml:space="preserve">The publication of your trail :*:/trail/{{3}}/{{2}}:*:{{1}}:*: has been declined. Check it to see the reason and make the necessary improvements.</source>
+</trans-unit>
+<trans-unit resname="notifications/items/shares/new_share_with_you/text">
+  <source xml:space="preserve">{{1}} has shared something new with you: :*:/trails/share/{{3}}/{{1}}:*:{{2}}:*:</source>
+</trans-unit>
+<trans-unit resname="notifications/items/shares/new_trails_in_share/text">
+  <source xml:space="preserve">{{1}} added {{2}} trail(s) to the share :*:/trails/share/{{3}}/{{1}}:*:{{4}}:*:</source>
+</trans-unit>
+<trans-unit resname="notifications/items/shares/shared_collection/text">
+  <source xml:space="preserve">{{1}} created a new shared collection with you: :*:/trails/collection/{{3}}:*:{{2}}:*:</source>
+</trans-unit>
+<trans-unit resname="notifications/items/comments/someone_leave_a_rate/text">
+  <source xml:space="preserve">Someone rated your trail :*:/trail/trailence/{{1}}:*:{{2}}:*:</source>
+</trans-unit>
+<trans-unit resname="notifications/items/comments/someone_leave_a_comment/text">
+  <source xml:space="preserve">Someone left a comment on your trail :*:/trail/trailence/{{1}}:*:{{2}}:*:</source>
+</trans-unit>
+<trans-unit resname="notifications/items/comments/someone_leave_a_rate_with_comment/text">
+  <source xml:space="preserve">Someone rated and commented on your trail :*:/trail/trailence/{{1}}:*:{{2}}:*:</source>
+</trans-unit>
+<trans-unit resname="notifications/items/comments/reply/text">
+  <source xml:space="preserve">Someone replied to your comment on the trail :*:/trail/trailence/{{1}}:*:{{2}}:*:</source>
+</trans-unit>
+<trans-unit resname="notifications/items/avatar/accepted/text">
+  <source xml:space="preserve">Your profile picture has been approved.</source>
+</trans-unit>
+<trans-unit resname="notifications/items/avatar/rejected/text">
+  <source xml:space="preserve">Your profile picture has been declined.</source>
+</trans-unit>
+<trans-unit resname="mapAdditions/title">
+  <source xml:space="preserve">Show / Hide</source>
+</trans-unit>
+<trans-unit resname="mapAdditions/only_zoom_10">
+  <source xml:space="preserve">Only displayed with a zoom &gt; 10</source>
+</trans-unit>
+<trans-unit resname="mapAdditions/guidepost">
+  <source xml:space="preserve">Signposts</source>
+</trans-unit>
+<trans-unit resname="mapAdditions/water">
+  <source xml:space="preserve">Water points</source>
+</trans-unit>
+<trans-unit resname="mapAdditions/toilets">
+  <source xml:space="preserve">Toilets</source>
+</trans-unit>
+<trans-unit resname="mapAdditions/way_foot">
+  <source xml:space="preserve">Pedestrian</source>
+</trans-unit>
+<trans-unit resname="mapAdditions/way_bicycle">
+  <source xml:space="preserve">By bike</source>
+</trans-unit>
+<trans-unit resname="mapAdditions/way_forbidden">
+  <source xml:space="preserve">Forbidden ways</source>
+</trans-unit>
+<trans-unit resname="mapAdditions/way_permissive">
+  <source xml:space="preserve">Permissive ways</source>
+</trans-unit>
+<trans-unit resname="mapAdditions/overlays/wmth">
+  <source xml:space="preserve">Waymarked trails</source>
+</trans-unit>
+<trans-unit resname="mapAdditions/errors/no_net">
+  <source xml:space="preserve">Some elements cannot be displayed because you are offline</source>
+</trans-unit>
+<trans-unit resname="relativeDates/justNow">
+  <source xml:space="preserve">Just now</source>
+</trans-unit>
+<trans-unit resname="relativeDates/secondsAgo">
+  <source xml:space="preserve">{{1}} seconds ago</source>
+</trans-unit>
+<trans-unit resname="relativeDates/minuteAgo">
+  <source xml:space="preserve">1 minute ago</source>
+</trans-unit>
+<trans-unit resname="relativeDates/minutesAgo">
+  <source xml:space="preserve">{{1}} minutes ago</source>
+</trans-unit>
+<trans-unit resname="relativeDates/ago">
+  <source xml:space="preserve">{{1}} ago</source>
+</trans-unit>
+<trans-unit resname="translations/translated_from">
+  <source xml:space="preserve">Translated from</source>
+</trans-unit>
+<trans-unit resname="translations/from/en">
+  <source xml:space="preserve">English</source>
+</trans-unit>
+<trans-unit resname="translations/from/fr">
+  <source xml:space="preserve">French</source>
+</trans-unit>
+<trans-unit resname="translations/from/de">
+  <source xml:space="preserve">German</source>
+</trans-unit>
+<trans-unit resname="translations/from/es">
+  <source xml:space="preserve">Spanish</source>
+</trans-unit>
+<trans-unit resname="translations/from/it">
+  <source xml:space="preserve">Italian</source>
+</trans-unit>
+<trans-unit resname="translations/from/pt">
+  <source xml:space="preserve">Italian</source>
+</trans-unit>
+<trans-unit resname="translations/view_original">
+  <source xml:space="preserve">View original text</source>
+</trans-unit>
+<trans-unit resname="translations/view_translated">
+  <source xml:space="preserve">Translate into English</source>
+</trans-unit>
+<trans-unit resname="translations/view_translated_default">
+  <source xml:space="preserve">Translate into English</source>
+</trans-unit>
+<trans-unit resname="translations/trail_moderation/title">
+  <source xml:space="preserve">Translations</source>
+</trans-unit>
+<trans-unit resname="translations/trail_moderation/original_language">
+  <source xml:space="preserve">Language used</source>
+</trans-unit>
+<trans-unit resname="translations/trail_moderation/needed_translations">
+  <source xml:space="preserve">Required translations</source>
+</trans-unit>
+<trans-unit resname="translations/trail_moderation/name">
+  <source xml:space="preserve">Trail name</source>
+</trans-unit>
+<trans-unit resname="translations/trail_moderation/description">
+  <source xml:space="preserve">Description</source>
+</trans-unit>
+<trans-unit resname="months/0">
+  <source xml:space="preserve">January</source>
+</trans-unit>
+<trans-unit resname="months/1">
+  <source xml:space="preserve">February</source>
+</trans-unit>
+<trans-unit resname="months/2">
+  <source xml:space="preserve">March</source>
+</trans-unit>
+<trans-unit resname="months/3">
+  <source xml:space="preserve">April</source>
+</trans-unit>
+<trans-unit resname="months/4">
+  <source xml:space="preserve">May</source>
+</trans-unit>
+<trans-unit resname="months/5">
+  <source xml:space="preserve">June</source>
+</trans-unit>
+<trans-unit resname="months/6">
+  <source xml:space="preserve">July</source>
+</trans-unit>
+<trans-unit resname="months/7">
+  <source xml:space="preserve">August</source>
+</trans-unit>
+<trans-unit resname="months/8">
+  <source xml:space="preserve">September</source>
+</trans-unit>
+<trans-unit resname="months/9">
+  <source xml:space="preserve">October</source>
+</trans-unit>
+<trans-unit resname="months/10">
+  <source xml:space="preserve">November</source>
+</trans-unit>
+<trans-unit resname="months/11">
+  <source xml:space="preserve">December</source>
+</trans-unit>
+<trans-unit resname="regions/be">
+  <source xml:space="preserve">Belgium</source>
+</trans-unit>
+<trans-unit resname="regions/ch">
+  <source xml:space="preserve">Switzerland</source>
+</trans-unit>
+<trans-unit resname="regions/es">
+  <source xml:space="preserve">Spain</source>
+</trans-unit>
+<trans-unit resname="regions/fi">
+  <source xml:space="preserve">Finland</source>
+</trans-unit>
+<trans-unit resname="regions/fr">
+  <source xml:space="preserve">France</source>
+</trans-unit>
+<trans-unit resname="regions/no">
+  <source xml:space="preserve">Norway</source>
+</trans-unit>
+<trans-unit resname="regions/se">
+  <source xml:space="preserve">Sweden</source>
+</trans-unit>
+<trans-unit resname="regions/us">
+  <source xml:space="preserve">USA</source>
+</trans-unit>
+<trans-unit resname="show_more">
+  <source xml:space="preserve">Show more</source>
+</trans-unit>
+<trans-unit resname="show_less">
+  <source xml:space="preserve">Show less</source>
+</trans-unit>
+<trans-unit resname="exit/title">
+  <source xml:space="preserve">Exit Trailence</source>
+</trans-unit>
+<trans-unit resname="exit/message">
+  <source xml:space="preserve">Do you want to leave Trailence?</source>
+</trans-unit>
+<trans-unit resname="help/contextual/original_trace">
+  <source xml:space="preserve">The original track is the raw track, exactly as recorded by the GPS or imported from a file.&lt;p&gt;When you edit the track, the original version is always preserved, allowing you to revert to it at any time — it serves as the reference track.&lt;/p&gt;&lt;p&gt;Even if you haven’t manually edited the track, Trailence automatically applies improvements to correct GPS inaccuracies.&lt;/p&gt;</source>
+</trans-unit>
+<trans-unit resname="help/contextual/show_osm">
+  <source xml:space="preserve">We match the track to the Open Street Map paths</source>
+</trans-unit>
+<trans-unit resname="help/contextual/estimated_duration">
+  <source xml:space="preserve">The estimated duration is calculated based on a base speed on flat terrain, then adjusted according to elevation gain, total duration, and taking into account short regular breaks (about 2–3 minutes every hour).&lt;p&gt;By default, the base speed is set to 5 km/h, which corresponds to the average speed of a hiker. You can change this value in your preferences.&lt;/p&gt;</source>
+</trans-unit>
+<trans-unit resname="help/contextual/breaks">
+  <source xml:space="preserve">The break time corresponds to the total duration of &lt;i&gt;long&lt;/i&gt; breaks. This time is subtracted from the trail duration. &lt;p&gt;We distinguish between &lt;i&gt;short&lt;/i&gt; breaks (to refresh yourself, enjoy the view, etc.) and &lt;i&gt;long&lt;/i&gt; breaks (such as a picnic).&lt;/p&gt; &lt;p&gt;Short breaks are included in the displayed trail duration, as it’s normal to have brief pauses. However, when a long break is detected, its duration is deducted from the trail time, so the time shown doesn’t depend on how long you napped 😉. The deducted time appears in the &lt;i&gt;Breaks&lt;/i&gt; section.&lt;/p&gt; &lt;p&gt;&lt;i&gt;Long&lt;/i&gt; breaks are those lasting at least {{1}} minutes. This threshold can be configured in your preferences.&lt;/p&gt;</source>
+</trans-unit>
+<trans-unit resname="password_strength/0">
+  <source xml:space="preserve">Very weak</source>
+</trans-unit>
+<trans-unit resname="password_strength/1">
+  <source xml:space="preserve">Weak</source>
+</trans-unit>
+<trans-unit resname="password_strength/2">
+  <source xml:space="preserve">Insufficient</source>
+</trans-unit>
+<trans-unit resname="password_strength/3">
+  <source xml:space="preserve">Acceptable</source>
+</trans-unit>
+<trans-unit resname="password_strength/4">
+  <source xml:space="preserve">Strong</source>
+</trans-unit>
+<trans-unit resname="password_strength/5">
+  <source xml:space="preserve">Very strong</source>
+</trans-unit>
+<trans-unit resname="contributions/publications">
+  <source xml:space="preserve">Trails</source>
+</trans-unit>
+<trans-unit resname="contributions/ratings">
+  <source xml:space="preserve">Ratings</source>
+</trans-unit>
+<trans-unit resname="contributions/reviews">
+  <source xml:space="preserve">Reviews</source>
+</trans-unit>
+<trans-unit resname="contributions/title">
+  <source xml:space="preserve">Contributions</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/publications/0">
+  <source xml:space="preserve">None</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/publications/1">
+  <source xml:space="preserve">First trails</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/publications/2">
+  <source xml:space="preserve">Explorer</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/publications/3">
+  <source xml:space="preserve">Discoverer</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/publications/4">
+  <source xml:space="preserve">Great explorer</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/publications/5">
+  <source xml:space="preserve">Cartographer</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/publications/6">
+  <source xml:space="preserve">Master cartographer</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/publications/7">
+  <source xml:space="preserve">Trail legend</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/comments/0">
+  <source xml:space="preserve">None</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/comments/1">
+  <source xml:space="preserve">First reviews</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/comments/2">
+  <source xml:space="preserve">Observer</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/comments/3">
+  <source xml:space="preserve">Advisor</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/comments/4">
+  <source xml:space="preserve">Community guide</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/comments/5">
+  <source xml:space="preserve">Trail sage</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/comments/6">
+  <source xml:space="preserve">Mentor</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/comments/7">
+  <source xml:space="preserve">Community pillar</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/rates/0">
+  <source xml:space="preserve">None</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/rates/1">
+  <source xml:space="preserve">First ratings</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/rates/2">
+  <source xml:space="preserve">Rater</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/rates/3">
+  <source xml:space="preserve">Pathfinder</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/rates/4">
+  <source xml:space="preserve">Keen reviewer</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/rates/5">
+  <source xml:space="preserve">Trail expert</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/rates/6">
+  <source xml:space="preserve">Trusted voice</source>
+</trans-unit>
+<trans-unit resname="contributions/levels/rates/7">
+  <source xml:space="preserve">Community compass</source>
+</trans-unit>
+<trans-unit resname="open_web_version">
+  <source xml:space="preserve">Open web version</source>
+</trans-unit>
+<trans-unit resname="osm_stats/title">
+  <source xml:space="preserve">Trail characteristics</source>
+</trans-unit>
+<trans-unit resname="osm_stats/attribution">
+  <source xml:space="preserve">Data from Open Street Map</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/wayType/title">
+  <source xml:space="preserve">Path type</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/wayType/descriptions/1">
+  <source xml:space="preserve">Road, street…</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/wayType/descriptions/2">
+  <source xml:space="preserve">Path</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/wayType/descriptions/3">
+  <source xml:space="preserve">Stairs</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/wayType/descriptions/4">
+  <source xml:space="preserve">Via ferrata</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/wayType/descriptions/5">
+  <source xml:space="preserve">Ladder</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/wayType/descriptions/unknown">
+  <source xml:space="preserve">Unknown</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/wayType/descriptions/others">
+  <source xml:space="preserve">Others</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/surface/title">
+  <source xml:space="preserve">Surface</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/surface/descriptions/1">
+  <source xml:space="preserve">Hard (asphalt…)</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/surface/descriptions/2">
+  <source xml:space="preserve">Fairly hard (gravel…)</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/surface/descriptions/5">
+  <source xml:space="preserve">Soft (dirt, grass…)</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/surface/descriptions/6">
+  <source xml:space="preserve">Difficult soft ground (mud, sand…)</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/surface/descriptions/7">
+  <source xml:space="preserve">Rocky</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/surface/descriptions/unknown">
+  <source xml:space="preserve">Unknown</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/surface/descriptions/others">
+  <source xml:space="preserve">Others</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/hikingDifficulty/title">
+  <source xml:space="preserve">Difficulty</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/hikingDifficulty/descriptions/1">
+  <source xml:space="preserve">Very easy</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/hikingDifficulty/descriptions/2">
+  <source xml:space="preserve">Easy</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/hikingDifficulty/descriptions/3">
+  <source xml:space="preserve">Moderate</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/hikingDifficulty/descriptions/4">
+  <source xml:space="preserve">Difficult</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/hikingDifficulty/descriptions/5">
+  <source xml:space="preserve">Very difficult</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/hikingDifficulty/descriptions/6">
+  <source xml:space="preserve">Impassable</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/hikingDifficulty/descriptions/unknown">
+  <source xml:space="preserve">Unknown</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/hikingDifficulty/descriptions/others">
+  <source xml:space="preserve">Others</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/visibility/title">
+  <source xml:space="preserve">Trail visibility</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/visibility/descriptions/1">
+  <source xml:space="preserve">Excellent</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/visibility/descriptions/2">
+  <source xml:space="preserve">Good</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/visibility/descriptions/3">
+  <source xml:space="preserve">Moderate</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/visibility/descriptions/4">
+  <source xml:space="preserve">Poor</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/visibility/descriptions/5">
+  <source xml:space="preserve">Difficult</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/visibility/descriptions/6">
+  <source xml:space="preserve">None</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/visibility/descriptions/unknown">
+  <source xml:space="preserve">Unknown</source>
+</trans-unit>
+<trans-unit resname="osm_stats/types/visibility/descriptions/others">
+  <source xml:space="preserve">Others</source>
+</trans-unit>
+<trans-unit resname="osm_stats/messages/no_match">
+  <source xml:space="preserve">No information available</source>
+</trans-unit>
+<trans-unit resname="osm_stats/messages/partial_data">
+  <source xml:space="preserve">Some data has not been downloaded, results are incomplete</source>
+</trans-unit>
+<trans-unit resname="osm_stats/messages/no_data">
+  <source xml:space="preserve">No data downloaded</source>
+</trans-unit>
+<trans-unit resname="mapRotate/north">
+  <source xml:space="preserve">North up</source>
+</trans-unit>
+<trans-unit resname="mapRotate/heading">
+  <source xml:space="preserve">GPS heading</source>
+</trans-unit>
+<trans-unit resname="mapRotate/device">
+  <source xml:space="preserve">Screen orientation</source>
+</trans-unit>
+<trans-unit resname="mapRotate/custom">
+  <source xml:space="preserve">Manual</source>
+</trans-unit>
+<trans-unit resname="mapRotate/noDeviceOrientation">
+  <source xml:space="preserve">Your device does not provide orientation</source>
+</trans-unit>
+<trans-unit resname="alertNoElevation/title">
+  <source xml:space="preserve">Add elevation data?</source>
+</trans-unit>
+<trans-unit resname="alertNoElevation/message">
+  <source xml:space="preserve">Some imported trails have no elevation data. Would you like to automatically download and add it using an elevation data provider?</source>
+</trans-unit>
+<trans-unit resname="mapNotAvailable">
+  <source xml:space="preserve">Area not covered by</source>
+</trans-unit>
+<trans-unit resname="inputEmail/defaultLabel">
+  <source xml:space="preserve">Email</source>
+</trans-unit>
+<trans-unit resname="inputEmail/errors/required">
+  <source xml:space="preserve">Please enter an email</source>
+</trans-unit>
+<trans-unit resname="inputEmail/errors/invalidEmail">
+  <source xml:space="preserve">Please enter a valid email</source>
+</trans-unit>
+<trans-unit resname="inputEmail/errors/duplicate">
+  <source xml:space="preserve">This email is already present</source>
+</trans-unit>
+<trans-unit resname="inputEmail/errors/atLeastOneEmailIsRequired">
+  <source xml:space="preserve">Please enter at least one email</source>
+</trans-unit>
+<trans-unit resname="inputEmail/errors/cannotAddYourself">
+  <source xml:space="preserve">You cannot add yourself</source>
+</trans-unit>
+<trans-unit resname="select/activities/title">
+  <source xml:space="preserve">Activities</source>
+</trans-unit>
+<trans-unit resname="select/activities/or">
+  <source xml:space="preserve">or</source>
+</trans-unit>
+<trans-unit resname="select/activities/all">
+  <source xml:space="preserve">All</source>
+</trans-unit>
+<trans-unit resname="select/loopType/title">
+  <source xml:space="preserve">Trail type</source>
+</trans-unit>
+<trans-unit resname="select/loopType/or">
+  <source xml:space="preserve">or</source>
+</trans-unit>
+<trans-unit resname="select/loopType/all">
+  <source xml:space="preserve">All</source>
+</trans-unit>
+</body></file>
+</xliff>
