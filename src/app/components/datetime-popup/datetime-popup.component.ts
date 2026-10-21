@@ -53,8 +53,8 @@ const Timezones: SelectItem<number | 'none'>[] = [...EXISTING_TIMEZONES.map(toSe
       <ion-button color="secondary" (click)="reset()">{{i18n.texts.buttons.reset}}</ion-button>
     </ion-buttons>
     <ion-buttons slot="end">
-      <ion-button color="success" (click)="close(false)" [disabled]="!dateIso8601">{{i18n.texts.buttons.apply}}</ion-button>
-      <ion-button (click)="close(true)">{{i18n.texts.buttons.cancel}}</ion-button>
+      <ion-button color="success" (click)="apply()" [disabled]="!dateIso8601">{{i18n.texts.buttons.apply}}</ion-button>
+      <ion-button (click)="cancel()">{{i18n.texts.buttons.cancel}}</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-footer>
@@ -115,14 +115,18 @@ export class DateTimePopup implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.selectedTimezone = this.timezoneOffset ?? 'none';
     this.dateIso8601 = this.getDateIso8601FromTimestamp(this.timestamp ?? this.defaultTimestamp) ?? '';
     this.maxIso8601 = this.getDateIso8601FromTimestamp(this.maxTimestamp);
-    this.selectedTimezone = this.timezoneOffset ?? 'none';
   }
 
-  getDateIso8601FromTimestamp(timestamp?: number): string | undefined {
+  private getDateIso8601FromTimestamp(timestamp?: number): string | undefined {
     if (timestamp) {
-      return StringUtils.dateToIso8601NoTimezone(new Date(timestamp));
+      let date = new Date(timestamp);
+      if (this.selectedTimezone !== 'none' && this.withTimezone) {
+        date = new Date(timestamp + (date.getTimezoneOffset() + this.selectedTimezone) * 60000);
+      }
+      return StringUtils.dateToIso8601NoTimezone(date);
     }
     return undefined;
   }
@@ -132,15 +136,35 @@ export class DateTimePopup implements OnInit {
   }
 
   setTimezone(offset: (number | undefined | 'none')[]): void {
+    const before = this.selectedTimezone;
     this.selectedTimezone = (offset.length > 0 ? offset[0] : undefined) ?? 'none';
+    if (before === 'none' && this.selectedTimezone !== 'none' && this.dateIso8601) {
+      // first selection of timezone => adapt the date
+      this.dateIso8601 = this.getDateIso8601FromTimestamp(new Date(this.dateIso8601).getTime());
+    }
   }
 
   reset(): void {
+    this.selectedTimezone = this.timezoneOffset ?? 'none';
     this.dateIso8601 = this.getDateIso8601FromTimestamp(this.defaultTimestamp) ?? '';
   }
 
-  close(cancel: boolean): void {
-    void this.modalController.dismiss(this.dateIso8601 ? {timestamp: new Date(this.dateIso8601).getTime(), timezoneOffset: this.withTimezone ? this.selectedTimezone === 'none' ? undefined : this.selectedTimezone : undefined} : undefined, cancel ? 'cancel' : 'ok');
+  apply(): void {
+    if (!this.dateIso8601) {
+      this.cancel();
+      return;
+    }
+    const timezoneOffset = this.withTimezone ? (this.selectedTimezone === 'none' ? undefined : this.selectedTimezone) : undefined;
+    const localDate = new Date(this.dateIso8601);
+    let timestamp = localDate.getTime();
+    if (timezoneOffset !== undefined) {
+      timestamp -= (localDate.getTimezoneOffset() + timezoneOffset) * 60000;
+    }
+    void this.modalController.dismiss({timestamp, timezoneOffset}, 'ok');
+  }
+
+  cancel(): void {
+    void this.modalController.dismiss(undefined, 'cancel');
   }
 
 }

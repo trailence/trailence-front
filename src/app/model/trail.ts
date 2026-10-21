@@ -43,7 +43,7 @@ export class Trail extends Owned {
     this._description$ = new BehaviorSubject<string>(dto.description ?? '');
     this._location$ = new BehaviorSubject<string>(dto.location ?? '');
     this._date$ = new BehaviorSubject<number | undefined>(dto.date);
-    this._dateTzOffset$ = new BehaviorSubject<number | undefined>(dto.dateTzOffset);
+    this._dateTzOffset$ = new BehaviorSubject<number | undefined>(dto.dateTzOffset ?? undefined);
     this._loopType$ = new BehaviorSubject<TrailLoopType | undefined>(TypeUtils.valueToEnum(dto.loopType, TrailLoopType));
     this._activity$ = new BehaviorSubject<TrailActivity | undefined>(TypeUtils.valueToEnum(dto.activity, TrailActivity));
     if (!dto.originalTrackUuid) throw new Error('Missing originalTrackUuid');
