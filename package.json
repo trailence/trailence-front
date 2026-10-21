@@ -71,7 +71,7 @@
     "@angular-eslint/schematics": "^22.5.0",
     "@angular-eslint/template-parser": "^22.5.0",
     "@angular/build": "^22.2.1",
-    "@angular/cli": "^22.2.1",
+    "@angular/cli": "^22.2.3",
     "@angular/compiler-cli": "^22.2.1",
     "@angular/language-service": "^22.2.1",
     "@capacitor/cli": "^8.5.1",
