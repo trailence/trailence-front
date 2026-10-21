@@ -17,6 +17,16 @@ const logger = getLogger('STARTUP');
 
 logger.info('App loading: main component loaded ', Date.now() - ((globalThis as any)._trailenceStart || 0));
 
+let progressElement = document.getElementById('startup_progress');
+let progress = 1;
+function addProgress(add: number): void {
+  progress += add;
+  if (!progressElement) progressElement = document.getElementById('startup_progress');
+  if (!progressElement) return;
+  progressElement.style.width = progress + '%';
+}
+addProgress(2);
+
 @Component({
     selector: 'app-root',
     templateUrl: 'app.component.html',
@@ -61,6 +71,7 @@ export class AppComponent {
     const auth = injector.get(AuthService);
     injector.get(QuotaService);
     logger.info('App loading: main services init ', Date.now() - ((globalThis as any)._trailenceStart || 0));
+    addProgress(1);
 
     combineLatest([
       injector.get(Router).events.pipe(
@@ -68,6 +79,7 @@ export class AppComponent {
         first(),
         switchMap(e => {
           logger.info('App loading: first navigation done ', Date.now() - ((globalThis as any)._trailenceStart || 0));
+          addProgress(2);
           if (e.url.startsWith('/link/')) return of(null);
           return auth.auth$.pipe(
             filter(a => a !== undefined),
@@ -78,6 +90,7 @@ export class AppComponent {
       i18n.texts$.pipe(
         filter(texts => !!texts),
         tap(texts => {
+          addProgress(6);
           this.i18nLoaded = true;
           this.waitingForGpsText = texts.waiting_for_gps;
           this.traceInProgressText = texts.menu.current_trace;
@@ -89,6 +102,7 @@ export class AppComponent {
       const startup = document.getElementById('startup')!;
       startup.style.opacity = '0.75';
       document.getElementById('root')!.style.display = '';
+      addProgress(1);
       if (a) {
         this.loadMenu = true;
         combineLatest([
@@ -99,9 +113,16 @@ export class AppComponent {
               logger.error('Error loading services', e);
               return of(true);
             })
-          )
+          ),
+          this._ready$.pipe(
+            timeout(10000),
+            catchError(e => {
+              logger.error('Error waiting services', e);
+              return of(true);
+            })
+          ),
         ]).pipe(
-          filter(([a, l]) => !a || l),
+          filter(([a, l, r]) => !a || (l && r)),
           first(),
         )
         .subscribe(() => this.ready(startup));
@@ -149,15 +170,20 @@ export class AppComponent {
     });
   }
 
+  private _servicesLoading = false;
   private loadServices(): Promise<any> {
+    if (this._servicesLoading) return Promise.resolve(true);
+    this._servicesLoading = true;
     return import('./services/database/all')
-    .then(all => all.all(this.injector))
+    .then(all => all.all(this.injector, addProgress, 80))
     .then(loaded$ => loaded$.subscribe(() => {
+      logger.info('Main stores loaded');
       if (!this._ready$.value) this._ready$.next(true);
     }));
   }
 
   private ready(startup: HTMLElement): void {
+    addProgress(8);
     if (!document.documentElement.classList.contains('ion-ce')) {
       setTimeout(() => this.ready(startup), 10);
       return;

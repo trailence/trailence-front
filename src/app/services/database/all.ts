@@ -9,9 +9,17 @@ import { MySelectionService } from './my-selection.service';
 import { MyPublicTrailsService } from './my-public-trails.service';
 import { TrailLinkService } from './link.service';
 import { ExtensionsService } from './extensions.service';
-import { combineLatest, filter, first } from 'rxjs';
+import { combineLatest, filter, first, tap } from 'rxjs';
 
-export const all = (injector: Injector) => {
+export const all = (injector: Injector, addProgress: (add: number) => void, progressAmount: number) => {
+  let progressDone = 0;
+  const setProgress = (nb: number) => {
+    let newProgress = Math.floor(nb * progressAmount / 6);
+    if (newProgress > progressDone) {
+      addProgress(newProgress - progressDone);
+      progressDone = newProgress;
+    }
+  };
   const collections = injector.get(TrailCollectionService);
   const trails = injector.get(TrailService);
   const tracks = injector.get(TrackService);
@@ -22,6 +30,7 @@ export const all = (injector: Injector) => {
   injector.get(MySelectionService);
   injector.get(MyPublicTrailsService);
   injector.get(ExtensionsService);
+  setProgress(1);
   return combineLatest([
     collections.storeLoaded$,
     trails.storeLoaded$,
@@ -29,6 +38,11 @@ export const all = (injector: Injector) => {
     tags.storeLoaded$,
     links.storeLoaded$,
   ]).pipe(
+    tap(loaded => {
+      let nb = 0;
+      for (const l of loaded) if (l) nb++;
+      setProgress(nb + 1);
+    }),
     filter(loaded => loaded.every(Boolean)),
     first(),
   );

@@ -6,4 +6,4 @@ The app is using Ionic Angular, to build both the web site and the Android app.
 
 ## Translation
 
-You can contribute to translations using [Weblate](https://hosted.weblate.org/projects/trailence/)
+You can contribute to translations using [Weblate](https://hosted.weblate.org/projects/trailence/trailence/)
