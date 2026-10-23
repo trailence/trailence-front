@@ -169,6 +169,7 @@ export class TrailsListComponent extends AbstractComponent {
           this.state$.value.filters.distance = { from: undefined, to: undefined };
           this.state$.value.filters.positiveElevation = { from: undefined, to: undefined };
           this.state$.value.filters.negativeElevation = { from: undefined, to: undefined };
+          this.state$.value.filters.altitude = { from: undefined, to: undefined };
           changed = true;
         }
         if (changed)
@@ -513,6 +514,8 @@ export class TrailsListComponent extends AbstractComponent {
         if (filters.positiveElevation.to !== undefined && (t.track?.positiveElevation === undefined || t.track.positiveElevation > filters.positiveElevation.to)) return false;
         if (filters.negativeElevation.from !== undefined && (t.track?.negativeElevation === undefined || t.track.negativeElevation < filters.negativeElevation.from)) return false;
         if (filters.negativeElevation.to !== undefined && (t.track?.negativeElevation === undefined || t.track.negativeElevation > filters.negativeElevation.to)) return false;
+        if (filters.altitude.from !== undefined && (t.track?.lowestAltitude === undefined || t.track?.lowestAltitude < filters.altitude.from)) return false;
+        if (filters.altitude.to !== undefined && (t.track?.highestAltitude === undefined || t.track?.highestAltitude > filters.altitude.to)) return false;
         if (filters.loopTypes.selected !== undefined && (t.trail.loopType === undefined || !filters.loopTypes.selected.includes(t.trail.loopType))) return false;
         if (filters.activities.selected !== undefined && !filters.activities.selected.includes(t.trail.activity)) return false;
         if (filters.rate.from !== undefined && (t.info?.rating === undefined || t.info.rating < filters.rate.from)) return false;

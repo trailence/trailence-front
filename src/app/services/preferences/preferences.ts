@@ -72,6 +72,7 @@ export interface Filters {
   distance: FilterNumeric;
   positiveElevation: FilterNumeric;
   negativeElevation: FilterNumeric;
+  altitude: FilterNumeric;
   loopTypes: FilterEnum<TrailLoopType>;
   activities: FilterEnum<TrailActivity | undefined>;
   onlyVisibleOnMap: boolean;

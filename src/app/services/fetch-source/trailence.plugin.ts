@@ -22,8 +22,6 @@ import { TrackComputedDataCacheService } from '../database/track-computed-data-c
 import { NetworkService } from '../network/network.service';
 import { Filters } from '../preferences/preferences';
 import { getLogger } from '@trailence/utils/console';
-import { normalizePoint } from '@trailence/utils/latlng';
-import { LeafletUtils } from '@trailence/utils/leaflet-utils';
 
 const logger = getLogger('trailence.plugin');
 
@@ -398,6 +396,7 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
       distance: filters.distance,
       positiveElevation: filters.positiveElevation,
       negativeElevation: filters.negativeElevation,
+      altitude: filters.altitude,
       loopTypes: filters.loopTypes.selected,
       activities: filters.activities.selected,
       rate: filters.rate,

@@ -28,6 +28,10 @@ export class FiltersUtils {
         from: undefined,
         to: undefined,
       },
+      altitude: {
+        from: undefined,
+        to: undefined,
+      },
       loopTypes: {
         selected: undefined
       },
@@ -56,6 +60,7 @@ export class FiltersUtils {
       distance: this.fixFilterNumeric(filters.distance),
       positiveElevation: this.fixFilterNumeric(filters.positiveElevation),
       negativeElevation: this.fixFilterNumeric(filters.negativeElevation),
+      altitude: this.fixFilterNumeric(filters.altitude),
       loopTypes: this.fixFilterEnum(filters.loopTypes, Object.values(TrailLoopType)),
       activities: this.fixFilterEnum(filters.activities, Object.values(TrailActivity)),
       onlyVisibleOnMap: filters.onlyVisibleOnMap ?? false,
@@ -112,6 +117,10 @@ export class FiltersUtils {
       negativeElevation: {
         from: filters.negativeElevation.from === undefined ? undefined : i18n.elevationInMetersFromUserUnit(filters.negativeElevation.from),
         to: filters.negativeElevation.to === undefined ? undefined : i18n.elevationInMetersFromUserUnit(filters.negativeElevation.to),
+      },
+      altitude: {
+        from: filters.altitude.from === undefined ? undefined : i18n.elevationInMetersFromUserUnit(filters.altitude.from),
+        to: filters.altitude.to === undefined ? undefined : i18n.elevationInMetersFromUserUnit(filters.altitude.to),
       }
     };
   }
@@ -139,6 +148,10 @@ export class FiltersUtils {
       negativeElevation: {
         from: filters.negativeElevation.from === undefined ? undefined : i18n.elevationInUserUnit(filters.negativeElevation.from),
         to: filters.negativeElevation.to === undefined ? undefined : i18n.elevationInUserUnit(filters.negativeElevation.to),
+      },
+      altitude: {
+        from: filters.altitude.from === undefined ? undefined : i18n.elevationInUserUnit(filters.altitude.from),
+        to: filters.altitude.to === undefined ? undefined : i18n.elevationInUserUnit(filters.altitude.to),
       }
     };
   }
@@ -150,6 +163,7 @@ export class FiltersUtils {
     if (filters.distance.from !== undefined || filters.distance.to !== undefined) nb++;
     if (filters.positiveElevation.from !== undefined || filters.positiveElevation.to !== undefined) nb++;
     if (filters.negativeElevation.from !== undefined || filters.negativeElevation.to !== undefined) nb++;
+    if (filters.altitude.from !== undefined || filters.altitude.to !== undefined) nb++;
     if (filters.loopTypes.selected) nb++;
     if (filters.activities.selected) nb++;
     if (filters.onlyVisibleOnMap) nb++;
@@ -166,6 +180,7 @@ export class FiltersUtils {
     filters.distance = {from: undefined, to: undefined};
     filters.positiveElevation = {from: undefined, to: undefined};
     filters.negativeElevation = {from: undefined, to: undefined};
+    filters.altitude = {from: undefined, to: undefined};
     filters.rate = {from: undefined, to: undefined};
     filters.loopTypes = {selected: undefined};
     filters.activities = {selected: undefined};
@@ -182,6 +197,7 @@ export class FiltersUtils {
       distance: {...filters.distance},
       positiveElevation: {...filters.positiveElevation},
       negativeElevation: {...filters.negativeElevation},
+      altitude: {...filters.altitude},
       rate: {...filters.rate},
       loopTypes: {selected: filters.loopTypes.selected},
       activities: {selected: filters.activities.selected},
@@ -203,6 +219,8 @@ export class FiltersUtils {
     text = this.getFilterNumericDescription(filters.positiveElevation, i18n, 'positive_elevation', this.getElevationFormatter(preferences, preferences.distanceUnit === 'METERS' ? 2000 : 7000));
     if (text) texts.push(text);
     text = this.getFilterNumericDescription(filters.negativeElevation, i18n, 'negative_elevation', this.getElevationFormatter(preferences, preferences.distanceUnit === 'METERS' ? 2000 : 7000));
+    if (text) texts.push(text);
+    text = this.getFilterNumericDescription(filters.altitude, i18n, 'altitude', this.getElevationFormatter(preferences, preferences.distanceUnit === 'METERS' ? 5000 : 20000));
     if (text) texts.push(text);
     text = this.getFilterNumericDescription(filters.rate, i18n, 'rate', v => v + '★');
     if (text) texts.push(text);

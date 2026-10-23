@@ -236,6 +236,7 @@
         "distance": "Distanz",
         "positive_elevation": "Aufstieg",
         "negative_elevation": "Abstieg",
+        "altitude": "Höhe",
         "activity": "Aktivität",
         "select_activities_button": "Zum Auswählen klicken",
         "tags": "Tags",

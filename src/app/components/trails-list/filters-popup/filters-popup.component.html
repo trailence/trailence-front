@@ -101,6 +101,21 @@
       >
     </app-filter-numeric-custom>
   </div>
+  <div class="filter-header">
+    <ion-icon name="highest-point"></ion-icon>
+    <div>{{ i18n.texts.pages.trails.filters.altitude }}</div>
+  </div>
+  <div class="filter-value with-range">
+    <app-filter-numeric-custom
+      class="compact"
+      [config]="filterAltitudeConfig"
+      [value]="filters.altitude"
+      (valueChange)="updateNumericCustomFilter(filters.altitude, filterAltitudeConfig, $event)"
+      [minValueLabel]="null"
+      [maxValueLabel]="null"
+      >
+    </app-filter-numeric-custom>
+  </div>
 
   @if (listType === 'search' || listType === 'my-selection' || listType === 'my-publications') {
     <div class="filter-header">

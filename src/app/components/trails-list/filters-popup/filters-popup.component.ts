@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Injector, Input, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy } from '@angular/core';
 import { ModalController, AlertController, IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonCheckbox, IonButton, IonInput, IonFooter, IonButtons } from '@ionic/angular';
 import { FilterNumericCustomComponent } from '@trailence/components/filters/filter-numeric-custom/filter-numeric-custom.component';
 import { FilterNumericComponent, NumericFilterValueEvent } from '@trailence/components/filters/filter-numeric/filter-numeric.component';
@@ -62,10 +62,11 @@ export class FiltersPopupComponent implements OnDestroy {
   @Input() collectionUuid?: string;
   @Input() searchValue$!: EventEmitter<string>;
 
-  private prefSubscription: Subscription;
+  private readonly prefSubscription: Subscription;
   private updated(): void {
     this.filters = {...this.filters};
     this.onUpdate(this.filters);
+    this.toolbarItems = [...this.toolbarItems];
   }
 
   constructor(
@@ -91,7 +92,7 @@ export class FiltersPopupComponent implements OnDestroy {
       const names = saved ? Object.keys(saved) : [];
       if (names.length === 0) return of([new MenuItem().setI18nLabel('pages.trails.filters.no_saved_filter').setDisabled(true).setAction(() => {})]);
       return of(FiltersPopupComponent.sorted(names, this.preferences.preferences.lang).map(name => {
-        const systemFilter = saved![name];
+        const systemFilter = FiltersUtils.fix(saved![name]);
         const userFilter = FiltersUtils.toUserUnit(systemFilter, this.preferences.preferences, this.i18n);
         return new MenuItem().setFixedLabel(name).setSubLabel(FiltersUtils.getDescription(userFilter, this.i18n, this.preferences.preferences))
           .setDisabled(() => !this.isFilterEligible(systemFilter))
@@ -131,6 +132,7 @@ export class FiltersPopupComponent implements OnDestroy {
                   const filters = this.preferences.preferences.trailFilters ?? {};
                   filters[name] = FiltersUtils.toSystemUnit(FiltersUtils.copy(this.filters), this.preferences.preferences, this.i18n);
                   this.preferences.saveTrailFilters({...filters});
+                  this.toolbarItems = [...this.toolbarItems];
                 }
               }
             })));
@@ -141,7 +143,7 @@ export class FiltersPopupComponent implements OnDestroy {
         if (names.length === 0) return of(children);
         children.push(new MenuItem());
         FiltersPopupComponent.sorted(names, this.preferences.preferences.lang).forEach(name => {
-          const systemFilter = saved![name];
+          const systemFilter = FiltersUtils.fix(saved![name]);
           const userFilter = FiltersUtils.toUserUnit(systemFilter, this.preferences.preferences, this.i18n);
           children.push(
             new MenuItem().setFixedLabel(name).setSubLabel(FiltersUtils.getDescription(userFilter, this.i18n, this.preferences.preferences))
@@ -150,6 +152,7 @@ export class FiltersPopupComponent implements OnDestroy {
               const filters = this.preferences.preferences.trailFilters ?? {};
               filters[name] = FiltersUtils.toSystemUnit(FiltersUtils.copy(this.filters), this.preferences.preferences, this.i18n);
               this.preferences.saveTrailFilters({...filters});
+              this.toolbarItems = [...this.toolbarItems];
             })
           );
         });
@@ -159,13 +162,14 @@ export class FiltersPopupComponent implements OnDestroy {
       const saved = this.preferences.preferences.trailFilters;
       const names = saved ? Object.keys(saved) : [];
       return of(FiltersPopupComponent.sorted(names, this.preferences.preferences.lang).map(name => {
-        const systemFilter = saved![name];
+        const systemFilter = FiltersUtils.fix(saved![name]);
         const userFilter = FiltersUtils.toUserUnit(systemFilter, this.preferences.preferences, this.i18n);
         return new MenuItem().setFixedLabel(name).setSubLabel(FiltersUtils.getDescription(userFilter, this.i18n, this.preferences.preferences))
           .setAction(() => {
             const filters = this.preferences.preferences.trailFilters ?? {};
             delete filters[name];
             this.preferences.saveTrailFilters({...filters});
+            this.toolbarItems = [...this.toolbarItems];
           })
       }));
     }),
@@ -186,6 +190,7 @@ export class FiltersPopupComponent implements OnDestroy {
 
   filterDistanceConfig!: NumericFilterCustomConfig;
   filterElevationConfig!: NumericFilterCustomConfig;
+  filterAltitudeConfig!: NumericFilterCustomConfig;
 
   private configureFilters(prefs: ComputedPreferences): void {
     switch (prefs.distanceUnit) {
@@ -200,6 +205,11 @@ export class FiltersPopupComponent implements OnDestroy {
           values: [0, 50, 100, 200, 300, 400, 500, 600, 800, 1000, 1250, 1500, 2000],
           formatter: FiltersUtils.getElevationFormatter(prefs, 2000),
         };
+        this.filterAltitudeConfig = {
+          range: true,
+          values: [0, 250, 500, 750, 1000, 1500, 2000, 2500, 3000, 5000],
+          formatter: FiltersUtils.getElevationFormatter(prefs, 5000),
+        };
         break;
       case 'IMPERIAL':
         this.filterDistanceConfig = {
@@ -211,6 +221,11 @@ export class FiltersPopupComponent implements OnDestroy {
           range: true,
           values: [0, 200, 500, 800, 1100, 1400, 1700, 2000, 2500, 3000, 4000, 5000, 6000, 7000],
           formatter: FiltersUtils.getElevationFormatter(prefs, 7000),
+        };
+        this.filterAltitudeConfig = {
+          range: true,
+          values: [0, 750, 1500, 3000, 5000, 7000, 10000, 15000, 20000],
+          formatter: FiltersUtils.getElevationFormatter(prefs, 20000),
         };
         break;
     }
