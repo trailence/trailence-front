@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { PendingRequests } from '@trailence/utils/pending-requests';
-import { HttpService } from '../http/http.service';
 import { environment } from '@env/environment';
 import { firstValueFrom } from 'rxjs';
 import { getLogger } from '@trailence/utils/console';
 import { EarthBBox } from '@trailence/utils/latlng';
+import { HttpClient } from '@angular/common/http';
 
 const logger = getLogger('countries-border.service');
 
@@ -19,13 +19,13 @@ const EARTH_RADIUS_KM = 6371.0088;
 export class CountriesBordersService {
 
   constructor(
-    private readonly http: HttpService,
+    private readonly http: HttpClient,
   ) {}
 
   public static readonly KNOWN_COUNTRIES: string[] = ['be','ch','es','fr','no','se','us'];
 
-  private _cache = new Map<string, CountryBorders>();
-  private _pending = new PendingRequests<CountryBorders>();
+  private readonly _cache = new Map<string, CountryBorders>();
+  private readonly _pending = new PendingRequests<CountryBorders>();
 
   public async getBorders(country: string): Promise<CountryBorders> {
     if (!CountriesBordersService.KNOWN_COUNTRIES.includes(country)) return [];
@@ -66,7 +66,7 @@ export class CountriesBordersService {
     return result.sort((c1, c2) => c2.area - c1.area).map(c => c.country);
   }
 
-  private _countryBboxCaches = new Map<string, EarthBBox[]>();
+  private readonly _countryBboxCaches = new Map<string, EarthBBox[]>();
   private getCountryBBoxes(country: string, borders: CountryBorders): EarthBBox[] {
     if (this._countryBboxCaches.has(country)) return this._countryBboxCaches.get(country)!;
     const bboxes = computeBoundingBoxes(borders);
@@ -169,7 +169,7 @@ function clipToBBox(
   // Remove duplicate closing point.
   if (polygon.length > 1) {
     const first = polygon[0];
-    const last = polygon[polygon.length - 1];
+    const last = polygon.at(-1)!;
 
     if (first[0] === last[0] && first[1] === last[1]) {
       polygon.pop();
@@ -212,7 +212,7 @@ function clipPolygon(
     ];
   };
 
-  let previous = polygon[polygon.length - 1];
+  let previous = polygon.at(-1)!;
   let previousInside = inside(previous);
 
   for (const current of polygon) {
