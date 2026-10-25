@@ -65,6 +65,7 @@ public class MainActivity extends BridgeActivity {
   private void checkForOpenFile(Intent intent) {
     Uri fileUri = intent.getData();
     if (fileUri != null && !intent.getBooleanExtra("consumed", false)) {
+      Logger.info("Main intent data: scheme = " + fileUri.getScheme() + " path = " + fileUri.getPath());
       if (fileUri.getScheme() != null && fileUri.getScheme().startsWith("http") && fileUri.getPath() != null) {
         if (fileUri.getPath().startsWith("/trail/link/")){
           String link = fileUri.getPath().substring(12);
@@ -75,6 +76,13 @@ public class MainActivity extends BridgeActivity {
         if (fileUri.getPath().startsWith("/live-group/join/")){
           String slug = fileUri.getPath().substring(17);
           ((TrailencePlugin) this.getBridge().getPlugin("Trailence").getInstance()).setGroupToJoin(slug);
+          intent.putExtra("consumed", true);
+          return;
+        }
+      }
+      if (fileUri.getScheme() != null && fileUri.getScheme().equals("trailence") && fileUri.getPath() != null) {
+        if (fileUri.getPath().equals("/startRecording")) {
+          ((TrailencePlugin) this.getBridge().getPlugin("Trailence").getInstance()).setStartAction("startRecording");
           intent.putExtra("consumed", true);
           return;
         }

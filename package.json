@@ -16,6 +16,7 @@
     "install-android": "ionic capacitor sync android --configuration=android-%ENV% && rimraf android/app/src/main/assets/public/assets/apk && rimraf android/app/src/main/assets/public/media && rimraf android/app/src/main/assets/public/assets/admin && rimraf android/app/src/main/assets/public/assets/apk-install && cd android/environments/%ENV% && cpy . ../..",
     "install-android-dev": "cross-env ENV=dev npm run install-android",
     "install-android-local": "cross-env ENV=local npm run install-android",
+    "install-android-prod": "cross-env ENV=prod npm run install-android",
     "set-version": "node ./scripts/set-version.js",
     "notes-to-fastlane": "node --import=tsx ./scripts/notes-to-fastlane.ts",
     "release": "cd scripts/release && npm run check-all -- --version=%NEWVERSION% && cd ../.. && npm run set-version -- %NEWVERSION% && ng build --configuration=production",

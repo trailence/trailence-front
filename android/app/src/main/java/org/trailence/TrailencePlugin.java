@@ -265,6 +265,31 @@ public class TrailencePlugin extends Plugin {
     this.joinGroupListener.resolve(new JSObject().put("slug", slug));
   }
 
+  private String startAction = null;
+  private PluginCall startActionListener = null;
+
+  public void setStartAction(String action) {
+    if (startActionListener == null)
+      this.startAction = action;
+    else
+      this.pushStartAction(action);
+  }
+
+  @PluginMethod(returnType = PluginMethod.RETURN_CALLBACK)
+  public void listenToStartAction(PluginCall call) {
+    call.setKeepAlive(true);
+    this.startActionListener = call;
+    if (this.startAction != null) {
+      String action = this.startAction;
+      this.startAction = null;
+      this.pushStartAction(action);
+    }
+  }
+
+  private void pushStartAction(String action) {
+    this.startActionListener.resolve(new JSObject().put("action", action));
+  }
+
   @PluginMethod()
   public void downloadUsingBrowser(PluginCall call) {
     try {

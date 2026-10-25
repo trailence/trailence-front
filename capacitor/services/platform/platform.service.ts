@@ -31,6 +31,7 @@ export class PlatformService {
     this.listenToImportGpx();
     this.listenToOpenLink();
     this.listenToJoinLiveGroup();
+    this.listenToStartAction();
     this.handleBackButton();
     this.handleKeyboard();
     this.disablePwaInstall();
@@ -38,7 +39,7 @@ export class PlatformService {
 
   private handleKeyboard(): void {
     if (!this.platform.is('android')) return;
-    Keyboard.addListener('keyboardDidShow', info => {
+    void Keyboard.addListener('keyboardDidShow', info => {
       logger.info('Keyboard shown', info);
       const height = info.keyboardHeight;
       if (height) {
@@ -48,7 +49,7 @@ export class PlatformService {
         }, 0);
       }
     });
-    Keyboard.addListener('keyboardWillHide', () => {
+    void Keyboard.addListener('keyboardWillHide', () => {
       logger.info('Keyboard hidden');
       document.documentElement.style.setProperty('--keyboard-bottom-height', '');
     });
@@ -57,9 +58,9 @@ export class PlatformService {
   private handleBackButton(): void {
     if (!this.platform.is('android')) return;
     this.platform.backButton.subscribeWithPriority(1, () => {
-      this.navController.pop().then(popResult => {
+      void this.navController.pop().then(popResult => {
         if (popResult) return;
-        this.alertController.create({
+        void this.alertController.create({
           header: this.i18n.texts.exit.title,
           message: this.i18n.texts.exit.message,
           buttons: [
@@ -67,7 +68,7 @@ export class PlatformService {
               text: this.i18n.texts.buttons.yes,
               role: 'success',
               handler: () => {
-                import('@trailence/services/trailence.service').then(t => t.default.exitApp({}));
+                void import('@trailence/services/trailence.service').then(t => t.default.exitApp({}));
               }
             }, {
               text: this.i18n.texts.buttons.no,
@@ -97,6 +98,31 @@ export class PlatformService {
     Trailence.listenToJoinLiveGroup((message) => {
       if (message.slug) {
         this.injector.get(Router).navigateByUrl('/live-group/join/' + message.slug);
+      }
+    });
+  }
+
+  private listenToStartAction(): void {
+    Trailence.listenToStartAction((message) => {
+      if (message.action) {
+        switch (message.action) {
+          case 'startRecording':
+            void import('@trailence/services/trace-recorder/trace-recorder.service')
+            .then(module => {
+              const service = this.injector.get(module.TraceRecorderService);
+              const trace = service.current;
+              if (trace) {
+                if (trace.followingTrailUuid) {
+                  void this.injector.get(Router).navigateByUrl('/trail/' + trace.followingTrailOwner! + '/' + trace.followingTrailUuid);
+                } else {
+                  void this.injector.get(Router).navigateByUrl('/trail');
+                }
+              } else {
+                void service.start().then(() => this.injector.get(Router).navigateByUrl('/trail'));
+              }
+            });
+            break;
+        }
       }
     });
   }

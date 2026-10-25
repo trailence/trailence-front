@@ -1,0 +1,5 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="startRecording_short_label">Avvia la registrazione</string>
+    <string name="startRecording_long_label">Avvia la registrazione</string>
+</resources>

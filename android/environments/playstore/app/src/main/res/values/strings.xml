@@ -1,10 +1,12 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Trailence</string>
-    <string name="title_activity_main">Trailence</string>
-    <string name="package_name">org.trailence</string>
-    <string name="custom_url_scheme">org.trailence</string>
-    <string name="build_type">playstore</string>
-    <string name="hostname">trailence.org</string>
-    <string name="scheme">https</string>
+    <string name="app_name" translatable="false">Trailence</string>
+    <string name="title_activity_main" translatable="false">Trailence</string>
+    <string name="package_name" translatable="false">org.trailence</string>
+    <string name="custom_url_scheme" translatable="false">org.trailence</string>
+    <string name="build_type" translatable="false">playstore</string>
+    <string name="hostname" translatable="false">trailence.org</string>
+    <string name="scheme" translatable="false">https</string>
+    <string name="startRecording_short_label">Start a trace</string>
+    <string name="startRecording_long_label">Start a trace</string>
 </resources>

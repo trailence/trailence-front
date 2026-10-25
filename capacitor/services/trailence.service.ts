@@ -11,6 +11,7 @@ export interface TrailencePlugin {
   listenToImportedFiles(callback: (message: {fileId: number, chunks?: number, filename?: string, chunkIndex?: number, data?: string}) => void): void;
   listenToOpenLink(callback: (message: {link: string}) => void): void;
   listenToJoinLiveGroup(callback: (message: {slug: string}) => void): void;
+  listenToStartAction(callback: (message: {action: string}) => void): void;
 
   downloadUsingBrowser(call: {url: string}): Promise<{success: boolean}>;
 
