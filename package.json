@@ -42,7 +42,7 @@
     "@angular/platform-browser": "^22.2.3",
     "@angular/router": "^22.2.3",
     "@angular/service-worker": "^22.2.3",
-    "@capacitor/android": "^8.5.1",
+    "@capacitor/android": "^8.5.3",
     "@capacitor/app": "^8.1.1",
     "@capacitor/camera": "^8.2.4",
     "@capacitor/core": "^8.5.1",
