@@ -53,15 +53,31 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     return url.startsWith('https://www.visorando.com/') && !url.startsWith('https://www.visorando.com/page-');
   }
 
-  public override fetchTrailInfoByUrl(url: string): Promise<TrailInfo | null> {
+  public override fetchTrailInfoByUrl(url: string, tried: string[] = []): Promise<TrailInfo | null> {
     if (!url.endsWith('/')) url += '/';
     const fromDb = this.tableInfos.searchFirstIgnoreCase('url', url);
     return fromDb.then(info => info?.info ?? this.pendingFetchByUrl.request(url, () => globalThis.fetch(url, {mode: 'cors'}).then(response => response.text()).then(text => {
       const parser = new DOMParser();
       const doc = parser.parseFromString(text, "text/html");
-      return this.fetchTrailInfoByContent(doc);
+      return this.fetchTrailInfoByContent(doc, url);
     }))).catch(e => {
       logger.warn('Error parsing Visorando page', e);
+      tried.push(url);
+      let keyFromUrl: string | undefined;
+      let i = url.indexOf('/randonnee-');
+      if (i > 0) keyFromUrl = url.substring(i + 11);
+      else {
+        i = url.indexOf('/walk-');
+        if (i > 0) keyFromUrl = url.substring(i + 6);
+      }
+      if (keyFromUrl) {
+        if (!tried.includes('https://www.visorando.com/randonnee-' + keyFromUrl)) {
+          return this.fetchTrailInfoByUrl('https://www.visorando.com/randonnee-' + keyFromUrl, tried);
+        }
+        if (!tried.includes('https://www.visorando.com/en/walk-' + keyFromUrl)) {
+          return this.fetchTrailInfoByUrl('https://www.visorando.com/en/walk-' + keyFromUrl, tried);
+        }
+      }
       throw e;
     });
   }
@@ -70,8 +86,26 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     return !!doc.querySelector('div.vr-walk-datasheet');
   }
 
-  public override fetchTrailInfoByContent(doc: Document, fromUrl?: string): Promise<TrailInfo | null> { // NOSONAR
+  public override fetchTrailInfoByContent(doc: Document, fromUrl?: string, tryToGoToLanguageSpecific = true): Promise<TrailInfo | null> { // NOSONAR
     const result: TrailInfo = {};
+
+    if (tryToGoToLanguageSpecific && this.injector.get(PreferencesService).preferences.lang === 'fr') {
+      const buttons = doc.querySelectorAll('a.btn');
+      for (let i = 0; i < buttons.length; ++i) {
+        const btn = buttons.item(i)! as HTMLLinkElement;
+        if (btn.href?.indexOf('/randonnee-') > 0) {
+          const img = btn.querySelector('img') as (HTMLImageElement | null);
+          if (img && img.src.indexOf('img/flags/fr') > 0) {
+            return this.fetchTrailInfoByUrl(btn.href)
+            .catch(_ => null)
+            .then(t => {
+              if (!t) return this.fetchTrailInfoByContent(doc, fromUrl, false);
+              return t;
+            });
+          }
+        }
+      }
+    }
 
     // description
     let description = doc.querySelector('main header div[itemprop=description]');
