@@ -242,6 +242,35 @@ export class MapTrackPath {
     if (this._map) return;
     this._map = map;
     this.path.forEach(p => p.addTo(map));
+    setTimeout(() => {
+      const ml = (map as any)._mapLibre;
+      if (ml) {
+        const mapper = (pos: L.LatLng | L.LatLng[] | L.LatLng[][]): any => {
+          if (Array.isArray(pos)) return pos.map(p => mapper(p));
+          return [pos.lng, pos.lat];
+        };
+        //console.log('line', this.path[0].getLatLngs().map(mapper));
+        ml.addSource('test', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            geometry: {
+              type: 'MultiLineString',
+              coordinates: this.path[0].getLatLngs().map(mapper),
+            }
+          }
+        });
+        ml.addLayer({
+          id: 'test',
+          type: 'line',
+          source: 'test',
+          paint: {
+            'line-color': '#FFFF00',
+            'line-width': 5,
+          }
+        })
+      }
+    }, 2000);
   }
 
   public remove(): void {

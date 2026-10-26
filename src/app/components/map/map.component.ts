@@ -44,6 +44,8 @@ import { ToastController } from '@ionic/angular';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { getLogger } from '@trailence/utils/console';
 import { PointDto } from '@trailence/model/dto/point';
+import { assetsDependencies } from '@trailence/assets-dependencies';
+import { environment } from '@env/environment';
 
 const logger = getLogger('map.component');
 
@@ -103,7 +105,7 @@ export class MapComponent extends AbstractComponent {
     super(injector);
     this.id = IdGenerator.generateId('map-');
     globalThis.L = L;
-    this.jsLoaded = injector.get(AssetsService).loadJs('leaflet-rotate.1.js'); // NOSONAR
+    this.jsLoaded = Promise.resolve();// injector.get(AssetsService).loadJs('leaflet-rotate.1.js'); // NOSONAR
   }
 
   protected override initComponent(): void {
@@ -556,7 +558,7 @@ export class MapComponent extends AbstractComponent {
     const map = L.map(this.id, { //NOSONAR
       center: this._mapState.center,
       zoom: this._mapState.zoom,
-      layers: [layer.create(), ...overlays.map(o => o.create())],
+      //layers: [layer.create(), ...overlays.map(o => o.create())],
       zoomControl: false,
       worldCopyJump: true,
       //zoomSnap: 0.5,
@@ -634,6 +636,59 @@ export class MapComponent extends AbstractComponent {
       this._locationMarker.addTo(map);
       map.setView(this._locationMarker.getLatLng(), Math.max(map.getZoom(), 16));
     }
+
+    import('maplibre-gl')
+    .then(module => {
+      module.setWorkerUrl(environment.assetsUrl + '/' + assetsDependencies['maplibre-gl-worker']);
+    })
+    .then(() => import('@maplibre/maplibre-gl-leaflet'))
+    .then(module => {
+      const ml = module.maplibreGL({
+        pitch: 70,
+        style: {
+          version: 8,
+          sources: {
+              osm: {
+                  type: 'raster',
+                  tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                  tileSize: 256,
+                  attribution: '&copy; OpenStreetMap Contributors',
+                  maxzoom: 19
+              },
+              // Use a different source for terrain and hillshade layers, to improve render quality
+              terrainSource: {
+                  type: 'raster-dem',
+                  url: 'https://tiles.mapterhorn.com/tilejson.json'
+              },
+              hillshadeSource: {
+                  type: 'raster-dem',
+                  url: 'https://tiles.mapterhorn.com/tilejson.json'
+              }
+          },
+          layers: [
+              {
+                  id: 'osm',
+                  type: 'raster',
+                  source: 'osm'
+              },
+              {
+                  id: 'hills',
+                  type: 'hillshade',
+                  source: 'hillshadeSource',
+                  layout: {visibility: 'visible'},
+                  paint: {'hillshade-shadow-color': '#473B24'}
+              }
+          ],
+          terrain: {
+              source: 'terrainSource',
+              exaggeration: 1
+          },
+          sky: {}
+        },
+      });
+      ml.addTo(map);
+      (map as any)._mapLibre = ml.getMaplibreMap();
+    });
 
     this._map$.next(map);
 

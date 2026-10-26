@@ -19,6 +19,11 @@ const dependencies = [
       { name: 'pdf-viewer', src: 'web/pdf_viewer.mjs', dst: 'pdf-viewer.<version>.mjs' },
       { name: 'pdf-viewer-css', src: 'web/pdf_viewer.css', dst: 'pdf-viewer.<version>.css' },
     ]
+  }, {
+    module: 'maplibre-gl',
+    files: [
+      { name: 'maplibre-gl-worker', src: 'dist/maplibre-gl-worker.mjs', dst: 'maplibre-gl-worker.<version>.mjs' },
+    ]
   }
 ];
 
