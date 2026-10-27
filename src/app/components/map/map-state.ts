@@ -19,6 +19,7 @@ export class MapState {
   private readonly _additions$ = new BehaviorSubject<MapAdditionsOptions>({});
   private readonly _rotateMode$ = new BehaviorSubject<RotateMode>(RotateMode.NORTH);
   private readonly _bearing$ = new BehaviorSubject<number>(0);
+  private readonly _is3d$ = new BehaviorSubject<boolean>(false);
 
   public get live(): boolean { return this._live$.value; }
   public get live$(): Observable<boolean> { return this._live$; }
@@ -43,6 +44,10 @@ export class MapState {
   public get overlays(): string[] { return this._overlays$.value; }
   public get overlays$(): Observable<string[]> { return this._overlays$; }
   public set overlays(value: string[]) { if (this._overlays$.value !== value) this._overlays$.next(value); }
+
+  public get is3d(): boolean { return this._is3d$.value; }
+  public get is3d$(): Observable<boolean> { return this._is3d$; }
+  public set is3d(value: boolean) { if (this._is3d$.value !== value) this._is3d$.next(value); }
 
   public get additions(): MapAdditionsOptions { return this._additions$.value; }
   public get additions$(): Observable<MapAdditionsOptions> { return this._additions$; }
@@ -87,6 +92,7 @@ export class MapState {
       }
       if (json['bearing'] && typeof json['bearing'] === 'number') this.bearing = json['bearing'];
       if (json['rotateMode'] && Object.values(RotateMode).includes(json['rotateMode'])) this.rotateMode = json['rotateMode'];
+      if (json['is3d']) this.is3d = true;
     }
   }
 
@@ -100,6 +106,7 @@ export class MapState {
       additions: this.additions,
       rotateMode: this.rotateMode,
       bearing: this.bearing,
+      is3d: this.is3d,
     }));
   }
 

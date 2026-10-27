@@ -1,4 +1,6 @@
 export const SRC_ICONS: {[name: string]: string} = {
+  '2d': '2d.svg',
+  '3d': '3d.svg',
   'account': 'account.1.svg', // person-circle-outline
   'add': 'add.1.svg', // add
   'add-circle': 'add-circle.1.svg', // add-circle-outline

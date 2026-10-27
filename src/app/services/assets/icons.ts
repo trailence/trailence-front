@@ -1,4 +1,6 @@
 export const ICONS: string[] = [
+  '2d',
+  '3d',
   'account',
   'add',
   'plus',

@@ -250,6 +250,7 @@ export class MapTrackPath {
           return [pos.lng, pos.lat];
         };
         //console.log('line', this.path[0].getLatLngs().map(mapper));
+        /*
         ml.addSource('test', {
           type: 'geojson',
           data: {
@@ -268,7 +269,26 @@ export class MapTrackPath {
             'line-color': '#FFFF00',
             'line-width': 5,
           }
-        })
+        })*/
+       /*
+        ml.addLayer({
+          id: 'test',
+          type: 'line',
+          source: {
+            type: 'geojson',
+            data: {
+              type: 'Feature',
+              geometry: {
+                type: 'MultiLineString',
+                coordinates: this.path[0].getLatLngs().map(mapper),
+              }
+            }
+          },
+          paint: {
+            'line-color': '#FFFF00',
+            'line-width': 5,
+          }
+        });*/
       }
     }, 2000);
   }

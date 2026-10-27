@@ -46,8 +46,12 @@ import { getLogger } from '@trailence/utils/console';
 import { PointDto } from '@trailence/model/dto/point';
 import { assetsDependencies } from '@trailence/assets-dependencies';
 import { environment } from '@env/environment';
+import { MapLibreMap, setWorkerUrl } from 'maplibre-gl';
+import { Switch3dTool } from './tools/switch-3d';
 
 const logger = getLogger('map.component');
+
+setWorkerUrl(environment.assetsUrl + '/' + assetsDependencies['maplibre-gl-worker']);
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -87,7 +91,8 @@ export class MapComponent extends AbstractComponent {
   id: string;
   private readonly _mapState = new MapState();
   private readonly _map$ = new BehaviorSubject<L.Map | undefined>(undefined);
-  private readonly jsLoaded: Promise<any>;
+  private leafletRotateLoaded?: Promise<any>;
+  private mapLibreLeafletLoaded?: Promise<any>;
 
   @ViewChildren(ToolbarComponent) toolbars?: QueryList<ToolbarComponent>;
 
@@ -105,7 +110,15 @@ export class MapComponent extends AbstractComponent {
     super(injector);
     this.id = IdGenerator.generateId('map-');
     globalThis.L = L;
-    this.jsLoaded = Promise.resolve();// injector.get(AssetsService).loadJs('leaflet-rotate.1.js'); // NOSONAR
+  }
+
+  private loadNeededLibraries(is3d: boolean): Promise<any> {
+    if (is3d) {
+      this.mapLibreLeafletLoaded ??= import('@maplibre/maplibre-gl-leaflet');
+      return this.mapLibreLeafletLoaded;
+    }
+    this.leafletRotateLoaded ??= this.injector.get(AssetsService).loadJs('leaflet-rotate.1.js'); // NOSONAR
+    return this.leafletRotateLoaded;
   }
 
   protected override initComponent(): void {
@@ -135,10 +148,11 @@ export class MapComponent extends AbstractComponent {
     }
     if (!this.isEmbedded)
       this._mapState.load(LOCALSTORAGE_KEY_MAPSTATE + this.mapId);
+    void this.loadNeededLibraries(this._mapState.is3d);
     this.updateElements();
     if (!this.isEmbedded) {
       this.whenVisible.subscribe(
-        combineLatest([this._mapState.center$, this._mapState.zoomInt$, this._mapState.tilesName$, this._mapState.overlays$, this._mapState.additions$, this._mapState.rotateMode$, this._mapState.bearing$])
+        combineLatest([this._mapState.center$, this._mapState.zoomInt$, this._mapState.tilesName$, this._mapState.overlays$, this._mapState.additions$, this._mapState.rotateMode$, this._mapState.bearing$, this._mapState.is3d$])
         .pipe(
           debounceTime(100),
           tap(() => this.refreshTools()),
@@ -163,9 +177,9 @@ export class MapComponent extends AbstractComponent {
         this._initMapTimeout = undefined;
       }
       if (!this.visible) return;
-      void this.jsLoaded.then(() => {
+      void this.loadNeededLibraries(this._mapState.is3d).then(module => {
         if (document.getElementById(this.id)?.clientHeight) {
-          this.createMap();
+          this.createMap(module);
           return;
         }
         this._initMapTimeout = setTimeout(() => {
@@ -549,16 +563,18 @@ export class MapComponent extends AbstractComponent {
   }
 
   private readonly _zoomAnim$ = new BehaviorSubject<boolean>(false);
-  private createMap(): void {
+  private createMap(mapLibreLeafletModule: any): void {
     const layer = this.mapLayersService.layers.find(lay => lay.name === this._mapState.tilesName)
       ?? this.mapLayersService.layers.find(lay => lay.name === this.mapLayersService.getDefaultLayer())
       ?? this.mapLayersService.layers[0];
     const overlays = this._mapState.overlays.map(name => this.mapLayersService.overlays.find(o => o.name === name)).filter(o => !!o);
 
+    const layers = mapLibreLeafletModule ? [this.create3dMapLayer(mapLibreLeafletModule)] : [layer.create(), ...overlays.map(o => o.create())];
+
     const map = L.map(this.id, { //NOSONAR
       center: this._mapState.center,
       zoom: this._mapState.zoom,
-      //layers: [layer.create(), ...overlays.map(o => o.create())],
+      layers,
       zoomControl: false,
       worldCopyJump: true,
       //zoomSnap: 0.5,
@@ -637,59 +653,6 @@ export class MapComponent extends AbstractComponent {
       map.setView(this._locationMarker.getLatLng(), Math.max(map.getZoom(), 16));
     }
 
-    import('maplibre-gl')
-    .then(module => {
-      module.setWorkerUrl(environment.assetsUrl + '/' + assetsDependencies['maplibre-gl-worker']);
-    })
-    .then(() => import('@maplibre/maplibre-gl-leaflet'))
-    .then(module => {
-      const ml = module.maplibreGL({
-        pitch: 70,
-        style: {
-          version: 8,
-          sources: {
-              osm: {
-                  type: 'raster',
-                  tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
-                  tileSize: 256,
-                  attribution: '&copy; OpenStreetMap Contributors',
-                  maxzoom: 19
-              },
-              // Use a different source for terrain and hillshade layers, to improve render quality
-              terrainSource: {
-                  type: 'raster-dem',
-                  url: 'https://tiles.mapterhorn.com/tilejson.json'
-              },
-              hillshadeSource: {
-                  type: 'raster-dem',
-                  url: 'https://tiles.mapterhorn.com/tilejson.json'
-              }
-          },
-          layers: [
-              {
-                  id: 'osm',
-                  type: 'raster',
-                  source: 'osm'
-              },
-              {
-                  id: 'hills',
-                  type: 'hillshade',
-                  source: 'hillshadeSource',
-                  layout: {visibility: 'visible'},
-                  paint: {'hillshade-shadow-color': '#473B24'}
-              }
-          ],
-          terrain: {
-              source: 'terrainSource',
-              exaggeration: 1
-          },
-          sky: {}
-        },
-      });
-      ml.addTo(map);
-      (map as any)._mapLibre = ml.getMaplibreMap();
-    });
-
     this._map$.next(map);
 
     let distanceUnit: DistanceUnit | undefined = undefined;
@@ -713,6 +676,85 @@ export class MapComponent extends AbstractComponent {
     this.refreshTools();
 
     //L.rectangle(this.getFollowLocationBounds(map), {color: 'yellow'}).addTo(map);
+  }
+
+  private _mapLibre?: MapLibreMap;
+  public get mapLibre(): MapLibreMap | undefined { return this._mapLibre; }
+
+  private create3dMapLayer(module: any): L.Layer {
+    const ml = module.maplibreGL({
+      pitch: 70,
+      style: {
+        version: 8,
+        sources: {
+            osm: {
+                type: 'raster',
+                tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                attribution: '&copy; OpenStreetMap Contributors',
+                maxzoom: 19
+            },
+            // Use a different source for terrain and hillshade layers, to improve render quality
+            terrainSource: {
+                type: 'raster-dem',
+                url: 'https://tiles.mapterhorn.com/tilejson.json'
+            },
+            hillshadeSource: {
+                type: 'raster-dem',
+                url: 'https://tiles.mapterhorn.com/tilejson.json'
+            }
+        },
+        layers: [
+            {
+                id: 'osm',
+                type: 'raster',
+                source: 'osm'
+            },
+            {
+                id: 'hills',
+                type: 'hillshade',
+                source: 'hillshadeSource',
+                layout: {visibility: 'visible'},
+                paint: {'hillshade-shadow-color': '#473B24'}
+            }
+        ],
+        terrain: {
+            source: 'terrainSource',
+            exaggeration: 1
+        },
+        sky: {}
+      },
+    });
+    ml._trailence3dMapLayer = true;
+    this._mapLibre = ml.getMaplibreMap();
+    return ml;
+  }
+
+  public toggle3d(): void {
+    void this.loadNeededLibraries(!this._mapState.is3d)
+    .then(mapLibreLeafletModule => {
+      const map = this._map$.value!;
+      if (this._mapState.is3d) {
+        map.eachLayer(layer => {
+          const id = (layer as any)['_trailence3dMapLayer'];
+          if (id) map.removeLayer(layer);
+        });
+        const layer = this.mapLayersService.layers.find(lay => lay.name === this._mapState.tilesName)
+          ?? this.mapLayersService.layers.find(lay => lay.name === this.mapLayersService.getDefaultLayer())
+          ?? this.mapLayersService.layers[0];
+        const overlays = this._mapState.overlays.map(name => this.mapLayersService.overlays.find(o => o.name === name)).filter(o => !!o);
+        layer.create().addTo(map);
+        for (const o of overlays) o.create().addTo(map);
+      } else {
+        map.eachLayer(layer => {
+          const id = (layer as any)['_trailenceMapLayerId'];
+          if (id) map.removeLayer(layer);
+        });
+        const layer = this.create3dMapLayer(mapLibreLeafletModule);
+        layer.addTo(map);
+      }
+      this._mapState.is3d = !this._mapState.is3d;
+    });
   }
 
   private getEvent(map: L.Map, e: L.LeafletMouseEvent): MapTrackPointReference[] { // NOSONAR
@@ -781,7 +823,7 @@ export class MapComponent extends AbstractComponent {
 
   private initTools(): void {
     const additionsTool = new AdditionsTool(this.mapId);
-    this.defaultRightToolsItems.splice(1, 0, additionsTool.toMenuItem(() => this.getToolContext()));
+    this.defaultRightToolsItems.splice(2, 0, additionsTool.toMenuItem(() => this.getToolContext()));
     this.whenVisible.subscribe(combineLatest([this._map$, this._mapState.center$, this._mapState.zoomInt$]), ([map, center, zoom]) => {
       additionsTool.refresh(this.getToolContext());
     });
@@ -955,6 +997,7 @@ export class MapComponent extends AbstractComponent {
   rightToolsItems: MenuItem[] = [];
   defaultRightToolsItems: MenuItem[] = [
     new MapLayerSelectionTool().toMenuItem(() => this.getToolContext()),
+    new Switch3dTool().toMenuItem(() => this.getToolContext()),
     new DarkMapToggleTool().toMenuItem(() => this.getToolContext()),
     new FullScreenTool().toMenuItem(() => this.getToolContext()),
   ];

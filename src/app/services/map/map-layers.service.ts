@@ -452,12 +452,16 @@ function createDefaultLayer(
     regional: config.regional,
     templateUrl: config.urlTemplate,
     tileMimeFormat: config.mimeFormat,
-    create: () => handleMapOffline(config.name, config.displayName, new L.TileLayer(config.urlTemplate, {
-      maxZoom: config.maxZoom,
-      attribution: config.copyright,
-      id: config.name,
-      ...config.additionalOptions,
-    }), getTileUrl, injector.get(NetworkService), injector.get(OfflineMapService), injector.get(I18nService)),
+    create: () => {
+      const tileLayer = new L.TileLayer(config.urlTemplate, {
+        maxZoom: config.maxZoom,
+        attribution: config.copyright,
+        id: config.name,
+        ...config.additionalOptions,
+      });
+      (tileLayer as any)._trailenceMapLayerId = config.name;
+      return handleMapOffline(config.name, config.displayName, tileLayer, getTileUrl, injector.get(NetworkService), injector.get(OfflineMapService), injector.get(I18nService));
+    },
     getTileUrl,
     maxConcurrentRequests: config.maxConcurrentRequests,
     downloadType: config.downloadType ?? 'native',
@@ -500,12 +504,16 @@ function _createIgnLayer( // NOSONAR
     regional: baseConfig.regional,
     templateUrl: urlTemplate,
     tileMimeFormat: baseConfig.mimeFormat,
-    create: () => handleMapOffline(baseConfig.name, baseConfig.displayName, new L.TileLayer(urlTemplate, {
-      maxZoom: baseConfig.maxZoom,
-      attribution: baseConfig.copyright,
-      id: baseConfig.name,
-      ...baseConfig.additionalOptions,
-    }), getTileUrl, injector.get(NetworkService), injector.get(OfflineMapService), injector.get(I18nService)),
+    create: () => {
+      const tileLayer = new L.TileLayer(urlTemplate, {
+        maxZoom: baseConfig.maxZoom,
+        attribution: baseConfig.copyright,
+        id: baseConfig.name,
+        ...baseConfig.additionalOptions,
+      });
+      (tileLayer as any)._trailenceMapLayerId = baseConfig.name;
+      return handleMapOffline(baseConfig.name, baseConfig.displayName, tileLayer, getTileUrl, injector.get(NetworkService), injector.get(OfflineMapService), injector.get(I18nService));
+    },
     getTileUrl,
     maxConcurrentRequests: baseConfig.maxConcurrentRequests,
     downloadType: baseConfig.downloadType ?? 'native',
@@ -550,19 +558,23 @@ function createWmsLayer(injector: Injector, config: WmsMapLayerConfig): MapLayer
     regional: config.regional,
     templateUrl: '',
     tileMimeFormat: config.mimeFormat,
-    create: () => handleMapOffline(config.name, config.displayName, new L.TileLayer.WMS(config.baseUrl, {
-      layers: config.layers ?? '',
-      styles: config.styles ?? '',
-      format: config.mimeFormat,
-      transparent: true,
-      version: config.serviceVersion,
-      crs: config.crs,
-      uppercase: config.uppercase ?? false,
-      maxZoom: config.maxZoom,
-      attribution: config.copyright,
-      id: config.name,
-      ...config.additionalOptions,
-    }), getTileUrl, injector.get(NetworkService), injector.get(OfflineMapService), injector.get(I18nService)),
+    create: () => {
+      const tileLayer = new L.TileLayer.WMS(config.baseUrl, {
+        layers: config.layers ?? '',
+        styles: config.styles ?? '',
+        format: config.mimeFormat,
+        transparent: true,
+        version: config.serviceVersion,
+        crs: config.crs,
+        uppercase: config.uppercase ?? false,
+        maxZoom: config.maxZoom,
+        attribution: config.copyright,
+        id: config.name,
+        ...config.additionalOptions,
+      });
+      (tileLayer as any)._trailenceMapLayerId = config.name;
+      return handleMapOffline(config.name, config.displayName, tileLayer, getTileUrl, injector.get(NetworkService), injector.get(OfflineMapService), injector.get(I18nService));
+    },
     getTileUrl,
     maxConcurrentRequests: config.maxConcurrentRequests,
     downloadType: config.downloadType ?? 'native',

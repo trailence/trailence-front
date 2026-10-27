@@ -32,7 +32,7 @@ export class MapLayerSelectionTool extends MapTool {
               if (layer) {
                 let found: L.Layer | undefined = undefined;
                 ctx.map.eachLayer(current => {
-                  const id = (current.options as any)['id']; //NOSONAR
+                  const id = (current as any)['_trailenceMapLayerId'];
                   if (id) {
                     if (id === layer.name) found = current;
                     else if (service.layers.some(l => l.name === id)) ctx.map.removeLayer(current);
