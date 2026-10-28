@@ -1,14 +1,14 @@
 import { Track } from '@trailence/model/track';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
-import { MapTrackPath } from './map-track-path';
+import { MapTrackPath, PATH_ARROWS_DEFAULT_COLOR } from './map-track-path';
 import { Trail } from '@trailence/model/trail';
 import { MapTrackWayPoints, ShowBreaksStyle } from './map-track-way-points';
-import { MapTrackArrowPath } from './map-track-arrows-path';
 import * as L from 'leaflet';
 import { SimplifiedPoint, SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
 import { TrackWayPoint } from '@trailence/utils/track-waypoints/track-waypoint';
-import { ElementsFor3D, LeafletElement, MapElement, MapElementPosition, MapLibreElement } from '../map-element';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { ElementsFor3D, LeafletElement, MapElement } from '../map-element';
+import { Observable } from 'rxjs';
+import { MapState } from '../map-state';
 
 export function getMapTrackId(track: Track | SimplifiedTrackSnapshot): string {
   return 'track-' + track.uuid + '#' + track.owner;
@@ -39,15 +39,20 @@ export class MapTrack extends MapElement {
   private readonly _path: MapTrackPath;
   private readonly _wayPoints: MapTrackWayPoints;
 
-  public override get2DElements$(): Observable<LeafletElement<any>[]> {
+  public override destroy(): void {
     // TODO
-    return this._path.get2DElements$();
+    this._path.destroy();
+  }
+
+  public override get2DElements$(leaflet: L.Map, mapState: MapState, zoomAnim$: Observable<boolean>): Observable<LeafletElement<any>[]> {
+    // TODO
+    return this._path.get2DElements$(leaflet, mapState, zoomAnim$);
     //return [...this._path.get2DElements$(), ...this._arrowPath.get2DElements$(), ...this._wayPoints.get2DElements$()];
   }
 
-  public override get3DElements$(): ElementsFor3D {
+  public override get3DElements$(leaflet: L.Map, mapState: MapState, zoomAnim$: Observable<boolean>): ElementsFor3D {
     // TODO
-    return this._path.get3DElements$();
+    return this._path.get3DElements$(leaflet, mapState, zoomAnim$);
     //return { elements2d$: this.get2DElements$(), elements3d$: of([]) };
   }
 
@@ -99,7 +104,7 @@ export class MapTrack extends MapElement {
   }
 
   public showArrowPath(show: boolean = true, color?: string): void {
-    // TODO this._arrowPath.show(show, color);
+    this._path.arrowsColor = show ? (color ?? PATH_ARROWS_DEFAULT_COLOR) : undefined;
   }
 
   public bringToFront(): void {

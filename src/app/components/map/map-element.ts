@@ -1,5 +1,6 @@
 import { LayerSpecification, MapLibreMap, SourceSpecification } from 'maplibre-gl';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { MapState } from './map-state';
 
 export type LeafletElement<T extends L.Layer> = {
   element: T;
@@ -28,10 +29,12 @@ export abstract class MapElement {
     public readonly id: string,
   ) {}
 
+  public destroy() { /* nothing by default */ }
+
   public abstract fitBounds: L.LatLngBounds | undefined;
 
-  public abstract get2DElements$(): Observable<LeafletElement<any>[]>;
-  public abstract get3DElements$(): ElementsFor3D;
+  public abstract get2DElements$(leaflet: L.Map, mapState: MapState, zoomAnim$: Observable<boolean>): Observable<LeafletElement<any>[]>;
+  public abstract get3DElements$(leaflet: L.Map, mapState: MapState, zoomAnim$: Observable<boolean>, mapLibre: MapLibreMap): ElementsFor3D;
 
   public getPositionOnMap$(): Observable<MapElementPosition> { return this.positionOnMap$; }
 

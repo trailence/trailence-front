@@ -49,6 +49,7 @@ import { environment } from '@env/environment';
 import { MapLibreMap, setWorkerUrl } from 'maplibre-gl';
 import { Switch3dTool } from './tools/switch-3d';
 import { combineLatestSafe } from '@trailence/utils/rxjs/combineLatestSafe';
+import { mapList } from '@trailence/utils/rxjs/mapList';
 
 const logger = getLogger('map.component');
 
@@ -258,37 +259,31 @@ export class MapComponent extends AbstractComponent {
   private updateElements(): void {
     this._elementsSubscription?.unsubscribe();
     this._elementsSubscription = this.ngZone.runOutsideAngular(() =>
-      // TODO try to avoid to re-subscribe to known elements
-      combineLatest([this.elements$, this._mapState.live$, this._map$, this._mapLibre$]).pipe(
-        switchMap(r => this._zoomAnim$.pipe(
-          filter(anim => !anim),
-          map(() => r),
-        )),
-        filter(([elements, live, map, mapLibre]) => live && !!map && (!!mapLibre || !this.getMapLibreLayer(map))),
-        switchMap(([elements, live, leaflet, mapLibre]) => {
-          let resolvedElements: Observable<{element: MapElement, elements2d: LeafletElement<L.Layer>[], elements3d: MapLibreElement[], position: MapElementPosition}[]>;
-          if (mapLibre) {
-            resolvedElements = combineLatest(elements.map(element => {
-              const e = element.get3DElements$();
+      combineLatest([this._mapState.live$, this._map$, this._mapLibre$]).pipe(
+        map(([live, leaflet, mapLibre]) => live && !!leaflet && (!!mapLibre || !this.getMapLibreLayer(leaflet)) ? ({leaflet, mapLibre}) : undefined),
+        filterDefined(),
+        switchMap(({leaflet, mapLibre}) =>
+          (mapLibre ?
+            mapList(this.elements$, element => {
+              const e = element.get3DElements$(leaflet, this._mapState, this._zoomAnim$, mapLibre);
               return combineLatest([
                 e.elements2d$,
                 e.elements3d$,
                 element.getPositionOnMap$(),
               ]).pipe(map(([elements2d, elements3d, position]) => ({element, elements2d, elements3d, position})));
-            }));
-          } else {
-            resolvedElements = combineLatestSafe(elements.map(element =>
-              combineLatest([
-                element.get2DElements$(),
+            }) :
+            mapList(this.elements$, element => {
+              return combineLatest([
+                element.get2DElements$(leaflet, this._mapState, this._zoomAnim$),
                 element.getPositionOnMap$(),
-              ]).pipe(map(([elements2d, position]) => ({element, elements2d, elements3d: [], position})))
-            ));
-          }
-          return resolvedElements.pipe(map(r => ({leaflet: leaflet!, mapLibre, elements: r})));
-        }),
+              ]).pipe(map(([elements2d, position]) => ({element, elements2d, elements3d: [], position})));
+            })
+          ).pipe(
+            map(elements => ({leaflet, mapLibre, elements})),
+          )
+        ),
         // TODO debounce time
-      )
-      .subscribe(result => {
+      ).subscribe(result => {
         const sortedElements = sortMapElements(result.elements);
         console.log('render map', result)
 
@@ -345,11 +340,15 @@ export class MapComponent extends AbstractComponent {
             }
           }
         }
+        for (const element of this._currentElements) {
+          if (!result.elements.some(e => e.element === element.element))
+            element.element.destroy();
+        }
         this._currentElements = result.elements;
         this.initMapZoom(result.leaflet);
         this.refreshTools();
-      }
-    ));
+      })
+    );
   }
 
   private _initZoomTimestamp?: number;
@@ -675,7 +674,7 @@ export class MapComponent extends AbstractComponent {
         this.mouseClick.emit(e.latlng);
       }
     });
-    map.on("mousemove", e => {
+    map.on('mousemove', e => {
       if (this.mouseOverPoint.observed) {
         this.mouseOverPoint.emit(this.getEvent(map, e));
       }
@@ -816,7 +815,6 @@ export class MapComponent extends AbstractComponent {
         });
         const layer = this.create3dMapLayer(mapLibreLeafletModule);
         layer.addTo(map);
-        mapLibre = (layer as any).getMaplibreMap();
       }
       this._mapState.is3d = !this._mapState.is3d;
       if (!this._mapState.is3d)

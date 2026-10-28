@@ -1,21 +1,21 @@
 import { Track } from '@trailence/model/track';
 import * as L from 'leaflet';
-import { BehaviorSubject, combineLatest, map, Observable, of, Subscription, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, filter, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
 import { SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
-import { EventEmitter } from '@angular/core';
 import { getGradeRange, gradeColors } from '../../trail-graph/grade-values';
 import { distance, EarthPoint } from '@trailence/utils/latlng';
 import { LeafletUtils } from '@trailence/utils/leaflet-utils';
-import { MapLibreMap, SourceSpecification } from 'maplibre-gl';
+import { SourceSpecification } from 'maplibre-gl';
 import { ElementsFor3D, LeafletElement, MapLibreElement } from '../map-element';
 import { combineLatestSafe } from '@trailence/utils/rxjs/combineLatestSafe';
+import { MapState } from '../map-state';
 
 export class MapTrackPath {
 
   constructor(
     private readonly _track: Track | SimplifiedTrackSnapshot,
-    id: string,
+    private readonly id: string,
     color: string,
     smoothFactor: number,
     weight: number,
@@ -28,94 +28,64 @@ export class MapTrackPath {
   }
 
   private eleColors$: BehaviorSubject<boolean>;
+  private arrowsColor$ = new BehaviorSubject<string | undefined>(undefined);
+  private pathPoints$?: BehaviorSubject<PathPoint[][]>;
+  private pathPointsSubscription?: Subscription;
   private path2d: Path2D;
   private path3d: Path3D;
 
-  /*
-  private _path3d?: any;
-  private _subscription?: Subscription;
-  private _leaflet?: L.Map;
-  private _mapLibre?: MapLibreMap;*/
+  public destroy() {
+    this.pathPointsSubscription?.unsubscribe();
+    this.pathPointsSubscription = undefined;
+    this.pathPoints$ = undefined
+  }
 
-  public get2DElements$(): Observable<LeafletElement<L.Polyline>[]> {
-    if (this._track instanceof Track)
-      return combineLatest([
-        this.eleColors$,
-        this._track.segments$.pipe(
-          switchMap(segments => combineLatestSafe(segments.map(s => s.points$))),
-          debounceTimeExtended(0, 100, 100),
-        ),
-      ]).pipe(
-        map(([eleColors, segments]) => this.path2d.update(eleColors, segments.map(points => points.map(p =>({lat: p.pos.lat, lng: p.pos.lng, ele: p.ele}))))),
-      );
-    const track = this._track;
-    return this.eleColors$.pipe(
-      map(eleColors => this.path2d.update(eleColors, [track.points])),
+  private initPathPoints$(): BehaviorSubject<PathPoint[][]> {
+    if (this.pathPoints$) return this.pathPoints$;
+    if (this._track instanceof Track) {
+      this.pathPoints$ = new BehaviorSubject<PathPoint[][]>([]);
+      this.pathPointsSubscription = this._track.segments$.pipe(
+        switchMap(segments => combineLatestSafe(segments.map(s => s.points$))),
+        debounceTimeExtended(0, 100, 100),
+        map(segments => segments.map(points => points.map(p =>({lat: p.pos.lat, lng: p.pos.lng, ele: p.ele})))),
+      ).subscribe(points => this.pathPoints$!.next(points));
+      return this.pathPoints$;
+    }
+    this.pathPoints$ = new BehaviorSubject<PathPoint[][]>([this._track.points]);
+    return this.pathPoints$;
+  }
+
+  public get2DElements$(leaflet: L.Map, mapState: MapState, zoomAnim$: Observable<boolean>): Observable<LeafletElement<L.Polyline>[]> {
+    const points$ = this.initPathPoints$();
+    const pathElements$ = combineLatest([
+      this.eleColors$,
+      points$,
+    ]).pipe(
+      map(([eleColors, points]) => this.path2d.update(eleColors, points)),
+    );
+    const arrowsElements$ = combineLatest([points$, mapState.zoomInt$.pipe(switchMap(zoom => zoomAnim$.pipe(filter(anim => !anim), map(() => zoom))))]).pipe(
+      switchMap(([points, zoom]) => Arrows.get2dElements(leaflet, points, zoom, this.arrowsColor$, this.eleColors$.pipe(map(ec => ec ? 3 : 2)))),
+    );
+    return combineLatest([pathElements$, arrowsElements$]).pipe(
+      map(elements => elements.flat()),
     );
   }
 
-  public get3DElements$(): ElementsFor3D {
-    let elements3d: Observable<MapLibreElement[]>;
-    if (this._track instanceof Track) {
-      elements3d = combineLatest([
-        this.eleColors$,
-        this._track.segments$.pipe(
-          switchMap(segments => combineLatestSafe(segments.map(s => s.points$))),
-          debounceTimeExtended(0, 100, 100),
-        ),
-      ]).pipe(
-        map(([eleColors, segments]) => this.path3d.update(eleColors, segments.map(points => points.map(p =>({lat: p.pos.lat, lng: p.pos.lng, ele: p.ele}))))),
-      );
-    } else {
-      const track = this._track;
-      elements3d = this.eleColors$.pipe(
-        map(eleColors => this.path3d.update(eleColors, [track.points])),
-      );
-    }
+  public get3DElements$(leaflet: L.Map, mapState: MapState, zoomAnim$: Observable<boolean>): ElementsFor3D {
+    const points$ = this.initPathPoints$();
+    const pathElements$ = combineLatest([
+      this.eleColors$,
+      points$,
+    ]).pipe(
+      map(([eleColors, points]) => this.path3d.update(eleColors, points)),
+    );
+    const arrowsElements$ = combineLatest([points$, mapState.zoomInt$.pipe(switchMap(zoom => zoomAnim$.pipe(filter(anim => !anim), map(() => zoom))))]).pipe(
+      switchMap(([points, zoom]) => Arrows.get3dElements(leaflet, points, zoom, this.arrowsColor$, this.eleColors$.pipe(map(ec => ec ? 3 : 2)), this.id)),
+    );
     return {
       elements2d$: of([]),
-      elements3d$: elements3d,
-    }
-    // TODO
-        /*
-        ml.addSource('test', {
-          type: 'geojson',
-          data: {
-            type: 'Feature',
-            geometry: {
-              type: 'MultiLineString',
-              coordinates: this.path[0].getLatLngs().map(mapper),
-            }
-          }
-        });
-        ml.addLayer({
-          id: 'test',
-          type: 'line',
-          source: 'test',
-          paint: {
-            'line-color': '#FFFF00',
-            'line-width': 5,
-          }
-        })*/
-       /*
-        ml.addLayer({
-          id: 'test',
-          type: 'line',
-          source: {
-            type: 'geojson',
-            data: {
-              type: 'Feature',
-              geometry: {
-                type: 'MultiLineString',
-                coordinates: this.path[0].getLatLngs().map(mapper),
-              }
-            }
-          },
-          paint: {
-            'line-color': '#FFFF00',
-            'line-width': 5,
-          }
-        });*/
+      elements3d$: combineLatest([pathElements$, arrowsElements$]).pipe(map(elements => elements.flat())),
+    };
   }
 
   public get color(): string { return this.path2d.getColor(); }
@@ -128,6 +98,12 @@ export class MapTrackPath {
   public set eleColors(value: boolean) {
     if (this.eleColors$.value === value) return;
     this.eleColors$.next(value);
+  }
+
+  public get arrowsColor(): string | undefined { return this.arrowsColor$.value; }
+  public set arrowsColor(value: string | undefined) {
+    if (value === this.arrowsColor$.value) return;
+    this.arrowsColor$.next(value);
   }
 
 }
@@ -414,6 +390,172 @@ class Path3D {
 
   private getCoordinates(segment: PathPoint[]): GeoJSON.Position[] {
     return segment.map(point => [point.lng, point.lat]);
+  }
+
+}
+
+export const PATH_ARROWS_DEFAULT_COLOR = 'black';
+const PATH_ARROWS_BORDER_COLOR = '#FFFFFF80';
+
+class Arrows {
+
+  public static get2dElements(leaflet: L.Map, points: PathPoint[][], zoom: number, color$: Observable<string | undefined>, weight$: Observable<number>): Observable<LeafletElement<L.Polyline>[]> {
+    if (zoom < 10) return of([]);
+    const allPoints = points.flat();
+    if (allPoints.length < 3) return of([]);
+    let arrows: LeafletElement<L.Polyline>[] = [];
+    return combineLatest([color$, weight$]).pipe(
+      map(([color, weight]) => {
+        if (!color) {
+          arrows = [];
+          return arrows;
+        };
+        if (arrows.length === 0)
+          arrows = this.buildArrows(leaflet, allPoints, zoom, color, weight).flatMap(
+            arrow => [
+              {
+                element: L.polyline(arrow.border, {color: PATH_ARROWS_BORDER_COLOR, weight: weight + 3, className: 'track-arrow-border'})
+              }, {
+                element: L.polyline(arrow.arrow, {color, weight, className: 'track-arrow'})
+              }
+            ]
+          );
+        else
+          arrows.forEach(a => {
+            if (a.element.options.className !== 'track-arrow-border')
+              a.element.setStyle({color, weight});
+            else
+              a.element.setStyle({weight});
+          });
+        return arrows;
+      }),
+    );
+  }
+
+  public static get3dElements(leaflet: L.Map, points: PathPoint[][], zoom: number, color$: Observable<string | undefined>, weight$: Observable<number>, idPrefix: string): Observable<MapLibreElement[]> {
+    if (zoom < 10) return of([]);
+    const allPoints = points.flat();
+    if (allPoints.length < 3) return of([]);
+    let arrows: MapLibreElement[] = [];
+    return combineLatest([color$, weight$]).pipe(
+      map(([color, weight]) => {
+        if (!color) {
+          arrows = [];
+          return arrows;
+        };
+        if (arrows.length === 0) {
+          const def = this.buildArrows(leaflet, allPoints, zoom, color, weight);
+          arrows = [
+            {
+              id: idPrefix + '$arrowBorder',
+              type: 'line',
+              source: {
+                type: 'geojson',
+                data: {
+                  type: 'Feature',
+                  geometry: {
+                    type: 'MultiLineString',
+                    coordinates: def.map(arrow => arrow.border.map(pos => ([pos.lng, pos.lat]))),
+                  },
+                  properties: {},
+                }
+              },
+              paint: {
+                'line-color': PATH_ARROWS_BORDER_COLOR,
+                'line-width': weight + 3,
+              }
+            }, {
+              id: idPrefix + '$arrow',
+              type: 'line',
+              source: {
+                type: 'geojson',
+                data: {
+                  type: 'Feature',
+                  geometry: {
+                    type: 'MultiLineString',
+                    coordinates: def.map(arrow => arrow.arrow.map(pos => ([pos.lng, pos.lat]))),
+                  },
+                  properties: {},
+                }
+              },
+              paint: {
+                'line-color': color,
+                'line-width': weight,
+              }
+            }
+          ];
+        } else {
+          arrows.forEach(a => {
+            // TODO
+          });
+        }
+        return arrows;
+      }),
+    );
+  }
+
+  private static buildArrows(leaflet: L.Map, points: PathPoint[], zoom: number, color: string, weight: number): {arrow: L.LatLng[], border: L.LatLng[]}[] {
+    const PIXELS_BETWEEN_ARROWS = zoom < 13 ? 25 : 50;
+    const MINIMUM_PIXELS_BETWEEN_ARROWS = 10;
+    const FIRST_ARROW_MINIMUM_PIXELS = 10;
+
+    let lastArrow = this.toPointNotRounded(points[0], leaflet);
+    const arrows: L.Point[] = [];
+    const result: {arrow: L.LatLng[], border: L.LatLng[]}[] = [];
+    for (let i = 1; i < points.length - 1; ++i) {
+      const startPoint = points[i - 1];
+      const endPoint = points[i];
+      const middlePoint = {lat: startPoint.lat + (endPoint.lat - startPoint.lat) / 2, lng: startPoint.lng + (endPoint.lng - startPoint.lng) / 2};
+      const p = this.toPointNotRounded(middlePoint, leaflet);
+      const distance = p.distanceTo(lastArrow);
+      if ((arrows.length === 0 && distance >= FIRST_ARROW_MINIMUM_PIXELS) ||
+          (arrows.length > 0 && distance >= PIXELS_BETWEEN_ARROWS)) {
+        // it is eligible => check if another arrow is too closed
+        if (!this.isTooClosed(p, arrows, MINIMUM_PIXELS_BETWEEN_ARROWS)) {
+          // it's ok !
+          result.push({
+            arrow: this.drawArrow(points, i, p, weight + 3, leaflet),
+            border: this.drawArrow(points, i, p, weight + 3, leaflet),
+          });
+          arrows.push(p);
+          lastArrow = p;
+        }
+      }
+    }
+
+    return result;
+  }
+
+  private static isTooClosed(pos: L.Point, arrows: L.Point[], min: number): boolean {
+    for (const arrow of arrows) {
+      if (pos.distanceTo(arrow) < min) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static drawArrow(points: PathPoint[], index: number, p: L.Point, d: number, map: L.Map): L.LatLng[] {
+    let start = this.toPointNotRounded(points[index - 1], map);
+    for (let i = 2; p.distanceTo(start) < 5 && index - i >= 0; ++i)
+      start = this.toPointNotRounded(points[index - i], map);
+    let end = this.toPointNotRounded(points[index], map);
+    for (let i = 1; p.distanceTo(end) < 5 && index + i < points.length; ++i)
+      end = this.toPointNotRounded(points[index + i], map);
+    const a = Math.atan2(end.y - start.y, end.x - start.x);
+
+    const a_left = a + Math.PI - Math.PI/6;
+    const a_right = a + Math.PI + Math.PI/6;
+
+    return [
+      map.layerPointToLatLng([p.x + d * Math.cos(a_left), p.y + d * Math.sin(a_left)]),
+      map.layerPointToLatLng([p.x, p.y]),
+      map.layerPointToLatLng([p.x + d * Math.cos(a_right), p.y + d * Math.sin(a_right)])
+    ];
+  }
+
+  private static toPointNotRounded(point: PathPoint, map: L.Map): L.Point {
+    return map.project(point).subtract(map.getPixelOrigin());
   }
 
 }
