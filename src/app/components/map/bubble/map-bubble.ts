@@ -1,11 +1,12 @@
 import * as L from 'leaflet';
-import { MapElement } from '../map-element';
+import { ElementsFor3D, LeafletElement, MapElement } from '../map-element';
 import { LeafletUtils } from '@trailence/utils/leaflet-utils';
+import { Observable, of } from 'rxjs';
 
 const BUBBLE_MAX_PIXELS = 50;
 const BUBBLE_MIN_PIXELS = 20;
 
-export class MapBubble implements MapElement {
+export class MapBubble extends MapElement {
 
   private _map?: L.Map;
   private readonly _overlay: L.SVGOverlay;
@@ -20,6 +21,7 @@ export class MapBubble implements MapElement {
     textSize: number,
     textColor: string,
   ) {
+    super('bubble');
     this._overlay = L.svgOverlay(MapBubble.createSvgElement(100, bgColor, borderColor, text, textSize, textColor), _bubbleBounds, {
       interactive: true,
       className: 'bubble',
@@ -33,8 +35,18 @@ export class MapBubble implements MapElement {
     });
   }
 
+  public override get2DElements$(): Observable<LeafletElement<any>[]> {
+    // TODO
+    return of([]);
+  }
+
+  public override get3DElements$(): ElementsFor3D {
+    // TODO
+    return { elements2d$: of([]), elements3d$: of([]) };
+  }
+
   public get bubbleBounds(): L.LatLngBounds { return this._bubbleBounds; }
-  public get bounds(): L.LatLngBounds { return this._associatedBounds; }
+  public get fitBounds(): L.LatLngBounds { return this._associatedBounds; }
 
   public onClick(onclick: (map: L.Map) => void): this {
     this._onclick = onclick;

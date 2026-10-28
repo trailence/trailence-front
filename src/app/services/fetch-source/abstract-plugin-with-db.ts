@@ -152,7 +152,7 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
   }
 
   public override getSimplifiedTrack(uuid: string): Promise<SimplifiedTrackSnapshot | null> {
-    return this.tableSimplifiedTracks.get(uuid).then(t => t ?? null);
+    return this.tableSimplifiedTracks.get(uuid).then(t => t ? {owner: this.owner, uuid, points: t.points} : null);
   }
 
   protected fetchSimplifiedTrackById(uuid: string): Promise<SimplifiedTrackSnapshot | null> {

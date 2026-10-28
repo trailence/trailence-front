@@ -17,6 +17,8 @@ export interface TrackMetadataSnapshot {
 }
 
 export interface SimplifiedTrackSnapshot {
+  uuid: string;
+  owner: string;
   points: SimplifiedPoint[];
 }
 export interface SimplifiedPoint {

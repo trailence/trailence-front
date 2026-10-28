@@ -1,8 +1,8 @@
-import { SimplifiedPoint, SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
+import { SimplifiedPoint } from '@trailence/model/snapshots';
 import { distance } from '@trailence/utils/latlng';
 
-export function simplifyTrack(points: SimplifiedPoint[]): SimplifiedTrackSnapshot {
-  const simplified: SimplifiedTrackSnapshot = { points: [] };
+export function simplifyTrack(points: SimplifiedPoint[]): SimplifiedPoint[] {
+  const simplified: SimplifiedPoint[] = [];
   let previous: SimplifiedPoint | undefined;
   for (const point of points) {
     if (!previous || distance(point, previous) >= 25) {
@@ -12,23 +12,23 @@ export function simplifyTrack(points: SimplifiedPoint[]): SimplifiedTrackSnapsho
         ele: point.ele,
         time: point.time,
       };
-      if (previous && simplified.points.length > 1) {
+      if (previous && simplified.length > 1) {
         const angle1 = Math.atan2(point.lat - previous.lat, point.lng - previous.lng);
-        const pprevious = simplified.points.at(-2)!;
+        const pprevious = simplified.at(-2)!;
         const angle2 = Math.atan2(previous.lat - pprevious.lat, previous.lng - pprevious.lng);
         if (Math.abs(angle1 - angle2) < 0.35) {
-          simplified.points[simplified.points.length - 1] = newPoint;
+          simplified[simplified.length - 1] = newPoint;
           previous = point;
           continue;
         }
       }
-      simplified.points.push(newPoint);
+      simplified.push(newPoint);
       previous = point;
     }
   }
   const lastPoint = points.at(-1)!;
   if (previous !== lastPoint) {
-    simplified.points.push({
+    simplified.push({
       lat: lastPoint.lat,
       lng: lastPoint.lng,
       ele: lastPoint.ele,

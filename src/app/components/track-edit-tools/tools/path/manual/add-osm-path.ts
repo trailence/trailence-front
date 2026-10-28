@@ -36,8 +36,8 @@ export class AddOsmPath extends AddPointsTool {
   private mode: 'foot' | 'bicycle' = 'foot'; // TODO
 
   private _init(ctx: AddPointsContext): void {
-    for (const w of this.possibleWays) ctx.map.removeElement(w.mapTrack);
-    for (const w of this.possibleWaysFromCursor) ctx.map.removeElement(w.mapTrack);
+    // TODO for (const w of this.possibleWays) ctx.map.removeElement(w.mapTrack);
+    // TODO for (const w of this.possibleWaysFromCursor) ctx.map.removeElement(w.mapTrack);
     this.possibleWaysFromCursor = [];
     if (this.allWays.length === 0) {
       this.possibleWays = [];
@@ -49,7 +49,7 @@ export class AddOsmPath extends AddPointsTool {
       way,
       mapTrack: this.allMapTracks.find(mt => mt.data === way)!,
     }));
-    for (const w of this.possibleWays) w.mapTrack.addTo(ctx.map.getMap()!); // NOSONAR
+    // TODO for (const w of this.possibleWays) w.mapTrack.addTo(ctx.map.getMap()!); // NOSONAR
   }
 
   override enableAddPoints(ctx: AddPointsContext): void {
@@ -64,6 +64,8 @@ export class AddOsmPath extends AddPointsTool {
           const mapTrack = new MapTrack(
             undefined,
             {
+              owner: 'osm',
+              uuid: way.id,
               points: way.points
             },
             DEFAULT_COLOR,
@@ -84,7 +86,7 @@ export class AddOsmPath extends AddPointsTool {
       }
       const ref = this.getEligiblePoint(ctx.point.pos, refs);
       for (const mt of this.allMapTracks) mt.color = DEFAULT_COLOR;
-      for (const w of this.possibleWaysFromCursor) w.mapTrack.remove();
+      // TODO for (const w of this.possibleWaysFromCursor) w.mapTrack.remove();
       this.possibleWaysFromCursor = [];
       if (ref?.ref?.point) {
         const pos = ref.ref.position!;
@@ -102,7 +104,7 @@ export class AddOsmPath extends AddPointsTool {
         this.possibleWaysFromCursor = newPossibleWaysFromCursor;
         for (const w of this.possibleWaysFromCursor) {
           w.mapTrack.color = HIGHLIGHTED_COLOR;
-          w.mapTrack.addTo(ctx.map.getMap()!); // NOSONAR
+          // TODO w.mapTrack.addTo(ctx.map.getMap()!); // NOSONAR
         };
       } else {
         this.anchor.marker.remove();
@@ -129,7 +131,7 @@ export class AddOsmPath extends AddPointsTool {
       this.waysSubscription?.unsubscribe();
       this.waysSubscription = undefined;
     }
-    for (const mt of this.allMapTracks) mt.remove();
+    // TODO for (const mt of this.allMapTracks) mt.remove();
   }
 
   private getEligiblePoint(fromPos: L.LatLngLiteral, refs: MapTrackPointReference[]): {ref: MapTrackPointReference | undefined, using: WayAndMapTrack | undefined} | undefined {

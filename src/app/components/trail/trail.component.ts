@@ -2328,7 +2328,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     Arrays.removeAll(this.mapElements$.value, this.highlightedMapTrackSections);
     let changed = this.mapElements$.value.length != sizeBefore;
     if (event) {
-      this.highlightedMapTrackSections = event.sections.map(section => this.buildMapTrack(event.track, section));
+      this.highlightedMapTrackSections = event.sections.map((section, index) => this.buildMapTrack(event.track, section, index));
       this.mapElements$.value.push(...this.highlightedMapTrackSections);
       changed = true;
     }
@@ -2336,8 +2336,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     if (event && changed) this.setTab('map');
   }
 
-  private buildMapTrack(track: Track, section: TrackSection): MapTrack {
-    const sectionTrack: SimplifiedTrackSnapshot = { points: [] };
+  private buildMapTrack(track: Track, section: TrackSection, sectionIndex: number): MapTrack {
+    const sectionTrack: SimplifiedTrackSnapshot = { owner: track.owner, uuid: track.uuid + '$' + sectionIndex, points: [] };
     for (let si = section.start.segmentIndex; si <= section.end.segmentIndex; ++si) {
       const segment = track.segments[si].points;
       const start = si === section.start.segmentIndex ? section.start.pointIndex : 0;

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { WorkerMessage, WorkerRequest } from './worker-request';
 import { Track } from '../model/track';
-import { SimplifiedTrackSnapshot } from '../model/snapshots';
+import { SimplifiedPoint, SimplifiedTrackSnapshot } from '../model/snapshots';
 import { ComputedPreferences } from '../services/preferences/preferences';
 import { Photo } from '../model/photo';
 import { TranslatedString } from '../services/i18n/i18n-string';
@@ -60,11 +60,11 @@ export class WorkerService {
   }
 
   public simplifyTrack(track: Track): Promise<SimplifiedTrackSnapshot> {
-    return this.request<SimplifiedTrackSnapshot>({
+    return this.request<SimplifiedPoint[]>({
       request: WorkerRequest.SIMPLIFY_TRACK,
       payload: track.getAllPoints().map(p => ({lat: p.pos.lat, lng: p.pos.lng, ele: p.ele, time: p.time})),
       transferable: []
-    });
+    }).then(points => ({owner: track.owner, uuid: track.uuid, points}));
   }
 
   public importPhoto( // NOSONAR

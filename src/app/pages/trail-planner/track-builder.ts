@@ -407,6 +407,8 @@ export class TrackBuilder {
     const mapTrack = new MapTrack(
       undefined,
       {
+        owner: 'osm',
+        uuid: way.id,
         points: way.points
       },
       this.getWayColor(way), 1, false, this.injector.get(I18nService)

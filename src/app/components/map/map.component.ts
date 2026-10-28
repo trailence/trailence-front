@@ -32,7 +32,7 @@ import { HttpService } from '@trailence/services/http/http.service';
 import { SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
 import { AdditionsTool } from './tools/additions-tool';
 import { BoundsBuilder } from '@trailence/utils/leaflet-utils';
-import { MapElement } from './map-element';
+import { LeafletElement, MapElement, MapElementPosition, MapLibreElement, sortMapElements } from './map-element';
 import { AssetsService } from '@trailence/services/assets/assets.service';
 import { RotateTool } from './tools/rotate-tool';
 import { GeolocationService } from '@trailence/services/geolocation/geolocation.service';
@@ -48,6 +48,7 @@ import { assetsDependencies } from '@trailence/assets-dependencies';
 import { environment } from '@env/environment';
 import { MapLibreMap, setWorkerUrl } from 'maplibre-gl';
 import { Switch3dTool } from './tools/switch-3d';
+import { combineLatestSafe } from '@trailence/utils/rxjs/combineLatestSafe';
 
 const logger = getLogger('map.component');
 
@@ -73,7 +74,6 @@ export class MapComponent extends AbstractComponent {
 
   @Input() mapId!: string;
   @Input() elements$!: Observable<MapElement[]>;
-  @Input() elementsFilter$?: Observable<(element: MapElement) => boolean>;
   @Input() autoFollowLocation = false;
   @Input() downloadMapTrail?: Trail;
   @Input() leftTools: MenuItem[] = [];
@@ -91,6 +91,7 @@ export class MapComponent extends AbstractComponent {
   id: string;
   private readonly _mapState = new MapState();
   private readonly _map$ = new BehaviorSubject<L.Map | undefined>(undefined);
+  private readonly _mapLibre$ = new BehaviorSubject<MapLibreMap | undefined>(undefined);
   private leafletRotateLoaded?: Promise<any>;
   private mapLibreLeafletLoaded?: Promise<any>;
 
@@ -191,14 +192,15 @@ export class MapComponent extends AbstractComponent {
 
   override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
     if (changes['mapId']) this._mapState.load(LOCALSTORAGE_KEY_MAPSTATE + this.mapId);
-    if (changes['elements$'] || changes['elementsFilter$']) this.updateElements();
+    if (changes['elements$']) this.updateElements();
     if (changes['rightTools'] || changes['leftTools']) this.updateTools();
   }
 
   protected override destroyComponent(): void {
     if (this._map$.value) {
       for (const element of this._currentElements) {
-        element.remove();
+        for (const e of element.elements2d)
+          e.element.remove();
       }
       this._currentElements = [];
       this._map$.value.remove();
@@ -251,38 +253,100 @@ export class MapComponent extends AbstractComponent {
     this._mapState.zoom = map.getZoom();
   }
 
-  private _currentElements: MapElement[] = [];
+  private _currentElements: {element: MapElement, elements2d: LeafletElement<L.Layer>[], elements3d: MapLibreElement[]}[] = [];
   private _elementsSubscription?: Subscription;
   private updateElements(): void {
     this._elementsSubscription?.unsubscribe();
     this._elementsSubscription = this.ngZone.runOutsideAngular(() =>
-      combineLatest([this.elements$, this.elementsFilter$ ?? of(() => true), this._mapState.live$, this._map$]).pipe(
+      // TODO try to avoid to re-subscribe to known elements
+      combineLatest([this.elements$, this._mapState.live$, this._map$, this._mapLibre$]).pipe(
         switchMap(r => this._zoomAnim$.pipe(
           filter(anim => !anim),
           map(() => r),
         )),
-      )
-      .subscribe(([elements, elementsFilter, live, map]) => {
-        if (!map || !live) return;
-        const toRemove = [...this._currentElements];
-        const displayed: MapElement[] = [];
-        const highlighted: MapElement[] = [];
-        for (const element of elements) {
-          if (!elementsFilter(element)) continue;
-          displayed.push(element);
-          const index = toRemove.indexOf(element);
-          if (index >= 0) {
-            toRemove.splice(index, 1);
-            element.bringToFront();
+        filter(([elements, live, map, mapLibre]) => live && !!map && (!!mapLibre || !this.getMapLibreLayer(map))),
+        switchMap(([elements, live, leaflet, mapLibre]) => {
+          let resolvedElements: Observable<{element: MapElement, elements2d: LeafletElement<L.Layer>[], elements3d: MapLibreElement[], position: MapElementPosition}[]>;
+          if (mapLibre) {
+            resolvedElements = combineLatest(elements.map(element => {
+              const e = element.get3DElements$();
+              return combineLatest([
+                e.elements2d$,
+                e.elements3d$,
+                element.getPositionOnMap$(),
+              ]).pipe(map(([elements2d, elements3d, position]) => ({element, elements2d, elements3d, position})));
+            }));
           } else {
-            element.addTo(map);
+            resolvedElements = combineLatestSafe(elements.map(element =>
+              combineLatest([
+                element.get2DElements$(),
+                element.getPositionOnMap$(),
+              ]).pipe(map(([elements2d, position]) => ({element, elements2d, elements3d: [], position})))
+            ));
           }
-          if (element.highlighted) highlighted.push(element);
+          return resolvedElements.pipe(map(r => ({leaflet: leaflet!, mapLibre, elements: r})));
+        }),
+        // TODO debounce time
+      )
+      .subscribe(result => {
+        const sortedElements = sortMapElements(result.elements);
+        console.log('render map', result)
+
+        // leaflet elements
+        const leafletElements = sortedElements.flatMap(e => result.elements.find(re => re.element === e)!.elements2d);
+        const leafletElementsPresent: LeafletElement<any>[] = [];
+        for (const element of this._currentElements) {
+          for (const leafletElement of element.elements2d) {
+            if (leafletElements.includes(leafletElement)) {
+              console.log('keep element', leafletElement.element);
+              leafletElementsPresent.push(leafletElement);
+            } else {
+              console.log('remove element', leafletElement.element, !!(leafletElement.element as any)._map);
+              leafletElement.element.remove();
+              leafletElement.onRemove?.(result.leaflet);
+            }
+          }
         }
-        for (const element of toRemove) element.remove();
-        for (const element of highlighted) element.bringToFront();
-        this._currentElements = displayed;
-        this.initMapZoom(map);
+        for (const leafletElement of leafletElements) {
+          if (leafletElementsPresent.includes(leafletElement)) {
+            if (typeof (leafletElement.element as any)['bringToFront'] === 'function')
+              (leafletElement.element as any).bringToFront();
+          } else {
+            console.log('add element', leafletElement.element);
+            leafletElement.element.addTo(result.leaflet);
+            leafletElement.onAdd?.(result.leaflet);
+          }
+        }
+
+        // map libre
+        if (result.mapLibre) {
+          const mapLibreElements = sortedElements.flatMap(e => result.elements.find(re => re.element === e)!.elements3d);
+          const mapLibreElementsPresent: MapLibreElement[] = [];
+          for (const element of this._currentElements) {
+            for (const mapLibreElement of element.elements3d) {
+              if (mapLibreElements.includes(mapLibreElement)) {
+                mapLibreElementsPresent.push(mapLibreElement);
+                console.log('keep layer', mapLibreElement.id);
+              } else {
+                console.log('remove layer', mapLibreElement.id);
+                result.mapLibre.removeLayer(mapLibreElement.id);
+                result.mapLibre.removeSource(mapLibreElement.id);
+                mapLibreElement.onRemove?.(result.leaflet, result.mapLibre);
+              }
+            }
+          }
+          for (const mapLibreElement of mapLibreElements) {
+            if (mapLibreElementsPresent.includes(mapLibreElement)) {
+              result.mapLibre.moveLayer(mapLibreElement.id);
+            } else {
+              console.log('add layer', mapLibreElement.id);
+              result.mapLibre.addLayer(mapLibreElement);
+              mapLibreElement.onAdd?.(result.leaflet, result.mapLibre);
+            }
+          }
+        }
+        this._currentElements = result.elements;
+        this.initMapZoom(result.leaflet);
         this.refreshTools();
       }
     ));
@@ -294,7 +358,7 @@ export class MapComponent extends AbstractComponent {
     if ((this._mapState.center.lat === 0 && this._mapState.center.lng === 0 && this._mapState.zoom <= 2) || // initial state
         (this._initZoomTimestamp && Date.now() - this._initZoomTimestamp < 2500)) {
       if (this._currentElements.length > 0) {
-        this.fitElementsBounds(map, this._currentElements);
+        this.fitElementsBounds(map, this._currentElements.map(e => e.element));
         if (!this._initZoomTimestamp)
           this._initZoomTimestamp = Date.now();
       } else if (!this._initZoomTimestamp) {
@@ -311,27 +375,10 @@ export class MapComponent extends AbstractComponent {
     }
   }
 
-  public addElement(element: MapElement): void {
-    this.ngZone.runOutsideAngular(() => {
-      if (this._map$.value)
-        element.addTo(this._map$.value);
-      this._currentElements.push(element);
-    });
-  }
-
-  public removeElement(element: MapElement): void {
-    this.ngZone.runOutsideAngular(() => {
-      element.remove();
-      const index = this._currentElements.indexOf(element);
-      if (index >= 0)
-        this._currentElements.splice(index, 1);
-    });
-  }
-
   public fitBounds(elements: MapElement[] | undefined, padding: number = DEFAULT_FIT_PADDING): void {
     this.ngZone.runOutsideAngular(() => {
       if (!this._map$.value) return;
-      this.fitElementsBounds(this._map$.value, elements || this._currentElements, padding);
+      this.fitElementsBounds(this._map$.value, elements || this._currentElements.map(e => e.element), padding);
       this._initZoomTimestamp = 1;
     });
   }
@@ -346,7 +393,10 @@ export class MapComponent extends AbstractComponent {
 
   private fitElementsBounds(map: L.Map, elements: MapElement[], padding: number = DEFAULT_FIT_PADDING): void {
     const boundsBuilder = new BoundsBuilder();
-    for (const e of elements) boundsBuilder.extend(e.bounds);
+    for (const e of elements) {
+      const bounds = e.fitBounds;
+      if (bounds) boundsBuilder.extend(bounds);
+    }
     boundsBuilder.pad(padding);
     this.fit(map, boundsBuilder);
   }
@@ -377,7 +427,7 @@ export class MapComponent extends AbstractComponent {
   fitMapBounds(map: L.Map, padding: number = DEFAULT_FIT_PADDING): void {
     const boundsBuilder = new BoundsBuilder();
     for (const e of this._currentElements) {
-      const b = e.bounds;
+      const b = e.element.fitBounds;
       if (b) boundsBuilder.extend(L.latLngBounds(b.getSouthWest(), b.getNorthEast()));
     }
     for (const provider of this._fitBoundsProviders) boundsBuilder.extend(provider());
@@ -394,7 +444,7 @@ export class MapComponent extends AbstractComponent {
   public ensureVisible(track: MapTrack): void {
     const map = this._map$.value;
     if (!map) return;
-    const bounds = track.bounds;
+    const bounds = track.fitBounds;
     if (bounds) {
       const mapBounds = map.getBounds();
       if (mapBounds.contains(bounds)) return;
@@ -678,12 +728,9 @@ export class MapComponent extends AbstractComponent {
     //L.rectangle(this.getFollowLocationBounds(map), {color: 'yellow'}).addTo(map);
   }
 
-  private _mapLibre?: MapLibreMap;
-  public get mapLibre(): MapLibreMap | undefined { return this._mapLibre; }
-
   private create3dMapLayer(module: any): L.Layer {
-    const ml = module.maplibreGL({
-      pitch: 70,
+    const ml: L.Layer = module.maplibreGL({
+      pitch: 80,
       style: {
         version: 8,
         sources: {
@@ -697,11 +744,13 @@ export class MapComponent extends AbstractComponent {
             // Use a different source for terrain and hillshade layers, to improve render quality
             terrainSource: {
                 type: 'raster-dem',
-                url: 'https://tiles.mapterhorn.com/tilejson.json'
+                url: 'https://tiles.mapterhorn.com/tilejson.json',
+                maxzoom: 17,
             },
             hillshadeSource: {
                 type: 'raster-dem',
-                url: 'https://tiles.mapterhorn.com/tilejson.json'
+                url: 'https://tiles.mapterhorn.com/tilejson.json',
+                maxzoom: 17,
             }
         },
         layers: [
@@ -725,15 +774,30 @@ export class MapComponent extends AbstractComponent {
         sky: {}
       },
     });
-    ml._trailence3dMapLayer = true;
-    this._mapLibre = ml.getMaplibreMap();
+    (ml as any)._trailence3dMapLayer = true;
+    ml.on('add', () => {
+      const mapLibre: MapLibreMap = (ml as any).getMaplibreMap();
+      mapLibre.on('style.load', e => {
+        if (this._mapLibre$.value === undefined && this._map$.value && this.getMapLibreLayer(this._map$.value))
+          this._mapLibre$.next(mapLibre);
+      });
+    });
     return ml;
+  }
+
+  private getMapLibreLayer(map: L.Map): L.Layer | undefined {
+    let layer: L.Layer | undefined;
+    map.eachLayer(l => {
+      if ((l as any)['_trailence3dMapLayer']) layer = l;
+    });
+    return layer;
   }
 
   public toggle3d(): void {
     void this.loadNeededLibraries(!this._mapState.is3d)
     .then(mapLibreLeafletModule => {
       const map = this._map$.value!;
+      let mapLibre: MapLibreMap | undefined;
       if (this._mapState.is3d) {
         map.eachLayer(layer => {
           const id = (layer as any)['_trailence3dMapLayer'];
@@ -752,8 +816,11 @@ export class MapComponent extends AbstractComponent {
         });
         const layer = this.create3dMapLayer(mapLibreLeafletModule);
         layer.addTo(map);
+        mapLibre = (layer as any).getMaplibreMap();
       }
       this._mapState.is3d = !this._mapState.is3d;
+      if (!this._mapState.is3d)
+        this._mapLibre$.next(undefined);
     });
   }
 
@@ -776,7 +843,7 @@ export class MapComponent extends AbstractComponent {
       }
     }
     for (const mapTrack of allTracks) {
-      if (!mapTrack.bounds?.pad(1).contains(e.latlng)) {
+      if (!mapTrack.fitBounds?.pad(1).contains(e.latlng)) {
         continue;
       }
       const track = mapTrack.track;

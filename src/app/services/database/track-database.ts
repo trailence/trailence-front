@@ -19,7 +19,7 @@ import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extend
 import { QuotaService } from '../auth/quota.service';
 import { StoreErrors } from './store/store-errors';
 import { StoreOperations } from './store/store-operations';
-import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from '@trailence/model/snapshots';
+import { SimplifiedPoint, SimplifiedTrackSnapshot, TrackMetadataSnapshot } from '@trailence/model/snapshots';
 import { StoreService, StoreWithCleaning } from './store/store.service';
 import { DbTable, DbTableWhereEquals, DbTableWhereGreaterThan, DbTableWhereLessThan } from './storage/db-table';
 import { Db, DbReady } from './storage/db';
@@ -40,8 +40,9 @@ interface MetadataItem extends TrackMetadataSnapshot {
   key: string;
 }
 
-interface SimplifiedTrackItem extends SimplifiedTrackSnapshot {
+interface SimplifiedTrackItem {
   key: string;
+  points: SimplifiedPoint[];
 }
 
 interface TrackItem {
@@ -364,18 +365,18 @@ export class TrackDatabase implements StoreWithCleaning {
     const key = uuid + '#' + owner;
     let item$ = this.simplifiedTracks.get(key);
     if (!item$) {
-      item$ = this.subjectService.create<SimplifiedTrackSnapshot>('SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key));
+      item$ = this.subjectService.create<SimplifiedTrackSnapshot>('SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(owner, uuid, key));
       this.simplifiedTracks.set(key, item$);
     }
     return item$.asObservable();
   }
 
-  private simplifiedKeysToLoad = new Map<string, (item: SimplifiedTrackSnapshot | null) => void>();
+  private simplifiedKeysToLoad = new Map<string, {owner: string; uuid: string; resolve: (item: SimplifiedTrackSnapshot | null) => void}>();
   private simplifiedLoadingTimeout?: any;
 
-  private loadSimplifiedTrack(key: string): Promise<SimplifiedTrackSnapshot | null> {
+  private loadSimplifiedTrack(owner: string, uuid: string, key: string): Promise<SimplifiedTrackSnapshot | null> {
     return new Promise<SimplifiedTrackSnapshot | null>((resolve) => {
-      this.simplifiedKeysToLoad.set(key, resolve);
+      this.simplifiedKeysToLoad.set(key, {owner, uuid, resolve});
       if (this.simplifiedLoadingTimeout) return;
       this.ngZone.runOutsideAngular(() => this.simplifiedLoadingTimeout ??= setTimeout(() => this.loadSimplifiedTrackAsync(), 0));
     });
@@ -388,8 +389,9 @@ export class TrackDatabase implements StoreWithCleaning {
     this.tableSimplifiedTrack.getByKeys$(keys).subscribe(items => {
       for (const entry of map.entries()) {
         const item = items.find(i => i.key === entry[0]);
-        const callback = entry[1];
-        callback(item || null);
+        const toLoad = entry[1];
+        const track = item ? {owner: toLoad.owner, uuid: toLoad.uuid, points: item.points} : null;
+        toLoad.resolve(track);
       }
     });
   }
@@ -477,7 +479,7 @@ export class TrackDatabase implements StoreWithCleaning {
         else this.fullTracks.set(key, this.subjectService.create<Track>('Track', () => this.loadFullTrack(key), undefined, track));
         const simplified$ = this.simplifiedTracks.get(key);
         if (simplified$) simplified$.newValue(simplified);
-        else this.simplifiedTracks.set(key, this.subjectService.create<SimplifiedTrackSnapshot>('SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), undefined, simplified));
+        else this.simplifiedTracks.set(key, this.subjectService.create<SimplifiedTrackSnapshot>('SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(track.owner, track.uuid, key), undefined, simplified));
         const metadata$ = this.metadata.get(key);
         if (metadata$) metadata$.newValue(metadata);
         else this.metadata.set(key, this.subjectService.create<TrackMetadataSnapshot>('TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
@@ -530,7 +532,7 @@ export class TrackDatabase implements StoreWithCleaning {
         else this.fullTracks.set(key, this.subjectService.create<Track>('Track', () => this.loadFullTrack(key), undefined, track));
         const simplified$ = this.simplifiedTracks.get(key);
         if (simplified$) simplified$.newValue(simplified);
-        else this.simplifiedTracks.set(key, this.subjectService.create<SimplifiedTrackSnapshot>('SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), undefined, simplified));
+        else this.simplifiedTracks.set(key, this.subjectService.create<SimplifiedTrackSnapshot>('SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(track.owner, track.uuid, key), undefined, simplified));
         const metadata$ = this.metadata.get(key);
         if (metadata$) metadata$.newValue(metadata);
         else this.metadata.set(key, this.subjectService.create<TrackMetadataSnapshot>('TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));

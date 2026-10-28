@@ -3,7 +3,7 @@ import { OsmWayMatchResponse } from '@trailence/utils/track-computed-data/track-
 import * as L from 'leaflet';
 import { Injector } from '@angular/core';
 import { OsmcSymbolService } from '@trailence/services/geolocation/osmc-symbol.service';
-import { MapElement } from '../map-element';
+import { ElementsFor3D, LeafletElement, MapElement } from '../map-element';
 import { Point } from '@trailence/model/point';
 import { OsmWaysTrackPoint } from '@trailence/utils/track-computed-data/match-osm-ways';
 import { Arrays } from '@trailence/utils/arrays';
@@ -11,6 +11,7 @@ import { TrackPointReference } from '@trailence/utils/track-computed-data/types'
 import { EarthPoint } from '@trailence/utils/latlng';
 import { Route, Way } from '@trailence/services/map/way';
 import { Maps } from '@trailence/utils/maps';
+import { Observable, of } from 'rxjs';
 
 const MIN_DISTANCE_TO_DISPLAY = 100;
 const MAX_DISTANCE_TO_MERGE = 75;
@@ -232,7 +233,7 @@ function createIcon(added: string[], removed: string[], service: OsmcSymbolServi
   return {svg, height: y - gap};
 }
 
-export class MapMarkedTrail implements MapElement {
+export class MapMarkedTrail extends MapElement {
 
   constructor(
     private readonly svg: string,
@@ -241,7 +242,22 @@ export class MapMarkedTrail implements MapElement {
     private readonly rotation: number,
     private readonly routesNames: Map<string, Set<string>>,
     private readonly symbolService: OsmcSymbolService,
-  ) {}
+  ) {
+    //TODO
+    super('');
+  }
+
+  public override get2DElements$(): Observable<LeafletElement<any>[]> {
+    // TODO
+    return of([]);
+  }
+
+  public override get3DElements$(): ElementsFor3D {
+    // TODO
+    return { elements2d$: of([]), elements3d$: of([]) };
+  }
+
+  public override get fitBounds(): L.LatLngBounds | undefined { return undefined; }
 
   private _map?: L.Map;
   private _osmc?: L.Marker;

@@ -7,9 +7,14 @@ import { MapTrackArrowPath } from './map-track-arrows-path';
 import * as L from 'leaflet';
 import { SimplifiedPoint, SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
 import { TrackWayPoint } from '@trailence/utils/track-waypoints/track-waypoint';
-import { MapElement } from '../map-element';
+import { ElementsFor3D, LeafletElement, MapElement, MapElementPosition, MapLibreElement } from '../map-element';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 
-export class MapTrack implements MapElement {
+export function getMapTrackId(track: Track | SimplifiedTrackSnapshot): string {
+  return 'track-' + track.uuid + '#' + track.owner;
+}
+
+export class MapTrack extends MapElement {
 
   public data: any;
   public highlighted = false;
@@ -26,33 +31,30 @@ export class MapTrack implements MapElement {
     i18n: I18nService,
     weight: number = 3,
   ) {
-    this._path = new MapTrackPath(_track, color, smoothFactor, weight, this);
+    super(getMapTrackId(_track));
+    this._path = new MapTrackPath(_track, this.id + '$path', color, smoothFactor, weight, this);
     this._wayPoints = new MapTrackWayPoints(_track, isRecording, () => this.color, i18n, wp => this.onWayPointClick?.(wp));
-    this._arrowPath = new MapTrackArrowPath(_track, isRecording ? this._path.pathUpdated$ : undefined);
   }
 
   private readonly _path: MapTrackPath;
   private readonly _wayPoints: MapTrackWayPoints;
-  private readonly _arrowPath: MapTrackArrowPath;
 
-  public addTo(map: L.Map): void {
-    this._path.addTo(map);
-    this._arrowPath.addTo(map);
-    this._wayPoints.addTo(map);
+  public override get2DElements$(): Observable<LeafletElement<any>[]> {
+    // TODO
+    return this._path.get2DElements$();
+    //return [...this._path.get2DElements$(), ...this._arrowPath.get2DElements$(), ...this._wayPoints.get2DElements$()];
   }
 
-  public remove(): void {
-    this._path.remove();
-    this._wayPoints.remove();
-    this._arrowPath.remove();
+  public override get3DElements$(): ElementsFor3D {
+    // TODO
+    return this._path.get3DElements$();
+    //return { elements2d$: this.get2DElements$(), elements3d$: of([]) };
   }
 
   public get trail(): Trail | undefined { return this._trail; }
   public get track(): Track | SimplifiedTrackSnapshot { return this._track; }
 
-  public get bounds(): L.LatLngBounds | undefined {
-    const pathBounds = this._path.getBounds(false);
-    if (pathBounds) return pathBounds;
+  public get fitBounds(): L.LatLngBounds | undefined {
     if (this._track instanceof Track) return this._track.metadata.bounds;
     return this.boundsFromSimplifiedPoints(this._track.points);
   }
@@ -77,7 +79,7 @@ export class MapTrack implements MapElement {
 
   public showPathWithElevationColors(show: boolean): void {
     this._path.eleColors = show;
-    this._arrowPath.weight = show ? 3 : 2;
+    // TODO this._arrowPath.weight = show ? 3 : 2;
   }
 
   public showDepartureAndArrivalAnchors(show: boolean = true): void {
@@ -97,17 +99,17 @@ export class MapTrack implements MapElement {
   }
 
   public showArrowPath(show: boolean = true, color?: string): void {
-    this._arrowPath.show(show, color);
+    // TODO this._arrowPath.show(show, color);
   }
 
   public bringToFront(): void {
-    this._path.bringToFront();
-    this._arrowPath.bringToFront();
+    // TODO this._path.bringToFront();
+    // TODO this._arrowPath.bringToFront();
   }
 
   public bringToBack(): void {
-    this._path.bringToBack();
-    this._arrowPath.bringToBack();
+    // TODO this._path.bringToBack();
+    // TODO this._arrowPath.bringToBack();
   }
 
   public highlightWayPoint(wp: TrackWayPoint): void {
