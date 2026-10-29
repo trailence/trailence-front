@@ -1,6 +1,8 @@
-import { BehaviorSubject, distinctUntilChanged, map, Observable } from 'rxjs';
-import * as L from 'leaflet';
+import { BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, map, Observable, skip, Subscription } from 'rxjs';
 import { MapAdditionsOptions } from '@trailence/services/map/map-additions.service';
+import { EarthPoint } from '@trailence/utils/latlng';
+
+const LOCALSTORAGE_KEY_MAPSTATE_PREFIX = 'trailence.map-state.';
 
 export enum RotateMode {
   NORTH = 'north',
@@ -11,8 +13,34 @@ export enum RotateMode {
 
 export class MapState {
 
-  private readonly _live$ = new BehaviorSubject<boolean>(false);
-  private readonly _center$ = new BehaviorSubject<L.LatLngLiteral>({lat: 0, lng: 0});
+  constructor(
+    mapId?: string,
+  ) {
+    if (mapId) {
+      this.load(mapId);
+      this._subscription = combineLatest([
+        this._center$,
+        this._zoom$,
+        this._tilesName$,
+        this._overlays$,
+        this._additions$,
+        this._rotateMode$,
+        this._bearing$,
+        this._is3d$
+      ]).pipe(
+        skip(1),
+        debounceTime(1000),
+      ).subscribe(() => this.save(mapId));
+    }
+  }
+
+  private readonly _subscription?: Subscription;
+
+  public destroy(): void {
+    this._subscription?.unsubscribe();
+  }
+
+  private readonly _center$ = new BehaviorSubject<EarthPoint>({lat: 0, lng: 0});
   private readonly _zoom$ = new BehaviorSubject<number>(2);
   private readonly _tilesName$ = new BehaviorSubject<string>('osm');
   private readonly _overlays$ = new BehaviorSubject<string[]>([]);
@@ -21,19 +49,16 @@ export class MapState {
   private readonly _bearing$ = new BehaviorSubject<number>(0);
   private readonly _is3d$ = new BehaviorSubject<boolean>(false);
 
-  public get live(): boolean { return this._live$.value; }
-  public get live$(): Observable<boolean> { return this._live$; }
-  public set live(value: boolean) { if (this._live$.value !== value) this._live$.next(value); }
-
-  public get center(): L.LatLngLiteral { return this._center$.value; }
-  public get center$(): Observable<L.LatLngLiteral> { return this._center$; }
-  public set center(value: L.LatLngLiteral) {
+  public get center(): EarthPoint { return this._center$.value; }
+  public get center$(): Observable<EarthPoint> { return this._center$; }
+  public set center(value: EarthPoint) {
     if (this._center$.value.lat !== value.lat && this._center$.value.lng !== value.lng)
       this._center$.next(value);
   }
 
   public get zoom(): number { return this._zoom$.value; }
   public get zoom$(): Observable<number> { return this._zoom$; }
+  public get zoomInt(): number { return Math.floor(this.zoom); }
   public get zoomInt$(): Observable<number> { return this._zoom$.pipe(map(z => Math.floor(z)), distinctUntilChanged()); }
   public set zoom(value: number) { if (this._zoom$.value !== value) this._zoom$.next(value); }
 
@@ -68,8 +93,8 @@ export class MapState {
     this._bearing$.next(value);
   }
 
-  public load(key: string): void { // NOSONAR
-    const stored = localStorage.getItem(key);
+  private load(mapId: string): void { // NOSONAR
+    const stored = localStorage.getItem(LOCALSTORAGE_KEY_MAPSTATE_PREFIX + mapId);
     if (stored) {
       const json = JSON.parse(stored);
       if (typeof json['center_lat'] === 'number' && typeof json['center_lng'] === 'number')
@@ -96,8 +121,8 @@ export class MapState {
     }
   }
 
-  public save(key: string): void {
-    localStorage.setItem(key, JSON.stringify({
+  private save(mapId: string): void {
+    localStorage.setItem(LOCALSTORAGE_KEY_MAPSTATE_PREFIX + mapId, JSON.stringify({
       center_lat: this.center.lat,
       center_lng: this.center.lng,
       zoom: this.zoom,

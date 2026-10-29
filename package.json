@@ -53,6 +53,7 @@
     "@capawesome/capacitor-file-picker": "^8.1.0",
     "@ionic/angular": "^9.0.8",
     "@maplibre/maplibre-gl-leaflet": "^0.1.4",
+    "@turf/turf": "^7.4.0",
     "angular-code-input": "^2.0.0",
     "chart.js": "^4.5.1",
     "dexie": "^4.4.6",

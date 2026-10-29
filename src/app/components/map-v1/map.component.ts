@@ -1,0 +1,1068 @@
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, Output, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import { AbstractComponent, IdGenerator } from '@trailence/utils/component-utils';
+import { MapState, RotateMode } from './map-state';
+import { BehaviorSubject, Observable, Subscription, combineLatest, concat, debounceTime, filter, first, map, of, switchMap, tap, timeout } from 'rxjs';
+import * as L from 'leaflet';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { DistanceUnit } from '@trailence/services/preferences/preferences';
+import { MapTrack } from './track/map-track';
+import { MapTrackPointReference } from './track/map-track-point-reference';
+import { MapFitBoundsTool } from './tools/map-fit-bounds-tool';
+import { Track } from '@trailence/model/track';
+import { MapCursors } from './markers/map-cursors';
+import { MapLayersService } from '@trailence/services/map/map-layers.service';
+import { MapCenterOnPositionTool } from './tools/center-on-location';
+import { MapLayerSelectionTool } from './tools/layer-selection-tool';
+import { DownloadMapTool } from './tools/download-map-tool';
+import { DarkMapToggleTool } from './tools/dark-map-toggle';
+import { MapGeolocationService } from '@trailence/services/map/map-geolocation.service';
+import { MapShowPositionTool } from './tools/show-position-tool';
+import { BrowserService } from '@trailence/services/browser/browser.service';
+import { Trail } from '@trailence/model/trail';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
+import { PhoneLockTool } from './tools/phone-lock-tool';
+import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
+import { MenuItem } from '../menus/menu-item';
+import { MapToolContext } from './tools/tool.interface';
+import { ZoomInTool, ZoomLevelTool, ZoomOutTool } from './tools/zoom-tools';
+import { MapAdditionsService } from '@trailence/services/map/map-additions.service';
+import { GoBackTool } from './tools/go-back-tool';
+import { ScreenLockService } from '@trailence/services/screen-lock/screen-lock.service';
+import { HttpService } from '@trailence/services/http/http.service';
+import { SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
+import { AdditionsTool } from './tools/additions-tool';
+import { BoundsBuilder } from '@trailence/utils/leaflet-utils';
+import { LeafletElement, MapElement, MapElementPosition, MapLibreElement, sortMapElements } from './map-element';
+import { AssetsService } from '@trailence/services/assets/assets.service';
+import { RotateTool } from './tools/rotate-tool';
+import { GeolocationService } from '@trailence/services/geolocation/geolocation.service';
+import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
+import { bearing, EarthPoint, normalizePoint } from '@trailence/utils/latlng';
+import { MotionService } from '@trailence/services/motion/motion.service';
+import { FullScreenTool } from './tools/fullscreen-tool';
+import { ToastController } from '@ionic/angular';
+import { I18nService } from '@trailence/services/i18n/i18n.service';
+import { getLogger } from '@trailence/utils/console';
+import { PointDto } from '@trailence/model/dto/point';
+import { assetsDependencies } from '@trailence/assets-dependencies';
+import { environment } from '@env/environment';
+import { MapLibreMap, setWorkerUrl } from 'maplibre-gl';
+import { Switch3dTool } from './tools/switch-3d';
+import { combineLatestSafe } from '@trailence/utils/rxjs/combineLatestSafe';
+import { mapList } from '@trailence/utils/rxjs/mapList';
+
+const logger = getLogger('map.component');
+
+setWorkerUrl(environment.assetsUrl + '/' + assetsDependencies['maplibre-gl-worker']);
+
+const FOLLOW_LOCATION_DEFAULT_ZOOM = 16;
+const FOLLOW_LOCATION_MIN_ZOOM = 13;
+
+const DEFAULT_FIT_PADDING = 0.00;
+
+@Component({
+    selector: 'app-map',
+    templateUrl: './map.component.html',
+    styleUrls: ['./map.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+      ToolbarComponent,
+    ]
+})
+export class MapComponent extends AbstractComponent {
+
+  @Input() mapId!: string;
+  @Input() elements$!: Observable<MapElement[]>;
+  @Input() autoFollowLocation = false;
+  @Input() downloadMapTrail?: Trail;
+  @Input() leftTools: MenuItem[] = [];
+  @Input() rightTools: MenuItem[] = [];
+
+  @Output() mouseClickPoint = new EventEmitter<MapTrackPointReference[]>();
+  @Output() mouseOverPoint = new EventEmitter<MapTrackPointReference[]>();
+  @Output() mouseOver = new EventEmitter<L.LatLngLiteral>();
+  @Output() mouseClick = new EventEmitter<L.LatLngLiteral>();
+
+  public cursors = new MapCursors();
+  public eventPixelMaxDistance = 15;
+  public isEmbedded = false;
+
+  id: string;
+  private readonly _mapState = new MapState();
+  private readonly _map$ = new BehaviorSubject<L.Map | undefined>(undefined);
+  private readonly _mapLibre$ = new BehaviorSubject<MapLibreMap | undefined>(undefined);
+  private leafletRotateLoaded?: Promise<any>;
+  private mapLibreLeafletLoaded?: Promise<any>;
+
+  @ViewChildren(ToolbarComponent) toolbars?: QueryList<ToolbarComponent>;
+
+  disableShowPosition$ = new BehaviorSubject<number>(0);
+
+  constructor(
+    injector: Injector,
+    private readonly browser: BrowserService,
+    private readonly prefService: PreferencesService,
+    private readonly mapLayersService: MapLayersService,
+    private readonly mapGeolocation: MapGeolocationService,
+    private readonly mapAdditions: MapAdditionsService,
+    private readonly elementRef: ElementRef,
+  ) {
+    super(injector);
+    this.id = IdGenerator.generateId('map-');
+    globalThis.L = L;
+  }
+
+  private loadNeededLibraries(is3d: boolean): Promise<any> {
+    if (is3d) {
+      this.mapLibreLeafletLoaded ??= import('@maplibre/maplibre-gl-leaflet');
+      return this.mapLibreLeafletLoaded;
+    }
+    this.leafletRotateLoaded ??= this.injector.get(AssetsService).loadJs('leaflet-rotate.1.js'); // NOSONAR
+    return this.leafletRotateLoaded;
+  }
+
+  protected override initComponent(): void {
+    this.mapLayersService.applyDarkMap(this.injector.get(ElementRef).nativeElement);
+    this.whenVisible.subscribe(this.browser.resize$.pipe(debounceTime(500)), () => this.invalidateSize(), true);
+    this.ngZone.runOutsideAngular(() => {
+      this.visible$.subscribe(visible => {
+        if (visible) {
+          setTimeout(() => {
+            if (this._map$.value) this.invalidateSize();
+            else this.initMap();
+          }, 0);
+        } else {
+          this.exitFullScreen();
+        }
+        this._mapState.live = visible;
+      });
+    });
+    this.isEmbedded = false;
+    let e = this.injector.get(ElementRef).nativeElement.parentElement;
+    while (e) {
+      if (e.nodeName.toUpperCase() === 'ION-MODAL') {
+        this.isEmbedded = true;
+        break;
+      }
+      e = e.parentElement;
+    }
+    if (!this.isEmbedded)
+      this._mapState.load(LOCALSTORAGE_KEY_MAPSTATE + this.mapId);
+    void this.loadNeededLibraries(this._mapState.is3d);
+    this.updateElements();
+    if (!this.isEmbedded) {
+      this.whenVisible.subscribe(
+        combineLatest([this._mapState.center$, this._mapState.zoomInt$, this._mapState.tilesName$, this._mapState.overlays$, this._mapState.additions$, this._mapState.rotateMode$, this._mapState.bearing$, this._mapState.is3d$])
+        .pipe(
+          debounceTime(100),
+          tap(() => this.refreshTools()),
+          debounceTime(1000),
+        ),
+        ([center, zoom, layer, overlays]) => {
+          if (!this._mapState.live) return;
+          this.mapAdditions.pushState(center, zoom);
+          this._mapState.save(LOCALSTORAGE_KEY_MAPSTATE + this.mapId);
+        },
+        true
+      );
+    }
+    this.initTools();
+  }
+
+  private _initMapTimeout: any;
+  private initMap(): void {
+    this.ngZone.runOutsideAngular(() => {
+      if (this._initMapTimeout) {
+        clearTimeout(this._initMapTimeout);
+        this._initMapTimeout = undefined;
+      }
+      if (!this.visible) return;
+      void this.loadNeededLibraries(this._mapState.is3d).then(module => {
+        if (document.getElementById(this.id)?.clientHeight) {
+          this.createMap(module);
+          return;
+        }
+        this._initMapTimeout = setTimeout(() => {
+          this.initMap();
+        }, 250);
+      });
+    });
+  }
+
+  override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
+    if (changes['mapId']) this._mapState.load(LOCALSTORAGE_KEY_MAPSTATE + this.mapId);
+    if (changes['elements$']) this.updateElements();
+    if (changes['rightTools'] || changes['leftTools']) this.updateTools();
+  }
+
+  protected override destroyComponent(): void {
+    if (this._map$.value) {
+      for (const element of this._currentElements) {
+        for (const e of element.elements2d)
+          e.element.remove();
+      }
+      this._currentElements = [];
+      this._map$.value.remove();
+      this._map$.next(undefined);
+    }
+  }
+
+  public invalidateSize(): void {
+    this.changesDetection.detectChanges(() => {
+      if (this._mapState.live) {
+        this._map$.value?.invalidateSize();
+      }
+    });
+  }
+
+  public getState(): MapState {
+    return this._mapState;
+  }
+
+  public getMap() { return this._map$.value; }
+
+  public getBounds(): L.LatLngBounds | undefined {
+    return this._map$.value?.getBounds();
+  }
+
+  public goTo(lat: number, lng: number, zoom?: number): void {
+    this._initZoomTimestamp = 1;
+    this._map$.value?.setView({lat, lng}, zoom);
+  }
+
+  public goToBounds(north: number, south: number, east: number, west: number): void {
+    this._initZoomTimestamp = 1;
+    this._map$.value?.fitBounds([[south, west], [north, east]]);
+  }
+
+  public get ready$(): Observable<boolean> {
+    return this._map$.pipe(filterDefined(), first(), map(() => true));
+  }
+
+  public addToMap(element: L.Layer): void {
+    this.ngZone.runOutsideAngular(() => element.addTo(this._map$.value!)); // NOSONAR
+  }
+
+  public removeFromMap(element: L.Layer): void {
+    this.ngZone.runOutsideAngular(() => element.remove());
+  }
+
+  private mapChanged(map: L.Map): void {
+    this._mapState.center = map.getCenter();
+    this._mapState.zoom = map.getZoom();
+  }
+
+  private _currentElements: {element: MapElement, elements2d: LeafletElement<L.Layer>[], elements3d: MapLibreElement[]}[] = [];
+  private _elementsSubscription?: Subscription;
+  private updateElements(): void {
+    this._elementsSubscription?.unsubscribe();
+    this._elementsSubscription = this.ngZone.runOutsideAngular(() =>
+      combineLatest([this._mapState.live$, this._map$, this._mapLibre$]).pipe(
+        map(([live, leaflet, mapLibre]) => live && !!leaflet && (!!mapLibre || !this.getMapLibreLayer(leaflet)) ? ({leaflet, mapLibre}) : undefined),
+        filterDefined(),
+        switchMap(({leaflet, mapLibre}) =>
+          (mapLibre ?
+            mapList(this.elements$, element => {
+              const e = element.get3DElements$(leaflet, this._mapState, this._zoomAnim$, mapLibre);
+              return combineLatest([
+                e.elements2d$,
+                e.elements3d$,
+                element.getPositionOnMap$(),
+              ]).pipe(map(([elements2d, elements3d, position]) => ({element, elements2d, elements3d, position})));
+            }) :
+            mapList(this.elements$, element => {
+              return combineLatest([
+                element.get2DElements$(leaflet, this._mapState, this._zoomAnim$),
+                element.getPositionOnMap$(),
+              ]).pipe(map(([elements2d, position]) => ({element, elements2d, elements3d: [], position})));
+            })
+          ).pipe(
+            map(elements => ({leaflet, mapLibre, elements})),
+          )
+        ),
+        // TODO debounce time
+      ).subscribe(result => {
+        const sortedElements = sortMapElements(result.elements);
+        console.log('render map', result)
+
+        // leaflet elements
+        const leafletElements = sortedElements.flatMap(e => result.elements.find(re => re.element === e)!.elements2d);
+        const leafletElementsPresent: LeafletElement<any>[] = [];
+        for (const element of this._currentElements) {
+          for (const leafletElement of element.elements2d) {
+            if (leafletElements.includes(leafletElement)) {
+              console.log('keep element', leafletElement.element);
+              leafletElementsPresent.push(leafletElement);
+            } else {
+              console.log('remove element', leafletElement.element, !!(leafletElement.element as any)._map);
+              leafletElement.element.remove();
+              leafletElement.onRemove?.(result.leaflet);
+            }
+          }
+        }
+        for (const leafletElement of leafletElements) {
+          if (leafletElementsPresent.includes(leafletElement)) {
+            if (typeof (leafletElement.element as any)['bringToFront'] === 'function')
+              (leafletElement.element as any).bringToFront();
+          } else {
+            console.log('add element', leafletElement.element);
+            leafletElement.element.addTo(result.leaflet);
+            leafletElement.onAdd?.(result.leaflet);
+          }
+        }
+
+        // map libre
+        if (result.mapLibre) {
+          const mapLibreElements = sortedElements.flatMap(e => result.elements.find(re => re.element === e)!.elements3d);
+          const mapLibreElementsPresent: MapLibreElement[] = [];
+          for (const element of this._currentElements) {
+            for (const mapLibreElement of element.elements3d) {
+              if (mapLibreElements.includes(mapLibreElement)) {
+                mapLibreElementsPresent.push(mapLibreElement);
+                console.log('keep layer', mapLibreElement.id);
+              } else {
+                console.log('remove layer', mapLibreElement.id);
+                result.mapLibre.removeLayer(mapLibreElement.id);
+                result.mapLibre.removeSource(mapLibreElement.id);
+                mapLibreElement.onRemove?.(result.leaflet, result.mapLibre);
+              }
+            }
+          }
+          for (const mapLibreElement of mapLibreElements) {
+            if (mapLibreElementsPresent.includes(mapLibreElement)) {
+              result.mapLibre.moveLayer(mapLibreElement.id);
+            } else {
+              console.log('add layer', mapLibreElement.id);
+              result.mapLibre.addLayer(mapLibreElement);
+              mapLibreElement.onAdd?.(result.leaflet, result.mapLibre);
+            }
+          }
+        }
+        for (const element of this._currentElements) {
+          if (!result.elements.some(e => e.element === element.element))
+            element.element.destroy();
+        }
+        this._currentElements = result.elements;
+        this.initMapZoom(result.leaflet);
+        this.refreshTools();
+      })
+    );
+  }
+
+  private _initZoomTimestamp?: number;
+  private initMapZoom(map: L.Map): void {
+    // if the state of the map is the initial one, zoom on the tracks
+    if ((this._mapState.center.lat === 0 && this._mapState.center.lng === 0 && this._mapState.zoom <= 2) || // initial state
+        (this._initZoomTimestamp && Date.now() - this._initZoomTimestamp < 2500)) {
+      if (this._currentElements.length > 0) {
+        this.fitElementsBounds(map, this._currentElements.map(e => e.element));
+        if (!this._initZoomTimestamp)
+          this._initZoomTimestamp = Date.now();
+      } else if (!this._initZoomTimestamp) {
+        const init = Date.now();
+        this._initZoomTimestamp = init;
+        this.injector.get(HttpService).get('https://free.freeipapi.com/api/json')
+        .subscribe((response: any) => {
+          if (response && response['latitude'] && response['longitude'] && this._initZoomTimestamp === init && this._currentElements.length === 0) { // NOSONAR
+            logger.info('Move map to user position', response, this._initZoomTimestamp, this._currentElements.length, this._mapState);
+            this._map$.value?.setView({lat: response['latitude'], lng: response['longitude']}, 10);
+          }
+        });
+      }
+    }
+  }
+
+  public fitBounds(elements: MapElement[] | undefined, padding: number = DEFAULT_FIT_PADDING): void {
+    this.ngZone.runOutsideAngular(() => {
+      if (!this._map$.value) return;
+      this.fitElementsBounds(this._map$.value, elements || this._currentElements.map(e => e.element), padding);
+      this._initZoomTimestamp = 1;
+    });
+  }
+
+  public centerAndZoomOn(bounds: L.LatLngBounds): void {
+    this.ngZone.runOutsideAngular(() => this._map$.value?.fitBounds(bounds));
+  }
+
+  public zoomed(): void {
+    this._initZoomTimestamp = 1;
+  }
+
+  private fitElementsBounds(map: L.Map, elements: MapElement[], padding: number = DEFAULT_FIT_PADDING): void {
+    const boundsBuilder = new BoundsBuilder();
+    for (const e of elements) {
+      const bounds = e.fitBounds;
+      if (bounds) boundsBuilder.extend(bounds);
+    }
+    boundsBuilder.pad(padding);
+    this.fit(map, boundsBuilder);
+  }
+
+  private fit(map: L.Map, boundsBuilder: BoundsBuilder) {
+    const bounds = boundsBuilder.getBounds();
+    if (bounds) {
+      map.fitBounds(bounds, {
+        paddingTopLeft: L.point(this.mapInsetsPixel.left, this.mapInsetsPixel.top),
+        paddingBottomRight: L.point(this.mapInsetsPixel.right, this.mapInsetsPixel.bottom),
+      });
+      this._initZoomTimestamp = 1;
+    }
+  }
+
+  private readonly _fitBoundsProviders: (() => L.LatLngBounds | undefined)[] = [];
+  public addFitBoundsProvider(provider: () => L.LatLngBounds | undefined): void {
+    if (!this._fitBoundsProviders.includes(provider))
+      this._fitBoundsProviders.push(provider);
+    this.refreshTools();
+  }
+  public removeFitBoundsProvider(provider: () => L.LatLngBounds | undefined): void {
+    const index = this._fitBoundsProviders.indexOf(provider);
+    if (index >= 0) this._fitBoundsProviders.splice(index, 1);
+    this.refreshTools();
+  }
+
+  fitMapBounds(map: L.Map, padding: number = DEFAULT_FIT_PADDING): void {
+    const boundsBuilder = new BoundsBuilder();
+    for (const e of this._currentElements) {
+      const b = e.element.fitBounds;
+      if (b) boundsBuilder.extend(L.latLngBounds(b.getSouthWest(), b.getNorthEast()));
+    }
+    for (const provider of this._fitBoundsProviders) boundsBuilder.extend(provider());
+    boundsBuilder.pad(padding);
+    this.fit(map, boundsBuilder);
+  }
+
+  public canFitMapBounds(): boolean {
+    if (this._currentElements.length > 0) return true;
+    for (const provider of this._fitBoundsProviders) if (provider() !== undefined) return true;
+    return false;
+  }
+
+  public ensureVisible(track: MapTrack): void {
+    const map = this._map$.value;
+    if (!map) return;
+    const bounds = track.fitBounds;
+    if (bounds) {
+      const mapBounds = map.getBounds();
+      if (mapBounds.contains(bounds)) return;
+      const newBounds = mapBounds.extend(bounds);
+      this.ngZone.runOutsideAngular(() => map.flyToBounds(newBounds));
+      this._initZoomTimestamp = 1;
+    }
+  }
+
+  public ensurePointVisible(pos: L.LatLngExpression): void {
+    const map = this._map$.value;
+    if (!map) return;
+    this.ngZone.runOutsideAngular(() => map.panInside(pos, {padding: [75, 75]}));
+  }
+
+  private readonly _followingLocation$ = new BehaviorSubject<boolean>(false);
+  private _locationMarker?: L.CircleMarker;
+  private showLocation(lat: number, lng: number, color: string): void {
+    if (this.ngZone.runOutsideAngular(() => {
+      if (this._locationMarker) {
+        this.updateLocation(this._locationMarker, lat, lng, color);
+        return false;
+      }
+      this._locationMarker = new L.CircleMarker({lat, lng}, {
+        radius: 7,
+        color: color,
+        opacity: 0.75,
+        fillColor: color,
+        fillOpacity: 0.33,
+        stroke: true,
+        className: 'leaflet-position-marker',
+        pane: 'overAllPane'
+      } as any);
+      this._locationMarker.on('add', ev => {
+        (this._locationMarker as any)._renderer?._container?.classList?.add('position-circle-marker');
+      });
+      if (this.autoFollowLocation && this.mapGeolocation.recorder.current)
+        this._followingLocation$.next(true);
+      if (this._map$.value) {
+        this._initZoomTimestamp = 1;
+        this._locationMarker.addTo(this._map$.value);
+        if (this._followingLocation$.value) {
+          this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), FOLLOW_LOCATION_DEFAULT_ZOOM));
+        } else {
+          this._map$.value.panInside(this._locationMarker.getLatLng(), {padding: [25,25]})
+        }
+      }
+      return true;
+    }))
+      this.refreshTools();
+  }
+
+  private updateLocation(marker: L.CircleMarker, lat: number, lng: number, color: string): void {
+    const pos = {lat, lng};
+    marker.setLatLng(pos);
+    marker.setStyle({color, fillColor: color});
+    const map = this._map$.value;
+    if (map && this._followingLocation$.value) {
+      if (this.shouldCenterOnLocation(pos, map)) {
+        this.centerOnLocation();
+      }
+    }
+  }
+
+  private readonly mapInsetsPixel = {
+    top: 57,
+    bottom: 30,
+    left: 47,
+    right: 47
+  };
+  // reduce to 40% of visible area
+  private readonly followingLocationInsetsPercent = 0.6;
+  private shouldCenterOnLocation(location: EarthPoint, map: L.Map): boolean {
+    const size = map.getSize();
+    const insets = {
+      top: this.mapInsetsPixel.top + Math.round(size.y * this.followingLocationInsetsPercent * 0.5),
+      bottom: this.mapInsetsPixel.bottom + Math.round(size.y * this.followingLocationInsetsPercent * 0.5),
+      left: this.mapInsetsPixel.left + Math.round(size.x * this.followingLocationInsetsPercent * 0.5),
+      right: this.mapInsetsPixel.right + Math.round(size.x * this.followingLocationInsetsPercent * 0.5),
+    };
+    const posPoint = map.latLngToContainerPoint(location);
+    if (posPoint.y < insets.top) return true;
+    if (posPoint.x < insets.left) return true;
+    if (posPoint.y > size.y - insets.bottom) return true;
+    if (posPoint.x > size.x - insets.right) return true;
+    return false;
+  }
+
+  private centerOnLocation(): void {
+    this.ngZone.runOutsideAngular(() => {
+      if (this._map$.value && this._locationMarker) {
+        this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), FOLLOW_LOCATION_MIN_ZOOM));
+      }
+      if (!this._followingLocation$.value)
+        this._followingLocation$.next(true);
+    });
+  }
+
+  toggleCenterOnLocation(): void {
+    if (this._followingLocation$.value) {
+      this._followingLocation$.next(false);
+    } else {
+      this.centerOnLocation();
+    }
+    this.refreshTools();
+  }
+
+  private hideLocation(): void {
+    if (this.ngZone.runOutsideAngular(() => {
+      if (this._locationMarker) {
+        if (this._map$.value) {
+          this._locationMarker.removeFrom(this._map$.value);
+        }
+        this._locationMarker = undefined;
+        return true;
+      }
+      if (this._followingLocation$.value) {
+        this._followingLocation$.next(false);
+        return true;
+      }
+      return false;
+    }))
+      this.refreshTools();
+  }
+
+  public get crs(): L.CRS {
+    return this._map$.value?.options.crs ?? L.CRS.EPSG3857;
+  }
+
+  public setRotation(mode: RotateMode, bearing: number | undefined = undefined, animated = false): void {
+    this.getState().rotateMode = mode;
+    if (mode === RotateMode.NORTH) bearing = 0;
+    else bearing ??= this.getState().bearing;
+    (this._map$.value as any)?.setBearing(bearing, {animate: animated});
+    if (this.mapGeolocation.recorder.recording) this.mapGeolocation.recorder.setRotateMode(mode);
+  }
+
+  public enterFullScreen(): void {
+    const ionApp = document.getElementsByTagName('ion-app')[0];
+    if (!ionApp) return;
+    const container = document.createElement('DIV');
+    container.id = 'map-fullscreen-' + this.id;
+    container.className = 'map-full-screen';
+    this.injector.get(MapLayersService).applyDarkMap(container);
+    ionApp.appendChild(container);
+    while (this.elementRef.nativeElement.children.length > 0)
+      container.appendChild(this.elementRef.nativeElement.children.item(0));
+    this.invalidateSize();
+  }
+
+  public exitFullScreen(): void {
+    const container = document.getElementById('map-fullscreen-' + this.id);
+    if (!container) return;
+    while (container.children.length > 0)
+      this.elementRef.nativeElement.appendChild(container.children.item(0));
+    container.remove();
+    this.invalidateSize();
+  }
+
+  public toggleFullScreen(): void {
+    if (this.isFullScreen) this.exitFullScreen(); else this.enterFullScreen();
+  }
+
+  public get isFullScreen(): boolean {
+    return !!document.getElementById('map-fullscreen-' + this.id);
+  }
+
+  private readonly _zoomAnim$ = new BehaviorSubject<boolean>(false);
+  private createMap(mapLibreLeafletModule: any): void {
+    const layer = this.mapLayersService.layers.find(lay => lay.name === this._mapState.tilesName)
+      ?? this.mapLayersService.layers.find(lay => lay.name === this.mapLayersService.getDefaultLayer())
+      ?? this.mapLayersService.layers[0];
+    const overlays = this._mapState.overlays.map(name => this.mapLayersService.overlays.find(o => o.name === name)).filter(o => !!o);
+
+    const layers = mapLibreLeafletModule ? [this.create3dMapLayer(mapLibreLeafletModule)] : [layer.create(), ...overlays.map(o => o.create())];
+
+    const map = L.map(this.id, { //NOSONAR
+      center: this._mapState.center,
+      zoom: this._mapState.zoom,
+      layers,
+      zoomControl: false,
+      worldCopyJump: true,
+      //zoomSnap: 0.5,
+      //zoomDelta: 0.5,
+      rotate: true,
+      bearing: this._mapState.bearing,
+      touchGestures: true,
+      touchRotate: true,
+      touchRotateInertia: 15,
+      rotateControl: false,
+    } as any);
+    map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank">Leaflet</a>');
+    map.createPane('overTracksPane', (map as any)._rotatePane).style.zIndex = '401';
+    map.createPane('overAllPane', (map as any)._rotatePane).style.zIndex = '499';
+
+    map.on('resize', () => this.mapChanged(map));
+    map.on('move', e => {
+      this.mapChanged(map);
+      if ((e as any)['originalEvent']) { // NOSONAR
+        // action from user
+        this._initZoomTimestamp = 1;
+        if (this._followingLocation$.value) {
+          if (this._locationMarker && this.shouldCenterOnLocation(this._locationMarker.getLatLng(), map)) {
+            this._followingLocation$.next(false);
+            this.refreshTools();
+          }
+        }
+      }
+    });
+    map.on('zoom', () => {
+      this.mapChanged(map);
+      if (map.getZoom() < FOLLOW_LOCATION_MIN_ZOOM && this._followingLocation$.value && this._locationMarker)
+        this._followingLocation$.next(false);
+      this.refreshTools();
+    });
+    map.on('zoomstart', () => {
+      this._zoomAnim$.next(true);
+    });
+    map.on('zoomend', () => {
+      this._zoomAnim$.next(false);
+      this.refreshTools();
+    });
+    map.on('click', e => {
+      if (this.mouseClickPoint.observed) {
+        this.mouseClickPoint.emit(this.getEvent(map, e));
+      }
+      if (this.mouseClick.observed) {
+        this.mouseClick.emit(e.latlng);
+      }
+    });
+    map.on('mousemove', e => {
+      if (this.mouseOverPoint.observed) {
+        this.mouseOverPoint.emit(this.getEvent(map, e));
+      }
+      if (this.mouseOver.observed) {
+        this.mouseOver.emit(e.latlng);
+      }
+    });
+    map.on('zoomanim', e => {
+      this._mapState.zoom = e.zoom;
+    });
+    map.on('touchrotate', e => {
+      this.getState().rotateMode = RotateMode.CUSTOM;
+      this.getState().bearing = (e as any).touchRotateBearing;
+      this.refreshTools();
+    });
+    map.on('rotate', e => {
+      this.getState().bearing = (e as any).theta;
+      this.refreshTools();
+    });
+
+    this.cursors.addTo(map);
+
+    if (this._locationMarker) {
+      this._locationMarker.addTo(map);
+      map.setView(this._locationMarker.getLatLng(), Math.max(map.getZoom(), 16));
+    }
+
+    this._map$.next(map);
+
+    let distanceUnit: DistanceUnit | undefined = undefined;
+    let scale: L.Control.Scale | undefined = undefined;
+    this.whenAlive.add(
+      combineLatest([this.prefService.preferences$, this._mapState.live$]).subscribe(
+        ([prefs, live]) => {
+          if (!live) return;
+          if (distanceUnit !== prefs.distanceUnit && this._map$.value === map) {
+            if (scale) scale.remove();
+            scale = L.control.scale({
+              metric: prefs.distanceUnit === 'METERS',
+              imperial: prefs.distanceUnit === 'IMPERIAL',
+            });
+            distanceUnit = prefs.distanceUnit;
+            scale.addTo(map);
+          }
+        }
+      )
+    );
+    this.refreshTools();
+
+    //L.rectangle(this.getFollowLocationBounds(map), {color: 'yellow'}).addTo(map);
+  }
+
+  private create3dMapLayer(module: any): L.Layer {
+    const ml: L.Layer = module.maplibreGL({
+      pitch: 60,
+      style: {
+        version: 8,
+        sources: {
+            osm: {
+                type: 'raster',
+                tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                attribution: '&copy; OpenStreetMap Contributors',
+                maxzoom: 19
+            },
+            // Use a different source for terrain and hillshade layers, to improve render quality
+            terrainSource: {
+                type: 'raster-dem',
+                url: 'https://tiles.mapterhorn.com/tilejson.json',
+                maxzoom: 17,
+            },
+            hillshadeSource: {
+                type: 'raster-dem',
+                url: 'https://tiles.mapterhorn.com/tilejson.json',
+                maxzoom: 17,
+            }
+        },
+        layers: [
+            {
+                id: 'osm',
+                type: 'raster',
+                source: 'osm'
+            },
+            {
+                id: 'hills',
+                type: 'hillshade',
+                source: 'hillshadeSource',
+                layout: {visibility: 'visible'},
+                paint: {'hillshade-shadow-color': '#473B24'}
+            }
+        ],
+        terrain: {
+            source: 'terrainSource',
+            exaggeration: 1
+        },
+        sky: {}
+      },
+    });
+    (ml as any)._trailence3dMapLayer = true;
+    ml.on('add', () => {
+      const mapLibre: MapLibreMap = (ml as any).getMaplibreMap();
+      mapLibre.on('style.load', e => {
+        if (this._mapLibre$.value === undefined && this._map$.value && this.getMapLibreLayer(this._map$.value))
+          this._mapLibre$.next(mapLibre);
+      });
+    });
+    return ml;
+  }
+
+  private getMapLibreLayer(map: L.Map): L.Layer | undefined {
+    let layer: L.Layer | undefined;
+    map.eachLayer(l => {
+      if ((l as any)['_trailence3dMapLayer']) layer = l;
+    });
+    return layer;
+  }
+
+  public toggle3d(): void {
+    void this.loadNeededLibraries(!this._mapState.is3d)
+    .then(mapLibreLeafletModule => {
+      const map = this._map$.value!;
+      let mapLibre: MapLibreMap | undefined;
+      if (this._mapState.is3d) {
+        map.eachLayer(layer => {
+          const id = (layer as any)['_trailence3dMapLayer'];
+          if (id) map.removeLayer(layer);
+        });
+        const layer = this.mapLayersService.layers.find(lay => lay.name === this._mapState.tilesName)
+          ?? this.mapLayersService.layers.find(lay => lay.name === this.mapLayersService.getDefaultLayer())
+          ?? this.mapLayersService.layers[0];
+        const overlays = this._mapState.overlays.map(name => this.mapLayersService.overlays.find(o => o.name === name)).filter(o => !!o);
+        layer.create().addTo(map);
+        for (const o of overlays) o.create().addTo(map);
+      } else {
+        map.eachLayer(layer => {
+          const id = (layer as any)['_trailenceMapLayerId'];
+          if (id) map.removeLayer(layer);
+        });
+        const layer = this.create3dMapLayer(mapLibreLeafletModule);
+        layer.addTo(map);
+      }
+      this._mapState.is3d = !this._mapState.is3d;
+      if (!this._mapState.is3d)
+        this._mapLibre$.next(undefined);
+    });
+  }
+
+  private getEvent(map: L.Map, e: L.LeafletMouseEvent): MapTrackPointReference[] { // NOSONAR
+    const mouse = e.layerPoint;
+    const result: MapTrackPointReference[] = [];
+    const fromTrack = (e.originalEvent as any).fromTrack as MapTrack | undefined;
+    if (fromTrack) {
+      result.push(new MapTrackPointReference(fromTrack, undefined, undefined, undefined, undefined, undefined))
+    }
+    const allTracks = this._currentElements.filter(e => e instanceof MapTrack);
+    const overlay = map.getPanes().overlayPane.firstElementChild?.firstElementChild; // svg > g > path
+    if (overlay) {
+      for (let i = 0; i < overlay.children.length; ++i) {
+        const o = overlay.children.item(i);
+        if ((o as any)?._mapTrack) {
+          const mt = (o as any)._mapTrack;
+          if (!allTracks.includes(mt)) allTracks.push(mt);
+        }
+      }
+    }
+    for (const mapTrack of allTracks) {
+      if (!mapTrack.fitBounds?.pad(1).contains(e.latlng)) {
+        continue;
+      }
+      const track = mapTrack.track;
+      if (track instanceof Track) {
+        this.getEventTrack(track, map, mouse, mapTrack, result);
+      } else {
+        this.getEventSimplifiedTrack(track, map, mouse, mapTrack, result);
+      }
+    }
+    return result;
+  }
+
+  private getEventTrack(track: Track, map: L.Map, mouse: L.Point, mapTrack: MapTrack, result: MapTrackPointReference[]): void {
+    const mouseLatLng = normalizePoint(map.layerPointToLatLng(mouse));
+    const mouseDiffLatLng = normalizePoint(map.layerPointToLatLng([mouse.x + this.eventPixelMaxDistance, mouse.y + this.eventPixelMaxDistance]));
+    const maxLatDiff = Math.abs(mouseDiffLatLng.lat - mouseLatLng.lat);
+    const maxLngDiff = Math.abs(mouseDiffLatLng.lng - mouseLatLng.lng);
+
+    mouse = map.latLngToLayerPoint(mouseLatLng); // in case it was normalized
+    for (let segmentIndex = 0; segmentIndex < track.segments.length; ++segmentIndex) {
+      const segment = track.segments[segmentIndex];
+      for (let pointIndex = 0; pointIndex < segment.points.length; ++pointIndex) {
+        const pt = segment.points[pointIndex];
+        if (Math.abs(pt.pos.lat - mouseLatLng.lat) > maxLatDiff || Math.abs(pt.pos.lng - mouseLatLng.lng) > maxLngDiff) continue;
+        const pixel = map.latLngToLayerPoint(pt.pos);
+        const distance = mouse.distanceTo(pixel);
+        if (distance <= this.eventPixelMaxDistance) {
+          result.push(new MapTrackPointReference(mapTrack, segmentIndex, segment, pointIndex, pt, distance));
+        }
+      }
+    }
+  }
+
+  private getEventSimplifiedTrack(track: SimplifiedTrackSnapshot, map: L.Map, mouse: L.Point, mapTrack: MapTrack, result: MapTrackPointReference[]): void {
+    for (let pointIndex = 0; pointIndex < track.points.length; ++pointIndex) {
+      const pt = track.points[pointIndex];
+      const pixel = map.latLngToLayerPoint(pt);
+      const distance = mouse.distanceTo(pixel);
+      if (distance <= this.eventPixelMaxDistance) {
+        result.push(new MapTrackPointReference(mapTrack, undefined, undefined, pointIndex, pt, distance));
+      }
+    }
+  }
+
+  private initTools(): void {
+    const additionsTool = new AdditionsTool(this.mapId);
+    this.defaultRightToolsItems.splice(2, 0, additionsTool.toMenuItem(() => this.getToolContext()));
+    this.whenVisible.subscribe(combineLatest([this._map$, this._mapState.center$, this._mapState.zoomInt$]), ([map, center, zoom]) => {
+      additionsTool.refresh(this.getToolContext());
+    });
+
+    this.defaultRightToolsItems.push(
+      new MenuItem(),
+      new DownloadMapTool(this.downloadMapTrail).toMenuItem(() => this.getToolContext())
+    );
+    const screenLockService = this.injector.get(ScreenLockService);
+    const phoneLockTool = new PhoneLockTool(screenLockService);
+    this.defaultRightToolsItems.push(phoneLockTool.toMenuItem(() => this.getToolContext()));
+
+    const toolShowPosition = new MapShowPositionTool();
+    this.defaultLeftToolsItems.push(
+      new MenuItem(),
+      toolShowPosition.toMenuItem(() => this.getToolContext()),
+      new MapCenterOnPositionTool(() => !!this._locationMarker, this._followingLocation$).toMenuItem(() => this.getToolContext())
+    );
+
+    // handle recording and position
+    let previousPositions: L.LatLng[] | undefined;
+    let recordingStarted = false;
+    this.whenAlive.add(
+      combineLatest([
+        this._mapState.live$,
+        this.mapGeolocation.position$,
+        this.mapGeolocation.recorder.current$,
+        this.mapGeolocation.showPosition$,
+        screenLockService.available$,
+        screenLockService.enabled$,
+        this.disableShowPosition$,
+        this.injector.get(GeolocationService).watched$.pipe(debounceTimeExtended(0, 100, 10, (p,n) => !!p !== !!n)),
+        this._mapState.rotateMode$.pipe(
+          switchMap(mode => mode === RotateMode.DEVICE_ORIENTATION ?
+            concat(
+              of(undefined),
+              this.injector.get(MotionService).bearing$.pipe(
+                timeout({first: 10000, with: () => of(null)}),
+                debounceTimeExtended(0, 100, 5),
+              )
+            ).pipe(map(bearing => ({mode, bearing})))
+            : of({mode, bearing: undefined})
+          ),
+        ),
+      ]).subscribe(
+        ([live, position, recording, showPosition, screenLockAvailable, screenLockEnabled, nbPosDisabled, watched, rotation]) => {
+          if (!live) return;
+          // show position tool only if not recording
+          // show phone lock only if recording
+          const positionToolWasVisible = toolShowPosition.visible;
+          const positionToolWasActive = toolShowPosition.icon === 'pin-off';
+          const phoneLockToolWasVisible = phoneLockTool.visible;
+          const phoneLockToolWasActive = phoneLockTool.enabled;
+          phoneLockTool.available = screenLockAvailable;
+          phoneLockTool.enabled = screenLockEnabled;
+          if (recording) {
+            toolShowPosition.visible = false;
+            phoneLockTool.visible = phoneLockTool.available;
+            if (!recordingStarted && this.visible && watched) {
+              const rotateMode = this.mapGeolocation.recorder.getRotateMode();
+              if (rotateMode) this.setRotation(rotateMode);
+              recordingStarted = true;
+            }
+          } else {
+            if (nbPosDisabled > 0) {
+              toolShowPosition.visible = false;
+            } else {
+              toolShowPosition.visible = true;
+              toolShowPosition.icon = showPosition ? 'pin-off' : 'pin';
+            }
+            phoneLockTool.visible = false;
+            recordingStarted = false;
+          }
+          // show position
+          this.handlePosition(position, nbPosDisabled);
+          // rotation
+          const [rotateChanged, newPreviousPositions] = this.handleRotation(rotation, watched, previousPositions);
+          previousPositions = newPreviousPositions;
+
+          if (toolShowPosition.visible !== positionToolWasVisible || (positionToolWasVisible && showPosition !== positionToolWasActive) || phoneLockTool.visible !== phoneLockToolWasVisible || phoneLockToolWasActive !== phoneLockTool.enabled || rotateChanged)
+            this.refreshTools();
+        }
+      )
+    );
+
+    this.updateTools();
+  }
+
+  private handlePosition(position: {lat: number, lng: number, active: boolean} | undefined, nbPosDisabled: number): void {
+    if (position && nbPosDisabled === 0) {
+      this.showLocation(position.lat, position.lng, position.active ? '#2020FF' : '#555');
+    } else {
+      this.hideLocation();
+    }
+  }
+
+  private handleRotation(rotation: {mode: RotateMode, bearing: number | null | undefined}, watched: PointDto | undefined, previousPositions: L.LatLng[] | undefined): [boolean, L.LatLng[] | undefined] {
+    let rotateChanged = false;
+    if (rotation.mode === RotateMode.HEADING) {
+      return this.handleRotationHeading(watched, previousPositions);
+    } else if (rotation.mode === RotateMode.DEVICE_ORIENTATION && rotation.bearing !== undefined) {
+      if (rotation.bearing === null) {
+        void this.injector.get(ToastController).create({
+          message: this.injector.get(I18nService).texts.mapRotate.noDeviceOrientation,
+          duration: 5000,
+        }).then(t => t.present());
+        this.setRotation(RotateMode.NORTH);
+        rotateChanged = true;
+      } else if (this.getState().bearing !== rotation.bearing) {
+        this.setRotation(RotateMode.DEVICE_ORIENTATION, rotation.bearing, true);
+        rotateChanged = true;
+      }
+    }
+    return [rotateChanged, previousPositions];
+  }
+
+  private handleRotationHeading(watched: PointDto | undefined, previousPositions: L.LatLng[] | undefined): [boolean, L.LatLng[] | undefined] {
+    if (!watched) {
+      this.setRotation(RotateMode.NORTH, 0, true);
+      return [true, undefined];
+    }
+    let heading = undefined;// watched.h;
+    if (typeof heading !== 'number' && watched.l !== undefined && watched.n !== undefined) {
+      previousPositions ??= [];
+      const currentPos = L.latLng({lat: watched.l, lng: watched.n});
+      for (let i = previousPositions.length - 1; i >= 0; --i) {
+        if (currentPos.distanceTo(previousPositions[i]) >= 5) {
+          heading = bearing(previousPositions[i], currentPos);
+          if (i > 0) previousPositions.splice(0, i);
+          break;
+        }
+      }
+      previousPositions.push(currentPos);
+    } else {
+      previousPositions = undefined;
+    }
+    if (typeof heading === 'number' && this.getState().bearing !== heading) {
+      this.setRotation(RotateMode.HEADING, heading, true);
+      return [true, previousPositions];
+    }
+    return [false, previousPositions];
+  }
+
+  private updateTools(): void {
+    this.leftToolsItems = [...this.defaultLeftToolsItems, ...this.leftTools];
+    this.rightToolsItems = [...this.defaultRightToolsItems, ...this.rightTools];
+  }
+
+  public refreshTools(): void {
+    if (this.toolbars) for (const tb of this.toolbars) tb.refresh();
+  }
+
+  public getToolContext(): MapToolContext | undefined {
+    const map = this._map$.value;
+    if (!map) return undefined;
+    return {injector: this.injector, mapComponent: this, map};
+  }
+
+  leftToolsItems: MenuItem[] = [];
+  defaultLeftToolsItems: MenuItem[] = [
+    new ZoomInTool().toMenuItem(() => this.getToolContext()),
+    new ZoomLevelTool().toMenuItem(() => this.getToolContext()).setTextSize('11px').setCssClass('no-space'),
+    new ZoomOutTool().toMenuItem(() => this.getToolContext()).setCssClass('no-space'),
+    new MenuItem(),
+    new RotateTool().toMenuItem(() => this.getToolContext()),
+    new MenuItem(),
+    new MapFitBoundsTool().toMenuItem(() => this.getToolContext()),
+    new MenuItem(),
+    new GoBackTool().toMenuItem(() => this.getToolContext()),
+  ];
+  rightToolsItems: MenuItem[] = [];
+  defaultRightToolsItems: MenuItem[] = [
+    new MapLayerSelectionTool().toMenuItem(() => this.getToolContext()),
+    new Switch3dTool().toMenuItem(() => this.getToolContext()),
+    new DarkMapToggleTool().toMenuItem(() => this.getToolContext()),
+    new FullScreenTool().toMenuItem(() => this.getToolContext()),
+  ];
+
+}
