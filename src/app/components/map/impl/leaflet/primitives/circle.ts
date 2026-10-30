@@ -1,15 +1,14 @@
 import { Circle, CircleOptions } from '@trailence/components/map/primitives/circle';
 import { LeafletPrimitive } from './primitive';
 import * as L from 'leaflet';
+import { Leaflet } from '../leaflet';
 
-export class LeafletCircle extends Circle implements LeafletPrimitive {
+export class LeafletCircle extends Circle<Leaflet> implements LeafletPrimitive {
 
-  private leaflet?: L.Map;
   private marker?: L.CircleMarker;
 
-  addToLeaflet(leafet: L.Map): void {
-    this.leaflet = leafet;
-    this.marker = L.circleMarker(this.options.position, {
+  protected override addPrimitiveToMap(renderer: Leaflet): void {
+    this.marker = L.circleMarker(this.position, {
       radius: this.options.radius, // TODO based on unit
       fill: this.options.fillColor !== undefined,
       fillColor: this.options.fillColor?.toString(),
@@ -17,23 +16,23 @@ export class LeafletCircle extends Circle implements LeafletPrimitive {
       color: this.options.strokeColor?.toString(),
       weight: this.options.strokeWidth ?? 1,
     });
-    this.marker.addTo(leafet);
+    this.marker.addTo(renderer.getLeafletMap()!);
   }
 
-  removeFromLeaflet(leafet: L.Map): void {
+  protected override removePrimitiveFromMap(): void {
     if (!this.marker) return;
     this.marker.remove();
     this.marker = undefined;
   }
 
-  public override setOptions(options: CircleOptions): void {
-    const previous = this.options;
-    this.options = {...options};
+  protected override applyNewPosition(): void {
+    this.marker?.setLatLng(this.position);
+  }
+
+  protected override applyNewOptions(_: Leaflet, previous: CircleOptions): void {
     if (!this.marker) return;
-    if (previous.position.lat !== options.position.lat || previous.position.lng !== options.position.lng)
-      this.marker.setLatLng(options.position);
-    if (previous.radius !== options.radius) // TODO radiusUnit
-      this.marker.setRadius(options.radius);
+    if (previous.radius !== this.options.radius) // TODO radiusUnit
+      this.marker.setRadius(this.options.radius);
     this.marker.setStyle({
       fill: this.options.fillColor !== undefined,
       fillColor: this.options.fillColor?.toString(),

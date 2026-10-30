@@ -1,48 +1,46 @@
 import { Circle, CircleOptions } from '@trailence/components/map/primitives/circle';
 import { MapLibrePrimitive } from './primitive';
-import { MapState } from '@trailence/components/map/map-state';
-import { GeoJSONSource, MapLibreMap } from 'maplibre-gl';
+import { GeoJSONSource } from 'maplibre-gl';
 import { circle } from '@turf/turf';
 import { MapLibreUtils } from '../maplibre-utils';
 import { Subscription } from 'rxjs';
 import { Color } from '@trailence/utils/color';
+import { MapLibre } from '../maplibre';
 
-export class MapLibreCircle extends Circle implements MapLibrePrimitive {
+export class MapLibreCircle extends Circle<MapLibre> implements MapLibrePrimitive {
 
-  private mapLibre?: MapLibreMap;
   private subscription?: Subscription;
 
-  addToMapLibre(mapLibre: MapLibreMap, mapState: MapState): void {
-    this.mapLibre = mapLibre;
-    mapLibre.addSource(this.id, {
+  protected override addPrimitiveToMap(renderer: MapLibre): void {
+    renderer.getMaplibreMap()!.addSource(this.id, {
       type: 'geojson',
-      data: this.getSourceData(mapLibre),
+      data: this.getSourceData(renderer),
     });
     if (this.options.fillColor) this.addFillLayer();
     if (this.options.strokeColor) this.addStrokeLayer();
     if (this.options.radiusUnit === 'pixel') {
-      this.subscription = mapState.zoomInt$.subscribe(() => {
-        void (mapLibre.getSource(this.id) as GeoJSONSource).setData(this.getSourceData(mapLibre));
+      this.subscription = renderer.mapState.zoomInt$.subscribe(() => {
+        void (renderer.getMaplibreMap()!.getSource(this.id) as GeoJSONSource).setData(this.getSourceData(renderer));
       });
     }
   }
 
-  private getSourceData(mapLibre: MapLibreMap) {
+  private getSourceData(renderer: MapLibre) {
     return circle({
       type: 'Point',
-      coordinates: [this.options.position.lng, this.options.position.lat],
-    }, this.getRadiusInMeters(mapLibre), {
+      coordinates: [this.position.lng, this.position.lat],
+    }, this.getRadiusInMeters(renderer), {
       units: 'meters',
     });
   }
 
-  private getRadiusInMeters(mapLibre: MapLibreMap): number {
+  private getRadiusInMeters(renderer: MapLibre): number {
     if (this.options.radiusUnit === 'meter') return this.options.radius;
-    return MapLibreUtils.pixelsToMeters(mapLibre, this.options.radius);
+    return MapLibreUtils.pixelsToMeters(renderer.getMaplibreMap()!, this.options.radius);
   }
 
   private addFillLayer(): void {
-    this.mapLibre!.addLayer({
+    this.renderer!.getMaplibreMap()!.addLayer({
       id: this.id + '$fill',
       type: 'fill',
       source: this.id,
@@ -54,7 +52,7 @@ export class MapLibreCircle extends Circle implements MapLibrePrimitive {
   }
 
   private addStrokeLayer(): void {
-    this.mapLibre!.addLayer({
+    this.renderer!.getMaplibreMap()!.addLayer({
       id: this.id + '$stroke',
       type: 'line',
       source: this.id,
@@ -66,52 +64,45 @@ export class MapLibreCircle extends Circle implements MapLibrePrimitive {
     });
   }
 
-  public override setOptions(options: CircleOptions): void {
-    if (!this.mapLibre) {
-      this.options = {...options};
-      return;
-    }
-    const previous = this.options;
-    this.options = {...options};
-    if (options.position.lat !== previous.position.lat || options.position.lng !== previous.position.lng || options.radius !== previous.radius || options.radiusUnit !== previous.radiusUnit) {
-      // source change
-      void (this.mapLibre.getSource(this.id) as GeoJSONSource).setData(this.getSourceData(this.mapLibre));
-    }
-    if (!previous.fillColor && options.fillColor) {
+  protected override applyNewPosition(renderer: MapLibre): void {
+    void (renderer.getMaplibreMap()!.getSource(this.id) as GeoJSONSource).setData(this.getSourceData(renderer));
+  }
+
+  protected override applyNewOptions(renderer: MapLibre, previous: CircleOptions): void {
+    if (!previous.fillColor && this.options.fillColor) {
       // fill added
       this.addFillLayer();
-    } else if (previous.fillColor && !options.fillColor) {
+    } else if (previous.fillColor && !this.options.fillColor) {
       // fill removed
-      this.mapLibre.removeLayer(this.id + '$fill');
-    } else if (previous.fillColor && options.fillColor && !Color.areSame(previous.fillColor, options.fillColor)) {
+      renderer.getMaplibreMap()!.removeLayer(this.id + '$fill');
+    } else if (previous.fillColor && this.options.fillColor && !Color.areSame(previous.fillColor, this.options.fillColor)) {
       // fill color changed
-      const layer = this.mapLibre.getLayer(this.id + '$fill');
-      layer?.setPaintProperty('fill-color', options.fillColor.toHexString(false));
-      layer?.setPaintProperty('fill-opacity', options.fillColor.a);
+      const layer = renderer.getMaplibreMap()!.getLayer(this.id + '$fill');
+      layer?.setPaintProperty('fill-color', this.options.fillColor.toHexString(false));
+      layer?.setPaintProperty('fill-opacity', this.options.fillColor.a);
     }
-    if (!previous.strokeColor && options.strokeColor) {
+    if (!previous.strokeColor && this.options.strokeColor) {
       // stroke added
       this.addStrokeLayer();
-    } else if (previous.strokeColor && !options.strokeColor) {
+    } else if (previous.strokeColor && !this.options.strokeColor) {
       // stroke removed
-      this.mapLibre.removeLayer(this.id + '$stroke');
-    } else if (previous.strokeColor && options.strokeColor && (!Color.areSame(previous.strokeColor, options.strokeColor) || (previous.strokeWidth ?? 1) !== (options.strokeWidth ?? 1))) {
+      renderer.getMaplibreMap()!.removeLayer(this.id + '$stroke');
+    } else if (previous.strokeColor && this.options.strokeColor && (!Color.areSame(previous.strokeColor, this.options.strokeColor) || (previous.strokeWidth ?? 1) !== (this.options.strokeWidth ?? 1))) {
       // stroke changed
-      const layer = this.mapLibre.getLayer(this.id + '$stroke');
-      layer?.setPaintProperty('line-color', options.strokeColor.toHexString(false));
-      layer?.setPaintProperty('line-opacity', options.strokeColor.a);
-      layer?.setPaintProperty('line-width', options.strokeWidth ?? 1);
+      const layer = renderer.getMaplibreMap()!.getLayer(this.id + '$stroke');
+      layer?.setPaintProperty('line-color', this.options.strokeColor.toHexString(false));
+      layer?.setPaintProperty('line-opacity', this.options.strokeColor.a);
+      layer?.setPaintProperty('line-width', this.options.strokeWidth ?? 1);
     }
   }
 
-  removeFromMapLibre(mapLibre: MapLibreMap, mapState: MapState): void {
+  protected override removePrimitiveFromMap(renderer: MapLibre): void {
     this.subscription?.unsubscribe();
     if (this.options.fillColor)
-      mapLibre.removeLayer(this.id + '$fill');
+      renderer.getMaplibreMap()!.removeLayer(this.id + '$fill');
     if (this.options.strokeColor)
-      mapLibre.removeLayer(this.id + '$stroke');
-    mapLibre.removeSource(this.id);
-    this.mapLibre = undefined;
+      renderer.getMaplibreMap()!.removeLayer(this.id + '$stroke');
+    renderer.getMaplibreMap()!.removeSource(this.id);
   }
 
   getLayersIds(): string[] {

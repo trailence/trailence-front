@@ -1,9 +1,8 @@
-import { EarthPoint } from '@trailence/utils/latlng';
-import { MapPrimitive } from '../map-element';
 import { Color } from '@trailence/utils/color';
+import { MapPrimitiveSinglePosition } from './primitive';
+import { MapRenderer } from '../impl/map-renderer';
 
 export interface CircleOptions {
-  position: EarthPoint,
   radius: number;
   radiusUnit: 'pixel' | 'meter';
   fillColor?: Color;
@@ -11,18 +10,6 @@ export interface CircleOptions {
   strokeWidth?: number;
 }
 
-export abstract class Circle implements MapPrimitive {
-
-  constructor(
-    public readonly id: string,
-    options: CircleOptions
-  ) {
-    this.options = {...options};
-  }
-
-  protected options: CircleOptions;
-
-  public getOptions(): CircleOptions { return {...this.options}; }
-  public abstract setOptions(options: CircleOptions): void;
+export abstract class Circle<R extends MapRenderer> extends MapPrimitiveSinglePosition<CircleOptions, R> {
 
 }

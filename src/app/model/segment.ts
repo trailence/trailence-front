@@ -6,7 +6,7 @@ import { SegmentDto } from './dto/segment';
 import * as L from 'leaflet';
 import { Track } from './track';
 import { TrackUtils } from '../utils/track-utils';
-import { normalizeLatitude, normalizeLongitude } from '@trailence/utils/latlng';
+import { earthBBox, EarthBBox, extendBBoxWithPoint, normalizeLatitude, normalizeLongitude } from '@trailence/utils/latlng';
 
 export class Segment {
 
@@ -516,11 +516,11 @@ export class SegmentMetadata {
   private readonly _lowestPoint = new BehaviorSubject<PointImpl | undefined>(undefined);
   private readonly _duration = new BehaviorSubject<number | undefined>(undefined);
   private readonly _startPoint = new BehaviorSubject<PointImpl | undefined>(undefined);
-  private readonly _bounds = new BehaviorSubject<L.LatLngBounds | undefined>(undefined);
-  private _topLat: PointImpl | undefined = undefined;
-  private _bottomLat: PointImpl | undefined = undefined;
-  private _leftLng: PointImpl | undefined = undefined;
-  private _rightLng: PointImpl | undefined = undefined;
+  private readonly _bounds = new BehaviorSubject<EarthBBox | undefined>(undefined);
+  private _minlat: PointImpl | undefined = undefined;
+  private _maxlat: PointImpl | undefined = undefined;
+  private _minlng: PointImpl | undefined = undefined;
+  private _maxlng: PointImpl | undefined = undefined;
 
   private readonly _maxSpeed$ = new BehaviorSubject<number>(0);
   private _maxSpeedPoints: PointImpl[] = [];
@@ -550,8 +550,8 @@ export class SegmentMetadata {
   public get startDate(): number | undefined { return this._startPoint.value?.time; }
   public get startDate$(): Observable<number | undefined> { return this._startPoint.pipe(map(pt => pt?.time)); }
 
-  public get bounds(): L.LatLngBounds | undefined { return this._bounds.value; }
-  public get bounds$(): Observable<L.LatLngBounds | undefined> { return this._bounds; }
+  public get bounds(): EarthBBox | undefined { return this._bounds.value; }
+  public get bounds$(): Observable<EarthBBox | undefined> { return this._bounds; }
 
   public get maxSpeed(): number { return this._maxSpeed$.value; }
   public get maxSpeed$(): Observable<number> { return this._maxSpeed$; }
@@ -604,29 +604,29 @@ export class SegmentMetadata {
     }
     const p = point.pos;
     if (this._bounds.value === undefined) {
-      this._bounds.next(L.latLngBounds(p, p));
-      this._topLat = this._bottomLat = this._leftLng = this._rightLng = point;
+      this._bounds.next(earthBBox(p, p));
+      this._minlat = this._maxlat = this._minlng = this._maxlng = point;
     } else {
       const b = this._bounds.value;
       let changed = false;
-      if (p.lat < b.getNorth()) {
-        this._topLat = point;
+      if (p.lat < b.minlat) {
+        this._minlat = point;
         changed = true;
       }
-      if (p.lat > b.getSouth()) {
-        this._bottomLat = point;
+      if (p.lat > b.maxlat) {
+        this._maxlat = point;
         changed = true;
       }
-      if (p.lng < b.getWest()) {
-        this._leftLng = point;
+      if (p.lng < b.minlng) {
+        this._minlng = point;
         changed = true;
       }
-      if (p.lng > b.getEast()) {
-        this._rightLng = point;
+      if (p.lng > b.maxlng) {
+        this._maxlng = point;
         changed = true;
       }
       if (changed) {
-        this._bounds.next(b.extend(p));
+        this._bounds.next(extendBBoxWithPoint(b, p));
       }
     }
   }
@@ -651,31 +651,31 @@ export class SegmentMetadata {
   positionChanged(point: PointImpl): void { // NOSONAR
     const p = point.pos;
     const b = this._bounds.value!;
-    if ((this._topLat === point && p.lat > b.getNorth()) ||
-        (this._bottomLat === point && p.lat < b.getSouth()) ||
-        (this._leftLng === point && p.lng > b.getWest()) ||
-        (this._rightLng === point && p.lng < b.getEast())) {
+    if ((this._minlat === point && p.lat > b.minlat) ||
+        (this._maxlat === point && p.lat < b.maxlat) ||
+        (this._minlng === point && p.lng > b.minlng) ||
+        (this._maxlng === point && p.lng < b.maxlng)) {
       this.computeBounds();
     } else {
       let changed = false;
-      if (p.lat < b.getNorth()) {
-        this._topLat = point;
+      if (p.lat < b.minlng) {
+        this._minlat = point;
         changed = true;
       }
-      if (p.lat > b.getSouth()) {
-        this._bottomLat = point;
+      if (p.lat > b.maxlat) {
+        this._maxlat = point;
         changed = true;
       }
-      if (p.lng < b.getWest()) {
-        this._leftLng = point;
+      if (p.lng < b.minlng) {
+        this._minlng = point;
         changed = true;
       }
-      if (p.lng > b.getEast()) {
-        this._rightLng = point;
+      if (p.lng > b.maxlng) {
+        this._maxlng = point;
         changed = true;
       }
       if (changed) {
-        this._bounds.next(b.extend(p));
+        this._bounds.next(extendBBoxWithPoint(b, p));
       }
     }
   }
@@ -699,43 +699,43 @@ export class SegmentMetadata {
   }
 
   private computeBounds(): void { // NOSONAR
-    this._topLat = this._bottomLat = this._leftLng = this._rightLng = undefined;
+    this._minlat = this._maxlat = this._minlng = this._maxlng = undefined;
     let n, s, e, w;
-    let b: L.LatLngBounds | undefined = undefined;
+    let b: EarthBBox | undefined = undefined;
     for (const pt of this.segmentPoints) {
       const p = pt.pos;
       if (b === undefined) {
-        this._topLat = this._bottomLat = this._leftLng = this._rightLng = pt;
+        this._minlat = this._maxlat = this._minlng = this._maxlng = pt;
         n = s = p.lat;
         e = w = p.lng;
-        b = L.latLngBounds(p, p);
+        b = earthBBox(p, p);
       } else {
         let changed = false;
         if (p.lat < n!) {
           n = p.lat;
-          this._topLat = pt;
+          this._minlat = pt;
           changed = true;
         }
         if (p.lat > s!) {
           s = p.lat;
-          this._bottomLat = pt;
+          this._maxlat = pt;
           changed = true;
         }
         if (p.lng < w!) {
           w = p.lng;
-          this._leftLng = pt;
+          this._minlng = pt;
           changed = true;
         }
         if (p.lng > e!) {
           e = p.lng;
-          this._rightLng = pt;
+          this._maxlng = pt;
           changed = true;
         }
-        if (changed) b = b.extend(p);
+        if (changed) b = extendBBoxWithPoint(b, p);
       }
     }
     const cb = this._bounds.value;
-    if (cb === undefined || cb.getNorth() !== n || cb.getSouth() !== s || cb.getWest() !== w || cb.getEast() !== e)
+    if (cb === undefined || cb.minlat !== n || cb.maxlat !== s || cb.minlng !== w || cb.maxlng !== e)
       this._bounds.next(b);
   }
 
@@ -747,10 +747,10 @@ export class SegmentMetadata {
     let highestPoint: PointImpl | undefined = this._highestPoint.value;
     let lowestPoint: PointImpl | undefined = this._lowestPoint.value;
     let startPoint = this._startPoint.value;
-    let northPoint: PointImpl | undefined = this._topLat;
-    let southPoint: PointImpl | undefined = this._bottomLat;
-    let westPoint: PointImpl | undefined = this._leftLng;
-    let eastPoint: PointImpl | undefined = this._rightLng;
+    let northPoint: PointImpl | undefined = this._minlat;
+    let southPoint: PointImpl | undefined = this._maxlat;
+    let westPoint: PointImpl | undefined = this._minlng;
+    let eastPoint: PointImpl | undefined = this._maxlng;
     let n: number | undefined = northPoint?.pos.lat;
     let s: number | undefined = southPoint?.pos.lat;
     let w: number | undefined = westPoint?.pos.lng;
@@ -807,25 +807,25 @@ export class SegmentMetadata {
     if (this._highestPoint.value !== highestPoint) this._highestPoint.next(highestPoint);
     if (this._lowestPoint.value !== lowestPoint) this._lowestPoint.next(lowestPoint);
     let boundsChanged = false;
-    if (this._topLat !== northPoint) {
-      this._topLat = northPoint;
+    if (this._minlat !== northPoint) {
+      this._minlat = northPoint;
       boundsChanged = true;
     }
-    if (this._bottomLat !== southPoint) {
-      this._bottomLat = southPoint;
+    if (this._maxlat !== southPoint) {
+      this._maxlat = southPoint;
       boundsChanged = true;
     }
-    if (this._leftLng !== westPoint) {
-      this._leftLng = westPoint;
+    if (this._minlng !== westPoint) {
+      this._minlng = westPoint;
       boundsChanged = true;
     }
-    if (this._rightLng !== eastPoint) {
-      this._rightLng = eastPoint;
+    if (this._maxlng !== eastPoint) {
+      this._maxlng = eastPoint;
       boundsChanged = true;
     }
     if (boundsChanged) {
       if (s === undefined) this._bounds.next(undefined);
-      else this._bounds.next(L.latLngBounds(L.latLng(s, w!), L.latLng(n!, e!)));
+      else this._bounds.next(earthBBox({lat: s, lng: w!}, {lat: n!, lng: e!}));
     }
     for (const p of points) this.updatedSpeed(p, undefined, p.computedSpeed);
   }

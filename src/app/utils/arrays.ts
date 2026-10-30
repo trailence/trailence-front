@@ -1,3 +1,5 @@
+export type NestedArray<T> = T | NestedArray<T>[];
+
 export class Arrays {
 
   public static sameContent<T>(array1: T[], array2: T[], comparator: (element1: T, element2: T) => boolean = (e1, e2) => e1 === e2): boolean {
@@ -62,6 +64,34 @@ export class Arrays {
     const set = new Set<R>();
     for (const element of array) set.add(mapper(element));
     return set;
+  }
+
+  public static firstElement<E, T extends NestedArray<E>[]>(array: T): E | undefined {
+    if (array.length === 0) return undefined;
+    const first = array[0];
+    if (Array.isArray(first)) return this.firstElement(first);
+    return first;
+  }
+
+  public static forEach<E, T extends NestedArray<E>[], R>(array: T, action: (element: E) => {replace?: E, stop?: boolean, stopWith?: R} | void): R | undefined {
+    if (array.length === 0) return undefined;
+    if (Array.isArray(array[0])) {
+      for (const nested of array) {
+        const result = this.forEach<E, T, R>(nested as T, action);
+        if (result !== undefined) return result;
+      }
+      return undefined;
+    }
+    for (let i = 0; i < array.length; ++i) {
+      const element = array[i] as E;
+      const result = action(element);
+      if (result) {
+        if (result.replace !== undefined) array[i] = result.replace;
+        if (result.stopWith !== undefined) return result.stopWith;
+        if (result.stop === true) return undefined;
+      }
+    }
+    return undefined;
   }
 
 }

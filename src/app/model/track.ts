@@ -15,6 +15,7 @@ import { WorkerService } from '../worker/web-app';
 import { TrackPointReference } from '../utils/track-computed-data/types';
 import { NetworkService } from '../services/network/network.service';
 import { TrackComputedDataCacheService } from '../services/database/track-computed-data-cache.service';
+import { EarthBBox, extendBBox } from '@trailence/utils/latlng';
 
 export class Track extends Owned {
 
@@ -397,7 +398,7 @@ export class TrackMetadata {
   private readonly _lowestAltitude = new BehaviorSubject<number | undefined>(undefined);
   private readonly _duration = new BehaviorSubject<number | undefined>(undefined);
   private readonly _startDate = new BehaviorSubject<number | undefined>(undefined);
-  private readonly _bounds = new BehaviorSubject<L.LatLngBounds | undefined>(undefined);
+  private readonly _bounds = new BehaviorSubject<EarthBBox | undefined>(undefined);
   private readonly _maxSpeed = new BehaviorSubject<number | undefined>(undefined);
 
   constructor(
@@ -413,7 +414,7 @@ export class TrackMetadata {
     this.reduce(segments$, meta => meta.bounds$, (a, b) => {
       if (a === undefined) return b;
       if (b === undefined) return a;
-      return L.latLngBounds(L.latLng(a.getSouth(), a.getWest()), L.latLng(a.getNorth(), a.getEast())).extend(b);
+      return extendBBox(a, b);
     }, undefined, this._bounds);
     this.highest(segments$, meta => meta.maxSpeed$, this._maxSpeed);
   }
@@ -439,8 +440,8 @@ export class TrackMetadata {
   public get startDate(): number | undefined { return this._startDate.value; }
   public get startDate$(): Observable<number | undefined> { return this._startDate; }
 
-  public get bounds(): L.LatLngBounds | undefined { return this._bounds.value; }
-  public get bounds$(): Observable<L.LatLngBounds | undefined> { return this._bounds; }
+  public get bounds(): EarthBBox | undefined { return this._bounds.value; }
+  public get bounds$(): Observable<EarthBBox | undefined> { return this._bounds; }
 
   public get maxSpeed(): number | undefined { return this._maxSpeed.value; }
   public get maxSpeed$(): Observable<number | undefined> { return this._maxSpeed; }

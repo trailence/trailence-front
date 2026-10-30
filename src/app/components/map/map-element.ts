@@ -1,6 +1,7 @@
 import { EarthBBox } from '@trailence/utils/latlng';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { MapRenderer } from './impl/map-renderer';
+import { MapPrimitive } from './primitives/primitive';
 
 export interface MapElementPosition {
   layer: string;
@@ -33,8 +34,6 @@ export const MAP_ELEMENT_LAYERS: MapElementsLayer[] = [
 ];
 
 
-export interface MapPrimitive {}
-
 export abstract class MapElement {
 
   constructor(
@@ -58,5 +57,15 @@ export abstract class MapElement {
 
   public abstract fitBounds: EarthBBox | undefined;
 
-  public abstract getPrimitives$(renderer: MapRenderer): Observable<MapPrimitive[]>;
+  private _renderer?: MapRenderer;
+  private _primitives?: Observable<MapPrimitive<any>[]>;
+
+  public getPrimitives$(renderer: MapRenderer): Observable<MapPrimitive<any>[]> {
+    if (renderer === this._renderer && this._primitives) return this._primitives;
+    this._renderer = renderer;
+    this._primitives = this.createPrimitives$(renderer);
+    return this._primitives;
+  }
+
+  protected abstract createPrimitives$(renderer: MapRenderer): Observable<MapPrimitive<any>[]>;
 }

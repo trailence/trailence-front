@@ -5,7 +5,6 @@ import { TrailsListComponent } from '../trails-list/trails-list.component';
 import { BehaviorSubject, combineLatest, debounceTime, map, Observable, of, skip, Subscription, switchMap } from 'rxjs';
 import { IonSegment, IonSegmentButton, IonButton, IonIcon, IonSpinner } from "@ionic/angular";
 import { I18nService } from '@trailence/services/i18n/i18n.service';
-import { MapComponent } from '../map/map.component';
 import { MapTrack } from '../map/track/map-track';
 import { TrackService } from '@trailence/services/database/track.service';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
@@ -28,10 +27,11 @@ import { TrackMetadataConfig } from '../track-metadata/track-metadata.component'
 import { SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
 import { AsyncPipe } from '@angular/common';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
-import { MapElement } from '../map/map-element';
 import { MapToggleBubblesTool } from '../map/tools/toggle-bubbles-tool';
 import { HIGHLIGHTED_TRACK_COLOR, PRIMARY_TRACK_COLOR, PRIMARY_TRACK_COLOR_DONE } from '../trail/trail-colors';
 import { getLogger } from '@trailence/utils/console';
+import { MapComponent } from '../map/map.component';
+import { MapElement } from '../map/map-element';
 
 const logger = getLogger('trails-and-map.component');
 

@@ -1,6 +1,6 @@
 export const EARTH_RADIUS = 6371000; // meters
 
-export type EarthPoint = {lat: number, lng: number};
+export type EarthPoint = {lat: number, lng: number, ele?: number};
 export type EarthBBox = {minlat: number, maxlat: number, minlng: number, maxlng: number};
 
 export function normalizePoint(point: EarthPoint): EarthPoint {
@@ -58,6 +58,24 @@ export function earthBBox(p1: EarthPoint, p2: EarthPoint): EarthBBox {
     minlng: Math.min(p1.lng, p2.lng),
     maxlng: Math.max(p1.lng, p2.lng),
   }
+}
+
+export function extendBBox(b1: EarthBBox, b2: EarthBBox): EarthBBox {
+  return {
+    minlat: Math.min(b1.minlat, b2.minlat),
+    maxlat: Math.max(b1.maxlat, b2.maxlat),
+    minlng: Math.min(b1.minlng, b2.minlng),
+    maxlng: Math.max(b1.maxlng, b2.maxlng),
+  };
+}
+
+export function extendBBoxWithPoint(b: EarthBBox, p: EarthPoint): EarthBBox {
+  return {
+    minlat: Math.min(b.minlat, p.lat),
+    maxlat: Math.max(b.maxlat, p.lat),
+    minlng: Math.min(b.minlng, p.lng),
+    maxlng: Math.max(b.maxlng, p.lng),
+  };
 }
 
 export function isPointInBBox(point: EarthPoint, bbox: EarthBBox, tolerance: EarthPoint): boolean {

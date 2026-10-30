@@ -55,13 +55,15 @@ const logger = getLogger('map.component');
 
 setWorkerUrl(environment.assetsUrl + '/' + assetsDependencies['maplibre-gl-worker']);
 
+const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
+
 const FOLLOW_LOCATION_DEFAULT_ZOOM = 16;
 const FOLLOW_LOCATION_MIN_ZOOM = 13;
 
 const DEFAULT_FIT_PADDING = 0.00;
 
 @Component({
-    selector: 'app-map',
+    selector: 'app-mapv1',
     templateUrl: './map.component.html',
     styleUrls: ['./map.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
