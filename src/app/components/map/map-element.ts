@@ -58,14 +58,14 @@ export abstract class MapElement {
   public abstract fitBounds: EarthBBox | undefined;
 
   private _renderer?: MapRenderer;
-  private _primitives?: Observable<MapPrimitive<any>[]>;
+  private _primitives?: Observable<MapPrimitive<any, MapRenderer>[]>;
 
-  public getPrimitives$(renderer: MapRenderer): Observable<MapPrimitive<any>[]> {
+  public getPrimitives$(renderer: MapRenderer): Observable<MapPrimitive<any, MapRenderer>[]> {
     if (renderer === this._renderer && this._primitives) return this._primitives;
     this._renderer = renderer;
     this._primitives = this.createPrimitives$(renderer);
     return this._primitives;
   }
 
-  protected abstract createPrimitives$(renderer: MapRenderer): Observable<MapPrimitive<any>[]>;
+  protected abstract createPrimitives$(renderer: MapRenderer): Observable<MapPrimitive<any, MapRenderer>[]>;
 }

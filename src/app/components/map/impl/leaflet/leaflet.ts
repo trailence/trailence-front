@@ -5,11 +5,13 @@ import { MapLayersService } from '@trailence/services/map/map-layers.service';
 import { CircleOptions } from '../../primitives/circle';
 import { LeafletCircle } from './primitives/circle';
 import { LeafletPrimitive } from './primitives/primitive';
-import { EarthPoint, normalizeLatitude, normalizeLongitude } from '@trailence/utils/latlng';
+import { EarthBBox, EarthPoint, normalizeLatitude, normalizeLongitude } from '@trailence/utils/latlng';
 import { MapPrimitive } from '../../primitives/primitive';
 import { PolylineOptions } from '../../primitives/polyline';
 import { LeafletPolyline } from './primitives/polyline';
 import { Point2D } from '@trailence/utils/geometry-utils';
+import { SvgBoundsOptions } from '../../primitives/svg';
+import { LeafletSvgBounds } from './primitives/svg';
 
 export class Leaflet extends MapRenderer {
 
@@ -64,6 +66,10 @@ export class Leaflet extends MapRenderer {
 
   public override createPolyline(id: string, positions: EarthPoint[][], options: PolylineOptions) {
     return new LeafletPolyline(id, positions, options);
+  }
+
+  public override createSvgBounds(id: string, bounds: EarthBBox, svg: string | SVGSVGElement, options: SvgBoundsOptions) {
+    return new LeafletSvgBounds(id, bounds, svg, options);
   }
 
   public override projectToViewport(point: EarthPoint): Point2D {

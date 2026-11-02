@@ -4,10 +4,12 @@ import { CircleOptions } from '../../primitives/circle';
 import { MapLibreCircle } from './primitives/circle';
 import { MapLibrePrimitive } from './primitives/primitive';
 import { MapPrimitive } from '../../primitives/primitive';
-import { EarthPoint } from '@trailence/utils/latlng';
+import { EarthBBox, EarthPoint } from '@trailence/utils/latlng';
 import { PolylineOptions } from '../../primitives/polyline';
 import { MapLibrePolyline } from './primitives/polyline';
 import { Point2D } from '@trailence/utils/geometry-utils';
+import { SvgBoundsOptions, SvgBoundsPrimitive } from '../../primitives/svg';
+import { MapLibreSvgBounds } from './primitives/svg';
 
 export class MapLibre extends MapRenderer {
 
@@ -43,6 +45,10 @@ export class MapLibre extends MapRenderer {
 
   public override createPolyline(id: string, positions: EarthPoint[][], options: PolylineOptions) {
     return new MapLibrePolyline(id, positions, options);
+  }
+
+  public override createSvgBounds(id: string, bounds: EarthBBox, svg: string | SVGSVGElement, options: SvgBoundsOptions) {
+    return new MapLibreSvgBounds(id, bounds, svg, options);
   }
 
   public override projectToViewport(point: EarthPoint): Point2D {

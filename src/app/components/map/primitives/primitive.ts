@@ -1,4 +1,4 @@
-import { EarthPoint } from '@trailence/utils/latlng';
+import { EarthBBox, EarthPoint } from '@trailence/utils/latlng';
 import { MapRenderer } from '../impl/map-renderer';
 import { Arrays, NestedArray } from '@trailence/utils/arrays';
 import { MapUtils } from '../map-utils';
@@ -90,7 +90,7 @@ export abstract class MapPrimitiveSinglePosition<O, R extends MapRenderer> exten
 
   private mapOffsetSubscription?: Subscription;
   private addListenersForMapOffset(renderer: R): void {
-    this.mapOffsetSubscription = combineLatest([renderer.mapState.zoomInt$, renderer.mapState.center$])
+    this.mapOffsetSubscription = combineLatest([renderer.mapState.zoom$, renderer.mapState.center$])
     .subscribe(() => {
       const p = renderer.getPointWithOffset(this.position);
       if (p.lat !== this.position.lat || p.lng !== this.position.lng) {
@@ -129,7 +129,7 @@ export abstract class MapPrimitiveMultiplePositions<O, R extends MapRenderer, P 
 
   private mapOffsetSubscription?: Subscription;
   private addListenersForMapOffset(renderer: R): void {
-    this.mapOffsetSubscription = combineLatest([renderer.mapState.zoomInt$, renderer.mapState.center$])
+    this.mapOffsetSubscription = combineLatest([renderer.mapState.zoom$, renderer.mapState.center$])
     .subscribe(() => {
       const firstPoint = Arrays.firstElement(this.positions) as (EarthPoint | undefined);
       if (!firstPoint) return;
@@ -141,6 +141,57 @@ export abstract class MapPrimitiveMultiplePositions<O, R extends MapRenderer, P 
         });
         this.applyNewPositions(renderer);
       }
+    });
+  }
+  private removeListenersForMapOffset(): void {
+    this.mapOffsetSubscription?.unsubscribe();
+    this.mapOffsetSubscription = undefined;
+  }
+
+}
+
+export abstract class MapPrimitiveBounds<O, R extends MapRenderer> extends MapPrimitive<O, R> {
+  constructor(
+    id: string,
+    bounds: EarthBBox,
+    options: O,
+  ) {
+    super(id, options);
+    this.bounds = {...bounds};
+    this.addListenerOnAdded(renderer => this.addListenersForMapOffset(renderer));
+    this.addListenerOnRemoved(() => this.removeListenersForMapOffset());
+  }
+
+  protected bounds: EarthBBox;
+
+  public setBounds(bounds: EarthBBox): void {
+    this.bounds = {...bounds};
+    if (this.renderer) {
+      this.applyMapOffset(this.renderer);
+      this.applyNewBounds(this.renderer);
+    }
+  }
+  private applyMapOffset(renderer: R): boolean {
+    const topLeft = renderer.getPointWithOffset({lat: this.bounds.minlat, lng: this.bounds.minlng});
+    if (topLeft.lat !== this.bounds.minlat || topLeft.lng !== this.bounds.minlng) {
+      this.bounds = {
+        minlat: topLeft.lat,
+        minlng: topLeft.lng,
+        maxlat: topLeft.lat + (this.bounds.maxlat - this.bounds.minlat),
+        maxlng: topLeft.lng + (this.bounds.maxlng - this.bounds.minlng),
+      }
+      return true;
+    }
+    return false;
+  }
+  protected abstract applyNewBounds(renderer: R): void;
+
+  private mapOffsetSubscription?: Subscription;
+  private addListenersForMapOffset(renderer: R): void {
+    this.mapOffsetSubscription = combineLatest([renderer.mapState.zoom$, renderer.mapState.center$])
+    .subscribe(() => {
+      if (this.applyMapOffset(renderer))
+        this.applyNewBounds(renderer);
     });
   }
   private removeListenersForMapOffset(): void {

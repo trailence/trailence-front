@@ -1,10 +1,11 @@
 import { Injector } from '@angular/core';
 import { MapState } from '../map-state';
 import { Circle, CircleOptions } from '../primitives/circle';
-import { EarthPoint } from '@trailence/utils/latlng';
+import { EarthBBox, EarthPoint } from '@trailence/utils/latlng';
 import { Polyline, PolylineOptions } from '../primitives/polyline';
 import { MapPrimitive } from '../primitives/primitive';
 import { Point2D } from '@trailence/utils/geometry-utils';
+import { SvgBoundsOptions, SvgBoundsPrimitive } from '../primitives/svg';
 
 export type MapRendererType = 'leaflet' | 'maplibre';
 
@@ -43,6 +44,7 @@ export abstract class MapRenderer {
 
   public abstract createCircle(id: string, position: EarthPoint, options: CircleOptions): Circle<any>;
   public abstract createPolyline(id: string, positions: EarthPoint[][], options: PolylineOptions): Polyline<any>;
+  public abstract createSvgBounds(id: string, bounds: EarthBBox, svg: string | SVGSVGElement, options: SvgBoundsOptions): SvgBoundsPrimitive<any>;
 
   public abstract projectToViewport(point: EarthPoint): Point2D;
   public abstract unprojectFromViewport(point: Point2D): EarthPoint;
