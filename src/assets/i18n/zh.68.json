@@ -1,0 +1,1825 @@
+{
+  "tools": {
+    "filters": "筛选",
+    "import": "导入",
+    "import_gpx_description": "导入 GPX 文件",
+    "importing": "导入中",
+    "sort": "排序",
+    "more": "更多",
+    "display": "显示",
+    "display_detailed": "详细（含照片）",
+    "display_detailed_small_map": "详细（含地图）",
+    "display_detailed_elevation": "详细（含海拔）",
+    "display_condensed": "紧凑",
+    "search_text": "按名称"
+  },
+  "pages": {
+    "home": {
+      "menu_label": "首页",
+      "hero": {
+        "h1": "规划、记录、整理并共享你的路线。",
+        "sub": "你的徒步伙伴与 GPS 轨迹管理器，适用于你的各种户外活动。",
+        "chips": [
+          "免费",
+          "开源",
+          "无追踪器",
+          "无广告",
+          "Web + Android"
+        ]
+      },
+      "try_now_button": "立即体验",
+      "try_note": "无需账户——立即试用。",
+      "download_app_button": "下载应用",
+      "features": {
+        "eyebrow": "Trailence 能为你做什么",
+        "h2": "从步道到共享。",
+        "on_field": {
+          "h3": "身在户外",
+          "text": "记录你的轨迹，跟随已有的路线，借助方向指引和实时数据（累计爬升、距离、剩余时间）保持正确方向，拍摄的照片会直接关联到路线上。含离线地图与打印功能。"
+        },
+        "organize": {
+          "h3": "整理",
+          "text": "将你的路线归入合集，添加标签，通过排序和筛选轻松找到任何路线。随心编辑、对比和管理你的路线库。"
+        },
+        "analyze": {
+          "h3": "分析",
+          "text": "详细的海拔剖面图、路线描述、途经点、预计步行时长、休息、路径标识、路径特征。既能提前规划你的出行，也能在归来后进行分析。"
+        },
+        "enrich": {
+          "h3": "丰富与共享",
+          "text": "附上你的照片，并在地图上再次找到它们。与好友或社区共享你的路线，以 GPX 格式导入和导出，为出行打印路线。"
+        },
+        "and_more": {
+          "h3": "还有更多",
+          "lead": "一个应用覆盖你的全部户外活动——从在地图上踩点，到回味出行的点滴。",
+          "features": [
+            "离线地图",
+            "IGN、OSM 等底图……",
+            "GPX 导入 / 导出",
+            "路线打印",
+            "带地理位置的照片",
+            "海拔剖面图",
+            "标签与合集",
+            "搜索与筛选",
+            "实时位置共享",
+            "途经点",
+            "Web ↔ Android 同步",
+            "共享与链接",
+            "预计步行时长",
+            "路径标识",
+            "步道标记",
+            "路面与路径类型",
+            "距离与剩余时间",
+            "路线创建",
+            "地图旋转",
+            "轨迹编辑器"
+          ]
+        }
+      },
+      "manifesto": {
+        "eyebrow": "Trailence 的与众不同之处",
+        "h2": "你的路线，你的轨迹，你的数据。",
+        "block1": {
+          "h3": "开放、免费、共享",
+          "text": "代码在 Apache-2.0 许可下可供审查。没有任何隐藏：你可以查看并参与贡献。Trailence 将始终开放且免费——没有“高级”账户。开放的路线库，人人都能丰富它。"
+        },
+        "block2": {
+          "h3": "无广告，无追踪器",
+          "text": "没有广告，没有追踪器，没有任何可转售的东西。我们不靠你的数据牟利——我们保护它们。而且它们始终属于你：随时导出，或删除全部。"
+        },
+        "block3": {
+          "h3": "你的数据，无处不在",
+          "text": "一个账户，你的路线在 Web 与 Android 之间同步。无论你身在何处，都能在所有设备上找到它们。"
+        }
+      },
+      "community": {
+        "eyebrow": "开放的数据库",
+        "h2": "一个开放、有描述且高质量的路线库——正在建设中。",
+        "text": "没有封闭的版权，没有空白条目：真实的路线，有描述、经验证。它从小做起，与你共同成长——<b>帮助我们打造第一个真正开放的路线库。</b>",
+        "search_route_button": "搜索路线",
+        "search_route_button_sub": "无需账户即可使用。"
+      },
+      "join": {
+        "h2": "准备好开始了吗？",
+        "text": "创建免费账户，在你的所有设备上找到你的轨迹——Web 与 Android。",
+        "create_account_button": "创建账户",
+        "login_button": "登录",
+        "email_privacy": "你的邮箱<b>仅</b>用于验证注册和重置密码。绝不发送营销邮件，绝不向第三方透露。"
+      },
+      "footer": {
+        "slogan": "你的户外活动伙伴与 GPS 轨迹管理器，开放且免费。",
+        "resources": {
+          "title": "资源",
+          "search_route": "搜索路线",
+          "contribute": "参与贡献",
+          "contact": "联系我们",
+          "github": "源代码（GitHub）"
+        },
+        "download": "下载",
+        "or_use_web": "……或使用网页版，无需安装。",
+        "privacy_policy": "隐私政策"
+      }
+    },
+    "installApk": {
+      "title": "Android 应用",
+      "stores": {
+        "intro": "可通过以下应用商店安装 Trailence：",
+        "else1": "如果你无法（或不想）使用这些应用商店，也可以通过 APK 文件安装 Trailence。",
+        "else2": "安装后，当有可用更新时，Trailence 会提醒你。如果你选择安装，Trailence 会自动下载并安装新版本——无需再次执行初次安装的所有步骤。",
+        "else3": "若要手动安装 Trailence，请按以下步骤操作："
+      },
+      "download": "下载安装文件",
+      "meta_description": "安装 Trailence Android 应用的说明",
+      "steps": [
+        {
+          "beforeImg": "可能会出现类似下图的窗口",
+          "afterImg": "确认下载，然后打开文件"
+        }, {
+          "beforeImg": "如果你是第一次尝试以这种方式安装应用，可能会出现类似下图的提示",
+          "afterImg": "前往设置以允许安装"
+        }, {
+          "beforeImg": "随后会出现一个窗口",
+          "afterImg": "点击“允许来自此来源”"
+        }, {
+          "beforeImg": "随后会出现一个窗口以确认安装",
+          "afterImg": "点击“安装”"
+        }, {
+          "beforeImg": "随后会出现类似下图的窗口",
+          "afterImg": "点击屏幕中间的“更多详情”"
+        }, {
+          "beforeImg": "屏幕上随后会显示一个“不扫描即安装”按钮",
+          "afterImg": "你可以点击它，也可以根据需要请求扫描"
+        }, {
+          "beforeImg": "最后，应用安装完成",
+          "afterImg": ""
+        }
+      ]
+    },
+    "login": {
+      "meta_description": "登录你的 Trailence 账户",
+      "title": "登录",
+      "email": "邮箱",
+      "password": "密码",
+      "signin_button": "登录",
+      "offline": "请先连接互联网，再登录 Trailence",
+      "incorrect_message": "邮箱或密码错误",
+      "error_message": "身份验证出错，请重试",
+      "captcha_message": "由于多次尝试，我们需要验证你不是机器人",
+      "locked_message": "你的账户已被锁定，请使用“忘记密码”按钮",
+      "forgot_password": "忘记密码？",
+      "create_account": "创建账户",
+      "try_without_account": "无需账户试用",
+      "reset_password": {
+        "title": "重置密码",
+        "email": "邮箱",
+        "new_password1": "新密码",
+        "new_password2": "确认新密码",
+        "verification_code_explaination": "我们刚刚向你的邮箱发送了一个6位验证码，请在下方输入",
+        "in_progress": "正在重置密码……",
+        "error": "发生错误，请返回并重试",
+        "errors": {
+          "email": "请输入有效的邮箱",
+          "password": "至少需要8个字符",
+          "passwordsDontMatch": "两次输入的密码不一致",
+          "mail_already_sent": "你的账户在10分钟内已提交过一次请求。",
+          "mail_error": "发生错误，请重试。"
+        }
+      },
+      "signing_in": "正在登录……",
+      "downloading_data": "正在加载你的数据……"
+    },
+    "register": {
+      "meta_description": "在 Trailence 上创建账户",
+      "title": "创建账户",
+      "offline": "请先连接互联网，才能在 Trailence 上创建账户",
+      "step1": "输入你的信息",
+      "email": "邮箱",
+      "password1": "密码",
+      "password2": "确认密码",
+      "step2": "验证你的邮箱",
+      "code_text": "我们已向你的邮箱发送了一个6位验证码，请在下方输入",
+      "step3": "账户已创建",
+      "connection": "正在登录……",
+      "continue": "继续",
+      "back": "返回",
+      "errors": {
+        "network": "发生错误，请重试",
+        "passwordsDontMatch": "两次输入的密码不一致",
+        "invalidEmail": "请输入有效的邮箱地址"
+      }
+    },
+    "trails": {
+      "collection": "合集",
+      "share_from": "共享自",
+      "your_share": "你的共享",
+      "shared_collection": "共享的合集",
+      "shared_collection_by": "由 {{1}} 共享的合集",
+      "edit_filters_popup_title": "筛选路线",
+      "edit_sort_popup_title": "排序路线",
+      "missing_trails_because_offline": "部分路线无法显示，因为你处于离线状态",
+      "sorts": {
+        "trail_date": "路线日期",
+        "creation_date": "在 Trailence 中的创建时间",
+        "update_date": "在 Trailence 中的最后更新时间",
+        "distance": "距离",
+        "duration": "时长",
+        "estimatedDuration": "预计徒步时长",
+        "positive_elevation": "累计爬升",
+        "negative_elevation": "累计下降",
+        "highest_altitude": "最高海拔",
+        "lowest_altitude": "最低海拔",
+        "rating": "评分"
+      },
+      "filters": {
+        "duration": "时长",
+        "estimatedDuration": "预计徒步时长",
+        "distance": "距离",
+        "positive_elevation": "累计爬升",
+        "negative_elevation": "累计下降",
+        "altitude": "海拔",
+        "activity": "活动",
+        "select_activities_button": "点击以选择",
+        "tags": "标签",
+        "rate": "评分",
+        "onlyVisibleOnMap": "列表中仅显示地图上可见的路线",
+        "onlyWithPhotos": "仅显示有照片的路线",
+        "reset_button": "清除所有筛选条件",
+        "preset": "我的筛选方案",
+        "load": "加载",
+        "save": "保存",
+        "remove": "删除",
+        "save_new": "新建筛选方案……",
+        "no_saved_filter": "没有已保存的筛选方案",
+        "save_title": "保存筛选方案",
+        "save_name": "筛选方案名称",
+        "enum_or": "或"
+      },
+      "tabs": {
+        "list": "列表",
+        "map": "地图"
+      },
+      "open_trail": "打开",
+      "empty_list": {
+        "collection": "此合集中暂无路线",
+        "share": "此共享中没有路线",
+        "filter": "没有符合你筛选条件的路线",
+        "filter_search": "此区域内没有符合你筛选条件的路线",
+        "filter_search_enlarge_button": "扩大搜索范围",
+        "all_collections": "你暂时还没有任何路线",
+        "my_selection": "你的收藏中没有任何路线",
+        "search": "此区域内未找到路线。",
+        "launch_search": "在地图上移动到你想搜索路线的区域，然后点击“搜索此区域”。",
+        "only_bubbles": "在地图上放大并点击“搜索此区域”，或直接点击聚合点以查看可用路线。"
+      },
+      "search_trail_placeholder": "搜索路线",
+      "actions": {
+        "share_global": "创建共享",
+        "share_trail": "创建共享",
+        "share_trails": "用这些路线创建共享",
+        "delete_confirm_single": {
+          "title": "删除路线",
+          "message": "确定要删除“{{}}”吗？",
+          "yes": "是，删除",
+          "no": "取消，保留"
+        },
+        "delete_confirm_multiple": {
+          "title": "删除{{}}条路线",
+          "message": "确定要删除这{{}}条路线吗？",
+          "yes": "是，删除",
+          "no": "取消，保留"
+        },
+        "deleting_trails": "正在删除",
+        "move_to_collection": "移动到……",
+        "copy_to_collection": "复制到……",
+        "new_collection": "新建合集……",
+        "copying": "正在复制",
+        "moving": "正在移动",
+        "edit_collection": "重命名",
+        "export": "导出",
+        "export_collection": "导出合集",
+        "open_gpx": "用其他应用打开 GPX",
+        "prepare": "准备",
+        "modify": "编辑",
+        "share_section": "共享",
+        "rename": "标题",
+        "edit_date": "日期",
+        "rename_popup": {
+          "title": "重命名路线",
+          "name": "名称"
+        },
+        "edit_location": "地点",
+        "edit_activity": "活动",
+        "copy_photos_alert": {
+          "title": "复制照片",
+          "message_singular": "复制的路线包含照片。是否也复制这些照片？",
+          "message_plural": "复制的路线包含照片。是否也复制这些照片？"
+        },
+        "copying_photos": "正在复制照片",
+        "copy_photo_error": "复制照片 {{1}} 失败",
+        "add_to_my_selection": "加入我的收藏",
+        "remove_from_my_selection": "从我的收藏中移除",
+        "copy_link": "复制链接",
+        "share_link": "共享链接",
+        "create_link": "创建公开链接",
+        "edit_link": "公开链接"
+      },
+      "tags": {
+        "menu_item": "标签",
+        "collection_menu_item": "编辑标签",
+        "popup": {
+          "title_trail": "路线标签",
+          "title_trails": "路线标签",
+          "title_collection": "合集标签",
+          "add_tag_label": "新标签",
+          "confirm_delete": {
+            "title": "删除标签",
+            "message": "确定要删除此标签吗？它目前用于{{1}}条路线",
+            "yes": "是，删除",
+            "no": "取消，保留"
+          }
+        }
+      },
+      "search": {
+        "sources": "来源",
+        "searching": "正在搜索",
+        "error": "搜索失败",
+        "needs_zoom": "地图范围过大，请放大",
+        "too_much_results": "结果过多",
+        "search_in_this_area": "搜索此区域",
+        "clear_search_results": "清除结果"
+      }
+    },
+    "trail": {
+      "title_compare": "对比",
+      "title_compare_and": "和",
+      "tabs": {
+        "details": "详情",
+        "map": "地图",
+        "photos": "照片",
+        "waypoints": "途经点",
+        "comments": "评价"
+      },
+      "show_original": "显示原始轨迹",
+      "show_osm": "显示沿已知路径的路线",
+      "show_breaks": "显示休息点",
+      "show_guideposts": "显示路标",
+      "show_intersections": "显示岔路口",
+      "map_elements": {
+        "photos": "照片",
+        "breaks": "休息点",
+        "guideposts": "路标",
+        "waypoints": "途经点",
+        "marked_trails": "步道标记",
+        "elevation_colors": "路线上的海拔剖面颜色"
+      },
+      "reverse_way": "反转方向",
+      "open_in_app": "打开方式：",
+      "open_in_trailence": "查看原始路线",
+      "actions": {
+        "open": "打开路线",
+        "go_to_departure": "前往起点",
+        "download_map": "下载地图",
+        "compare": "对比",
+        "compare_with": "与其他路线对比……",
+        "compare_with_explanation": "若要将此路线与另一条路线对比，请打开另一条路线的菜单，然后点击“与此路线对比”。",
+        "compare_with_this_one": "与此路线对比",
+        "merge_trails": "合并这些路线",
+        "merged_trail_name": "合并的路线"
+      },
+      "no_tag_message": "此路线没有标签",
+      "no_photo_message": "此路线没有照片",
+      "photo_no_description": "描述",
+      "take_photo": "拍照",
+      "comparison_message": "这些路线的相似度为{{1}}%",
+      "propose_to_publish": {
+        "be_the_first": "此区域暂无路线。成为第一个共享路线、帮助社区的人吧 🙏",
+        "improve_region": "此区域路线较少。共享你的路线，帮助社区吧 🙏",
+        "participate_region": "此区域的路线还很少。共享你的路线，为社区做出贡献吧 🙏"
+      },
+      "sections": {
+        "description": {
+          "placeholder": "在此输入描述"
+        },
+        "waypoints": {
+          "title": "途经点"
+        },
+        "comments": {
+          "title": "评价",
+          "you": "你",
+          "rate": {
+            "global": "平均评分：",
+            "global_on_nb": " 基于{{1}}条评价",
+            "no_rate": "暂无评分",
+            "yours": "你的评分：",
+            "write_a_review": "⭐ 评分并评论此路线",
+            "change_rate_or_review": "修改我的评分或添加评论",
+            "modal": {
+              "title": "评分并评论",
+              "rate_title": "给出评分",
+              "comment_title": "留下评论",
+              "comment_advise": {
+                "header": "评论前的一些规则与建议：",
+                "items": [
+                  "简要分享你对此路线的整体感受。",
+                  "提及你是否遇到困难。",
+                  "指出需要特别注意的路段。",
+                  "欢迎指出你喜欢或不太喜欢的地方，以帮助社区。",
+                  "请保持礼貌和尊重：不得有侮辱性、冒犯性或歧视性言论。"
+                ],
+                "footer": "🙏 感谢你的贡献！"
+              },
+              "send_error": "发送评价失败"
+            }
+          },
+          "delete_comment_confirmation": {
+            "title": "删除评论",
+            "message": "确定要删除此评论吗？"
+          },
+          "delete_reply_confirmation": {
+            "title": "删除回复",
+            "message": "确定要删除此回复吗？"
+          },
+          "reply": "回复",
+          "reply_placeholder": "在此输入你的回复",
+          "reply_send_error": "发送回复失败",
+          "load_more_comments": "查看更多评论",
+          "has_done_this_trail": "走过此路线 ✅",
+          "filter_has_done_this_trail": "包含走过此路线的人",
+          "show_reviews_with_rate": "当前筛选：评分{{1}}/5",
+          "not_authenticated": "登录以查看评价",
+          "not_connected": "需要联网才能获取评价"
+        }
+      },
+      "remaining_metadata_title": "剩余",
+      "created_in_trailence_on": "在 Trailence 中创建于",
+      "last_update_on": "最后更新于",
+      "published_by": "发布者",
+      "published__by": "由",
+      "published_on": "发布于",
+      "published__on": "于",
+      "published_from": "来自",
+      "select_photo_position": "选择照片在路线上的拍摄位置",
+      "source": {
+        "trailence_recorder": "在 Trailence 中记录的轨迹",
+        "trailence_planner": "在 Trailence 中规划的路线",
+        "with_date": " 于 {{1}}",
+        "with_owner": " 由 {{1}}",
+        "file_import": "从文件 {{1}} 导入",
+        "file_import_unknown": "从文件导入",
+        "external": "在 {{1}} 上找到",
+        "following": " 通过跟随 :*:{{1}}:*:{{2}}:*:",
+        "following_a_deleted_track": " 通过跟随一条路线（现已删除）",
+        "initially_found_on": " 最初在 :*:{{1}}:*:{{2}}:*: 上找到",
+        "following_found_on": " 通过跟随一条在 :*:{{1}}:*:{{2}}:*: 上找到的路线",
+        "source_url": "来源：",
+        "source_advise": "💡 建议在跟随路线前查看来源，以获取最新信息。",
+        "add_source_url": "添加来源（链接）"
+      },
+      "my_feedback": {
+        "you_leave_a_rate": "你于 {{2}} 为此路线评分{{1}}/5",
+        "you_leave_a_comment": "你于 {{1}} 对此路线留下了评论",
+        "you_leave_a_rate_and_a_comment_same_date": "你于 {{2}} 为此路线评分{{1}}/5并留下评论",
+        "you_leave_a_rate_and_a_comment_different_date": "你于 {{2}} 为此路线评分{{1}}/5，并于 {{3}} 留下评论",
+        "invite_to_rate_title": "🙏 参与社区吧！",
+        "invite_to_rate_button": "⭐ 为此路线评分"
+      }
+    },
+    "collection_form": {
+      "title": "合集",
+      "collection_name": "名称",
+      "shared": {
+        "toggle_label": "共享合集",
+        "explanation": "与之共享此合集的用户可以编辑、添加或删除其中的项目，但无法删除合集本身。",
+        "explanation_anonymous": "共享合集在没有账户时不可用。",
+        "by": "共享者"
+      }
+    },
+    "location_popup": {
+      "title": "路线地点",
+      "location": "地点",
+      "search_from_departure": "根据起点推荐地点",
+      "radius": "搜索半径",
+      "search": "搜索"
+    },
+    "import_gpx_popup": {
+      "title": "导入新路线",
+      "message": "请选择要将文件{{1}}导入到的合集"
+    },
+    "import_tags_popup": {
+      "title_import": "导入标签",
+      "title_copy": "复制标签",
+      "message_import": "在导入的文件中发现了以下标签",
+      "message_copy": "复制的路线上存在以下标签",
+      "tag": "标签",
+      "status": "状态",
+      "status_exists": "已存在",
+      "status_does_not_exist": "不存在",
+      "message2": "你想如何处理这些标签？",
+      "import_existing_only": "仅导入已存在的标签",
+      "import_and_create": "导入所有标签并创建缺失的标签",
+      "import_all": "全部导入",
+      "ignore_all_import": "不导入标签",
+      "copy_existing_only": "仅复制已存在的标签",
+      "copy_and_create": "复制所有标签并创建缺失的标签",
+      "copy_all": "全部复制",
+      "ignore_all_copy": "不复制标签"
+    },
+    "import_from_sources": {
+      "title": "导入数据",
+      "message1": "我们找到了以下来源：",
+      "message2": "你想尝试从这些来源导入更多数据吗？",
+      "message_internet": "你必须连接互联网才能从这些来源导入"
+    },
+    "share_popup": {
+      "title": "共享",
+      "type": {
+        "question": "你想共享什么？",
+        "collection": "整个合集",
+        "tags": "部分标签",
+        "explanation": {
+          "collection": "合集中的所有路线都将被共享。如果你在合集中添加、删除或编辑路线，共享将自动更新。",
+          "tags": "只有合集中带有所选标签（在下一步选择）的路线才会被共享。如果你给新路线添加了某个所选标签，它将自动纳入共享。同样，如果你从某条路线移除标签，共享也会更新。"
+        }
+      },
+      "tags": {
+        "question": "哪些标签？"
+      },
+      "name": "为此共享命名",
+      "name_info": "此名称对你和与你共享的人可见",
+      "who_question": "与谁共享？（最多20人）",
+      "includePhotos": "共享路线的照片",
+      "photos_info": "与共享路线关联的照片将对与你共享的人可见",
+      "email_info": "系统会向对方发送一封邮件，告知此次共享",
+      "language": "我们应使用哪种语言发送邮件？",
+      "share_description": {
+        "COLLECTION": "共享整个合集 {{1}}",
+        "TRAIL": "共享{{1}}条路线",
+        "TAGS": "共享以下标签：{{1}}"
+      }
+    },
+    "trail_link": {
+      "title": "公开链接",
+      "explanation": "任何拥有此链接的人都可以查看你的路线，包括其途经点和照片。<br/>但标签和合集不会显示。<br/>你对路线所做的任何修改都会自动同步。",
+      "offline": "请连接互联网以生成链接",
+      "anonymous": "此功能在没有账户时不可用。",
+      "waiting": "正在创建链接……",
+      "copy": "复制",
+      "copied": "链接已复制到剪贴板",
+      "share": "共享",
+      "share_title": "Trailence 公开链接",
+      "delete": {
+        "title": "删除公开链接",
+        "message": "确定要删除此链接吗？"
+      }
+    },
+    "find_duplicates": {
+      "title": "查找相似路线",
+      "menu_label": "查找相似路线",
+      "option_inside_collection": "在合集 {{1}} 内",
+      "option_between_collections": "在合集 {{1}} 的路线与另一合集的路线之间",
+      "option_all": "在所有合集的所有路线之间",
+      "threshold": "相似度不低于",
+      "end_message": "搜索结束"
+    },
+    "preferences": {
+      "title": "偏好设置",
+      "display_section_title": "显示",
+      "language": "语言",
+      "theme": "主题",
+      "themes": {
+        "light": "浅色",
+        "dark": "深色",
+        "system": "跟随系统"
+      },
+      "larger_touch_targets": "放大可点击元素",
+      "larger_texts": "放大文字",
+      "distance_unit": "距离单位",
+      "distance_units": {
+        "meters": "米/公里",
+        "imperial": "英尺/英里"
+      },
+      "elevation_units_long": {
+        "meters": "米",
+        "imperial": "英尺"
+      },
+      "date_format": "日期格式",
+      "time_format": "时间格式",
+      "appearance_and_privacy": "外观与隐私",
+      "alias": "你希望如何公开显示？",
+      "alias_explaination": "当你发布路线或在公开路线上发表评论时，可以选择保持匿名，或显示你选择的名称。如果你选择名称，请确保其中不含任何侮辱性、冒犯性或歧视性词语。",
+      "anonymous": "匿名",
+      "alias_name": "使用名称",
+      "avatar": "头像",
+      "avatar_pending": "头像待审核",
+      "create_avatar": "添加头像",
+      "delete_avatar_error": "删除头像失败",
+      "avatar_public": "头像公开可见",
+      "avatar_private": "头像私密，仅你可见",
+      "trace_recorder": "轨迹记录",
+      "traceMinMeters": "每个记录点之间的最小距离",
+      "traceMinMeters_explaination": "如果数值过低，由于 GPS 不精确，轨迹质量可能会下降。<br/>数值过高同样会导致轨迹质量差，出现较长的直线段。<br/>此外，距离越短，记录的点就越多，这可能会增加记录时的电量消耗。<br/>为取得良好平衡，我们建议设置在5到15米之间（约16到50英尺）。",
+      "traceMinMillis": "每个记录点之间的最小时间",
+      "traceMinMillis_explaination": "如果你想限制记录的点数以降低电量消耗，可以在每个点之间使用较长的最小时间。<br/>每个点之间的最小距离也会被考虑在内，因此必须同时达到最小距离和最小时间，才会记录新的点。<br/>我们建议设置在2到5秒之间。",
+      "elevation_calibration": "海拔",
+      "elevation_calibration_explaination": "GPS 记录的海拔常常与实际存在偏差。<br/>你可以在此指定一个校正值来调整它。<br/>例如，如果你的 GPS 总是比实际海拔高出约 {{1}} {{2}}，你可以输入 <b>-{{1}}</b>。<br/>由于每台设备不同，此配置按设备分别进行。",
+      "elevation_calibration_this_device": "此设备",
+      "offline_map": "离线地图",
+      "offlineMapMaxKeepDays": "已下载地图的有效天数",
+      "offlineMapMaxKeepDays_explaination": "当你下载地图以供离线使用时，此设置表示它会被保留多少天。这也能避免重复下载最近已下载过的地图元素，从而节省下载时间。",
+      "offline_maps": {
+        "title": "已下载的地图",
+        "items": "项目",
+        "size": "大小",
+        "remove_all": "全部删除"
+      },
+      "more_maps_layers": "更多底图",
+      "photos": "照片",
+      "photos_max_pixels": "照片的最大宽度/高度",
+      "photos_max_pixels_explaination": "当你添加照片时，如果照片大于最大尺寸，将自动缩小。",
+      "photos_max_quality": "照片质量（%）",
+      "photos_max_quality_explaination": "照片会自动转换为 JPEG 格式，此设置表示压缩质量。100% 表示质量最高，但压缩程度低。我们建议使用 90%，既能保持很好的质量，又能实现良好的压缩。",
+      "photos_max_size_kb": "照片文件的最大大小（KB）",
+      "photos_max_size_kb_explaination": "当你存储照片时，会应用最大像素尺寸和最高质量。如果得到的文件大小超过此值，尺寸和质量将略微降低，直到文件大小低于此阈值。",
+      "photos_cache": "已下载的照片",
+      "photos_cache_explaination": "当照片显示时，会被下载并缓存到你的设备上。这样可以避免每次都重新下载，从而加快显示速度。它还能让你离线查看照片。因此，如果你打算跟随一条包含照片的路线，并希望在出行途中离线查看这些照片，请在有网络时提前查看它们：这样它们便可离线使用。",
+      "photos_cache_total": "文件总大小",
+      "photos_cache_expired": "已过期文件的大小",
+      "photos_cache_remove_all": "全部删除",
+      "photos_cache_remove_expired": "删除已过期的文件",
+      "photos_cache_max_days": "已下载照片的保留天数",
+      "thunderforest_explaination": "如果你在 thunderforest.com 拥有账户（提供免费账户），可以添加他们的地图。为此，请在下方输入你的 API 密钥",
+      "time_calculation": {
+        "title": "行程时长计算",
+        "base_speed": "平地上的基础速度",
+        "base_speed_explaination": "此速度用于估算行程时长。它会根据海拔变化和行程时长进行加权。默认值为 5 km/h（3.1 mi/h），相当于徒步者的平均速度。",
+        "long_breaks_title": "长时间休息检测",
+        "long_break_explaination": "在显示行程时长时，我们区分短暂休息（例如补水、欣赏风景……）和长时间休息（例如野餐）。<br/><br/>短暂休息会计入显示的行程时长，因为短暂停歇是正常的。而当检测到长时间休息时，其时长会从行程时间中扣除，这样显示的时间就不会因为你小睡多久而变化 😉。扣除的时间会显示在<i>休息</i>部分。<br/><br/>为检测长时间休息，你可以配置两个参数：一个范围和一个最小时长。如果你在该范围内停留的时间达到所设的最小时长，该次休息就会被视为长时间休息。",
+        "long_break_minimum_duration": "长时间休息的最小时长",
+        "long_break_maximum_distance": "最大范围"
+      },
+      "reset_all": "全部重置为默认值"
+    },
+    "edit_avatar": {
+      "title": "头像",
+      "edit": "编辑头像",
+      "select_file": "选择文件",
+      "is_public": "公开可见",
+      "error_saving": "保存头像失败"
+    },
+    "myaccount": {
+      "title": "我的账户",
+      "created_at": "加入时间",
+      "quotas": {
+        "title": "配额",
+        "collections": "合集",
+        "trails": "路线",
+        "tracks-size": "轨迹存储空间",
+        "tags": "标签",
+        "trail-tags": "带标签的路线",
+        "photos": "照片",
+        "photos-size": "照片存储空间",
+        "shares": "共享"
+      },
+      "devices": "已登录的设备",
+      "devices_table": {
+        "connected_since": "登录时间",
+        "last_usage": "最后使用时间",
+        "this_device": "当前设备",
+        "deleted_at": "删除于",
+        "mobile_app": "移动应用",
+        "web_app": "网页应用",
+        "systems": {
+          "android": "Android",
+          "ios": "iOS",
+          "windows": "Windows"
+        },
+        "browsers": {
+          "chrome": "Google Chrome",
+          "edge": "Microsoft Edge",
+          "firefox": "Mozilla Firefox"
+        }
+      },
+      "not_connected": "你尚未登录",
+      "change_password": {
+        "button": "修改我的密码",
+        "button_new": "创建我的账户",
+        "current_password": "当前密码",
+        "new_password1": "新密码",
+        "new_password2": "确认新密码",
+        "new_password1_new": "密码",
+        "new_password2_new": "确认密码",
+        "verification_code_explaination": "我们刚刚向你的邮箱发送了一个6位验证码，请在下方输入",
+        "in_progress": "正在修改密码……",
+        "error": "发生错误，请返回并重试",
+        "errors": {
+          "current_password": "请输入你的当前密码",
+          "passwordsDontMatch": "两次输入的密码不一致",
+          "mail_already_sent": "你的账户在10分钟内已提交过一次请求。",
+          "mail_error": "发生错误，请重试。"
+        }
+      },
+      "delete_me": {
+        "button": "注销账户",
+        "button_new": "删除我的数据",
+        "confirm_message": "确定要永久注销你的账户并删除你在 Trailence 上的所有数据吗？",
+        "code_message": "我们刚刚向你的邮箱发送了一个6位验证码，请在下方输入",
+        "done": "你的账户和数据已删除。"
+      }
+    },
+    "link": {
+      "stop_change_password": {
+        "in_progress": "感谢你向我们报告该问题，我们正在取消你账户的密码修改请求……",
+        "done": "感谢你向我们报告该问题，我们已取消你账户的所有密码修改请求。"
+      },
+      "stop_registration": {
+        "in_progress": "感谢你向我们报告该问题，我们正在取消账户创建请求……",
+        "done": "感谢你向我们报告该问题，我们已取消你的账户创建请求。"
+      },
+      "stop_deletion": {
+        "in_progress": "感谢你向我们报告该问题，我们正在取消账户注销请求……",
+        "done": "感谢你向我们报告该问题，我们已取消你的账户注销请求。"
+      },
+      "share": {
+        "in_progress": "正在加载你共享链接的数据……",
+        "error": "你的链接无效。此链接的共享可能已被删除。"
+      }
+    },
+    "trailplanner": {
+      "title": "路线规划器",
+      "please_zoom": "若要查看可用路径并放置点，请至少放大到级别",
+      "start": "开始",
+      "stop": "暂停",
+      "reset": "全部清除",
+      "resume": "继续",
+      "undo": "撤销",
+      "show_routes": "显示线路",
+      "show_trails": "显示我的路线",
+      "put_free_point": "自由点",
+      "back_to_non_free_point": "沿路径",
+      "meta": {
+        "from": "从",
+        "to": "到"
+      },
+      "legend": {
+        "permissive": "默许通行（随时可能关闭）",
+        "forbidden": "禁止通行"
+      },
+      "save": {
+        "trail_name": "路线名称",
+        "collection": "保存到哪个合集"
+      },
+      "reset_confirmation": {
+        "title": "全部清除",
+        "message": "确定要清除整条已规划的路线吗？"
+      }
+    },
+    "export_popup": {
+      "which_tracks": "你想导出哪条轨迹？",
+      "track_original": "原始轨迹",
+      "track_original_explaination": "仅原始轨迹（导入的或由 GPS 记录的），不含任何优化或修改",
+      "track_current": "当前轨迹",
+      "track_current_explaination": "Trailence 中的当前轨迹，包含优化和修改",
+      "track_both": "两者",
+      "track_both_explaination": "两条轨迹将导出到同一个文件中。这样便可将这两条轨迹作为一条路线重新导入 Trailence，非常适合做备份。但如果你将该文件导入其他应用，可能无法正常打开。",
+      "include_photos": "包含照片",
+      "include_photos_explaination": "照片将包含在一个 ZIP 文件中，可导入 Trailence"
+    },
+    "photos_popup": {
+      "title": "照片",
+      "importing": "导入中",
+      "add_photos_buttons": "添加照片",
+      "selected_plural": "张照片已选中",
+      "selected_single": "张照片已选中",
+      "deleting": "正在删除照片",
+      "position": {
+        "available": "已在路线上定位",
+        "not_available": "未在路线上定位",
+        "clear_title": "清除照片位置",
+        "clear_message": "确定要清除此照片的位置吗？"
+      },
+      "buttons": {
+        "edit": "编辑照片"
+      }
+    },
+    "import_popup": {
+      "title": "导入",
+      "from_file_title": "从 GPX 或 ZIP 文件",
+      "from_file_button": "选择……",
+      "from_url_title": "从网址",
+      "url_placeholder": "URL",
+      "unknown_source": "没有受支持的来源与此网址匹配",
+      "fetch_error": "无法正确获取该路线",
+      "from_clipboard_title": "从剪贴板",
+      "from_clipboard_button": "读取剪贴板",
+      "nothing_found_in_clipboard": "剪贴板中未找到路线",
+      "button_import": "从 {{1}} 导入",
+      "link_source": "一个 Trailence 链接"
+    },
+    "pdf_popup": {
+      "title": "创建 PDF",
+      "menu_label": "创建 PDF",
+      "options": {
+        "model": "模板",
+        "models": {
+          "BIG_MAP": "单页大地图",
+          "ONE_PAGE": "紧凑"
+        },
+        "include": {
+          "title": "包含",
+          "description": "路线描述",
+          "waypoints": "途经点",
+          "elevation": "海拔剖面图",
+          "qrcode": "链接二维码",
+          "no_qrcode_message": "此路线没有公开链接",
+          "avatar": "我的头像",
+          "avatar_size": {
+            "small": "小尺寸",
+            "large": "大尺寸"
+          },
+          "photo": "照片"
+        },
+        "map_layer": "底图"
+      },
+      "preview": {
+        "title": "PDF 预览"
+      },
+      "progress_message": "正在创建 PDF……",
+      "qr_code_link": "在 Trailence 中打开",
+      "download_button": "保存 PDF",
+      "error_downloading_tile": "下载地图失败"
+    },
+    "live_group": {
+      "title": "实时位置共享",
+      "explaination_title": "群组的工作方式",
+      "explaination": "位置共享群组可让你在活动中共享自己的位置。<br/>任何人都可以通过链接或二维码加入群组，不一定需要 Trailence 账户。<br/>每位成员的位置会定期记录并与群组其他成员共享，以便在需要时轻松找到彼此。<br/>当然，位置共享仅在有网络连接时才有效。不过，你可以在活动期间关闭网络，仅在需要时再开启。<br/>超过一周的群组会被自动删除。",
+      "group_name": "群组名称",
+      "my_name": "我的名称 / 别名",
+      "create_error": "创建群组失败",
+      "save_error": "保存失败",
+      "create_offline": "请连接互联网以创建群组",
+      "save_offline": "请连接互联网以修改群组",
+      "member_not_localized": "未定位",
+      "member_localized": "已定位",
+      "link_button": "链接",
+      "join_group": "加入群组",
+      "joining_offline": "请连接互联网以加入群组",
+      "joining_error": "加入群组失败",
+      "stop": "结束",
+      "leave": "退出",
+      "offline": "无互联网连接",
+      "rename_me": "名称",
+      "nb_members_singular": "{{1}}人",
+      "nb_members_plural": "{{1}}人",
+      "updated_at": "已更新",
+      "date_from": "从",
+      "date_to": "到",
+      "remove_trail_attachment": "取消与路线的关联",
+      "confirm": {
+        "stop": {
+          "title": "结束群组",
+          "message": "一旦结束，群组将被永久删除。<br/>所有成员会自动退出群组，链接也将失效。<br/><br/>确定要结束此群组吗？"
+        },
+        "leave": {
+          "title": "退出群组",
+          "message": "确定要退出此群组吗？"
+        }
+      },
+      "no_trail": "该群组不会关联到任何路线。",
+      "no_trail_explaination": "这意味着你将在一个专门的界面中查看群组，只能看到群组成员及其位置。而当群组关联到某条路线时，你可以直接从该路线的界面查看群组。如果你打算与群组一起跟随这条路线，这样会方便得多。<br/><br/>若要创建关联到路线的群组，请打开该路线，然后在其菜单中选择“创建位置共享群组”。<br/>你也可以关联一个现有群组：打开该路线，然后在其菜单中选择“关联到位置共享群组”。",
+      "share_trail": "与群组成员共享路线",
+      "explaination_trail_restricted_access": "此路线来自他人与你的共享。只有同样有权访问此路线的成员才能看到它。",
+      "explaination_trail_needs_public_link": "只有你共享过此路线的成员才能看到它。若要让所有成员都能看到，你可以为此路线创建一个公开链接。",
+      "trail_menu": {
+        "attach": "关联到位置共享群组",
+        "create": "创建位置共享群组"
+      },
+      "listening_info_message": "已启用位置共享群组。当有网络连接时，你的位置将被记录并与群组成员共享。",
+      "pause": "暂停记录",
+      "resume": "继续记录",
+      "paused": "记录已暂停"
+    },
+    "donation": {
+      "meta_description": "支持 Trailence 项目",
+      "title": "支持项目",
+      "header": "感谢你考虑支持这个项目！",
+      "text": "Trailence 是免费、无广告且开源的。<br/><br/>为了保持这一点，我们希望寻求你的帮助。<br/><br/>我们对自己的成本以及你的捐款用途保持透明。<br/>&nbsp; - 我们目前每年支付67欧元用于托管（一台基础服务器 + 域名）。<br/>&nbsp; - 我们有 100 GB 的存储空间，费用为20欧元。<br/>&nbsp; - 我们向 Google 支付了25美元，以便在 Google Play 上架。<br/>",
+      "button": "捐款",
+      "goals": {
+        "goal": "目标",
+        "raised": "已筹集",
+        "thanks": "谢谢！",
+        "descriptions": {
+          "past_costs": "覆盖我们自2025年以来的支出",
+          "future_costs": "通过覆盖额外两年的支出来确保项目的可持续性",
+          "increase_capacity": "为所有用户提升容量（更多存储空间，服务器可服务更多用户）"
+        }
+      },
+      "developer": {
+        "title": "你是开发者吗？",
+        "message": "你也可以为代码做出贡献。Trailence 是开源的，托管于 ",
+        "message2": "具体来说，我们尤其希望有人帮助开发 iOS 版应用。由于我们使用 Ionic，只需少量原生功能即可。"
+      },
+      "translations": {
+        "title": "帮助我们翻译 Trailence！",
+        "message": "我们希望让 Trailence 支持更多语言。如果你愿意将 Trailence 翻译成新的语言，或改进现有翻译，欢迎与我们联系！"
+      }
+    },
+    "contact": {
+      "meta_description": "联系表单、提问、报告问题……",
+      "title": "联系我们",
+      "email": "用于回复你的邮箱",
+      "type": "请求类型",
+      "types": {
+        "question": "提问",
+        "bug": "报告问题",
+        "feature": "提出改进建议",
+        "other": "其他"
+      },
+      "message": "你的留言",
+      "send_button": "发送",
+      "sent": "你的留言已发送",
+      "error": "发生错误，请重试",
+      "retry_with_captcha": "我们需要验证你不是机器人，请再次点击“发送”",
+      "network_needed": "请连接互联网以发送留言",
+      "accept_send_data": "我同意发送应用的技术数据，以帮助解决问题",
+      "show_data": "查看这些数据",
+      "email_alternative": "你也可以通过邮箱联系我们："
+    },
+    "stats": {
+      "title": "我的统计",
+      "config_title": "配置",
+      "type_title": "统计对象",
+      "time_unit_title": "按",
+      "source_title": "范围",
+      "filter_title": "仅统计以下路线",
+      "activity_filter_title": "活动为",
+      "types": {
+        "nb_trails": "路线数量",
+        "distance": "距离",
+        "positive-elevation": "累计爬升",
+        "negative-elevation": "累计下降",
+        "duration": "时长"
+      },
+      "time_units": {
+        "year": "年",
+        "month": "月",
+        "month_of_year": "月份（不分年份）"
+      }
+    },
+    "privacy_policy": {
+      "title": "隐私政策"
+    },
+    "photo_editor": {
+      "title": "编辑照片",
+      "rotate_clockwise": "向右旋转",
+      "rotate_counterclockwise": "向左旋转",
+      "crop": "裁剪",
+      "blur": "模糊"
+    },
+    "avatar_moderation": {
+      "menu_title": "头像",
+      "validate": "通过",
+      "reject": "拒绝"
+    }
+  },
+  "menu": {
+    "collections": "合集",
+    "shared_with_me": "与我共享",
+    "nothing_shared_with_me": "没有与你共享的路线",
+    "shared_by_me": "我共享的",
+    "nothing_shared_by_me": "你没有共享任何路线",
+    "my_publications": "我的发布",
+    "start_trace": "开始记录轨迹",
+    "current_trace": "记录中",
+    "planner": "规划路线",
+    "search_trail": "查找路线",
+    "no_share_for_anonymous": "没有账户无法使用共享功能",
+    "anonymous_account": "无需账户试用",
+    "help": "帮助",
+    "create_live_group": "创建位置共享群组",
+    "one_live_group": "位置共享群组进行中",
+    "several_live_groups": "{{1}}个位置共享群组进行中"
+  },
+  "collection_menu": {
+    "delete_confirm": {
+      "title": "删除合集",
+      "message": "确定要删除合集“{{}}”吗？",
+      "yes": "是，删除",
+      "no": "取消，保留"
+    },
+    "deleting": "正在删除合集"
+  },
+  "my_trails": "我的路线",
+  "all_collections": "全部合集",
+  "my_selection": "我的收藏",
+  "publications": {
+    "draft_name": "草稿",
+    "submit_name": "审核中",
+    "reject_name": "待修改",
+    "my_public_trails_name": "已发布",
+    "publish": "发布",
+    "publish_confirmation": "确认发布此路线即表示你已遵守相关规则，并确认此路线可以公开。",
+    "publish_message_placeholder": "如果你想给审核你路线的审核员留言，可以在此输入。",
+    "reject_to_draft": "完善",
+    "checklist": "检查清单",
+    "modify": "编辑",
+    "remove": "删除",
+    "compare_current": "与当前发布版本对比",
+    "exit_compare_current": "停止对比",
+    "check_public_trails_around": "显示公开路线",
+    "exit_check_public_trails_around": "隐藏公开路线",
+    "show_html_text": "显示 HTML 文本",
+    "exit_show_html_text": "显示普通文本",
+    "remove_publication_title": "删除已发布的路线",
+    "remove_publication_message": "请说明你希望删除此路线的原因",
+    "remove_publication_sent": "你的删除请求已发送",
+    "remove_publication_error": "发送删除请求失败",
+    "start_popup": {
+      "header": "感谢你为 Trailence 社区做出贡献！",
+      "text_before": "你即将发布你的路线，发布后所有用户都能看到。以下是关于发布的一些重要信息：",
+      "bullets": [
+        {
+          "text": "发布的路线是你原始路线的副本。这意味着你对准备发布的路线所做的修改不会影响你的原始私人路线；同样，如果你之后修改原始路线，也不会影响已发布的版本。"
+        }, {
+          "text": "一开始，路线会处于“草稿”状态。这样你可以在发布前做好准备，并相对原始路线做出调整。"
+        }, {
+          "text": "在此阶段，会有一份检查清单引导你，帮助你在发布前确认重要事项。其中包括：",
+          "bullets": [
+            {
+              "text": "严禁发布侮辱性、冒犯性或歧视性的言论。"
+            }, {
+              "text": "请务必删除你不希望公开的任何个人信息。"
+            }, {
+              "text": "请勿添加能够辨认出人物的照片。"
+            }
+          ]
+        }, {
+          "text": "准备就绪后，你就可以提交路线。随后审核员可能会对其进行审核，确认是否符合规则。"
+        }, {
+          "text": "通过审核后，它将对整个社区可见！"
+        }, {
+          "text": "之后，如果你愿意，可以随时编辑或撤下你的发布。"
+        }
+      ],
+      "text_after": "感谢你的参与，祝发布顺利！"
+    },
+    "edit_popup": {
+      "title": "编辑已发布的路线",
+      "message": "该路线将被复制到你的草稿中。编辑流程与首次发布相同：完成修改后，将由审核员进行审核。确认要编辑此发布吗？"
+    },
+    "checklist_items": {
+      "iam_author": {
+        "title": "版权与授权",
+        "description_start": "©️ 请确保你是所发布信息的作者，或已获得作者的明确授权在 Trailence 上发布这些信息。"
+      },
+      "name": {
+        "title": "路线名称",
+        "description_start": "名称应简短，并清楚描述此行程的目标。以下是一些示例：",
+        "description_bullets": [
+          "<b>九寨沟长海与五彩池</b>：目标清晰简洁。",
+          "<b>经西海大峡谷登黄山光明顶</b>：标明了山顶，若有多条路线也标明了所走的那条。",
+          "<b>沿徽杭古道从绩溪走到临安</b>：标明了起点、终点，以及（如相关）所走的路径。"
+        ]
+      },
+      "description": {
+        "title": "路线描述",
+        "description_start": "描述应能让人快速了解在此路线上会遇到什么。记得包含：",
+        "description_bullets": [
+          "可能的难点（类型和位置）",
+          "不容错过的观景点、兴趣点或特色景观",
+          "路径类型（小径、宽阔土路、公路……），必要时说明各类占比",
+          "路线是否经过森林、开阔地带、高海拔地区等",
+          "关于最佳出行季节的建议",
+          "如果路线较为多样，可描述主要路段（例如：起点在森林、途经一座小教堂、全景山脊……）",
+          "如相关，最后附上实用信息：停车、可用取水点等"
+        ]
+      },
+      "date": {
+        "title": "已填写日期",
+        "set_date": "设置日期"
+      },
+      "location": {
+        "title": "已填写地点",
+        "set_location": "设置地点"
+      },
+      "activity": {
+        "title": "已填写活动类型",
+        "description_start": "选择此路线的主要活动。这有助于其他用户更好地理解其时长，并找到适合该活动且确实可行的路线。"
+      },
+      "track": {
+        "title": "轨迹质量",
+        "description_start": "如有可能，请尝试改善轨迹质量：",
+        "description_bullets": [
+          "如果某些海拔数值看起来不合理，请加以修正。",
+          "如果你偏离了正常路线（例如为了短暂的技术性休息 🤭），请尝试从轨迹中删除这些路段。"
+        ],
+        "description_end": "👉 为此，请使用地图上的“编辑”按钮。"
+      },
+      "waypoints": {
+        "title": "途经点",
+        "description_start": "记得为你的路线添加途经点：",
+        "description_bullets": [
+          "它们可用于标记特定地点：观景点、特色景观、水源……",
+          "但更重要的是，它们可以提供方向指引，尤其是在实地路线不明显的地方（例如岔路口，或小径标记不清时）。"
+        ],
+        "description_end": "👉 为此，请使用地图上的“编辑”按钮，选择所需位置，然后使用“途经点”菜单。"
+      },
+      "photos": {
+        "title": "照片",
+        "description_start": "记得添加能让人想跟随你路线的照片：优美的风景、观景点、独特的地方……",
+        "description_bullets": [
+          "📍 如果没有自动完成，请检查每张照片是否正确定位在路线上。",
+          "⚠️ 请勿放置能够辨认出人物的照片。",
+          "🙏 也请避免未经许可分享私人财产的照片。"
+        ]
+      }
+    },
+    "moderation": {
+      "menu_title": "审核",
+      "menu_trails": "路线",
+      "menu_comments": "评论",
+      "menu_remove": "删除请求",
+      "publishing": "正在发布",
+      "error_publishing": "发布失败",
+      "error_updating_trail": "更新路线失败",
+      "error_translating": "翻译失败",
+      "publish_confirmation": "确认此路线可以公开吗？",
+      "reject": "拒绝",
+      "reject_message_placeholder": "请在此填写拒绝此路线的原因。",
+      "message_from_author": "作者留言",
+      "previous_moderator_message": "审核员上一条留言",
+      "moderator_message": "审核员留言",
+      "refresh": "刷新",
+      "comments": {
+        "reviewed_button": "通过"
+      }
+    }
+  },
+  "buttons": {
+    "apply": "应用",
+    "cancel": "取消",
+    "confirm": "确认",
+    "create": "创建",
+    "close": "关闭",
+    "delete": "删除",
+    "download": "下载",
+    "edit": "编辑",
+    "next": "继续",
+    "ok": "确定",
+    "previous": "返回",
+    "quit": "退出",
+    "save": "保存",
+    "send": "发送",
+    "start": "开始",
+    "reset": "重置",
+    "retry": "重试",
+    "understood": "知道了",
+    "undo": "撤销",
+    "redo": "重做",
+    "yes": "是",
+    "no": "否"
+  },
+  "order_way": "排序方式",
+  "order_asc": "升序",
+  "order_desc": "降序",
+  "selected_single": "已选",
+  "selected_plural": "已选",
+  "way_points": {
+    "DA": "起终",
+    "D": "起",
+    "A": "终",
+    "position": "位置",
+    "distance": "距离",
+    "altitude": "海拔",
+    "time": "时间",
+    "duration": "时长",
+    "description_placeholder": "描述",
+    "name_placeholder": "名称"
+  },
+  "trailGraph": {
+    "distance": "距离",
+    "elevation": "海拔",
+    "time_duration": "时间",
+    "elevation_grade": "坡度",
+    "location": "位置",
+    "precision": "精度",
+    "speed": "速度",
+    "legend_estimated_speed": "预计速度"
+  },
+  "offline_map": {
+    "download_trail": "将下载与此路线对应的地图，以便离线使用",
+    "download_map": "将下载当前显示区域的地图，以便离线使用",
+    "select_layers": "选择要下载的地图",
+    "parameters": "设置",
+    "max_zoom": "要下载的最大缩放级别",
+    "max_zoom_explaination": "选择的缩放级别越高，离线时在路线途中就能放大得越多，但相应地下载时间会更长，占用设备的存储空间也会更多。",
+    "max_zoom_reco": "建议使用15到17之间的值。低于15时，细节程度往往过低，难以看清小路。高于17时，下载体积会变得很大，而要顺利跟随一条路线通常并不需要如此高的细节。",
+    "padding": "扩大下载区域（%）",
+    "padding_explaination_for_trail": "在路线区域周围要下载的区域百分比（100% 表示仅限路线区域）。可在离线模式下查看路线周围更多范围。",
+    "padding_explaination_for_map": "在当前显示区域周围要下载的区域百分比（100% 表示仅限显示区域）。可在离线模式下查看稍大一些的范围。",
+    "percent_done": "已下载",
+    "remaining": "项剩余",
+    "todo": "项待下载",
+    "downloading": {
+      "progress_title": "正在从 {{1}} 下载"
+    }
+  },
+  "layers_popup": {
+    "title": "底图",
+    "overlays_title": "添加图层",
+    "regional_title": "按国家或地区"
+  },
+  "trace_recorder": {
+    "trail_name_start": "路线",
+    "pause": "暂停",
+    "resume": "继续",
+    "stop": "结束",
+    "start_this_trail": "开始该路线",
+    "notif_message": "Trailence 正在记录你的位置",
+    "disclosure_popup": {
+      "title": "使用你的位置信息",
+      "message": "Trailence 会收集位置数据，以便在行程中记录轨迹，即使应用已关闭或未在使用。",
+      "button_turnon": "开启"
+    },
+    "disabled_popup": {
+      "title": "GPS 已关闭",
+      "message": "GPS 当前已关闭，请开启后再开始记录轨迹。"
+    },
+    "denied_popup": {
+      "title": "未授予定位权限",
+      "message": "Trailence 未获得定位权限。请在设备设置中授予权限，以使用定位功能。"
+    },
+    "confirm_popup": {
+      "resume_message": "请确认继续记录",
+      "pause_message": "请确认暂停记录",
+      "stop_message": "请确认结束记录"
+    },
+    "saving": "正在保存路线",
+    "empty_trail": "路线为空，未保存",
+    "follow_this_trail": "跟随此路线",
+    "follow_this_trail_confirmation": "要跟随路线“{{1}}”吗？",
+    "not_native_message": "建议使用 Android 应用来记录轨迹。使用网页版可能会有一些限制：GPS 精度较低，尤其是当你离开应用后（息屏、切换页面或切换到其他应用）记录可能会停止，因为此时浏览器可能不再发送 GPS 坐标。"
+  },
+  "waiting_for_gps": "正在等待 GPS 信号……",
+  "bytes": {
+    "bytes": "字节",
+    "kb": "KB",
+    "mb": "MB",
+    "gb": "GB"
+  },
+  "duration": {
+    "days": "天",
+    "hours": "小时",
+    "minutes": "分钟"
+  },
+  "logout": {
+    "title": "退出登录",
+    "title_anonymous": "退出试用模式",
+    "text": "是否同时删除此设备上的所有数据？",
+    "text_info": "你的数据保存在我们的服务器上，下次登录时会重新下载。",
+    "text_warning": "你有一些本地数据，删除后将会丢失！",
+    "button_delete": "删除",
+    "button_keep": "保留"
+  },
+  "synchro": {
+    "in_progress": "正在同步",
+    "offline": "离线",
+    "last_sync": "上次同步",
+    "not_yet": "尚未",
+    "local_changes": "本地更改",
+    "yes": "是",
+    "no": "否",
+    "sync_now": "立即同步",
+    "reset_all": "全部重置并从服务器重新下载"
+  },
+  "confirm_delete_share": {
+    "title": "删除共享",
+    "message": "确定要删除“{{}}”吗？",
+    "yes": "是，删除",
+    "no": "取消，保留"
+  },
+  "search_place": {
+    "placeholder": "搜索地点",
+    "tap_enter": "按回车键 ↵ 开始搜索",
+    "no_result": "无结果"
+  },
+  "loopType": {
+    "ow": "单程",
+    "lp": "环线",
+    "hl": "半环线",
+    "sl": "小环线",
+    "ob": "往返"
+  },
+  "activities_groups": {
+    "pedestrian": "步行",
+    "bike": "骑行",
+    "snow": "雪上",
+    "water": "水上",
+    "others": "其他"
+  },
+  "activity": {
+    "walking": "散步",
+    "hiking": "徒步",
+    "trail": "越野跑",
+    "moutain-biking": "山地骑行",
+    "gravel-biking": "砾石骑行",
+    "road-biking": "公路骑行",
+    "snowshoeing": "雪鞋徒步",
+    "on-water": "划船",
+    "skiing": "滑雪",
+    "running": "跑步",
+    "horseback-riding": "骑马",
+    "via-ferrata": "飞拉达",
+    "rock-climbing": "攀岩",
+    "canoe": "皮划艇",
+    "unspecified": "未指定"
+  },
+  "tags_filter": {
+    "onlyWithAnyTag": "至少有一个标签的路线",
+    "onlyWithoutAnyTag": "没有任何标签的路线",
+    "include_and": "拥有以下所有标签的路线",
+    "include_or": "拥有以下任一标签的路线",
+    "exclude": "不含以下任何标签的路线",
+    "all": "全部",
+    "popup": {
+      "title": "按标签筛选"
+    }
+  },
+  "update": {
+    "download_android": "下载 Android 应用",
+    "update_android": "查看更新",
+    "not_allowed": "如果你不希望启用自动更新，可以手动下载并安装更新。",
+    "download_manually": "手动下载",
+    "updating": "正在更新",
+    "downloading": "正在下载",
+    "installing": "正在安装更新",
+    "release_notes": {
+      "popup": {
+        "updated": "Trailence 已更新！",
+        "available": "有可用更新！",
+        "news": "更新内容",
+        "later": "稍后",
+        "download": "安装"
+      },
+      "version": "版本"
+    }
+  },
+  "metadata": {
+    "collection": "合集",
+    "title": "标题",
+    "tags": "标签",
+    "description": "描述",
+    "trail_date": "路线日期",
+    "trail_location": "地点",
+    "loop_type": "类型",
+    "activity": "活动",
+    "duration": "时长",
+    "distance": "距离",
+    "positiveElevation": "累计爬升",
+    "negativeElevation": "累计下降",
+    "breaksDuration": "休息时长",
+    "estimatedDuration": "预计时长",
+    "averageSpeed": "平均速度",
+    "maxSpeed": "最高速度",
+    "highestAltitude": "最高海拔",
+    "lowestAltitude": "最低海拔",
+    "current_position": "当前位置",
+    "current_altitude": "当前海拔",
+    "remaining_time": "剩余时间",
+    "remaining_distance": "剩余距离",
+    "remaining_ascent": "剩余爬升",
+    "remaining_descent": "剩余下降"
+  },
+  "synchronizing_your_data": "正在下载你的路线",
+  "errors": {
+    "modal_title_singular": "错误",
+    "modal_title_plural": "错误",
+    "import": {
+      "file_not_imported": "文件“{{1}}”导入失败：{{2}}",
+      "not_gpx": "文件不是有效的 GPX 格式"
+    },
+    "download_offline_map": "下载离线地图时发生{{1}}个错误",
+    "stores": {
+      "save_photo": "上传照片 {{1}} 到服务器失败",
+      "save_track": "上传轨迹到服务器失败",
+      "delete_tracks": "删除服务器上的轨迹失败",
+      "get_track": "从服务器下载轨迹失败",
+      "save_tracks": "保存轨迹到设备失败",
+      "update_track": "更新服务器上的轨迹失败",
+      "create_items": "在服务器上创建失败（{{1}}）",
+      "get_updates": "从服务器请求更新失败（{{1}}）",
+      "send_updates": "向服务器上传更新失败（{{1}}）",
+      "delete_items": "在服务器上删除失败（{{1}}）"
+    },
+    "import_photo": "无法导入照片 {{1}}",
+    "invalid_format": "格式无效或不受支持",
+    "search_places": "搜索地点失败",
+    "search_routes": "搜索线路失败",
+    "password_strength": "密码强度不够",
+    "photos_error_no_network": "部分照片无法显示，因为你未联网或无网络连接",
+    "photos_error": "部分照片下载失败"
+  },
+  "export": {
+    "trail": "路线",
+    "photo": "照片"
+  },
+  "osm": {
+    "from": "从",
+    "to": "到"
+  },
+  "administration": "管理",
+  "quota_error": {
+    "trail_collections": "已超过合集数量上限，新的合集无法保存到服务器！",
+    "trails": "已超过路线数量上限，新的路线无法保存到服务器！",
+    "tracks": "已超过轨迹数量上限，新的轨迹无法保存到服务器！",
+    "tags": "已超过标签数量上限，新的标签无法保存到服务器！",
+    "trails_tags": "已超过带标签路线的数量上限，新的无法保存到服务器！",
+    "photos": "已超过照片数量上限，新的照片无法保存到服务器！",
+    "shares": "已超过共享数量上限，新的共享无法保存到服务器！"
+  },
+  "quota_reached": {
+    "trail_collections": "已达到合集数量上限",
+    "trails": "已达到路线数量上限",
+    "tracks": "已达到轨迹数量上限",
+    "tags": "已达到标签数量上限",
+    "trails_tags": "已达到带标签路线的数量上限",
+    "photos": "已达到照片数量上限",
+    "shares": "已达到共享数量上限",
+    "photos_max": "你的照片配额为{{1}}，已有{{2}}张，无法再添加{{3}}张。",
+    "photos_max_by_trail": "此路线上已有{{1}}/{{2}}张照片，无法再添加{{3}}张。"
+  },
+  "obsolete_message": {
+    "title": "需要更新",
+    "message": "你的应用版本过旧，需要更新。继续使用此版本时，你的更改将无法保存到服务器，可能会丢失。"
+  },
+  "downloading_elevation": "正在下载海拔数据",
+  "track_edit_tools": {
+    "title": "编辑",
+    "categories": {
+      "track": "轨迹",
+      "way_point": "途经点",
+      "elevation": "海拔",
+      "path": "路径",
+      "selection": "选择",
+      "elevation_provider": "使用海拔数据提供商",
+      "join_departure_and_arrival": "连接起点与终点",
+      "improvements": "优化",
+      "set_elevation_on_range": "修改海拔",
+      "time": "时间"
+    },
+    "stop_interactive": "停止",
+    "tools": {
+      "remove_unprobable_elevations": "调整不合理的海拔",
+      "remove_unprobable_points": "移除不合理的点",
+      "remove_breaks_moves": "移除休息期间的移动",
+      "slope_threshold": {
+        "button_label": "按海拔阈值平滑",
+        "elevation_threshold": "海拔阈值",
+        "max_distance": "最大距离",
+        "explaination": "平滑的目的是消除 GPS 的误差。<br/>由于这些误差，常常会出现在几米的距离内海拔也上下变化几米的情况，而实际上是一段连续的坡度。<br/>因此，平滑的工作方式如下：<ul><li>我们查找海拔变化在所设阈值范围内、且在所设最大距离内的区段。</li><li>对于找到的每个区段，我们取起点海拔和终点海拔，将其平滑为一段连续的坡度。</li><li>为避免丢失路线的最高点或最低点，如果在区段中间发现这样的点，我们会缩小该区段以保留该点。</li></ul>"
+      },
+      "selection": {
+        "title": "选择",
+        "extend_selection": "将选择扩展至……",
+        "close": "关闭选择",
+        "select_target_point": "在地图或海拔图上选择一个点，以将选择扩展至该点",
+        "remove_all_next_points": "删除之后的所有点",
+        "remove_all_previous_points": "删除之前的所有点",
+        "rectangle": "选择一个区域"
+      },
+      "remove_selection": {
+        "button_single_label": "删除所选的点",
+        "button_multiple_label": "删除所选的区段",
+        "button_single_label_and_join": "删除所选的点并重新连接轨迹",
+        "button_multiple_label_and_join": "删除所选的区段并重新连接轨迹",
+        "button_single_label_and_open": "删除所选的点并将轨迹分成两段",
+        "button_multiple_label_and_open": "删除所选的区段并将轨迹分成两段"
+      },
+      "replace_elevation_with_provider": "替换海拔",
+      "improve_elevation_with_provider": "改善海拔",
+      "fill_missing_elevation_with_provider": "补全缺失的海拔",
+      "calibrate_elevation": "校准海拔",
+      "calibrate_elevation_message": "已知海拔与此路线记录的海拔平均相差 {{1}} {{2}}",
+      "arrival_to_departure": "在起点处结束",
+      "departure_to_arrival": "在终点处开始",
+      "start_from_arrival": "沿返回路径回到终点，以补全缺失的起点",
+      "arrival_to_start": "沿去程路径回到起点，以补全缺失的终点",
+      "back_to_departure": "沿相同路线创建返回起点的部分",
+      "back_to_original_track": "还原为原始轨迹（不做优化）",
+      "follow-osm-path": "用最近的 OpenStreetMap 路径替换所选部分",
+      "reverse_way": "反转方向",
+      "remove_time": "删除时间信息",
+      "link_to_next_segment_with_line": "用直线连接到下一区段",
+      "link_to_next_segment_follow": "沿路径连接到下一区段",
+      "toggle_show_only_modified_track": {
+        "button_label_hide": "仅显示修改后的轨迹（蓝色）",
+        "button_label_show": "显示未修改的轨迹"
+      },
+      "way_points": {
+        "create_waypoint": "创建途经点",
+        "remove_waypoint": "删除途经点",
+        "edit_waypoint": "编辑途经点",
+        "move_waypoint": "移动途经点",
+        "move_waypoint_index": "调整顺序",
+        "move_waypoint_index_submenu": "移动到位置",
+        "popup": {
+          "title": "途经点"
+        },
+        "select_new_position": "选择新位置",
+        "remove_waypoint_confirmation": "确认删除此途经点吗？"
+      },
+      "set_elevation_on_range": {
+        "with_start": "使用所选第一个点的海拔",
+        "with_end": "使用所选最后一个点的海拔",
+        "smoothing": "从所选第一个点到最后一个点进行平滑",
+        "manual_value": "手动输入固定海拔",
+        "manual_diff": "输入要应用的差值"
+      },
+      "apply_default_improvements": "应用默认优化（记录轨迹时所使用的优化）",
+      "merge_segments": "连接暂停点与继续点",
+      "add_points": {
+        "free": {
+          "title": "用自由点补全"
+        },
+        "osm": {
+          "title": "用 OpenStreetMap 路径补全"
+        }
+      }
+    },
+    "no_modification": "此功能未做任何修改",
+    "close_confirmation": {
+      "title": "关闭轨迹编辑器",
+      "message": "你有未保存的修改。确定要关闭轨迹编辑器吗？"
+    }
+  },
+  "go_to_position": "前往此位置",
+  "datetime_popup": {
+    "time": "时间",
+    "timezone": "时区",
+    "timezone_unspecified": "无时区"
+  },
+  "recompute_metadata": "正在重新计算路线的预计数据",
+  "you_are_offline": "你已离线",
+  "toast_anonymous_account": "在没有账户的情况下使用应用时，你的数据仅保存在浏览器中，若浏览器空间不足可能会被自动删除。若要保存并同步数据，可以先导出数据，创建账户，然后重新导入。",
+  "notifications": {
+    "menu": {
+      "no_unread": "通知",
+      "unread_single": "1条未读通知",
+      "unread_plural": "{{1}}条未读通知"
+    },
+    "load_more": "查看更多",
+    "error_loading": "加载通知失败",
+    "none": "你目前还没有任何通知",
+    "items": {
+      "unknown": "此版本的 Trailence 无法识别该通知",
+      "publications": {
+        "accepted": {
+          "text": "你的路线 :*:/trail/trailence/{{2}}:*:{{1}}:*: 已发布！感谢你为社区做出的贡献 🎉"
+        },
+        "rejected": {
+          "text": "你的路线 :*:/trail/{{3}}/{{2}}:*:{{1}}:*: 的发布申请被拒绝。请查看以了解原因并做出必要的改进。"
+        }
+      },
+      "shares": {
+        "new_share_with_you": {
+          "text": "{{1}} 与你共享了新内容：:*:/trails/share/{{3}}/{{1}}:*:{{2}}:*:"
+        },
+        "new_trails_in_share": {
+          "text": "{{1}} 在共享 :*:/trails/share/{{3}}/{{1}}:*:{{4}}:*: 中添加了{{2}}条路线"
+        },
+        "shared_collection": {
+          "text": "{{1}} 与你共享了一个新合集：:*:/trails/collection/{{3}}:*:{{2}}:*:"
+        }
+      },
+      "comments": {
+        "someone_leave_a_rate": {
+          "text": "有人为你的路线 :*:/trail/trailence/{{1}}:*:{{2}}:*: 评分"
+        },
+        "someone_leave_a_comment": {
+          "text": "有人在你的路线 :*:/trail/trailence/{{1}}:*:{{2}}:*: 下留下了评论"
+        },
+        "someone_leave_a_rate_with_comment": {
+          "text": "有人为你的路线 :*:/trail/trailence/{{1}}:*:{{2}}:*: 评分并评论"
+        },
+        "reply": {
+          "text": "有人回复了你在路线 :*:/trail/trailence/{{1}}:*:{{2}}:*: 下的评论"
+        }
+      },
+      "avatar": {
+        "accepted": {
+          "text": "你的头像已通过审核。"
+        },
+        "rejected": {
+          "text": "你的头像未通过审核。"
+        }
+      }
+    }
+  },
+  "mapAdditions": {
+    "title": "显示 / 隐藏",
+    "only_zoom_10": "仅当缩放级别大于10时显示",
+    "guidepost": "路标",
+    "water": "取水点",
+    "toilets": "厕所",
+    "way_foot": "步行",
+    "way_bicycle": "骑行",
+    "way_forbidden": "禁止通行",
+    "way_permissive": "默许通行",
+    "overlays": {
+      "wmth": "已标记步道"
+    },
+    "errors": {
+      "no_net": "部分内容无法显示，因为你处于离线状态"
+    }
+  },
+  "relativeDates": {
+    "justNow": "刚刚",
+    "secondsAgo": "{{1}}秒前",
+    "minuteAgo": "1分钟前",
+    "minutesAgo": "{{1}}分钟前",
+    "ago": "{{1}}前"
+  },
+  "translations": {
+    "translated_from": "翻译自",
+    "from": {
+      "de": "德语",
+      "en": "英语",
+      "es": "西班牙语",
+      "fr": "法语",
+      "it": "意大利语",
+      "pt": "葡萄牙语"
+    },
+    "view_original": "查看原文",
+    "view_translated": "翻译成中文",
+    "view_translated_default": "翻译成英语",
+    "trail_moderation": {
+      "title": "翻译",
+      "original_language": "所用语言",
+      "needed_translations": "所需翻译",
+      "name": "路线名称",
+      "description": "描述"
+    }
+  },
+  "months": [
+    "1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"
+  ],
+  "regions": {
+    "be": "比利时",
+    "ch": "瑞士",
+    "es": "西班牙",
+    "fi": "芬兰",
+    "fr": "法国",
+    "no": "挪威",
+    "se": "瑞典",
+    "us": "美国"
+  },
+  "show_more": "显示更多",
+  "show_less": "显示更少",
+  "exit": {
+    "title": "退出 Trailence",
+    "message": "要退出 Trailence 吗？"
+  },
+  "help": {
+    "contextual": {
+      "original_trace": "原始轨迹是指最原始、未经处理的轨迹，即由 GPS 记录或从文件导入的轨迹。<p>在你编辑轨迹时，原始轨迹始终会被保留，因此可以随时还原到它，它是参考基准。</p><p>即使你没有手动编辑轨迹，Trailence 也会自动进行优化，以消除 GPS 的误差。</p>",
+      "show_osm": "我们会将轨迹匹配到 Open Street Map 的路径上",
+      "estimated_duration": "预计时长根据平地上的基础速度计算，再根据海拔变化和时长加权，并计入定期的短暂休息（大约每小时2至3分钟）。<p>默认情况下，基础速度为 5 km/h，相当于徒步者的平均速度。你可以在偏好设置中修改此速度。</p>",
+      "breaks": "休息时长是所有<i>长时间</i>休息的总和。这段时间会从行程时长中扣除。<p>我们区分<i>短暂</i>休息（例如补水、欣赏风景等）和<i>长时间</i>休息（例如野餐）。</p><p>短暂休息会计入显示的行程时长，因为短暂停歇是正常的。而当检测到长时间休息时，其时长会从行程时间中扣除，这样显示的时间就不会因为你小睡多久而变化 😉。扣除的时间会显示在<i>休息</i>部分。</p><p><i>长时间</i>休息是指至少{{1}}分钟的休息。此时长可在偏好设置中配置。</p>"
+    }
+  },
+  "password_strength": ["很弱", "弱", "不足", "可接受", "强", "很强"],
+  "contributions": {
+    "publications": "路线",
+    "ratings": "评分",
+    "reviews": "评价",
+    "title": "贡献",
+    "levels": {
+      "publications": [
+        "无",
+        "初探路线",
+        "探索者",
+        "发现者",
+        "探险家",
+        "制图师",
+        "制图大师",
+        "步道传奇"
+      ],
+      "comments": [
+        "无",
+        "初次评价",
+        "观察者",
+        "建言者",
+        "社区向导",
+        "步道智者",
+        "导师",
+        "社区栋梁"
+      ],
+      "rates": [
+        "无",
+        "初次评分",
+        "评分者",
+        "探路者",
+        "行家",
+        "路线专家",
+        "权威",
+        "社区指南针"
+      ]
+    }
+  },
+  "open_web_version": "查看网页版",
+  "osm_stats": {
+    "title": "路线特征",
+    "attribution": "数据来自 Open Street Map",
+    "types": {
+      "wayType": {
+        "title": "路径类型",
+        "descriptions": {
+          "unknown": "未知",
+          "others": "其他",
+          "1": "公路、街道……",
+          "2": "小径",
+          "3": "台阶",
+          "4": "铁索攀登道",
+          "5": "梯子"
+        }
+      },
+      "surface": {
+        "title": "路面",
+        "descriptions": {
+          "unknown": "未知",
+          "others": "其他",
+          "1": "硬质（沥青……）",
+          "2": "较硬（砾石……）",
+          "5": "松软（泥土、草地……）",
+          "6": "松软难行（泥泞、沙地……）",
+          "7": "岩石/碎石"
+        }
+      },
+      "hikingDifficulty": {
+        "title": "难度",
+        "descriptions": {
+          "unknown": "未知",
+          "others": "其他",
+          "1": "非常容易",
+          "2": "容易",
+          "3": "中等",
+          "4": "困难",
+          "5": "非常困难",
+          "6": "无法通行"
+        }
+      },
+      "visibility": {
+        "title": "路径辨识度",
+        "descriptions": {
+          "unknown": "未知",
+          "others": "其他",
+          "1": "极佳",
+          "2": "良好",
+          "3": "中等",
+          "4": "较差",
+          "5": "难以辨认",
+          "6": "无法辨认"
+        }
+      }
+    },
+    "messages": {
+      "no_match": "暂无可用信息",
+      "partial_data": "部分信息尚未下载，结果不完整",
+      "no_data": "未下载任何数据"
+    }
+  },
+  "mapRotate": {
+    "north": "正北朝上",
+    "heading": "GPS 航向",
+    "device": "屏幕方向",
+    "custom": "手动",
+    "noDeviceOrientation": "你的设备不提供方向信息"
+  },
+  "alertNoElevation": {
+    "title": "添加海拔数据？",
+    "message": "部分导入的路线没有海拔数据。是否自动从海拔数据提供商下载并添加？"
+  },
+  "mapNotAvailable": "该区域不在以下地图服务的覆盖范围内：",
+  "inputEmail": {
+    "defaultLabel": "邮箱",
+    "errors": {
+      "required": "请输入邮箱",
+      "invalidEmail": "请输入有效的邮箱",
+      "duplicate": "该邮箱已存在",
+      "atLeastOneEmailIsRequired": "请至少输入一个邮箱",
+      "cannotAddYourself": "你不能添加自己"
+    }
+  },
+  "select": {
+    "activities": {
+      "title": "活动",
+      "or": "或",
+      "all": "全部"
+    },
+    "loopType": {
+      "title": "路线类型",
+      "or": "或",
+      "all": "全部"
+    }
+  }
+}
