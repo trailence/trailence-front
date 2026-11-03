@@ -8,8 +8,9 @@ import { EarthBBox, EarthPoint } from '@trailence/utils/latlng';
 import { PolylineOptions } from '../../primitives/polyline';
 import { MapLibrePolyline } from './primitives/polyline';
 import { Point2D } from '@trailence/utils/geometry-utils';
-import { SvgBoundsOptions, SvgBoundsPrimitive } from '../../primitives/svg';
+import { SvgBoundsOptions } from '../../primitives/svg';
 import { MapLibreSvgBounds } from './primitives/svg';
+import { MapLibreUtils } from './maplibre-utils';
 
 export class MapLibre extends MapRenderer {
 
@@ -37,6 +38,14 @@ export class MapLibre extends MapRenderer {
 
   public override bringToFront(primitive: MapPrimitive<any, MapRenderer>): void {
     (primitive as unknown as MapLibrePrimitive).getLayersIds().forEach(id => this.map!.moveLayer(id));
+  }
+
+  public override getBounds(): EarthBBox | undefined {
+    return this.map ? MapLibreUtils.fromMapLibreBounds(this.map.getBounds()) : undefined;
+  }
+  public override fitBounds(bounds: EarthBBox): this {
+    this.map?.fitBounds(MapLibreUtils.toMapLibreBounds(bounds));
+    return this;
   }
 
   public override createCircle(id: string, position: EarthPoint, options: CircleOptions) {

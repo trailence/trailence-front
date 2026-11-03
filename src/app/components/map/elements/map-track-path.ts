@@ -46,8 +46,7 @@ export class MapTrackPath extends MapElement {
     if (this._pathMonoColor) {
       this._pathMonoColor.setOptions({
         color: value,
-        width: this._weight,
-        interactiveData: this,
+        width: this._weight
       });
     }
   }
@@ -83,7 +82,6 @@ export class MapTrackPath extends MapElement {
     if (this._arrows.length === 2) this._arrows[1].setOptions({
       color: value,
       width: this.weight,
-      interactiveData: undefined,
     });
   }
 
@@ -118,12 +116,24 @@ export class MapTrackPath extends MapElement {
     ]).pipe(
       map(([points, eleColors]) => {
         if (eleColors) {
+          if (this._pathMonoColor) {
+            this.events.unbind(this._pathMonoColor);
+            this._pathMonoColor = undefined;
+          }
           // TODO be able to update points ?
           this._pathEleColors = this.buildEleColors(renderer, points);
+          this._pathEleColors.byColor.forEach(c => this.events.bind(c.polyline));
           return [this._pathEleColors.border, ...this._pathEleColors.byColor.map(p => p.polyline)];
         }
+        if (this._pathEleColors) {
+          this._pathEleColors.byColor.forEach(c => this.events.unbind(c.polyline));
+          this._pathEleColors = undefined;
+        }
         if (this._pathMonoColor) this.updatePath(this._pathMonoColor, points);
-        else this._pathMonoColor = this.buildPath(renderer, points);
+        else {
+          this._pathMonoColor = this.buildPath(renderer, points);
+          this.events.bind(this._pathMonoColor);
+        }
         return [this._pathMonoColor];
       }),
     );
@@ -148,7 +158,6 @@ export class MapTrackPath extends MapElement {
     return renderer.createPolyline(this.id, points, {
       color: this._color!,
       width: this._weight,
-      interactiveData: this,
     });
   }
 
@@ -220,7 +229,6 @@ export class MapTrackPath extends MapElement {
     const border = renderer.createPolyline(this.id, allPoints, {
       color: new Color(128, 128, 128, 0.63),
       width: Math.max(this.weight, minWidth),
-      interactiveData: this,
     });
     const pointsByColor = new Map<Color, EarthPoint[][]>();
     for (const pl of polylines) {
@@ -241,7 +249,6 @@ export class MapTrackPath extends MapElement {
         polyline: renderer.createPolyline(this.id, points, {
           color,
           width: Math.max(this.weight, minWidth) - borderWidth * 2,
-          interactiveData: this,
         })
       });
     }
@@ -269,12 +276,10 @@ class Arrows {
       renderer.createPolyline(idPrefix + '$border', arrows.map(a => a.border), {
         color: PATH_ARROWS_BORDER_COLOR,
         width: weight + 3,
-        interactiveData: undefined,
       }),
       renderer.createPolyline(idPrefix, arrows.map(a => a.arrow), {
         color,
         width: weight,
-        interactiveData: undefined,
       }),
     ];
   }

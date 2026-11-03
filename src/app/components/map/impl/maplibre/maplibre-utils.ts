@@ -1,5 +1,5 @@
-import { distance } from '@trailence/utils/latlng';
-import { MapLibreMap } from 'maplibre-gl';
+import { distance, EarthBBox } from '@trailence/utils/latlng';
+import { LngLatBounds, MapLibreMap } from 'maplibre-gl';
 
 export class MapLibreUtils {
 
@@ -14,6 +14,19 @@ export class MapLibreUtils {
 
     // Use the Haversine formula to find the distance in meters for 1 pixel
     return distance(centerPt, rightLatLng);
+  }
+
+  public static fromMapLibreBounds(bounds: LngLatBounds): EarthBBox {
+    return {
+      minlat: bounds.getNorth(),
+      maxlat: bounds.getSouth(),
+      minlng: bounds.getWest(),
+      maxlng: bounds.getEast(),
+    }
+  }
+
+  public static toMapLibreBounds(bounds: EarthBBox): LngLatBounds {
+    return new LngLatBounds([bounds.minlng, bounds.maxlat, bounds.maxlng, bounds.minlat]);
   }
 
 }

@@ -2,10 +2,12 @@ import { IconOptions, IconPrimitive } from '@trailence/components/map/primitives
 import { MapLibre } from '../maplibre';
 import { MapLibrePrimitive } from './primitive';
 import { Marker, PositionAnchor } from 'maplibre-gl';
+import { MapLibrePrimitiveEvents } from './events';
 
 export class MapLibreIcon extends IconPrimitive<MapLibre> implements MapLibrePrimitive {
 
   private marker?: Marker;
+  public readonly events: MapLibrePrimitiveEvents<IconOptions, MapLibreIcon> = new MapLibrePrimitiveEvents<IconOptions, MapLibreIcon>(this);
 
   protected override addPrimitiveToMap(renderer: MapLibre): void {
     this.marker = new Marker({

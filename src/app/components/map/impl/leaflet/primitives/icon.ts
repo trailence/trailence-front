@@ -2,23 +2,30 @@ import { IconOptions, IconPrimitive } from '@trailence/components/map/primitives
 import { Leaflet } from '../leaflet';
 import { LeafletPrimitive } from './primitive';
 import * as L from 'leaflet';
+import { LeafletPrimitiveEvents } from './events';
+import { MapPointerEvent } from '@trailence/components/map/primitives/primitive';
 
 export class LeafletIcon extends IconPrimitive<Leaflet> implements LeafletPrimitive {
 
   private marker?: L.Marker;
-  private clickListener?: (event: L.LeafletMouseEvent) => void;
-  private mouseMoveListener?: (event: L.LeafletMouseEvent) => void;
+  public override readonly events: LeafletPrimitiveEvents<IconOptions, LeafletIcon> = new LeafletPrimitiveEvents<IconOptions, LeafletIcon>(
+    this,
+    () => this.marker?.options?.interactive === true,
+    () => {
+      if (!this.marker) return;
+      this.marker.options.interactive = true; // TODO check if working
+    },
+  );
 
   protected override addPrimitiveToMap(renderer: Leaflet): void {
+    if (this.options.rotateOnMouseOver) this.addRotateListener();
     this.marker = L.marker(
       this.position,
       {
         icon: this.buildIcon(),
-        interactive: this.options.interactiveData !== undefined,
+        interactive: this.events.isInteractive(),
       }
     );
-    if (this.options.interactiveData !== undefined) this.addClickListener(this.marker);
-    if (this.options.rotateOnMouseOver === true) this.addMouseMoveListener(this.marker);
     this.marker.addTo(renderer.getLeafletMap()!);
   }
 
@@ -48,53 +55,12 @@ export class LeafletIcon extends IconPrimitive<Leaflet> implements LeafletPrimit
     }
   }
 
-  private addClickListener(marker: L.Marker): void {
-    if (this.clickListener) return;
-    this.clickListener = event => {
-      (event.originalEvent as any)._interactiveData = this.options.interactiveData;
-    };
-    marker.on('click', this.clickListener);
-  }
-  private removeClickListener(marker: L.Marker): void {
-    if (!this.clickListener) return;
-    marker.off('click', this.clickListener);
-    this.clickListener = undefined;
-  }
-
-  private addMouseMoveListener(marker: L.Marker): void {
-    if (this.mouseMoveListener) return;
-    let rotate = false;
-    this.mouseMoveListener = event => {
-      const icon = (marker as any)._icon as HTMLImageElement;
-      const pos = (icon as any)._leaflet_pos as L.Point;
-      const mouseX = event.layerPoint.x - pos.x;
-      const mouseY = event.layerPoint.y - pos.y;
-      if (mouseX > -23 && mouseX < 23 && mouseY > -43 && mouseY < 3) {
-        if (!rotate) {
-          icon.style.transformOrigin = 'bottom center';
-          const sign = mouseX < 0 ? '' : '-';
-          icon.style.transform = 'translate3d(' + pos.x + 'px,' + pos.y + 'px,0px) rotateZ(' + sign + '90deg)'
-          rotate = true;
-        }
-      } else if (rotate) {
-        icon.style.transform = 'translate3d(' + pos.x + 'px,' + pos.y + 'px,0px)'
-        rotate = false;
-      }
-    };
-    marker.on('mousemove', this.mouseMoveListener);
-  }
-  private removeMouseMoveListener(marker: L.Marker): void {
-    if (!this.mouseMoveListener) return;
-    marker.off('mousemove', this.mouseMoveListener);
-    this.mouseMoveListener = undefined;
-  }
-
   protected override removePrimitiveFromMap(): void {
     if (!this.marker) return;
     this.marker.remove();
     this.marker = undefined;
-    this.clickListener = undefined;
-    this.mouseMoveListener = undefined;
+    this.rotateListener = undefined;
+    this.events.removed();
   }
 
   protected override applyNewPosition(): void {
@@ -108,11 +74,39 @@ export class LeafletIcon extends IconPrimitive<Leaflet> implements LeafletPrimit
       this.marker.setIcon(this.buildIcon());
     }
 
-    if (this.options.interactiveData !== undefined) this.addClickListener(this.marker);
-    else this.removeClickListener(this.marker);
+    if (this.options.rotateOnMouseOver === true) this.addRotateListener();
+    else this.removeRotateListener();
+  }
 
-    if (this.options.rotateOnMouseOver === true) this.addMouseMoveListener(this.marker);
-    else this.removeMouseMoveListener(this.marker);
+
+  private rotateListener?: (event: MapPointerEvent | undefined) => void;
+  private addRotateListener(): void {
+    if (this.rotateListener) return;
+    let rotate = false;
+    this.rotateListener = event => {
+      if (!this.marker) return;
+      const icon = (this.marker as any)._icon as HTMLImageElement;
+      const pos = (icon as any)._leaflet_pos as L.Point;
+      // TODO check it is working: we used event.layerPoint, but here viewportPoint = event.containerPoint
+      const mouse = event ? {x: event.viewportPoint.x - pos.x, y: event.viewportPoint.y - pos.y} : undefined;
+      if (mouse && mouse.x > -23 && mouse.x < 23 && mouse.y > -43 && mouse.y < 3) {
+        if (!rotate) {
+          icon.style.transformOrigin = 'bottom center';
+          const sign = mouse.x < 0 ? '' : '-';
+          icon.style.transform = 'translate3d(' + pos.x + 'px,' + pos.y + 'px,0px) rotateZ(' + sign + '90deg)'
+          rotate = true;
+        }
+      } else if (rotate) {
+        icon.style.transform = 'translate3d(' + pos.x + 'px,' + pos.y + 'px,0px)'
+        rotate = false;
+      }
+    };
+    this.events.addHoverListener(this.rotateListener);
+  }
+  private removeRotateListener(): void {
+    if (!this.rotateListener) return;
+    this.events.removeHoveristener(this.rotateListener);
+    this.rotateListener = undefined;
   }
 
   getLayer(): L.Layer | undefined {

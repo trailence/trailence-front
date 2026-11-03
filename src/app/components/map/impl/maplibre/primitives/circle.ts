@@ -6,10 +6,12 @@ import { MapLibreUtils } from '../maplibre-utils';
 import { Subscription } from 'rxjs';
 import { Color } from '@trailence/utils/color';
 import { MapLibre } from '../maplibre';
+import { MapLibrePrimitiveEvents } from './events';
 
 export class MapLibreCircle extends Circle<MapLibre> implements MapLibrePrimitive {
 
   private subscription?: Subscription;
+  public readonly events: MapLibrePrimitiveEvents<CircleOptions, MapLibreCircle> = new MapLibrePrimitiveEvents<CircleOptions, MapLibreCircle>(this);
 
   protected override addPrimitiveToMap(renderer: MapLibre): void {
     renderer.getMaplibreMap()!.addSource(this.id, {
@@ -19,7 +21,7 @@ export class MapLibreCircle extends Circle<MapLibre> implements MapLibrePrimitiv
     if (this.options.fillColor) this.addFillLayer();
     if (this.options.strokeColor) this.addStrokeLayer();
     if (this.options.radiusUnit === 'pixel') {
-      this.subscription = renderer.mapState.zoomInt$.subscribe(() => {
+      this.subscription = renderer.mapState.zoom$.subscribe(() => {
         void (renderer.getMaplibreMap()!.getSource(this.id) as GeoJSONSource).setData(this.getSourceData(renderer));
       });
     }

@@ -1,4 +1,3 @@
-import * as L from 'leaflet';
 import { Trail } from '@trailence/model/trail';
 import { Track } from '@trailence/model/track';
 import { Injector } from '@angular/core';
@@ -9,6 +8,7 @@ import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from '@trailence/model
 import { TrailActivity } from '@trailence/model/dto/trail-activity';
 import { computeWayPointsFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
 import { Filters } from '../preferences/preferences';
+import { EarthBBox, EarthPoint } from '@trailence/utils/latlng';
 
 export abstract class FetchSourcePlugin {
 
@@ -57,10 +57,10 @@ export abstract class FetchSourcePlugin {
   public fetchTrailsByContent(html: Document): Promise<Trail[]> { return Promise.resolve([]); };
 
   public canSearchByArea(): boolean { return false };
-  public searchByArea(bounds: L.LatLngBounds, limit: number): Observable<SearchResult> { return of({trails: [], end: true, tooManyResults: false}); }
+  public searchByArea(bounds: EarthBBox, limit: number): Observable<SearchResult> { return of({trails: [], end: true, tooManyResults: false}); }
 
   public canSearchBubbles(): boolean { return false; };
-  public searchBubbles(bounds: L.LatLngBounds, zoom: number, filters: Filters, lang: string): Observable<SearchBubblesResult> { return of({trailsByTile: [], uuids: undefined}); }
+  public searchBubbles(bounds: EarthBBox, zoom: number, filters: Filters, lang: string): Observable<SearchBubblesResult> { return of({trailsByTile: [], uuids: undefined}); }
 
   public getTrailenceUrlFromUrl(url: string): string | undefined { return undefined; }
 
@@ -128,7 +128,7 @@ export interface WayPointInfo {
 export interface PhotoInfo {
   url: string;
   description?: string;
-  pos?: L.LatLngLiteral;
+  pos?: EarthPoint;
   time?: number;
   tzOffset?: number;
 }
@@ -145,7 +145,7 @@ export interface SearchBubblesResult {
 }
 
 export interface SearchBubblesTileResult {
-  pos: L.LatLngLiteral;
+  pos: EarthPoint;
   count: number;
 }
 

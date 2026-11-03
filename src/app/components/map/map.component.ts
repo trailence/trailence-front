@@ -20,32 +20,34 @@ export class MapComponent extends AbstractComponent {
   @Input() elements$?: Observable<MapElement[]>;
   @Input() geolocationCursorEnabled = true;
 
-  readonly containerId = IdGenerator.generateId('map-');
-  private state?: MapState;
-  private mapInit?: MapRendererInitializer;
-  private readonly map$ = new BehaviorSubject<MapRenderer | undefined>(undefined);
-  private readonly elementsRenderer = new MapElementsRenderer(this.injector, this.map$);
+  readonly _containerId = IdGenerator.generateId('map-');
+  private _state?: MapState;
+  private _mapInit?: MapRendererInitializer;
+  private readonly _map$ = new BehaviorSubject<MapRenderer | undefined>(undefined);
+  private readonly _elementsRenderer = new MapElementsRenderer(this.injector, this._map$);
+
+  public get renderer$(): Observable<MapRenderer | undefined> { return this._map$; }
 
   protected override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
     if (changes['elements$']) {
-      if (this.elements$) this.elementsRenderer.setSource({id: 'input', elements$: this.elements$});
-      else this.elementsRenderer.removeSource('input');
+      if (this.elements$) this._elementsRenderer.setSource({id: 'input', elements$: this.elements$});
+      else this._elementsRenderer.removeSource('input');
     }
   }
 
   protected override initComponent(): void {
     const basicElements: MapElement[] = [];
     if (this.geolocationCursorEnabled) basicElements.push(new GeoLocationCursor(this.injector));
-    this.elementsRenderer.setSource({id: 'map-basics', elements$: of(basicElements)});
-    if (this.elements$) this.elementsRenderer.setSource({id: 'input', elements$: this.elements$});
-    this.state = new MapState(this.mapId);
-    this.mapInit = new MapRendererInitializer(this.injector, this.containerId, this.state, this, this.map$);
+    this._elementsRenderer.setSource({id: 'map-basics', elements$: of(basicElements)});
+    if (this.elements$) this._elementsRenderer.setSource({id: 'input', elements$: this.elements$});
+    this._state = new MapState(this.mapId);
+    this._mapInit = new MapRendererInitializer(this.injector, this._containerId, this._state, this, this._map$);
   }
 
   protected override destroyComponent(): void {
-    this.state?.destroy();
-    this.mapInit?.destroy();
-    this.elementsRenderer.destroy();
+    this._state?.destroy();
+    this._mapInit?.destroy();
+    this._elementsRenderer.destroy();
   }
 
 }

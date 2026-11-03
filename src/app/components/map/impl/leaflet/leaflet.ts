@@ -12,6 +12,7 @@ import { LeafletPolyline } from './primitives/polyline';
 import { Point2D } from '@trailence/utils/geometry-utils';
 import { SvgBoundsOptions } from '../../primitives/svg';
 import { LeafletSvgBounds } from './primitives/svg';
+import { LeafletUtils } from './leaflet-utils';
 
 export class Leaflet extends MapRenderer {
 
@@ -58,6 +59,14 @@ export class Leaflet extends MapRenderer {
     if (!layer) return;
     const fct = (layer as any)['bringToFront'];
     if (typeof fct === 'function') (layer as any)['bringToFront']();
+  }
+
+  public override getBounds(): EarthBBox | undefined {
+    return this.map ? LeafletUtils.fromLeafletBounds(this.map.getBounds()) : undefined;
+  }
+  public override fitBounds(bounds: EarthBBox): this {
+    this.map?.fitBounds(LeafletUtils.toLeafletBounds(bounds));
+    return this;
   }
 
   public override createCircle(id: string, position: EarthPoint, options: CircleOptions) {

@@ -12,6 +12,7 @@ import { NetworkService } from '../network/network.service';
 import { ApiError } from '../http/api-error';
 import { TrailencePlugin } from './trailence.plugin';
 import { getLogger } from '@trailence/utils/console';
+import { EarthBBox } from '@trailence/utils/latlng';
 
 const logger = getLogger('fetch-source.service');
 
@@ -178,7 +179,7 @@ export class FetchSourceService {
     return Promise.resolve([]);
   }
 
-  public searchByArea(bounds: L.LatLngBounds, limit: number, plugins?: string[]): Observable<SearchResult> {
+  public searchByArea(bounds: EarthBBox, limit: number, plugins?: string[]): Observable<SearchResult> {
     const list = this.plugins$.value.filter(plugin => (!plugins || plugins.includes(plugin.name)) && plugin.canSearchByArea());
     if (list.length === 0) return of({trails: [], end: true, tooManyResults: false});
     let tooMany = false;

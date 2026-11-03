@@ -5,16 +5,17 @@ import { MenuItem } from '@trailence/components/menus/menu-item';
 import { NetworkService } from '../network/network.service';
 import { I18nService } from '../i18n/i18n.service';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
-import * as L from 'leaflet';
 import { List } from 'immutable';
 import { Trail } from '@trailence/model/trail';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
-import { MapBubble } from '@trailence/components/map/bubble/map-bubble';
 import { FiltersUtils } from '@trailence/components/trails-list/filters';
 import { ErrorService } from '../progress/error.service';
 import { PreferencesService } from '../preferences/preferences.service';
 import { Filters } from '../preferences/preferences';
 import { getLogger } from '@trailence/utils/console';
+import { bboxCenter, distance, earthBBox, EarthBBox, projectEarthPointForZoom, unprojectToEarthPointForZoom } from '@trailence/utils/latlng';
+import { MapBubble } from '@trailence/components/map/elements/map-bubble';
+import { distance2d } from '@trailence/utils/geometry-utils';
 
 const logger = getLogger('search-trails.service');
 
@@ -102,13 +103,13 @@ export class SearchTrailsService {
       }),
   ]);
 
-  public mapStateChanged(state: {bounds: L.LatLngBounds | undefined, zoom: number} | undefined): void {
+  public mapStateChanged(state: {bounds: EarthBBox | undefined, zoom: number} | undefined): void {
     const modeBefore = this._searchMode;
     this.setSearchBounds(state?.bounds, state?.zoom);
     if (!this.searching && this._selectedSearchPlugins.length > 0 && this.networkService.internet && this.networkService.server &&
       modeBefore === 'bubbles' && this._searchMode !== undefined && this.searchZoom && this.searchBounds && this.lastSearchZoom && this.lastSearchBounds &&
       this._searchActive &&
-      (this.lastSearchZoom !== this.searchZoom || L.CRS.EPSG3857.latLngToPoint(this.searchBounds.getCenter(), this.searchZoom).distanceTo(L.CRS.EPSG3857.latLngToPoint(this.lastSearchBounds.getCenter(), this.lastSearchZoom)) > 50)
+      (this.lastSearchZoom !== this.searchZoom || distance2d(projectEarthPointForZoom(bboxCenter(this.searchBounds), this.searchZoom), projectEarthPointForZoom(bboxCenter(this.lastSearchBounds), this.lastSearchZoom)) > 50)
     ) {
       this.doSearch();
     }
@@ -122,11 +123,11 @@ export class SearchTrailsService {
   }
 
 
-  private searchBounds?: L.LatLngBounds;
+  private searchBounds?: EarthBBox;
   private searchZoom?: number;
-  private lastSearchBounds?: L.LatLngBounds;
+  private lastSearchBounds?: EarthBBox;
   private lastSearchZoom?: number;
-  private setSearchBounds(bounds?: L.LatLngBounds, zoom?: number, forceRefresh: boolean = false): void {
+  private setSearchBounds(bounds?: EarthBBox, zoom?: number, forceRefresh: boolean = false): void {
     this.searchBounds = bounds;
     this.searchZoom = zoom;
     this._searchMessage$.next(undefined);
@@ -138,8 +139,8 @@ export class SearchTrailsService {
       }
     } else if (
       zoom <= 10 && (
-        bounds.getSouthEast().distanceTo(bounds.getSouthWest()) > 100000 ||
-        bounds.getSouthEast().distanceTo(bounds.getNorthEast()) > 100000
+        distance({lat: bounds.maxlat, lng: bounds.minlng}, {lat: bounds.maxlat, lng: bounds.maxlng}) > 100000 ||
+        distance({lat: bounds.maxlat, lng: bounds.maxlng}, {lat: bounds.minlat, lng: bounds.maxlng}) > 100000
       )
     ) {
       if (this.pluginService.getPluginsByName(this._selectedSearchPlugins).some(p => p.canSearchBubbles())) {
@@ -267,13 +268,18 @@ export class SearchTrailsService {
   }
 
   private searchBubbleResultToMapBubble(r: SearchBubblesTileResult, zoom: number): MapBubble {
-    const pos = L.latLng(r.pos);
-    const centerPoint = L.CRS.EPSG3857.latLngToPoint(pos, zoom);
-    const bubbleBoundsPoint = L.bounds(L.point(centerPoint.x - 60, centerPoint.y - 60), L.point(centerPoint.x + 60, centerPoint.y + 60));
-    const bubbleBounds = L.latLngBounds(L.CRS.EPSG3857.pointToLatLng(bubbleBoundsPoint.getBottomLeft(), zoom), L.CRS.EPSG3857.pointToLatLng(bubbleBoundsPoint.getTopRight(), zoom));
-    const boundsPoint = L.bounds(L.point(centerPoint.x - 64, centerPoint.y - 64), L.point(centerPoint.x + 64, centerPoint.y + 64));
-    const bounds = L.latLngBounds(L.CRS.EPSG3857.pointToLatLng(boundsPoint.getBottomLeft(), zoom), L.CRS.EPSG3857.pointToLatLng(boundsPoint.getTopRight(), zoom));
-    return new MapBubble(
+    //const pos = L.latLng(r.pos);
+    const centerPoint = projectEarthPointForZoom(r.pos, zoom);
+    const bubbleBounds = earthBBox(
+      unprojectToEarthPointForZoom({x: centerPoint.x - 60, y: centerPoint.y - 60}, zoom),
+      unprojectToEarthPointForZoom({x: centerPoint.x + 60, y: centerPoint.y + 60}, zoom),
+    );
+    const bounds = earthBBox(
+      unprojectToEarthPointForZoom({x: centerPoint.x - 64, y: centerPoint.y - 64}, zoom),
+      unprojectToEarthPointForZoom({x: centerPoint.x + 64, y: centerPoint.y + 64}, zoom),
+    );
+    const bubble = new MapBubble(
+      'searchResult$' + r.pos.lat + '$' + r.pos.lng, // unique id
       bubbleBounds,
       bounds,
       '#80808080',
@@ -281,9 +287,11 @@ export class SearchTrailsService {
       '' + r.count,
       20,
       '#000000',
-    ).onClick(map => {
-      map.fitBounds(bounds);
+    );
+    bubble.events.addClickListener((bubble, event) => {
+      event.renderer.fitBounds(bounds);
     });
+    return bubble;
   }
 
 }

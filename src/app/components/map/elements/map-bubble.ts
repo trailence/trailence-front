@@ -3,12 +3,14 @@ import { MAP_TRACKS_LAYER, MapElement } from '../map-element';
 import { Observable, of } from 'rxjs';
 import { MapRenderer } from '../impl/map-renderer';
 import { MapPrimitive } from '../primitives/primitive';
+import { SvgBoundsPrimitive } from '../primitives/svg';
 
 export class MapBubble extends MapElement {
 
   constructor(
     id: string,
-    public readonly fitBounds: EarthBBox,
+    public readonly bubbleBounds: EarthBBox, // used to draw
+    public readonly fitBounds: EarthBBox, // used to fit map
     bgColor: string,
     borderColor: string,
     text: string,
@@ -33,12 +35,14 @@ export class MapBubble extends MapElement {
     return e;
   }
 
+  private _primitive?: SvgBoundsPrimitive<any>;
   protected override createPrimitives$(renderer: MapRenderer): Observable<MapPrimitive<any, MapRenderer>[]> {
-    return of([
-      renderer.createSvgBounds(this.id, this.fitBounds, this.svg, {
-        interactiveData: this,
-      }),
-    ]);
+    if (this._primitive) {
+      this.events.unbind(this._primitive);
+    }
+    this._primitive = renderer.createSvgBounds(this.id, this.bubbleBounds, this.svg, {});
+    this.events.bind(this._primitive);
+    return of([this._primitive]);
   }
 
 }

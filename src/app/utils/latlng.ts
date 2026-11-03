@@ -1,4 +1,8 @@
+import { Point2D } from './geometry-utils';
+
 export const EARTH_RADIUS = 6371000; // meters
+const DEG_TO_RAD = Math.PI / 180;
+const RAD_TO_DEG = 180 / Math.PI;
 
 export type EarthPoint = {lat: number, lng: number, ele?: number};
 export type EarthBBox = {minlat: number, maxlat: number, minlng: number, maxlng: number};
@@ -23,32 +27,50 @@ export function normalizeLongitude(longitude: number): number {
 
 
 export function distance(latlng1: EarthPoint, latlng2: EarthPoint) {
-  const rad = Math.PI / 180,
-  lat1 = latlng1.lat * rad,
-  lat2 = latlng2.lat * rad,
-  sinDLat = Math.sin((latlng2.lat - latlng1.lat) * rad / 2),
-  sinDLon = Math.sin((latlng2.lng - latlng1.lng) * rad / 2),
-  a = sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLon * sinDLon,
-  c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const lat1 = latlng1.lat * DEG_TO_RAD;
+  const lat2 = latlng2.lat * DEG_TO_RAD;
+  const sinDLat = Math.sin((latlng2.lat - latlng1.lat) * DEG_TO_RAD / 2);
+  const sinDLon = Math.sin((latlng2.lng - latlng1.lng) * DEG_TO_RAD / 2);
+  const a = sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLon * sinDLon;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return EARTH_RADIUS * c;
 }
 
-export function toLocalMeters(
-  p: EarthPoint,
-  origin: EarthPoint
-): { x: number; y: number } {
-  const latRad = (origin.lat * Math.PI) / 180;
+const EPSG3857_MAX_LATITUDE = 85.0511287798;
+const EPSG3857_EARTH_RADIUS = 6378137;
+const EPSG3857_TRANSFORM_SCALE = 0.5 / (Math.PI * EPSG3857_EARTH_RADIUS);
 
-  const x =
-    ((p.lng - origin.lng) * Math.PI / 180) *
-    EARTH_RADIUS *
-    Math.cos(latRad);
+/** Projection using EPSG3857 */
+export function projectEarthPoint(p: EarthPoint): Point2D {
+  const lat = Math.max(Math.min(EPSG3857_MAX_LATITUDE, p.lat), -EPSG3857_MAX_LATITUDE);
+  const sin = Math.sin(lat * DEG_TO_RAD);
+  return {x: EPSG3857_EARTH_RADIUS * p.lng * DEG_TO_RAD, y: EPSG3857_EARTH_RADIUS * Math.log((1 + sin) / (1 - sin)) / 2};
+}
 
-  const y =
-    ((p.lat - origin.lat) * Math.PI / 180) *
-    EARTH_RADIUS;
+/** Projection using EPSG3857 */
+export function unprojectToEarthPoint(p: Point2D): EarthPoint {
+  return {
+    lat: (2 * Math.atan(Math.exp(p.y / EPSG3857_EARTH_RADIUS)) - (Math.PI / 2)) * RAD_TO_DEG,
+    lng: p.x * RAD_TO_DEG / EPSG3857_EARTH_RADIUS,
+  };
+}
 
-  return { x, y };
+export function projectEarthPointForZoom(p: EarthPoint, zoom: number): Point2D {
+  const projection = projectEarthPoint(p);
+  const zoomScale = 256 * Math.pow(2, zoom);
+  return {
+    x: zoomScale * (EPSG3857_TRANSFORM_SCALE * projection.x + 0.5),
+    y: zoomScale * (-EPSG3857_TRANSFORM_SCALE * projection.y + 0.5),
+  };
+}
+
+export function unprojectToEarthPointForZoom(p: Point2D, zoom: number): EarthPoint {
+  const zoomScale = 256 * Math.pow(2, zoom);
+  const untransformedPoint = {
+    x: (p.x / zoomScale - 0.5) / EPSG3857_TRANSFORM_SCALE,
+    y: (p.y / zoomScale - 0.5) / -EPSG3857_TRANSFORM_SCALE,
+  };
+  return unprojectToEarthPoint(untransformedPoint);
 }
 
 export function earthBBox(p1: EarthPoint, p2: EarthPoint): EarthBBox {
@@ -83,6 +105,32 @@ export function isPointInBBox(point: EarthPoint, bbox: EarthBBox, tolerance: Ear
     point.lat <= bbox.maxlat + tolerance.lat &&
     point.lng >= bbox.minlng - tolerance.lng &&
     point.lng <= bbox.maxlng + tolerance.lng;
+}
+
+export function bboxCenter(bbox: EarthBBox): EarthPoint {
+  return {lat: bbox.minlat + (bbox.maxlat - bbox.minlat) / 2, lng: bbox.minlng + (bbox.maxlng - bbox.minlng) / 2};
+}
+
+/**
+ * Converts a geographic point (lat, lng) into local (x, y) coordinates relative to an origin.
+ * The result is x: East/west distance from the origin, in meters; y: North/south distance from the origin, in meters.
+ */
+export function toLocalMeters(
+  p: EarthPoint,
+  origin: EarthPoint
+): Point2D {
+  const latRad = (origin.lat * Math.PI) / 180;
+
+  const x =
+    ((p.lng - origin.lng) * Math.PI / 180) *
+    EARTH_RADIUS *
+    Math.cos(latRad);
+
+  const y =
+    ((p.lat - origin.lat) * Math.PI / 180) *
+    EARTH_RADIUS;
+
+  return { x, y };
 }
 
 export function fromLocalMeters(

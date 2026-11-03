@@ -1,7 +1,8 @@
-import { EarthBBox } from '@trailence/utils/latlng';
+import { EarthBBox, EarthPoint } from '@trailence/utils/latlng';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { MapRenderer } from './impl/map-renderer';
 import { MapPrimitive } from './primitives/primitive';
+import { Point2D } from '@trailence/utils/geometry-utils';
 
 export interface MapElementPosition {
   layer: string;
@@ -43,6 +44,8 @@ export abstract class MapElement {
     this.positionOnMap$ = new BehaviorSubject<MapElementPosition>(initialPosition);
   }
 
+  public readonly events = new MapElementEvents(this);
+
   public destroy() { /* nothing by default */ }
 
   private readonly positionOnMap$: BehaviorSubject<MapElementPosition>;
@@ -68,4 +71,84 @@ export abstract class MapElement {
   }
 
   protected abstract createPrimitives$(renderer: MapRenderer): Observable<MapPrimitive<any, MapRenderer>[]>;
+}
+
+export class MapElementEvents {
+
+  constructor(
+    private readonly mapElement: MapElement,
+  ) {}
+
+  private bound: MapPrimitive<any, any>[] = [];
+
+  bind(primitive: MapPrimitive<any, any>): void {
+    this.bound.push(primitive);
+    for (const listener of this.clickListeners) this.bindClick(primitive, listener);
+  }
+
+  unbind(primitive: MapPrimitive<any, any>): void {
+    const index = this.bound.indexOf(primitive);
+    if (index >= 0) {
+      this.bound.splice(index, 1);
+      for (const listener of this.clickListeners) this.unbindClick(primitive, listener);
+    }
+  }
+
+  private clickListeners: InternalListener<MapElementPointerEvent>[] = [];
+
+  public addClickListener(listener: (mapElement: MapElement, event: MapElementPointerEvent) => void): this {
+    const l: InternalListener<MapElementPointerEvent> = { external: listener, internal: event => listener(this.mapElement, event) };
+    this.clickListeners.push(l);
+    for (const primitive of this.bound) this.bindClick(primitive, l);
+    return this;
+  }
+  public removeClickListener(listener: (mapElement: MapElement, event: MapElementPointerEvent) => void): this {
+    const index = this.clickListeners.findIndex(l => l.external === listener);
+    if (index >= 0) {
+      const l = this.clickListeners.splice(index, 1)[0];
+      for (const primitive of this.bound) this.unbindClick(primitive, l);
+    }
+    return this;
+  }
+  private bindClick(primitive: MapPrimitive<any, any>, listener: InternalListener<MapElementPointerEvent>): void {
+    primitive.events.addClickListener(listener.internal);
+  }
+  private unbindClick(primitive: MapPrimitive<any, any>, listener: InternalListener<MapElementPointerEvent>): void {
+    primitive.events.removeClickListener(listener.internal);
+  }
+
+  private hoverListeners: InternalListener<MapElementPointerEvent | undefined>[] = [];
+
+  public addHoverListener(listener: (mapElement: MapElement, event: MapElementPointerEvent | undefined) => void): this {
+    const l: InternalListener<MapElementPointerEvent | undefined> = { external: listener, internal: event => listener(this.mapElement, event) };
+    this.hoverListeners.push(l);
+    for (const primitive of this.bound) this.bindHover(primitive, l);
+    return this;
+  }
+  public removeHoverListener(listener: (mapElement: MapElement, event: MapElementPointerEvent | undefined) => void): this {
+    const index = this.hoverListeners.findIndex(l => l.external === listener);
+    if (index >= 0) {
+      const l = this.hoverListeners.splice(index, 1)[0];
+      for (const primitive of this.bound) this.unbindHover(primitive, l);
+    }
+    return this;
+  }
+  private bindHover(primitive: MapPrimitive<any, any>, listener: InternalListener<MapElementPointerEvent | undefined>): void {
+    primitive.events.addHoverListener(listener.internal);
+  }
+  private unbindHover(primitive: MapPrimitive<any, any>, listener: InternalListener<MapElementPointerEvent | undefined>): void {
+    primitive.events.removeHoverListener(listener.internal);
+  }
+
+}
+
+interface InternalListener<E> {
+  external: (mapElement: MapElement, event: E) => void;
+  internal: (event: E) => void;
+}
+
+export interface MapElementPointerEvent {
+  renderer: MapRenderer;
+  viewportPoint: Point2D;
+  geographicPoint: EarthPoint;
 }

@@ -42,6 +42,9 @@ export abstract class MapRenderer {
 
   public abstract bringToFront(primitive: MapPrimitive<any, MapRenderer>): void;
 
+  public abstract getBounds(): EarthBBox | undefined;
+  public abstract fitBounds(bounds: EarthBBox): this;
+
   public abstract createCircle(id: string, position: EarthPoint, options: CircleOptions): Circle<any>;
   public abstract createPolyline(id: string, positions: EarthPoint[][], options: PolylineOptions): Polyline<any>;
   public abstract createSvgBounds(id: string, bounds: EarthBBox, svg: string | SVGSVGElement, options: SvgBoundsOptions): SvgBoundsPrimitive<any>;

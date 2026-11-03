@@ -3,8 +3,11 @@ import { MapLibrePrimitive } from './primitive';
 import { GeoJSONSource, SourceSpecification } from 'maplibre-gl';
 import { EarthPoint } from '@trailence/utils/latlng';
 import { MapLibre } from '../maplibre';
+import { MapLibrePrimitiveEvents } from './events';
 
 export class MapLibrePolyline extends Polyline<MapLibre> implements MapLibrePrimitive {
+
+  public readonly events: MapLibrePrimitiveEvents<PolylineOptions, MapLibrePolyline> = new MapLibrePrimitiveEvents<PolylineOptions, MapLibrePolyline>(this);
 
   protected override addPrimitiveToMap(renderer: MapLibre): void {
     renderer.getMaplibreMap()!.addLayer({

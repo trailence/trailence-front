@@ -3,6 +3,7 @@ import { MapRenderer } from '../impl/map-renderer';
 import { Arrays, NestedArray } from '@trailence/utils/arrays';
 import { MapUtils } from '../map-utils';
 import { combineLatest, Subscription } from 'rxjs';
+import { Point2D } from '@trailence/utils/geometry-utils';
 
 export abstract class MapPrimitive<O, R extends MapRenderer> {
 
@@ -12,6 +13,8 @@ export abstract class MapPrimitive<O, R extends MapRenderer> {
   ) {
     this.options = {...options};
   }
+
+  // --- Options ---
 
   protected options: O;
 
@@ -23,6 +26,10 @@ export abstract class MapPrimitive<O, R extends MapRenderer> {
   }
   protected abstract applyNewOptions(renderer: R, previous: O): void;
 
+  // --- Add and Remove ---
+
+  public getRenderer(): R | undefined { return this.renderer; }
+
   protected renderer?: R;
   protected onAddListeners: ((renderer: R) => void)[] = [];
   protected onRemoveListeners: ((renderer: R) => void)[] = [];
@@ -31,6 +38,7 @@ export abstract class MapPrimitive<O, R extends MapRenderer> {
     if (this.renderer !== undefined) throw new Error('Primitive already on map');
     this.renderer = renderer;
     this.addPrimitiveToMap(renderer);
+    this.events._addedToMap();
     for (const listener of this.onAddListeners) listener(renderer);
   }
   protected abstract addPrimitiveToMap(renderer: R): void;
@@ -61,6 +69,72 @@ export abstract class MapPrimitive<O, R extends MapRenderer> {
   public removeListenerOnRemoved(listener: (renderer: R) => void): void {
     const index = this.onRemoveListeners.indexOf(listener);
     if (index >= 0) this.onRemoveListeners.splice(index, 1);
+  }
+
+  // --- Events ---
+
+  public abstract readonly events: MapPrimitiveEvents<any, any, any>;
+
+}
+
+export interface MapPointerEvent {
+  renderer: MapRenderer;
+  viewportPoint: Point2D;
+  geographicPoint: EarthPoint;
+}
+
+export abstract class MapPrimitiveEvents<O, R extends MapRenderer, P extends MapPrimitive<O, R>> {
+
+  constructor(
+    protected readonly primitive: P,
+  ) {}
+
+  _addedToMap(): void {
+    if (this.clickListeners.length > 0) this.enableClickListeners();
+    if (this.hoverListeners.length > 0) this.enableHoverListeners();
+  }
+
+  protected clickListeners: ((event: MapPointerEvent) => void)[] = [];
+  protected hoverListeners: ((event: MapPointerEvent | undefined) => void)[] = [];
+
+  public addClickListener(listener: (event: MapPointerEvent) => void): void {
+    this.clickListeners.push(listener);
+    if (this.clickListeners.length === 1 && this.primitive.getRenderer()) this.enableClickListeners();
+  }
+  public removeClickListener(listener: (event: MapPointerEvent) => void): void {
+    const index = this.clickListeners.indexOf(listener);
+    if (index >= 0) {
+      this.clickListeners.splice(index, 1);
+      if (this.clickListeners.length === 0 && this.primitive.getRenderer()) this.disableClickListeners();
+    }
+  }
+  protected abstract enableClickListeners(): void;
+  protected abstract disableClickListeners(): void;
+  protected emitClick(eventProvider: () => MapPointerEvent): void {
+    if (this.clickListeners.length === 0) return;
+    const listeners = [...this.clickListeners];
+    const event = eventProvider();
+    for (const listener of listeners) listener(event);
+  }
+
+  public addHoverListener(listener: (event: MapPointerEvent | undefined) => void): void {
+    this.hoverListeners.push(listener);
+    if (this.hoverListeners.length === 1 && this.primitive.getRenderer()) this.enableHoverListeners();
+  }
+  public removeHoverListener(listener: (event: MapPointerEvent | undefined) => void): void {
+    const index = this.hoverListeners.indexOf(listener);
+    if (index >= 0) {
+      this.hoverListeners.splice(index, 1);
+      if (this.hoverListeners.length === 0 && this.primitive.getRenderer()) this.disableHoverListeners();
+    }
+  }
+  protected abstract enableHoverListeners(): void;
+  protected abstract disableHoverListeners(): void;
+  protected emitHover(eventProvider: () => MapPointerEvent | undefined): void {
+    if (this.hoverListeners.length === 0) return;
+    const listeners = [...this.hoverListeners];
+    const event = eventProvider();
+    for (const listener of listeners) listener(event);
   }
 }
 

@@ -2,7 +2,7 @@ import { Component, Injector, Input, ViewChild, ChangeDetectionStrategy } from '
 import { AbstractPage } from '@trailence/utils/component-utils';
 import { TrailCollectionService } from '@trailence/services/database/trail-collection.service';
 import { AuthService } from '@trailence/services/auth/auth.service';
-import { BehaviorSubject, EMPTY, map, of, switchMap, combineLatest, Observable, debounceTime, from, concat } from 'rxjs';
+import { BehaviorSubject, EMPTY, map, of, switchMap, combineLatest, Observable, debounceTime, from, concat, distinctUntilChanged } from 'rxjs';
 import { Router } from '@angular/router';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { HeaderComponent } from '@trailence/components/header/header.component';
@@ -34,7 +34,6 @@ import { ObjectUtils } from '@trailence/utils/object-utils';
 import { AvatarComponent } from '@trailence/components/avatar/avatar.component';
 import { ContributionsBadgesComponent } from '@trailence/components/contributions-badges/contribution-badges.component';
 import { SearchTrailsService } from '@trailence/services/search-trails/search-trails.service';
-import { MapBubble } from '@trailence/components/map/bubble/map-bubble';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { TrailMenuService } from '@trailence/services/database/trail-menu.service';
 import { FetchSourceService } from '@trailence/services/fetch-source/fetch-source.service';
@@ -42,6 +41,8 @@ import { TranslatedString } from '@trailence/services/i18n/i18n-string';
 import { NULL_UUID } from '@trailence/utils/string-utils';
 import { Filters } from '@trailence/services/preferences/preferences';
 import { getLogger } from '@trailence/utils/console';
+import { MapBubble } from '@trailence/components/map/elements/map-bubble';
+import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
 
 const logger = getLogger('trails.page');
 
@@ -128,7 +129,7 @@ export class TrailsPage extends AbstractPage {
       case 'my-publications': this.initMyPublications(); break;
       case 'my-selection': this.initMySelection(); break;
       case 'user-public': this.initUserPublic(newState.id); break;
-      default: this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/'));
+      default: void this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/'));
     }
   }
 
@@ -159,7 +160,7 @@ export class TrailsPage extends AbstractPage {
             collectionActions = this.injector.get(TrailCollectionService).getCollectionMenu(collection);
             this.actions = [...collectionActions, ...trailsActions];
             this.titleLongPressEvent = () => {
-              this.injector.get(TrailCollectionService).collectionPopup(collection, false);
+              void this.injector.get(TrailCollectionService).collectionPopup(collection, false);
             };
             return this.injector.get(TrailCollectionService).getTrailCollectionName$(collection)
               .pipe(map(name => ({title: name, collection})));
@@ -417,11 +418,27 @@ export class TrailsPage extends AbstractPage {
     // map state change
     this.byStateAndVisible.subscribe(
       this._trailsAndMap$.pipe(
-        switchMap(c => c ? c.map$ : of(undefined)),
-        switchMap(c => c ? combineLatest([c.getState().center$, c.getState().zoomInt$, this.injector.get(FetchSourceService).getAllowedPlugins$()]).pipe(
-          debounceTime(200),
-          map(() => ({bounds: c.getBounds(), zoom: c.getState().zoom}))
-        ) : of(undefined))
+        switchMap(trailsAndMap => {
+          if (!trailsAndMap) return of(undefined);
+          return trailsAndMap.map$.pipe(
+            switchMap(mapComponent => {
+              if (!mapComponent) return of(undefined);
+              return mapComponent.renderer$.pipe(
+                switchMap(renderer => {
+                  if (!renderer) return of(undefined);
+                  return combineLatest([
+                    renderer.mapState.center$,
+                    renderer.mapState.zoom$.pipe(map(zoom => Math.floor(zoom)), distinctUntilChanged()),
+                    this.injector.get(FetchSourceService).getAllowedPlugins$(),
+                  ]).pipe(
+                    debounceTime(200),
+                    map(([center, zoom, _]) => ({bounds: renderer.getBounds(), zoom}))
+                  )
+                })
+              );
+            })
+          );
+        }),
       ),
       state => service.mapStateChanged(state)
     );

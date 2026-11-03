@@ -3,6 +3,7 @@ import { MapLibre } from '../maplibre';
 import { MapLibrePrimitive } from './primitive';
 import { ImageSource, SourceSpecification } from 'maplibre-gl';
 import { EarthBBox } from '@trailence/utils/latlng';
+import { MapLibrePrimitiveEvents } from './events';
 
 export class MapLibreSvgBounds extends SvgBoundsPrimitive<MapLibre> implements MapLibrePrimitive {
 
@@ -16,7 +17,8 @@ export class MapLibreSvgBounds extends SvgBoundsPrimitive<MapLibre> implements M
     this.url = 'data:image/svg+xml;utf8,' + encodeURIComponent(typeof svg === 'string' ? svg : svg.outerHTML);
   }
 
-  private url: string;
+  private readonly url: string;
+  public readonly events: MapLibrePrimitiveEvents<SvgBoundsOptions, MapLibreSvgBounds> = new MapLibrePrimitiveEvents<SvgBoundsOptions, MapLibreSvgBounds>(this);
 
   protected override addPrimitiveToMap(renderer: MapLibre): void {
     renderer.getMaplibreMap()!.addLayer({
