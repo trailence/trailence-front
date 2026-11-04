@@ -48,6 +48,19 @@ export class MapLibre extends MapRenderer {
     return this;
   }
 
+  public override getMinZoom(): number {
+    return this.map?.getMinZoom() ?? 1;
+  }
+  public override getMaxZoom(): number {
+    return this.map?.getMaxZoom() ?? 1;
+  }
+  public override zoomIn(): void {
+    this.map?.zoomIn();
+  }
+  public override zoomOut(): void {
+    this.map?.zoomOut();
+  }
+
   public override createCircle(id: string, position: EarthPoint, options: CircleOptions) {
     return new MapLibreCircle(id, position, options);
   }

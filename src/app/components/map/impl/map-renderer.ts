@@ -45,6 +45,11 @@ export abstract class MapRenderer {
   public abstract getBounds(): EarthBBox | undefined;
   public abstract fitBounds(bounds: EarthBBox): this;
 
+  public abstract getMinZoom(): number;
+  public abstract getMaxZoom(): number;
+  public abstract zoomIn(): void;
+  public abstract zoomOut(): void;
+
   public abstract createCircle(id: string, position: EarthPoint, options: CircleOptions): Circle<any>;
   public abstract createPolyline(id: string, positions: EarthPoint[][], options: PolylineOptions): Polyline<any>;
   public abstract createSvgBounds(id: string, bounds: EarthBBox, svg: string | SVGSVGElement, options: SvgBoundsOptions): SvgBoundsPrimitive<any>;
