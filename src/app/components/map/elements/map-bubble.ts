@@ -9,8 +9,8 @@ export class MapBubble extends MapElement {
 
   constructor(
     id: string,
-    public readonly bubbleBounds: EarthBBox, // used to draw
-    public readonly fitBounds: EarthBBox, // used to fit map
+    private readonly bubbleBounds: EarthBBox, // used to draw
+    private readonly fitBounds: EarthBBox, // used to fit map
     bgColor: string,
     borderColor: string,
     text: string,
@@ -21,6 +21,8 @@ export class MapBubble extends MapElement {
     super('bubble$' + id, {layer: MAP_TRACKS_LAYER});
     this.svg = MapBubble.createSvg(256, bgColor, borderColor, text, textSize, textColor);
   }
+
+  public override readonly fitBounds$ = of(this.fitBounds);
 
   private readonly svg: SVGSVGElement;
 

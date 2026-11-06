@@ -11,7 +11,6 @@ import { Router } from '@angular/router';
 import { CollectionMapper } from '@trailence/utils/arrays';
 import { List } from 'immutable';
 import { BrowserService } from '@trailence/services/browser/browser.service';
-import * as L from 'leaflet';
 import { SearchPlaceComponent } from '../search-place/search-place.component';
 import { Place } from '@trailence/services/geolocation/place';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
@@ -28,6 +27,7 @@ import { HIGHLIGHTED_TRACK_COLOR, PRIMARY_TRACK_COLOR, PRIMARY_TRACK_COLOR_DONE 
 import { getLogger } from '@trailence/utils/console';
 import { MapComponent } from '../map/map.component';
 import { MapElement } from '../map/map-element';
+import { MapBubble } from '../map/elements/map-bubble';
 
 const logger = getLogger('trails-and-map.component');
 

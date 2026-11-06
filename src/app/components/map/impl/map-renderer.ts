@@ -42,6 +42,8 @@ export abstract class MapRenderer {
 
   public abstract bringToFront(primitive: MapPrimitive<any, MapRenderer>): void;
 
+  public abstract goTo(center: EarthPoint, zoom?: number): void;
+
   public abstract getBounds(): EarthBBox | undefined;
   public abstract fitBounds(bounds: EarthBBox): this;
 
@@ -50,10 +52,13 @@ export abstract class MapRenderer {
   public abstract zoomIn(): void;
   public abstract zoomOut(): void;
 
+  public abstract setBearing(bearing: number, animate: boolean): void;
+
   public abstract createCircle(id: string, position: EarthPoint, options: CircleOptions): Circle<any>;
   public abstract createPolyline(id: string, positions: EarthPoint[][], options: PolylineOptions): Polyline<any>;
   public abstract createSvgBounds(id: string, bounds: EarthBBox, svg: string | SVGSVGElement, options: SvgBoundsOptions): SvgBoundsPrimitive<any>;
 
+  public abstract getViewportSize(): Point2D | undefined;
   public abstract projectToViewport(point: EarthPoint): Point2D;
   public abstract unprojectFromViewport(point: Point2D): EarthPoint;
 

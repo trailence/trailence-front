@@ -69,6 +69,10 @@ export class Leaflet extends MapRenderer {
     return this;
   }
 
+  public override goTo(center: EarthPoint, zoom?: number): void {
+    this.map?.setView(center, zoom);
+  }
+
   public override getMinZoom(): number {
     return this.map?.getMinZoom() ?? 1;
   }
@@ -82,6 +86,10 @@ export class Leaflet extends MapRenderer {
     this.map?.zoomOut();
   }
 
+  public override setBearing(bearing: number, animate: boolean): void {
+    (this.map as any)?.setBearing(bearing, {animate});
+  }
+
   public override createCircle(id: string, position: EarthPoint, options: CircleOptions) {
     return new LeafletCircle(id, position, options);
   }
@@ -92,6 +100,10 @@ export class Leaflet extends MapRenderer {
 
   public override createSvgBounds(id: string, bounds: EarthBBox, svg: string | SVGSVGElement, options: SvgBoundsOptions) {
     return new LeafletSvgBounds(id, bounds, svg, options);
+  }
+
+  public override getViewportSize(): Point2D | undefined {
+    return this.map?.getSize();
   }
 
   public override projectToViewport(point: EarthPoint): Point2D {

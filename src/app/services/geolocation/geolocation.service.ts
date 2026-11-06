@@ -29,8 +29,11 @@ export class GeolocationService extends AbstractGeolocationService {
   public readonly isNative = false;
   public get waitingForGps$() { return this._waitingForGps$; }
   public get waitingForGps() { return this._waitingForGps$.value; }
+  /** Latest received position, even if not watching. */
   public get lastKnownPosition$() { return this._lastKnownPosition$; }
+  /** Latest received position, even if not watching. */
   public get lastKnownPosition() { return this._lastKnownPosition$.value; }
+  /** Latest receivd position while watching, or undefined if not watching */
   public get watched$() { return this._watched$; }
 
   constructor(

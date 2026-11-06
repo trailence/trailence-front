@@ -1,15 +1,20 @@
 import { Injector } from '@angular/core';
 import { MenuItem } from '@trailence/components/menus/menu-item';
 import { distinctUntilChanged, map, Observable, switchMap } from 'rxjs';
-import { MapTool } from '../map-tool';
+import { MapTool, MapToolGroup } from '../map-tool';
 import { MapComponent } from '../map.component';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
-import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
+
+export const ZoomToolGroup: MapToolGroup = {
+  id: 'zoom',
+  pane: 'left',
+  order: -1000000,
+}
 
 export class ZoomInTool implements MapTool {
 
-  readonly pane = 'left';
-  readonly order = -1000002;
+  readonly group = 'zoom';
+  readonly order = 0;
 
   createMenuItem$(_: Injector, mapComponent: MapComponent): Observable<MenuItem> {
     const item = new MenuItem()
@@ -34,8 +39,8 @@ export class ZoomInTool implements MapTool {
 
 export class ZoomLevelLabel implements MapTool {
 
-  readonly pane = 'left';
-  readonly order = -1000001;
+  readonly group = 'zoom';
+  readonly order = 1;
 
     createMenuItem$(_: Injector, mapComponent: MapComponent): Observable<MenuItem> {
     const item = new MenuItem()
@@ -57,8 +62,8 @@ export class ZoomLevelLabel implements MapTool {
 
 export class ZoomOutTool implements MapTool {
 
-  readonly pane = 'left';
-  readonly order = -1000000;
+  readonly group = 'zoom';
+  readonly order = 2;
 
   createMenuItem$(_: Injector, mapComponent: MapComponent): Observable<MenuItem> {
     const item = new MenuItem()

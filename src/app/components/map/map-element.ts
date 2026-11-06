@@ -58,7 +58,7 @@ export abstract class MapElement {
     return this;
   }
 
-  public abstract fitBounds: EarthBBox | undefined;
+  public abstract fitBounds$: Observable<EarthBBox | undefined>;
 
   private _renderer?: MapRenderer;
   private _primitives?: Observable<MapPrimitive<any, MapRenderer>[]>;
@@ -79,7 +79,7 @@ export class MapElementEvents {
     private readonly mapElement: MapElement,
   ) {}
 
-  private bound: MapPrimitive<any, any>[] = [];
+  private readonly bound: MapPrimitive<any, any>[] = [];
 
   bind(primitive: MapPrimitive<any, any>): void {
     this.bound.push(primitive);
@@ -94,7 +94,7 @@ export class MapElementEvents {
     }
   }
 
-  private clickListeners: InternalListener<MapElementPointerEvent>[] = [];
+  private readonly clickListeners: InternalListener<MapElementPointerEvent>[] = [];
 
   public addClickListener(listener: (mapElement: MapElement, event: MapElementPointerEvent) => void): this {
     const l: InternalListener<MapElementPointerEvent> = { external: listener, internal: event => listener(this.mapElement, event) };
@@ -117,7 +117,7 @@ export class MapElementEvents {
     primitive.events.removeClickListener(listener.internal);
   }
 
-  private hoverListeners: InternalListener<MapElementPointerEvent | undefined>[] = [];
+  private readonly hoverListeners: InternalListener<MapElementPointerEvent | undefined>[] = [];
 
   public addHoverListener(listener: (mapElement: MapElement, event: MapElementPointerEvent | undefined) => void): this {
     const l: InternalListener<MapElementPointerEvent | undefined> = { external: listener, internal: event => listener(this.mapElement, event) };

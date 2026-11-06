@@ -3,9 +3,16 @@ import { MapComponent } from './map.component';
 import { Observable } from 'rxjs';
 import { MenuItem } from '../menus/menu-item';
 
+export interface MapToolGroup {
+  readonly id: string;
+  readonly pane: 'left' | 'right' | 'top';
+  /** Lowest first. */
+  readonly order: number;
+}
+
 export interface MapTool {
 
-  readonly pane: 'left' | 'right' | 'top';
+  readonly group: string;
   /** Lowest first. */
   readonly order: number;
 

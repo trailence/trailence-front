@@ -85,9 +85,9 @@ export class MapTrackPath extends MapElement {
     });
   }
 
-  public get fitBounds(): EarthBBox | undefined {
-    if (this._track instanceof Track) return this._track.metadata.bounds;
-    return this.boundsFromSimplifiedPoints(this._track.points);
+  public get fitBounds$(): Observable<EarthBBox | undefined> {
+    if (this._track instanceof Track) return this._track.metadata.bounds$;
+    return of(this.boundsFromSimplifiedPoints(this._track.points));
   }
   private boundsFromSimplifiedPoints(points: SimplifiedPoint[]): EarthBBox | undefined {
     let minlat, maxlat, minlng, maxlng;

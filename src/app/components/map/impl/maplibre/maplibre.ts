@@ -48,6 +48,13 @@ export class MapLibre extends MapRenderer {
     return this;
   }
 
+  public override goTo(center: EarthPoint, zoom?: number): void {
+    this.map?.flyTo({
+      center,
+      zoom,
+    });
+  }
+
   public override getMinZoom(): number {
     return this.map?.getMinZoom() ?? 1;
   }
@@ -61,6 +68,10 @@ export class MapLibre extends MapRenderer {
     this.map?.zoomOut();
   }
 
+  public override setBearing(bearing: number, animate: boolean): void {
+    this.map?.setBearing(bearing); // TODO animate ??
+  }
+
   public override createCircle(id: string, position: EarthPoint, options: CircleOptions) {
     return new MapLibreCircle(id, position, options);
   }
@@ -71,6 +82,12 @@ export class MapLibre extends MapRenderer {
 
   public override createSvgBounds(id: string, bounds: EarthBBox, svg: string | SVGSVGElement, options: SvgBoundsOptions) {
     return new MapLibreSvgBounds(id, bounds, svg, options);
+  }
+
+  public override getViewportSize(): Point2D | undefined {
+    const container = this.map?.getContainer();
+    if (!container) return undefined;
+    return {x: container.clientWidth, y: container.clientHeight};
   }
 
   public override projectToViewport(point: EarthPoint): Point2D {

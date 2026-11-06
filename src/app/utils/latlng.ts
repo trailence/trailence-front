@@ -7,6 +7,16 @@ const RAD_TO_DEG = 180 / Math.PI;
 export type EarthPoint = {lat: number, lng: number, ele?: number};
 export type EarthBBox = {minlat: number, maxlat: number, minlng: number, maxlng: number};
 
+export function samePosition(p1: EarthPoint, p2: EarthPoint): boolean {
+  return p1.lat === p2.lat && p1.lng === p2.lng;
+}
+
+export function sameOptionalPosition(p1: EarthPoint | undefined, p2: EarthPoint | undefined): boolean {
+  if (p1 === undefined) return p2 === undefined;
+  if (p2 === undefined) return false;
+  return p1.lat === p2.lat && p1.lng === p2.lng;
+}
+
 export function normalizePoint(point: EarthPoint): EarthPoint {
   const n = {lat: normalizeLatitude(point.lat), lng: normalizeLongitude(point.lng)};
   if (n.lat !== point.lat || n.lng !== point.lng) return n;
@@ -82,6 +92,22 @@ export function earthBBox(p1: EarthPoint, p2: EarthPoint): EarthBBox {
   }
 }
 
+export function sameBbox(b1: EarthBBox, b2: EarthBBox): boolean {
+  return b1.minlat === b2.minlat &&
+    b1.maxlat === b2.maxlat &&
+    b1.minlng === b2.minlng &&
+    b1.maxlng === b2.maxlng;
+}
+
+export function sameOptionalBbox(b1: EarthBBox | undefined, b2: EarthBBox | undefined): boolean {
+  if (b1 === undefined) return b2 === undefined;
+  if (b2 === undefined) return false;
+  return b1.minlat === b2.minlat &&
+    b1.maxlat === b2.maxlat &&
+    b1.minlng === b2.minlng &&
+    b1.maxlng === b2.maxlng;
+}
+
 export function extendBBox(b1: EarthBBox, b2: EarthBBox): EarthBBox {
   return {
     minlat: Math.min(b1.minlat, b2.minlat),
@@ -100,15 +126,33 @@ export function extendBBoxWithPoint(b: EarthBBox, p: EarthPoint): EarthBBox {
   };
 }
 
-export function isPointInBBox(point: EarthPoint, bbox: EarthBBox, tolerance: EarthPoint): boolean {
-  return point.lat >= bbox.minlat - tolerance.lat &&
-    point.lat <= bbox.maxlat + tolerance.lat &&
-    point.lng >= bbox.minlng - tolerance.lng &&
-    point.lng <= bbox.maxlng + tolerance.lng;
+export function isPointInBBox(point: EarthPoint, bbox: EarthBBox, tolerance?: EarthPoint): boolean {
+  return point.lat >= bbox.minlat - (tolerance?.lat ?? 0) &&
+    point.lat <= bbox.maxlat + (tolerance?.lat ?? 0) &&
+    point.lng >= bbox.minlng - (tolerance?.lng ?? 0) &&
+    point.lng <= bbox.maxlng + (tolerance?.lng ?? 0);
 }
 
 export function bboxCenter(bbox: EarthBBox): EarthPoint {
   return {lat: bbox.minlat + (bbox.maxlat - bbox.minlat) / 2, lng: bbox.minlng + (bbox.maxlng - bbox.minlng) / 2};
+}
+
+export function bboxPadRatio(bbox: EarthBBox, padRatio: number): EarthBBox {
+  const latPadding = (bbox.maxlat - bbox.minlat) * padRatio;
+  const lngPadding = (bbox.maxlng - bbox.minlng) * padRatio;
+  return {
+    minlat: bbox.minlat - latPadding,
+    maxlat: bbox.maxlat + latPadding,
+    minlng: bbox.minlng - lngPadding,
+    maxlng: bbox.maxlng + latPadding,
+  }
+}
+
+export function bboxFromList(bboxes: EarthBBox[]): EarthBBox | undefined {
+  if (bboxes.length === 0) return undefined;
+  let result = bboxes[0];
+  for (let i = 1; i < bboxes.length; ++i) result = extendBBox(result, bboxes[i]);
+  return result;
 }
 
 /**
