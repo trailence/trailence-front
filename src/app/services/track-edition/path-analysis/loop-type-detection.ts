@@ -1,6 +1,7 @@
 import { Track } from '../../../model/track';
 import { buildClosePoints, getDistancesForAnalysis } from './build-close-points';
 import { TrailLoopType } from '../../../model/dto/trail-loop-type';
+import { distance } from '@trailence/utils/latlng';
 
 export function detectLoopType(track: Track): TrailLoopType | undefined { // NOSONAR
   const arrival = track.arrivalPoint;
@@ -20,8 +21,8 @@ export function detectLoopType(track: Track): TrailLoopType | undefined { // NOS
   for (let i = 1; i < pointsWithDistance.length; ++i) {
     const p1 = pointsWithDistance[i - 1];
     const p2 = pointsWithDistance[i];
-    const distance = p2.distanceToPrevious;
-    totalDistance += distance;
+    const d = p2.distanceToPrevious;
+    totalDistance += d;
     if (processed.includes(i)) continue;
     const angle = Math.atan2(p2.point.lat - p1.point.lat, p2.point.lng - p1.point.lng) + Math.PI;
 
@@ -34,9 +35,9 @@ export function detectLoopType(track: Track): TrailLoopType | undefined { // NOS
       if (Math.abs(p3.point.lat - p2.point.lat + p3.point.lng - p2.point.lng) > useDistances.maxDiff) continue;
       const p4 = pointsWithDistance[j + 1];
       if (Math.abs(p4.point.lat - p1.point.lat + p4.point.lng - p1.point.lng) > useDistances.maxDiff) continue;
-      const d1 = p3.point.distanceTo(p2.point);
+      const d1 = distance(p3.point, p2.point);
       if (d1 > useDistances.maxDistance) continue;
-      const d2 = p4.point.distanceTo(p1.point);
+      const d2 = distance(p4.point, p1.point);
       if (d2 > useDistances.maxDistance) continue;
       if (bestDistanceWithPoints !== -1 && d1 + d2 >= bestDistanceWithPoints) continue;
       const angle2 = Math.atan2(p4.point.lat - p3.point.lat, p4.point.lng - p3.point.lng) + Math.PI;
@@ -49,7 +50,7 @@ export function detectLoopType(track: Track): TrailLoopType | undefined { // NOS
       if (bestDistanceWithPoints < useDistances.closePoints) break;
     }
     if (best !== -1) {
-      distanceOutAndBack += distance + bestDistance;
+      distanceOutAndBack += d + bestDistance;
       processed.push(best);
     }
   }

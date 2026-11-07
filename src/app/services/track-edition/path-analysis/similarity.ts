@@ -1,13 +1,13 @@
 import { Track } from '@trailence/model/track';
 import { buildClosePointsFromTrack, getDistancesForAnalysis } from './build-close-points';
-import * as L from 'leaflet';
+import { bboxOverlaps, distance, EarthPoint } from '@trailence/utils/latlng';
 
 export function estimateSimilarity(track1: Track, track2: Track): number {
   const bounds1 = track1.metadata.bounds;
   if (!bounds1) return 0;
   const bounds2 = track2.metadata.bounds;
   if (!bounds2) return 0;
-  if (!bounds1.overlaps(bounds2)) return 0;
+  if (!bboxOverlaps(bounds1, bounds2)) return 0;
 
   const distances1 = getDistancesForAnalysis(track1);
   const distances2 = getDistancesForAnalysis(track2);
@@ -26,7 +26,7 @@ export function estimateSimilarity(track1: Track, track2: Track): number {
   return Math.min(similarity1, similarity2);
 }
 
-function calculate(points1: {point: L.LatLng}[], points2: {point: L.LatLng}[], useDistances: {maxDistance: number, maxDiff: number}): number {
+function calculate(points1: {point: EarthPoint}[], points2: {point: EarthPoint}[], useDistances: {maxDistance: number, maxDiff: number}): number {
   const nbPoints1 = points1.length;
   let nbFound1 = 0;
   for (const p1 of points1) {
@@ -39,13 +39,13 @@ function calculate(points1: {point: L.LatLng}[], points2: {point: L.LatLng}[], u
   return nbFound1 / nbPoints1;
 }
 
-function findClosestPoint(points: {point: L.LatLng}[], pos: L.LatLng, maxDistance: number, maxDiff: number): {pos: L.LatLng, distance: number} | undefined {
-  let bestPoint: L.LatLng | undefined;
+function findClosestPoint(points: {point:EarthPoint}[], pos: EarthPoint, maxDistance: number, maxDiff: number): {pos: EarthPoint, distance: number} | undefined {
+  let bestPoint: EarthPoint | undefined;
   let bestDistance: number | undefined;
   for (const p of points) {
     const l = p.point;
     if (Math.abs(l.lat - pos.lat + l.lng - pos.lng) > maxDiff) continue;
-    const d = l.distanceTo(pos);
+    const d = distance(l, pos);
     if (d > maxDistance) continue;
     if (bestDistance === undefined || d < bestDistance) {
       bestPoint = l;

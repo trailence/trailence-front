@@ -317,13 +317,14 @@ export class TrailMenuService {
     }
 
     // find duplicates
+    /* TODO refacto
     if (fromCollection && onlyGlobal && trails.length > 0) {
       menu.push(
         new MenuItem(),
         new MenuItem().setIcon('compare').setI18nLabel('pages.find_duplicates.menu_label')
           .setAction(() => import('../../components/find-duplicates/find-duplicates.component').then(m => m.openFindDuplicates(this.injector, fromCollection.uuid))),
       );
-    }
+    }*/
 
     // admin decline all publications
     if (isModeration && this.injector.get(AuthService).auth?.admin) {

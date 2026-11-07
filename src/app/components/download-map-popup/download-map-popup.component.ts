@@ -8,12 +8,12 @@ import { OfflineMapService } from '@trailence/services/map/offline-map.service';
 import * as L from 'leaflet';
 import { Track } from '@trailence/model/track';
 import { NetworkService } from '@trailence/services/network/network.service';
-import { LeafletUtils } from '@trailence/utils/leaflet-utils';
 import { AsyncPipe } from '@angular/common';
 import { Arrays } from '@trailence/utils/arrays';
 import { BehaviorSubject, debounceTime, switchMap, tap } from 'rxjs';
 import { calculateTilesFromBounds, calculateTilesFromPaths } from '@trailence/services/map/calculate-tiles';
 import { getLogger } from '@trailence/utils/console';
+import { bboxPadRatio, cleanBbox, EarthBBox } from '@trailence/utils/latlng';
 
 const logger = getLogger('download-map-popup');
 
@@ -27,7 +27,7 @@ const logger = getLogger('download-map-popup');
 export class DownloadMapPopupComponent implements OnInit, OnChanges {
 
   @Input() tracks?: Track[];
-  @Input() bounds?: L.LatLngBounds;
+  @Input() bounds?: EarthBBox;
   @Input() layer?: string;
 
   options: DownloadOptions = { zoom: 13, extendPercent: 100, layers: [] };
@@ -130,7 +130,7 @@ export class DownloadMapPopupComponent implements OnInit, OnChanges {
     return {toDownload: result, params};
   }
 
-  private async computeLayerDownload(layer: {layer: MapLayer, tiles: L.TileLayer}, maxZoom: number, params: {allBounds: L.LatLngBounds[], paths: L.LatLngExpression[], pathAroundMeters: number}, layerCache: Map<number, {points: L.Point[], toDownload: L.Point[]}>, result: Map<string, Map<number, L.Point[]>>): Promise<number> {
+  private async computeLayerDownload(layer: {layer: MapLayer, tiles: L.TileLayer}, maxZoom: number, params: {allBounds: EarthBBox[], paths: L.LatLngExpression[], pathAroundMeters: number}, layerCache: Map<number, {points: L.Point[], toDownload: L.Point[]}>, result: Map<string, Map<number, L.Point[]>>): Promise<number> {
     const layerResult = new Map<number, L.Point[]>();
     let layerTotal = 0;
     const crs = L.CRS.EPSG3857;
@@ -175,8 +175,8 @@ export class DownloadMapPopupComponent implements OnInit, OnChanges {
     return layerTotal;
   }
 
-  private getBoundsAndPaths(maxZoom: number, padding: number): {allBounds: L.LatLngBounds[], paths: L.LatLngExpression[], pathAroundMeters: number} {
-    const allBounds: L.LatLngBounds[] = [];
+  private getBoundsAndPaths(maxZoom: number, padding: number): {allBounds: EarthBBox[], paths: L.LatLngExpression[], pathAroundMeters: number} {
+    const allBounds: EarthBBox[] = [];
     const paths: L.LatLngExpression[] = [];
     if (this.bounds) {
       allBounds.push(this.bounds);
@@ -185,7 +185,7 @@ export class DownloadMapPopupComponent implements OnInit, OnChanges {
       for (const track of this.tracks) {
         let bounds = track.metadata.bounds;
         if (bounds) {
-          if (padding > 0) bounds = bounds.pad(padding);
+          if (padding > 0) bounds = bboxPadRatio(bounds, padding);
           allBounds.push(bounds);
         }
         if (maxZoom > 17) {
@@ -193,7 +193,7 @@ export class DownloadMapPopupComponent implements OnInit, OnChanges {
         }
       }
     }
-    LeafletUtils.cleanBounds(allBounds);
+    cleanBbox(allBounds);
     const pathAroundMeters = 100 + 1000 * padding;
     return {allBounds, paths, pathAroundMeters};
   }
@@ -209,7 +209,7 @@ export class DownloadMapPopupComponent implements OnInit, OnChanges {
     }).catch(e => logger.error(e));
   }
 
-  private downloadMaps(computed: Map<string, Map<number, L.Point[]>>, selection: {layer: MapLayer, tiles: L.TileLayer}[], allBounds: L.LatLngBounds[]): void {
+  private downloadMaps(computed: Map<string, Map<number, L.Point[]>>, selection: {layer: MapLayer, tiles: L.TileLayer}[], allBounds: EarthBBox[]): void {
     for (const layer of selection) {
       const toDownload = computed.get(layer.layer.name);
       if (toDownload) {

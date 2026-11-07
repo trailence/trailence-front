@@ -23,6 +23,7 @@ import { generateDescriptionAndWaypoints } from './pdf-description-and-waypoints
 import { computeWayPointsFromTrack, WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
 import { assetsDependencies } from '@trailence/assets-dependencies';
 import { getLogger } from '@trailence/utils/console';
+import { distance } from '@trailence/utils/latlng';
 
 const logger = getLogger('pdf-generator');
 
@@ -218,8 +219,8 @@ export class PdfGenerator {
     const hasWaypoints = options.includeWaypoints && hasWaypointsContent(ctx.wayPoints, sourceLang, userLang);
 
     const trackBounds = ctx.track.metadata.bounds;
-    const widthMeters = trackBounds ? trackBounds.getNorthWest().distanceTo(trackBounds.getNorthEast()) : 0;
-    const heightMeters = trackBounds ? trackBounds.getNorthWest().distanceTo(trackBounds.getSouthWest()) : 0;
+    const widthMeters = trackBounds ? distance({lat: trackBounds.minlat, lng: trackBounds.minlng}, {lat: trackBounds.minlat, lng: trackBounds.maxlng}) : 0;
+    const heightMeters = trackBounds ? distance({lat: trackBounds.minlat, lng: trackBounds.minlng}, {lat: trackBounds.maxlat, lng: trackBounds.minlng}) : 0;
     const x = ctx.layout.margin;
     const w = ctx.layout.width - ctx.layout.margin * 2;
     const wideMetaWidth = ctx.layout.width * 0.25;
@@ -341,8 +342,8 @@ export class PdfGenerator {
 
     // page with map
     const trackBounds = ctx.track.metadata.bounds;
-    const widthMeters = trackBounds ? trackBounds.getNorthWest().distanceTo(trackBounds.getNorthEast()) : 0;
-    const heightMeters = trackBounds ? trackBounds.getNorthWest().distanceTo(trackBounds.getSouthWest()) : 0;
+    const widthMeters = trackBounds ? distance({lat: trackBounds.minlat, lng: trackBounds.minlng}, {lat: trackBounds.minlat, lng: trackBounds.maxlng}) : 0;
+    const heightMeters = trackBounds ? distance({lat: trackBounds.minlat, lng: trackBounds.minlng}, {lat: trackBounds.maxlat, lng: trackBounds.minlng}) : 0;
     if (widthMeters > heightMeters) {
       ctx.doc.addPage({
         layout: 'landscape'

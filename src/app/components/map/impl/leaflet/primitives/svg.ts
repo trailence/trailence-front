@@ -2,7 +2,7 @@ import { SvgBoundsPrimitive, SvgBoundsOptions } from '@trailence/components/map/
 import { LeafletPrimitive } from './primitive';
 import { Leaflet } from '../leaflet';
 import * as L from 'leaflet';
-import { toLeafletBounds } from '../leaflet-utils';
+import { LeafletUtils } from '../leaflet-utils';
 import { EarthBBox } from '@trailence/utils/latlng';
 import { LeafletPrimitiveEvents } from './events';
 
@@ -25,7 +25,7 @@ export class LeafletSvgBounds extends SvgBoundsPrimitive<Leaflet> implements Lea
   );
 
   protected override addPrimitiveToMap(renderer: Leaflet): void {
-    this.overlay = L.svgOverlay(this.svg, toLeafletBounds(this.bounds), this.getLeafletOptions());
+    this.overlay = L.svgOverlay(this.svg, LeafletUtils.toLeafletBounds(this.bounds), this.getLeafletOptions());
     this.overlay.addTo(renderer.getLeafletMap()!);
   }
 
@@ -43,7 +43,7 @@ export class LeafletSvgBounds extends SvgBoundsPrimitive<Leaflet> implements Lea
   }
 
   protected override applyNewBounds(): void {
-    this.overlay?.setBounds(toLeafletBounds(this.bounds));
+    this.overlay?.setBounds(LeafletUtils.toLeafletBounds(this.bounds));
   }
 
   protected override applyNewOptions(renderer: Leaflet, previous: SvgBoundsOptions): void {

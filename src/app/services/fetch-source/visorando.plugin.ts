@@ -1,7 +1,6 @@
 import { Injector, SecurityContext } from '@angular/core';
 import { XmlUtils } from '@trailence/utils/xml-utils';
 import { FetchSourceTrailComment, populateWayPointInfo, SearchResult, TrailInfo } from './fetch-source.interfaces';
-import * as L from 'leaflet';
 import { GpxFormat } from '@trailence/utils/formats/gpx-format';
 import { PreferencesService } from '../preferences/preferences.service';
 import { Trail } from '@trailence/model/trail';
@@ -18,6 +17,7 @@ import { WorkerService } from '@trailence/worker/web-app';
 import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
 import { NetworkService } from '../network/network.service';
 import { getLogger } from '@trailence/utils/console';
+import { EarthBBox } from '@trailence/utils/latlng';
 
 const logger = getLogger('visorando.plugin');
 
@@ -385,8 +385,8 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     return true;
   }
 
-  public override searchByArea(bounds: L.LatLngBounds, limit: number): Observable<SearchResult> {
-    const bbox = '' + bounds.getWest() + '%2C' + bounds.getEast() + '%2C' + bounds.getSouth() + '%2C' + bounds.getNorth();
+  public override searchByArea(bounds: EarthBBox, limit: number): Observable<SearchResult> {
+    const bbox = '' + bounds.minlng + '%2C' + bounds.maxlng + '%2C' + bounds.maxlat + '%2C' + bounds.minlat;
     return this.injector.get(HttpService).get<{id: number, url: string}[]>(environment.apiBaseUrl + '/search-trails/v1/visorando?bbox=' + bbox).pipe(
       switchMap(allItems => new Observable<SearchResult>(subscriber => {
         const nextItems = (emitted: number, startIndex: number) => {

@@ -11,6 +11,8 @@ import { Point2D } from '@trailence/utils/geometry-utils';
 import { SvgBoundsOptions } from '../../primitives/svg';
 import { MapLibreSvgBounds } from './primitives/svg';
 import { MapLibreUtils } from './maplibre-utils';
+import { IconOptions, IconPrimitive } from '../../primitives/icon';
+import { MapLibreIcon } from './primitives/icon';
 
 export class MapLibre extends MapRenderer {
 
@@ -43,16 +45,14 @@ export class MapLibre extends MapRenderer {
   public override getBounds(): EarthBBox | undefined {
     return this.map ? MapLibreUtils.fromMapLibreBounds(this.map.getBounds()) : undefined;
   }
-  public override fitBounds(bounds: EarthBBox): this {
-    this.map?.fitBounds(MapLibreUtils.toMapLibreBounds(bounds));
+  public override fitBounds(bounds: EarthBBox, flying: boolean): this {
+    this.map?.fitBounds(MapLibreUtils.toMapLibreBounds(bounds), {animate: flying});
     return this;
   }
 
-  public override goTo(center: EarthPoint, zoom?: number): void {
-    this.map?.flyTo({
-      center,
-      zoom,
-    });
+  public override goTo(center: EarthPoint, zoom: number | undefined, flying: boolean): void {
+    if (flying) this.map?.flyTo({center, zoom});
+    else this.map?.jumpTo({center, zoom});
   }
 
   public override getMinZoom(): number {
@@ -82,6 +82,10 @@ export class MapLibre extends MapRenderer {
 
   public override createSvgBounds(id: string, bounds: EarthBBox, svg: string | SVGSVGElement, options: SvgBoundsOptions) {
     return new MapLibreSvgBounds(id, bounds, svg, options);
+  }
+
+  public override createIcon(id: string, position: EarthPoint, options: IconOptions): IconPrimitive<any> {
+    return new MapLibreIcon(id, position, options);
   }
 
   public override getViewportSize(): Point2D | undefined {

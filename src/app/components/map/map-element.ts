@@ -40,7 +40,7 @@ export const MAP_ELEMENT_LAYERS: MapElementsLayer[] = [
 ];
 
 
-export abstract class MapElement {
+export abstract class MapElement<C extends MapElement = any> {
 
   constructor(
     public readonly id: string,
@@ -49,7 +49,7 @@ export abstract class MapElement {
     this.positionOnMap$ = new BehaviorSubject<MapElementPosition>(initialPosition);
   }
 
-  public readonly events = new MapElementEvents(this);
+  public readonly events: MapElementEvents<C> = new MapElementEvents<C>(this as unknown as C);
 
   public destroy() { /* nothing by default */ }
 
@@ -78,20 +78,20 @@ export abstract class MapElement {
   protected abstract createPrimitives$(renderer: MapRenderer): Observable<MapPrimitive<any, MapRenderer>[]>;
 }
 
-export class MapElementEvents {
+export class MapElementEvents<T extends MapElement> {
 
   constructor(
-    private readonly mapElement: MapElement,
+    private readonly mapElement: T,
   ) {}
 
   private readonly bound: MapPrimitive<any, any>[] = [];
 
-  bind(primitive: MapPrimitive<any, any>): void {
+  _bind(primitive: MapPrimitive<any, any>): void {
     this.bound.push(primitive);
     for (const listener of this.clickListeners) this.bindClick(primitive, listener);
   }
 
-  unbind(primitive: MapPrimitive<any, any>): void {
+  _unbind(primitive: MapPrimitive<any, any>): void {
     const index = this.bound.indexOf(primitive);
     if (index >= 0) {
       this.bound.splice(index, 1);
@@ -99,15 +99,15 @@ export class MapElementEvents {
     }
   }
 
-  private readonly clickListeners: InternalListener<MapElementPointerEvent>[] = [];
+  private readonly clickListeners: InternalListener<T, MapElementPointerEvent>[] = [];
 
-  public addClickListener(listener: (mapElement: MapElement, event: MapElementPointerEvent) => void): this {
-    const l: InternalListener<MapElementPointerEvent> = { external: listener, internal: event => listener(this.mapElement, event) };
+  public addClickListener(listener: (mapElement: T, event: MapElementPointerEvent) => void): this {
+    const l: InternalListener<T, MapElementPointerEvent> = { external: listener, internal: event => listener(this.mapElement, event) };
     this.clickListeners.push(l);
     for (const primitive of this.bound) this.bindClick(primitive, l);
     return this;
   }
-  public removeClickListener(listener: (mapElement: MapElement, event: MapElementPointerEvent) => void): this {
+  public removeClickListener(listener: (mapElement: T, event: MapElementPointerEvent) => void): this {
     const index = this.clickListeners.findIndex(l => l.external === listener);
     if (index >= 0) {
       const l = this.clickListeners.splice(index, 1)[0];
@@ -115,22 +115,22 @@ export class MapElementEvents {
     }
     return this;
   }
-  private bindClick(primitive: MapPrimitive<any, any>, listener: InternalListener<MapElementPointerEvent>): void {
+  private bindClick(primitive: MapPrimitive<any, any>, listener: InternalListener<T, MapElementPointerEvent>): void {
     primitive.events.addClickListener(listener.internal);
   }
-  private unbindClick(primitive: MapPrimitive<any, any>, listener: InternalListener<MapElementPointerEvent>): void {
+  private unbindClick(primitive: MapPrimitive<any, any>, listener: InternalListener<T, MapElementPointerEvent>): void {
     primitive.events.removeClickListener(listener.internal);
   }
 
-  private readonly hoverListeners: InternalListener<MapElementPointerEvent | undefined>[] = [];
+  private readonly hoverListeners: InternalListener<T, MapElementPointerEvent | undefined>[] = [];
 
-  public addHoverListener(listener: (mapElement: MapElement, event: MapElementPointerEvent | undefined) => void): this {
-    const l: InternalListener<MapElementPointerEvent | undefined> = { external: listener, internal: event => listener(this.mapElement, event) };
+  public addHoverListener(listener: (mapElement: T, event: MapElementPointerEvent | undefined) => void): this {
+    const l: InternalListener<T, MapElementPointerEvent | undefined> = { external: listener, internal: event => listener(this.mapElement, event) };
     this.hoverListeners.push(l);
     for (const primitive of this.bound) this.bindHover(primitive, l);
     return this;
   }
-  public removeHoverListener(listener: (mapElement: MapElement, event: MapElementPointerEvent | undefined) => void): this {
+  public removeHoverListener(listener: (mapElement: T, event: MapElementPointerEvent | undefined) => void): this {
     const index = this.hoverListeners.findIndex(l => l.external === listener);
     if (index >= 0) {
       const l = this.hoverListeners.splice(index, 1)[0];
@@ -138,17 +138,17 @@ export class MapElementEvents {
     }
     return this;
   }
-  private bindHover(primitive: MapPrimitive<any, any>, listener: InternalListener<MapElementPointerEvent | undefined>): void {
+  private bindHover(primitive: MapPrimitive<any, any>, listener: InternalListener<T, MapElementPointerEvent | undefined>): void {
     primitive.events.addHoverListener(listener.internal);
   }
-  private unbindHover(primitive: MapPrimitive<any, any>, listener: InternalListener<MapElementPointerEvent | undefined>): void {
+  private unbindHover(primitive: MapPrimitive<any, any>, listener: InternalListener<T, MapElementPointerEvent | undefined>): void {
     primitive.events.removeHoverListener(listener.internal);
   }
 
 }
 
-interface InternalListener<E> {
-  external: (mapElement: MapElement, event: E) => void;
+interface InternalListener<T, E> {
+  external: (mapElement: T, event: E) => void;
   internal: (event: E) => void;
 }
 

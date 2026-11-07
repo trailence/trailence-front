@@ -24,7 +24,7 @@ export class FitBoundsTool implements MapTool {
       .setIcon('zoom-fit-bounds')
       .setDisabled(true)
       .setAction(() => {
-        mapComponent.renderer?.fitBounds(bounds!);
+        mapComponent.renderer?.fitBounds(bounds!, true);
       });
     return mapComponent.mapElements$.pipe(
       switchMap(elements => combineLatestSafe(elements.map(e => e.fitBounds$))),
@@ -52,7 +52,7 @@ export class GoBackTool implements MapTool {
       .setAction(() => {
         if (entry !== undefined) {
           service.popState(entry);
-          mapComponent.renderer?.goTo(entry.center, entry.zoom);
+          mapComponent.renderer?.goTo(entry.center, entry.zoom, false);
         }
       });
     return mapComponent.renderer$.pipe(

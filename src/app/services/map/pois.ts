@@ -12,6 +12,7 @@ import { WorkerService } from '@trailence/worker/web-app';
 import { POI, POIType } from './poi';
 import { CleanupService } from '../database/cleanup/cleanup.service';
 import { getLogger } from '@trailence/utils/console';
+import { EarthBBox } from '@trailence/utils/latlng';
 
 const logger = getLogger('pois');
 
@@ -49,7 +50,7 @@ export class Pois {
     this._destroyed = true;
   }
 
-  public getPois(bounds: L.LatLngBounds, types: POIType[]): Observable<PoisResponse> {
+  public getPois(bounds: EarthBBox, types: POIType[]): Observable<PoisResponse> {
     const tiles = this.toTiles(bounds, types);
     if (tiles.length === 0) return of({pois: [], done: true, partial: false, osmDataVersion: undefined});
     return combineLatest(tiles.map(t => concat(
@@ -130,11 +131,11 @@ export class Pois {
     ));
   }
 
-  private boundsToTiles(bounds: L.LatLngBounds): number[] {
-    const minX = Math.floor(Math.min(bounds.getWest() + 180, bounds.getEast() + 180) / 2);
-    const maxX = Math.floor(Math.max(bounds.getWest() + 180, bounds.getEast() + 180) / 2);
-    const minY = Math.floor(Math.min(bounds.getNorth() + 90, bounds.getSouth() + 90) / 2);
-    const maxY = Math.floor(Math.max(bounds.getNorth() + 90, bounds.getSouth() + 90) / 2);
+  private boundsToTiles(bounds: EarthBBox): number[] {
+    const minX = Math.floor(Math.min(bounds.minlng + 180, bounds.maxlng + 180) / 2);
+    const maxX = Math.floor(Math.max(bounds.minlng + 180, bounds.maxlng + 180) / 2);
+    const minY = Math.floor(Math.min(bounds.minlat + 90, bounds.maxlat + 90) / 2);
+    const maxY = Math.floor(Math.max(bounds.minlat + 90, bounds.maxlat + 90) / 2);
     const xs = new Set<number>();
     for (let x = minX; x <= maxX; ++x) {
       let v = x;
@@ -166,7 +167,7 @@ export class Pois {
     }
   }
 
-  private toTiles(bounds: L.LatLngBounds, types: POIType[]): {tile: string, type: POIType}[] {
+  private toTiles(bounds: EarthBBox, types: POIType[]): {tile: string, type: POIType}[] {
     const boundsTiles = this.boundsToTiles(bounds);
     const typesTiles = types.map(t => ({tileType: this.typeToTile(t), poiType: t}));
     const tiles: {tile: string, type: POIType}[] = [];

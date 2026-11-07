@@ -240,7 +240,7 @@ export class TrailGraphComponent extends AbstractComponent {
           ),
           this.positionPlugin,
         );
-        if (this.enableVisualEffects) this.chartPlugins.push(new GradientEffectPlugin(new Color(this.backgroundColor)));
+        if (this.enableVisualEffects) this.chartPlugins.push(new GradientEffectPlugin(Color.parse(this.backgroundColor)));
       }
       this.chartData = {
         datasets: []
@@ -347,7 +347,7 @@ export class TrailGraphComponent extends AbstractComponent {
             font: {size: this.preferencesService.largerTexts ? 13 : undefined},
           },
           grid: {
-            color: new Color(this.contrastColor).setAlpha(0.33).toString()
+            color: Color.parse(this.contrastColor).setAlpha(0.33).toString()
           },
           border: {
             color: this.contrastColor,
@@ -372,7 +372,7 @@ export class TrailGraphComponent extends AbstractComponent {
             font: {size: this.preferencesService.largerTexts ? 13 : undefined},
           },
           grid: {
-            color: new Color(this.contrastColor).setAlpha(0.2).toString(),
+            color: Color.parse(this.contrastColor).setAlpha(0.2).toString(),
           },
           border: {
             color: this.contrastColor
@@ -430,7 +430,7 @@ export class TrailGraphComponent extends AbstractComponent {
   }
 
   private buildDataSet(track: Track, colorBase: string, lineAlpha: number, withGradeFilling: boolean, withSpeedEstimation: boolean, timezoneOffset: number | undefined) {
-    const color = new Color(colorBase).setAlpha(lineAlpha).toString();
+    const color = Color.parse(colorBase).setAlpha(lineAlpha).toString();
     const ds = {
       borderColor: color,
       borderJoinStyle: 'round',
@@ -449,7 +449,7 @@ export class TrailGraphComponent extends AbstractComponent {
       this.chartData!.datasets.push(ds, ...GradeDatasetBuilder.buildGradeDatasets(ds));
     } else {
       ds.fill = 'origin';
-      ds.backgroundColor = new Color(colorBase).setAlpha(0.2).toString();
+      ds.backgroundColor = Color.parse(colorBase).setAlpha(0.2).toString();
       ds.fillColor = color;
       this.chartData!.datasets.push(ds);
       if (withSpeedEstimation) {

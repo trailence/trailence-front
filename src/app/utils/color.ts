@@ -95,6 +95,23 @@ export class Color {
   public get a(): number { return this._a; }
   public set a(value: number) { this._a = Color.alphaValue(value); }
 
+  public setRed(red: number): this {
+    this.r = red;
+    return this;
+  }
+  public setGreen(green: number): this {
+    this.g = green;
+    return this;
+  }
+  public setBlue(blue: number): this {
+    this.b = blue;
+    return this;
+  }
+  public setAlpha(alpha: number): this {
+    this.a = alpha;
+    return this;
+  }
+
   public darker(value: number): this {
     this._r = Math.max(0, this.r - value);
     this._g = Math.max(0, this.g - value);

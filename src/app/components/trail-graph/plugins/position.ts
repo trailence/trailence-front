@@ -23,7 +23,7 @@ export class PositionPlugin implements C.Plugin<"line"> {
     let ctx = chart.ctx;
     ctx.save();
     ctx.lineWidth = 2.5;
-    const color = new Color((ds as any).strokeColor);
+    const color = Color.parse((ds as any).strokeColor);
     ctx.strokeStyle = color.toString();
     ctx.fillStyle = color.copy().setAlpha(0.25).toString();
     ctx.beginPath();

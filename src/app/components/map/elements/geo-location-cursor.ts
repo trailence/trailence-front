@@ -57,7 +57,7 @@ export function createMyGeoLocationCursor(injector: Injector): GeoLocationCursor
   return new GeoLocationCursor('my-geolocation', position$);
 }
 
-export class GeoLocationCursor extends MapElement {
+export class GeoLocationCursor extends MapElement<GeoLocationCursor> {
 
   constructor(
     id: string,

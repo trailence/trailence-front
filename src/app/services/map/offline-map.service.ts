@@ -18,6 +18,7 @@ import { Ways } from './ways';
 import { POI_TYPES, POIType } from './poi';
 import { CleanupService } from '../database/cleanup/cleanup.service';
 import { getLogger } from '@trailence/utils/console';
+import { EarthBBox } from '@trailence/utils/latlng';
 
 const logger = getLogger('offline-map.service');
 
@@ -85,7 +86,7 @@ export class OfflineMapService implements OnDestroy {
 
   }
 
-  public saveOsm(bounds: L.LatLngBounds[]): void {
+  public saveOsm(bounds: EarthBBox[]): void {
     for (const b of bounds) {
       // TODO progress
       this.pois.getPois(b, POI_TYPES).subscribe();

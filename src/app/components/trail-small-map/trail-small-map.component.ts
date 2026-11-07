@@ -1,7 +1,7 @@
 import { Component, ElementRef, Input, OnChanges, ChangeDetectionStrategy } from '@angular/core';
 import { Track } from '@trailence/model/track';
-import * as L from 'leaflet';
 import { MapGenerator } from './map-generator';
+import { EarthBBox, EarthPoint } from '@trailence/utils/latlng';
 
 @Component({
   selector: 'app-trail-small-map',
@@ -31,7 +31,7 @@ export class TrailSmallMapComponent implements OnChanges {
     this.createPath(map.zoom, map.mapLeft, map.mapTop);
   }
 
-  private createMap(trackBounds: L.LatLngBounds): {zoom: number, mapLeft: number, mapTop: number} {
+  private createMap(trackBounds: EarthBBox): {zoom: number, mapLeft: number, mapTop: number} {
     const tileContainer = document.createElement('DIV');
     tileContainer.className = 'map-tile-layer';
     this.element.nativeElement.appendChild(tileContainer);
@@ -57,7 +57,7 @@ export class TrailSmallMapComponent implements OnChanges {
 
   private createPath(zoom: number, mapLeft: number, mapTop: number): void {
     const points = this.track.getAllPositions();
-    const pathPt = (pos: L.LatLng): {x: number, y: number} => MapGenerator.getPathPt(pos, zoom, mapLeft, mapTop);
+    const pathPt = (pos: EarthPoint): {x: number, y: number} => MapGenerator.getPathPt(pos, zoom, mapLeft, mapTop);
 
     let lastPoint = pathPt(points[0]);
     let svgPath = 'M' + lastPoint.x + ' ' + lastPoint.y;

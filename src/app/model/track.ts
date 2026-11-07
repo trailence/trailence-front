@@ -6,7 +6,6 @@ import { copyPoint, PointDescriptor } from './point-descriptor';
 import { Owned } from './owned';
 import { TrackDto } from './dto/track';
 import { WayPoint } from './way-point';
-import * as L from 'leaflet';
 import { PreferencesService } from '../services/preferences/preferences.service';
 import { PointReference } from './point-reference';
 import { OfflineMapService } from '../services/map/offline-map.service';
@@ -15,7 +14,7 @@ import { WorkerService } from '../worker/web-app';
 import { TrackPointReference } from '../utils/track-computed-data/types';
 import { NetworkService } from '../services/network/network.service';
 import { TrackComputedDataCacheService } from '../services/database/track-computed-data-cache.service';
-import { EarthBBox, extendBBox } from '@trailence/utils/latlng';
+import { EarthBBox, EarthPoint, extendBBox } from '@trailence/utils/latlng';
 
 export class Track extends Owned {
 
@@ -195,8 +194,8 @@ export class Track extends Owned {
     return undefined;
   }
 
-  public getAllPositions(): L.LatLng[] {
-    const result: L.LatLng[] = [];
+  public getAllPositions(): EarthPoint[] {
+    const result: EarthPoint[] = [];
     for (const segment of this.segments) {
       for (const point of segment.points) {
         result.push(point.pos);
@@ -205,10 +204,10 @@ export class Track extends Owned {
     return result;
   }
 
-  public getAllPositionsSegmented(): L.LatLng[][] {
-    const result: L.LatLng[][] = [];
+  public getAllPositionsSegmented(): EarthPoint[][] {
+    const result: EarthPoint[][] = [];
     for (const segment of this.segments) {
-      const s: L.LatLng[] = [];
+      const s: EarthPoint[] = [];
       for (const point of segment.points) {
         s.push(point.pos);
       }
@@ -237,7 +236,7 @@ export class Track extends Owned {
     return undefined;
   }
 
-  public forEachPosition<T>(callback: (p: L.LatLng) => T | null | undefined | void): T | undefined {
+  public forEachPosition<T>(callback: (p: EarthPoint) => T | null | undefined | void): T | undefined {
     for (const segment of this.segments) {
       for (const point of segment.points) {
         const value = callback(point.pos);

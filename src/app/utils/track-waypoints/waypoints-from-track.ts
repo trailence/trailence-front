@@ -5,6 +5,7 @@ import { Arrays } from '../arrays';
 import { PointDescriptor } from '@trailence/model/point-descriptor';
 import { Point } from '@trailence/model/point';
 import { TrackPointReference } from '../track-computed-data/types';
+import { distance } from '../latlng';
 
 export const MAX_DEPARTURE_ARRIVAL_DISTANCE = 25;
 
@@ -114,7 +115,7 @@ export function computeWayPointsFromTrack(track: Track): WayPointFromTrack[] {
   if (firstKnownIndex >= 0) {
     const firstKnown = computed[firstKnownIndex];
     if ((firstKnown.nearestTrackPoint?.segmentIndex === 0 && firstKnown.nearestTrackPoint.pointIndex === 0) ||
-        (track.departurePoint && track.departurePoint.pos.distanceTo(firstKnown.wayPoint.point.pos) < 25)) {
+        (track.departurePoint && distance(track.departurePoint.pos, firstKnown.wayPoint.point.pos) < 25)) {
       // match the departure
       firstKnown.isDeparture = true;
       if (firstKnownIndex > 0) {
@@ -128,7 +129,7 @@ export function computeWayPointsFromTrack(track: Track): WayPointFromTrack[] {
   if (lastKnownIndex >= 0) {
     const lastKnown = computed[lastKnownIndex];
     if ((lastKnown.nearestTrackPoint?.segmentIndex === track.segments.length - 1 && lastKnown.nearestTrackPoint.pointIndex === track.segments.at(-1)!.points.length - 1) ||
-        (track.arrivalPoint && track.arrivalPoint.pos.distanceTo(lastKnown.wayPoint.point.pos) <= MAX_DEPARTURE_ARRIVAL_DISTANCE)) {
+        (track.arrivalPoint && distance(track.arrivalPoint.pos, lastKnown.wayPoint.point.pos) <= MAX_DEPARTURE_ARRIVAL_DISTANCE)) {
       // match the arrival
       lastKnown.isArrival = true;
       if (lastKnownIndex < computed.length - 1) {
@@ -139,7 +140,7 @@ export function computeWayPointsFromTrack(track: Track): WayPointFromTrack[] {
     }
   }
   if (!departure) {
-    if (arrival && track.departurePoint.pos.distanceTo(arrival.wayPoint.point.pos) <= MAX_DEPARTURE_ARRIVAL_DISTANCE) {
+    if (arrival && distance(track.departurePoint.pos, arrival.wayPoint.point.pos) <= MAX_DEPARTURE_ARRIVAL_DISTANCE) {
       arrival.isDeparture = true;
       const index = computed.indexOf(arrival);
       if (index > 0) {
@@ -194,15 +195,15 @@ function findEligiblePoints(point: PointDescriptor, track: Track): TrackPointRef
       const pt = points[pointIndex];
       const pos = pt.pos;
       const time = pt.time;
-      const distance = pos.distanceTo(p);
-      if (globalBestDistance === undefined || distance < globalBestDistance) {
-        globalBestDistance = distance;
+      const d = distance(pos, p);
+      if (globalBestDistance === undefined || d < globalBestDistance) {
+        globalBestDistance = d;
         globalBestIndexes = {segmentIndex, pointIndex};
       }
       if (t) {
         if (time && time === t) {
           // perfect match on time, take this point except if currentBest is also a perfect match on time and is closer in distance
-          if (!currentBest?.time || currentBest.time !== t || currentBest.distanceTo(p) > pos.distanceTo(p)) {
+          if (!currentBest?.time || currentBest.time !== t || currentBest.distanceTo(p) > distance(pos, p)) {
             currentBest = pt;
             currentBestIndexes = {segmentIndex, pointIndex};
           }
@@ -217,12 +218,12 @@ function findEligiblePoints(point: PointDescriptor, track: Track): TrackPointRef
           const previous = points[pointIndex - 1];
           if (previous.time && previous.time <= t && time > t) {
             const diff1 = previous.distanceTo(p);
-            const diff2 = pos.distanceTo(p);
+            const diff2 = distance(pos, p);
             return [{segmentIndex, pointIndex: diff1 <= diff2 ? pointIndex - 1 : pointIndex}];
           }
         }
       }
-      if (distance > 50) {
+      if (d > 50) {
         // we are out of 50 meters around
         if (currentBest) {
           result.push(currentBestIndexes!);
@@ -237,7 +238,7 @@ function findEligiblePoints(point: PointDescriptor, track: Track): TrackPointRef
         currentBestIndexes = {segmentIndex, pointIndex};
         continue;
       }
-      if (distance < currentBest.distanceTo(p)) {
+      if (d < currentBest.distanceTo(p)) {
         currentBest = pt;
         currentBestIndexes = {segmentIndex, pointIndex};
       }

@@ -1,9 +1,9 @@
 import { BehaviorSubject, combineLatest, EMPTY, from, map, Observable, of, switchMap, timeout } from 'rxjs';
 import { MapTool } from '../map/map-tool';
-import { MapElement } from '../map/map-element';
+import { MapElement, MapElementPointerEvent } from '../map/map-element';
 import { Trail } from '@trailence/model/trail';
 import { MapBubble } from '../map/elements/map-bubble';
-import { Injector } from '@angular/core';
+import { EventEmitter, Injector } from '@angular/core';
 import { MapComponent } from '../map/map.component';
 import { MenuItem } from '../menus/menu-item';
 import { observableWithCache } from '@trailence/utils/rxjs/observable-with-cache';
@@ -37,6 +37,8 @@ export class ToggleBubblesTool implements MapTool {
 
   private readonly activable$ = new BehaviorSubject<boolean>(false);
   private readonly showBubbles$ = new BehaviorSubject<boolean>(false);
+
+  clickOnTrail = new EventEmitter<{mapTrack: MapTrackPath, event: MapElementPointerEvent}>();
 
   getMapElements$(): Observable<MapElement[]> {
     const trailService = this.injector.get(TrailService);
@@ -133,7 +135,9 @@ export class ToggleBubblesTool implements MapTool {
 
   private buildMapTrackPathFromSimplifiedTrack(trail: Trail, track: SimplifiedTrackSnapshot | null): MapTrackPath | null {
     if (track === null) return null;
-    return new MapTrackPath(trail, track, TRACK_COLOR, false, 2, undefined);
+    const mapTrack = new MapTrackPath(trail, track, TRACK_COLOR, false, 2, undefined);
+    mapTrack.events.addClickListener((mapTrack, event) => this.clickOnTrail.emit({mapTrack, event}));
+    return mapTrack;
   }
 
   private buildBubblesFromTracks(tracks: {trail: Trail, track: TrackMetadataSnapshot | null}[]): Observable<MapBubble[]> {

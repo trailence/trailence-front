@@ -2,7 +2,7 @@ import { Component, Injector, Input, ViewChild, ChangeDetectionStrategy } from '
 import { AbstractComponent } from '@trailence/utils/component-utils';
 import { Trail } from '@trailence/model/trail';
 import { TrailsListComponent } from '../trails-list/trails-list.component';
-import { BehaviorSubject, combineLatest, Observable, of, skip, Subscription, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { IonSegment, IonSegmentButton, IonButton, IonIcon, IonSpinner } from "@ionic/angular";
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { TrackService } from '@trailence/services/database/track.service';
@@ -21,13 +21,17 @@ import { TrackMetadataConfig } from '../track-metadata/track-metadata.component'
 import { AsyncPipe } from '@angular/common';
 import { HIGHLIGHTED_TRACK_COLOR, PRIMARY_TRACK_COLOR, PRIMARY_TRACK_COLOR_DONE } from '../trail/trail-colors';
 import { MapComponent, MapOptions } from '../map/map.component';
-import { MAP_SELECTED_TRACK_LAYER, MAP_TRACKS_LAYER, MapElement } from '../map/map-element';
+import { MAP_SELECTED_TRACK_LAYER, MAP_TRACKS_LAYER, MapElement, MapElementPointerEvent } from '../map/map-element';
 import { MapBubble } from '../map/elements/map-bubble';
 import { MapTool, MapToolGroup } from '../map/map-tool';
 import { ToggleBubblesTool } from './toggle-bubble-tool';
 import { Arrays } from '@trailence/utils/arrays';
 import { MapTrackPath } from '../map/elements/map-track-path';
 import { Color } from '@trailence/utils/color';
+import { MapTrackAnchors } from '../map/elements/map-track-anchors';
+import { bboxPadRatio, isPointInBBox } from '@trailence/utils/latlng';
+import { SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
+import { distance2d } from '@trailence/utils/geometry-utils';
 
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
@@ -85,7 +89,14 @@ export class TrailsAndMapComponent extends AbstractComponent {
     showSpeed: false,
   };
 
-  mapElements$ = new BehaviorSubject<MapElement[]>([]);
+  private readonly tracksAndBubbles$ = new BehaviorSubject<MapElement[]>([]);
+  private readonly highlightedTrailAnchors$ = new BehaviorSubject<MapTrackAnchors | undefined>(undefined);
+  mapElements$ = combineLatest([this.tracksAndBubbles$, this.highlightedTrailAnchors$]).pipe(
+    map(([elements, anchors]) => {
+      if (!anchors) return elements;
+      return [...elements, anchors];
+    }),
+  );
   mapOptions: MapOptions = {
   };
   private readonly _bubbles$ = new BehaviorSubject<MapBubble[]>([]);
@@ -126,6 +137,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   protected override initComponent(): void {
     this.updateMode();
+    this.tracksAndBubblesTool.clickOnTrail.subscribe(click => this.onTrailClickOnMap(click.mapTrack, click.event));
   }
 
   mapReady = false;
@@ -187,7 +199,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
       elements => {
         if (this.highlightedTrail)
           this.highlightedTrail = (elements.find(e => e instanceof MapTrackPath && !!e.trail && e.trail.owner === this.highlightedTrail?.owner && e.trail.uuid === this.highlightedTrail?.uuid) as MapTrackPath | undefined)?.trail;
-        this.mapElements$.next(elements);
+        this.tracksAndBubbles$.next(elements);
         this.setHighlighted(this.highlightedTrail);
         if (!this.mapReady && (this.mapTrailsReceived || this.type === 'search')) {
           this.mapReady = true;
@@ -309,23 +321,29 @@ export class TrailsAndMapComponent extends AbstractComponent {
   }
 
   private setHighlighted(trail: Trail | undefined): void { // NOSONAR
-    for (const mapTrack of this.mapElements$.value) {
+    let highlightedMapTrack: MapTrackPath | undefined;
+    for (const mapTrack of this.tracksAndBubbles$.value) {
       if (!(mapTrack instanceof MapTrackPath)) continue;
       const highlighted = !!trail && trail.uuid === mapTrack.trail?.uuid && trail.owner === mapTrack.trail?.owner;
       const unhighlighted = !highlighted && !!this.highlightedTrail && this.highlightedTrail.uuid === mapTrack.trail?.uuid && this.highlightedTrail.owner === mapTrack.trail?.owner;
       mapTrack.color = Color.parse(highlighted ? HIGHLIGHTED_TRACK_COLOR : (trail ? PRIMARY_TRACK_COLOR_DONE : PRIMARY_TRACK_COLOR));
       if (!highlighted && !unhighlighted) continue;
-      mapTrack.showDepartureAndArrivalAnchors(highlighted);
+      if (highlighted) highlightedMapTrack = mapTrack;
       mapTrack.setPositionOnMap({layer: highlighted ? MAP_SELECTED_TRACK_LAYER : MAP_TRACKS_LAYER});
+    }
+    if (this.highlightedTrailAnchors$.value?.track !== highlightedMapTrack?.track) {
+      this.highlightedTrailAnchors$.next(
+        highlightedMapTrack ? new MapTrackAnchors(highlightedMapTrack.track, this.i18n, false, true, false, false) : undefined
+      );
     }
     this.trailsList?.setHighlighted(trail);
     this.highlightedTrail = trail;
   }
 
   onTrailClickOnList(trail: Trail, showOnMap: boolean = false): void {
-    const mt = this.mapElements$.value.find(t => t instanceof MapTrack && t.trail?.owner === trail.owner && t.trail?.uuid === trail.uuid) as MapTrack | undefined;
-    if (mt && this.map)
-      this.map.ensureVisible(mt);
+    const mt = this.tracksAndBubbles$.value.find(t => t instanceof MapTrackPath && t.trail?.owner === trail.owner && t.trail?.uuid === trail.uuid) as MapTrackPath | undefined;
+    if (mt)
+      void this.map?.ensureVisible(mt, 10, true);
     if (this.tab === 'list' && !this.mode.includes('large')) {
       if (this.highlightedTrail !== trail) this.toggleHighlightedTrail(trail);
       if (showOnMap)
@@ -336,21 +354,25 @@ export class TrailsAndMapComponent extends AbstractComponent {
     }
   }
 
-  onTrailClickOnMap(event: MapTrackPointReference[]): void {
-    const closest = MapTrackPointReference.closest(event);
-    if (closest?.track.trail) {
-      const trail = closest?.track.trail;
-      const otherTrails: Trail[] = [];
-      for (const ref of event) {
-        const t = ref.track.trail;
-        if (t && t !== trail && !otherTrails.includes(t)) {
-          otherTrails.push(t);
+  private onTrailClickOnMap(mapTrack: MapTrackPath, event: MapElementPointerEvent): void {
+    const trail = mapTrack.trail!;
+    const otherTrails: Trail[] = [];
+    for (const track of this.tracksAndBubbles$.value) {
+      if (track === mapTrack) continue;
+      if (!(track instanceof MapTrackPath)) continue;
+      const bounds = track.getBoundsFromSimplifiedTrack();
+      if (!bounds) continue;
+      if (!isPointInBBox(event.geographicPoint, bboxPadRatio(bounds, 1))) continue;
+      for (const pt of (track.track as SimplifiedTrackSnapshot).points) {
+        const pixel = event.renderer.projectToViewport(pt);
+        const distance = distance2d(event.viewportPoint, pixel);
+        if (distance <= 15) {
+          otherTrails.push(track.trail!);
+          break;
         }
       }
-      this.toggleHighlightedTrail(trail, otherTrails);
-    } else if (this.highlightedTrail) {
-      this.toggleHighlightedTrail(this.highlightedTrail);
     }
+    this.toggleHighlightedTrail(trail, otherTrails);
   }
 
   openTrail(trail: Trail): void {
@@ -375,9 +397,9 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   goToPlace(place: Place): void {
     if (place.north && place.south && place.east && place.west)
-      this.map?.goToBounds(place.north, place.south, place.east, place.west);
+      this.map?.renderer?.fitBounds({minlat: place.north, maxlat: place.south, minlng: place.east, maxlng: place.west}, true);
     else if (place.lat && place.lng)
-      this.map?.goTo(place.lat, place.lng, 14);
+      this.map?.renderer?.goTo({lat: place.lat, lng: place.lng}, 14, true);
     this.searchPlaceExpanded = false;
   }
 

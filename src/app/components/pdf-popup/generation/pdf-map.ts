@@ -1,12 +1,12 @@
 import { MapBounds, MapGenerator } from '../../trail-small-map/map-generator';
 import { PdfContext } from './pdf-context';
-import { MapAnchor } from '../../map/markers/map-anchor';
-import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorDABorderColor, anchorDATextColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor } from '../../map/track/map-track-way-points';
 import { addSvgToPdf } from './pdf-icon';
 import { ErrorService } from '@trailence/services/progress/error.service';
-import * as L from 'leaflet';
 import { getLogger } from '@trailence/utils/console';
 import { Point2D } from '@trailence/utils/geometry-utils';
+import { createMapAchorSvgString } from '@trailence/components/map/utils/map-anchor';
+import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorDABorderColor, anchorDATextColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor } from '@trailence/components/map/elements/map-track-anchors';
+import { distance } from '@trailence/utils/latlng';
 
 const logger = getLogger('pdf-map');
 
@@ -28,22 +28,22 @@ export async function generatePdfMap(ctx: PdfContext, x: number, y: number, widt
   if (departure) {
     const pos = pathPt(departure.wayPoint.point.pos);
     let svg: string;
-    if (departure.isArrival || (arrival && L.latLng(departure.wayPoint.point.pos).distanceTo(arrival.wayPoint.point.pos) <= 100)) {
-      svg = MapAnchor.createSvg(anchorDABorderColor, ctx.i18n.texts.way_points.DA, anchorDATextColor, anchorDepartureFillColor, anchorArrivalFillColor);
+    if (departure.isArrival || (arrival && distance(departure.wayPoint.point.pos, arrival.wayPoint.point.pos) <= 100)) {
+      svg = createMapAchorSvgString(anchorDABorderColor, ctx.i18n.texts.way_points.DA, anchorDATextColor, anchorDepartureFillColor, anchorArrivalFillColor);
     } else {
-      svg = MapAnchor.createSvg(anchorDepartureBorderColor, ctx.i18n.texts.way_points.D, anchorDepartureTextColor, anchorDepartureFillColor);
+      svg = createMapAchorSvgString(anchorDepartureBorderColor, ctx.i18n.texts.way_points.D, anchorDepartureTextColor, anchorDepartureFillColor);
     }
     addSvgToPdf(ctx, svg, x + pos.x / RATIO - ANCHOR_SIZE / 2, y + pos.y / RATIO - ANCHOR_SIZE, ANCHOR_SIZE, ANCHOR_SIZE);
   }
-  if (arrival && !arrival.isDeparture && (!departure || L.latLng(departure.wayPoint.point.pos).distanceTo(arrival.wayPoint.point.pos) > 100)) {
-    const svg = MapAnchor.createSvg(anchorArrivalBorderColor, ctx.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor);
+  if (arrival && !arrival.isDeparture && (!departure || distance(departure.wayPoint.point.pos, arrival.wayPoint.point.pos) > 100)) {
+    const svg = createMapAchorSvgString(anchorArrivalBorderColor, ctx.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor);
     const pos = pathPt(arrival.wayPoint.point.pos);
     addSvgToPdf(ctx, svg, x + pos.x / RATIO - ANCHOR_SIZE / 2, y + pos.y / RATIO - ANCHOR_SIZE, ANCHOR_SIZE, ANCHOR_SIZE);
   }
   if (includeWaypoints) {
     for (const wp of ctx.wayPoints) {
       if (wp.isDeparture || wp.isArrival) continue;
-      const svg = MapAnchor.createSvg(anchorBorderColor, '' + wp.index, anchorTextColor, anchorFillColor);
+      const svg = createMapAchorSvgString(anchorBorderColor, '' + wp.index, anchorTextColor, anchorFillColor);
       const pos = pathPt(wp.wayPoint.point.pos);
       addSvgToPdf(ctx, svg, x + pos.x / RATIO - ANCHOR_SIZE / 2, y + pos.y / RATIO - ANCHOR_SIZE, ANCHOR_SIZE, ANCHOR_SIZE);
     }

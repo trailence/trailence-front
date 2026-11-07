@@ -2,7 +2,7 @@ import { Track } from '@trailence/model/track';
 import { MAP_TRACKS_LAYER, MapElement } from '../map-element';
 import { SimplifiedPoint, SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
 import { Trail } from '@trailence/model/trail';
-import { BehaviorSubject, combineLatest, map, Observable, of, share, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, defer, map, Observable, of, share, switchMap } from 'rxjs';
 import { MapRenderer } from '../impl/map-renderer';
 import { Color } from '@trailence/utils/color';
 import { Polyline } from '../primitives/polyline';
@@ -12,8 +12,9 @@ import { distance, EarthBBox, EarthPoint } from '@trailence/utils/latlng';
 import { MapPrimitive } from '../primitives/primitive';
 import { getGradeRange, gradeColors } from '@trailence/components/trail-graph/grade-values';
 import { distance2d, Point2D } from '@trailence/utils/geometry-utils';
+import { CachedValue } from '@trailence/utils/cached-value';
 
-export class MapTrackPath extends MapElement {
+export class MapTrackPath extends MapElement<MapTrackPath> {
 
   constructor(
     public readonly trail: Trail | undefined,
@@ -87,19 +88,27 @@ export class MapTrackPath extends MapElement {
 
   public get fitBounds$(): Observable<EarthBBox | undefined> {
     if (this.track instanceof Track) return this.track.metadata.bounds$;
-    return of(this.boundsFromSimplifiedPoints(this.track.points));
+    return new Observable(subscriber => {
+      subscriber.next(this._boundsFromSimplifiedTrackCache.get());
+      subscriber.complete();
+    });
   }
-  private boundsFromSimplifiedPoints(points: SimplifiedPoint[]): EarthBBox | undefined {
-    let minlat, maxlat, minlng, maxlng;
-    for (const pt of points) {
-      if (minlat === undefined || pt.lat < minlat) minlat = pt.lat;
-      if (maxlat === undefined || pt.lat > maxlat) maxlat = pt.lat;
-      if (minlng === undefined || pt.lng < minlng) minlng = pt.lng;
-      if (maxlng === undefined || pt.lng > maxlng) maxlng = pt.lng;
+  public getBoundsFromSimplifiedTrack(): EarthBBox | undefined {
+    return this._boundsFromSimplifiedTrackCache.get();
+  }
+  private _boundsFromSimplifiedTrackCache = new CachedValue<EarthBBox | undefined>(
+    () => {
+      let minlat, maxlat, minlng, maxlng;
+      for (const pt of (this.track as SimplifiedTrackSnapshot).points) {
+        if (minlat === undefined || pt.lat < minlat) minlat = pt.lat;
+        if (maxlat === undefined || pt.lat > maxlat) maxlat = pt.lat;
+        if (minlng === undefined || pt.lng < minlng) minlng = pt.lng;
+        if (maxlng === undefined || pt.lng > maxlng) maxlng = pt.lng;
+      }
+      if (minlat === undefined) return undefined;
+      return {minlat, maxlat: maxlat!, minlng: minlng!, maxlng: maxlng!};
     }
-    if (minlat === undefined) return undefined;
-    return {minlat, maxlat: maxlat!, minlng: minlng!, maxlng: maxlng!};
-  }
+  );
 
   protected override createPrimitives$(renderer: MapRenderer): Observable<MapPrimitive<any,any>[]> {
     const points$: Observable<EarthPoint[][]> = this.track instanceof Track ?
@@ -117,22 +126,22 @@ export class MapTrackPath extends MapElement {
       map(([points, eleColors]) => {
         if (eleColors) {
           if (this._pathMonoColor) {
-            this.events.unbind(this._pathMonoColor);
+            this.events._unbind(this._pathMonoColor);
             this._pathMonoColor = undefined;
           }
           // TODO be able to update points ?
           this._pathEleColors = this.buildEleColors(renderer, points);
-          this._pathEleColors.byColor.forEach(c => this.events.bind(c.polyline));
+          this._pathEleColors.byColor.forEach(c => this.events._bind(c.polyline));
           return [this._pathEleColors.border, ...this._pathEleColors.byColor.map(p => p.polyline)];
         }
         if (this._pathEleColors) {
-          this._pathEleColors.byColor.forEach(c => this.events.unbind(c.polyline));
+          this._pathEleColors.byColor.forEach(c => this.events._unbind(c.polyline));
           this._pathEleColors = undefined;
         }
         if (this._pathMonoColor) this.updatePath(this._pathMonoColor, points);
         else {
           this._pathMonoColor = this.buildPath(renderer, points);
-          this.events.bind(this._pathMonoColor);
+          this.events._bind(this._pathMonoColor);
         }
         return [this._pathMonoColor];
       }),

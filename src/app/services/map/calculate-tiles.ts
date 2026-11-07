@@ -1,6 +1,7 @@
+import { EarthBBox } from '@trailence/utils/latlng';
 import * as L from 'leaflet';
 
-export function calculateTilesFromBounds(zoomLevel: number, bounds: L.LatLngBounds[], crs: L.CRS, tileSize: number): Promise<L.Point[]> {
+export function calculateTilesFromBounds(zoomLevel: number, bounds: EarthBBox[], crs: L.CRS, tileSize: number): Promise<L.Point[]> {
   const points: L.Point[] = [];
   const coordsSet = new Set<number>();
   const xSize = Math.floor(Math.pow(2, 9 + zoomLevel) / tileSize);
@@ -11,8 +12,8 @@ export function calculateTilesFromBounds(zoomLevel: number, bounds: L.LatLngBoun
     }
     const bound = bounds[boundIndex];
     const area = L.bounds(
-      crs.latLngToPoint(bound.getNorthWest(), zoomLevel),
-      crs.latLngToPoint(bound.getSouthEast(), zoomLevel)
+      crs.latLngToPoint({lat: bound.minlat, lng: bound.minlng}, zoomLevel),
+      crs.latLngToPoint({lat: bound.maxlat, lng: bound.maxlng}, zoomLevel)
     );
     addTilesPoints(coordsSet, points, area, tileSize, xSize);
     setTimeout(() => nextBound(boundIndex + 1).then(resolve), 0);

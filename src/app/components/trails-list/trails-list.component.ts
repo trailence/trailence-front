@@ -41,6 +41,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { PhotoService } from '@trailence/services/database/photo.service';
 import { getLogger } from '@trailence/utils/console';
 import { Filters } from '@trailence/services/preferences/preferences';
+import { bboxOverlaps, EarthPoint } from '@trailence/utils/latlng';
 
 const logger = getLogger('trails-list.component');
 
@@ -345,10 +346,11 @@ export class TrailsListComponent extends AbstractComponent {
         skip(1),
         debounceTime(100),
         switchMap(state => {
-          if (!state.filters.onlyVisibleOnMap || !this.map) return of([state, undefined, undefined] as [State, L.LatLngLiteral | undefined, number | undefined]);
-          return combineLatest([this.map.getState().center$, this.map.getState().zoomInt$]).pipe(
+          const mapState = this.map?.renderer?.mapState;
+          if (!state.filters.onlyVisibleOnMap || !mapState) return of([state, undefined, undefined] as [State, EarthPoint | undefined, number | undefined]);
+          return combineLatest([mapState.center$, mapState.zoom$]).pipe(
             debounceTime(100),
-            map(([mapCenter, mapZoom]) => ([state, mapCenter, mapZoom] as [State, L.LatLngLiteral | undefined, number | undefined]))
+            map(([mapCenter, mapZoom]) => ([state, mapCenter, mapZoom] as [State, EarthPoint | undefined, number | undefined]))
           )
         })
       ).subscribe(([state, mapCenter, mapZoom]) => {
@@ -542,12 +544,12 @@ export class TrailsListComponent extends AbstractComponent {
         return true;
       }
     );
-    const mapBounds = this.map?.getBounds();
+    const mapBounds = this.map?.renderer?.getBounds();
     this.mapFilteredTrails.emit(this.mapTrails.map(t => t.trail));
     if (filters.onlyVisibleOnMap && mapBounds) {
       return this.mapTrails.filter(t => {
         const b = t.track?.bounds;
-        return !b || mapBounds.overlaps(b);
+        return !b || bboxOverlaps(mapBounds, {minlat: b[0][0], minlng: b[1][1], maxlat: b[1][0], maxlng: b[0][1]});
       });
     }
     this.hasRating = this.mapTrails.some(t => t.info?.rating !== undefined);
@@ -900,10 +902,11 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   enlargeSearchArea(event: Event): void {
-    this.map?.getMap()?.zoomOut();
+    this.map?.renderer?.zoomOut();
+    /* TODO refacto
     this.map?.toolbars?.forEach(tb => {
       tb.computed.items.find(i => i.icon === 'search-map')?.item.action?.(event);
-    })
+    })*/
   }
 }
 

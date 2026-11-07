@@ -10,6 +10,7 @@ export abstract class MapPrimitive<O, R extends MapRenderer> {
   constructor(
     public readonly id: string,
     options: O,
+    public data: any = undefined,
   ) {
     this.options = {...options};
   }

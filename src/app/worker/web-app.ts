@@ -8,7 +8,7 @@ import { TranslatedString } from '../services/i18n/i18n-string';
 import { PhotoDto } from '../model/dto/photo';
 import { Way, WayReference } from '../services/map/way';
 import { POI, POIType } from '../services/map/poi';
-import { EarthPoint } from '../utils/latlng';
+import { EarthBBox, EarthPoint } from '../utils/latlng';
 import { OsmWaysTrackPoint } from '../utils/track-computed-data/match-osm-ways';
 import { TrackOsmStats } from '../utils/track-computed-data/track-osm-stats';
 import { getLogger, Logger } from '@trailence/utils/console';
@@ -27,18 +27,18 @@ export class WorkerService {
     (globalThis as any).__workerCoverage = () => this._codeCoverage().then(result => (globalThis as any).__workerCoverageResult = result);
   }
 
-  public parsePois(blob: Blob, type: POIType, bounds: L.LatLngBounds): Promise<POI[]> {
+  public parsePois(blob: Blob, type: POIType, bounds: EarthBBox): Promise<POI[]> {
     return this.request<POI[]>({
       request: WorkerRequest.PARSE_POIS,
-      payload: {blob, type, south: bounds.getSouth(), north: bounds.getNorth(), east: bounds.getEast(), west: bounds.getWest()},
+      payload: {blob, type, south: bounds.maxlat, north: bounds.minlat, east: bounds.maxlng, west: bounds.minlng},
       transferable: [blob]
     });
   }
 
-  public parseWays(blob: Blob, bounds: L.LatLngBounds): Promise<{ways: Way[], references: WayReference[]}> {
+  public parseWays(blob: Blob, bounds: EarthBBox): Promise<{ways: Way[], references: WayReference[]}> {
     return this.request<{ways: Way[], references: WayReference[]}>({
       request: WorkerRequest.PARSE_WAYS,
-      payload: {blob, south: bounds.getSouth(), north: bounds.getNorth(), east: bounds.getEast(), west: bounds.getWest()},
+      payload: {blob, south: bounds.maxlat, north: bounds.minlat, east: bounds.maxlng, west: bounds.minlng},
       transferable: [blob]
     });
   }

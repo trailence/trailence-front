@@ -135,7 +135,7 @@ export class RangeSelection implements C.Plugin<"line"> {
 
     ctx.save();
 
-    ctx.fillStyle = new Color(color).setAlpha(0.3).toString();
+    ctx.fillStyle = Color.parse(color).setAlpha(0.3).toString();
     ctx.fillRect(start, yAxis.top, end - start, yAxis.bottom - yAxis.top);
 
     ctx.beginPath();

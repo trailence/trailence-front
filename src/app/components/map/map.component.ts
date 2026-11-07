@@ -2,7 +2,7 @@ import { Component, Input, SimpleChanges } from '@angular/core';
 import { AbstractComponent, IdGenerator } from '@trailence/utils/component-utils';
 import { MapState, RotateMode } from './map-state';
 import { MapRendererInitializer } from './impl/map-renderer-initializer';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, Observable, of } from 'rxjs';
 import { MapRenderer } from './impl/map-renderer';
 import { MapElement } from './map-element';
 import { MapElementsRenderer } from './map-elements-renderer';
@@ -12,6 +12,8 @@ import { MapTools } from './map-tools';
 import { MapStateHistoryService } from '@trailence/services/map/map-state-history.service';
 import { CenterMapOnMyPositionTool, GeolocationToolGroup, ShowMyGeolocationTool } from './tools/geolocation-tools';
 import { TraceRecorderService } from '@trailence/services/trace-recorder/trace-recorder.service';
+import { projectEarthBBoxForZoom, unprojectToEarthBBoxForZoom } from '@trailence/utils/latlng';
+import { bbox2DContainsBBox2D, bbox2DPadding, extendBBox2D } from '@trailence/utils/geometry-utils';
 
 export interface MapOptions {
   geoLocationDisabled?: boolean;
@@ -92,6 +94,27 @@ export class MapComponent extends AbstractComponent {
     this._map$.value?.setBearing(bearing, animated);
     const traceRecorder = this.injector.get(TraceRecorderService);
     if (traceRecorder.recording) traceRecorder.setRotateMode(mode);
+  }
+
+  public async ensureVisible(element: MapElement, padPixels = 10, flying: boolean = true) {
+    const elementBounds = await firstValueFrom(element.fitBounds$);
+    if (!elementBounds) return;
+    const renderer = this.renderer;
+    if (!renderer) return;
+    const viewport = renderer.getViewportSize();
+    if (!viewport) return;
+    const zoom = renderer.mapState.zoom;
+    const visibleBox = {
+      minX: MAP_INSETS.left,
+      minY: MAP_INSETS.top,
+      maxX: viewport.x - MAP_INSETS.right,
+      maxY: viewport.y - MAP_INSETS.bottom,
+    };
+    const elementBox = bbox2DPadding(projectEarthBBoxForZoom(elementBounds, zoom), padPixels);
+    if (bbox2DContainsBBox2D(visibleBox, elementBox)) return;
+    const targetPixelsBox = extendBBox2D(visibleBox, elementBox);
+    const targetBounds = unprojectToEarthBBoxForZoom(targetPixelsBox, zoom);
+    renderer.fitBounds(targetBounds, flying);
   }
 
 }

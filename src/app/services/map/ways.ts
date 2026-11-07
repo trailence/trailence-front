@@ -12,6 +12,7 @@ import { DbTableWhereLessThan } from '../database/storage/db-table';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { CleanupService } from '../database/cleanup/cleanup.service';
 import { getLogger } from '@trailence/utils/console';
+import { EarthBBox } from '@trailence/utils/latlng';
 
 const logger = getLogger('ways');
 
@@ -62,7 +63,7 @@ export class Ways {
     this._destroyed = true;
   }
 
-  public getWays(bounds: L.LatLngBounds, retryOnPartial: boolean): Observable<WaysResponse> {
+  public getWays(bounds: EarthBBox, retryOnPartial: boolean): Observable<WaysResponse> {
     const boundsTiles = this.boundsToTiles(bounds);
     if (boundsTiles.length === 0) return of({ways: [], done: true, partial: false, osmDataVersion: undefined});
     return new Observable<WaysResponse>(subscriber => {
@@ -70,7 +71,7 @@ export class Ways {
     });
   }
 
-  public getAllWays(bounds: L.LatLngBounds, retryOnPartial: boolean): Observable<AllWaysResponse> {
+  public getAllWays(bounds: EarthBBox, retryOnPartial: boolean): Observable<AllWaysResponse> {
     let allWays: Way[] = [];
     let version: number | undefined | null = undefined;
     return this.getWays(bounds, retryOnPartial).pipe(
@@ -88,7 +89,7 @@ export class Ways {
     );
   }
 
-  private processWaysTiles(tilesProcessed: number[], tilesToProcess: number[], bounds: L.LatLngBounds, partial: boolean, subscriber: Subscriber<WaysResponse>, retryOnPartial: boolean, retry: number) {
+  private processWaysTiles(tilesProcessed: number[], tilesToProcess: number[], bounds: EarthBBox, partial: boolean, subscriber: Subscriber<WaysResponse>, retryOnPartial: boolean, retry: number) {
     forkJoin(tilesToProcess.map(tileNumber =>
       this.getTile('' + tileNumber).pipe(
         switchMap(tile => {
@@ -184,11 +185,11 @@ export class Ways {
     ));
   }
 
-  private boundsToTiles(bounds: L.LatLngBounds): number[] {
-    const minX = Math.floor(Math.min(bounds.getWest() + 180, bounds.getEast() + 180) * 8);
-    const maxX = Math.floor(Math.max(bounds.getWest() + 180, bounds.getEast() + 180) * 8);
-    const minY = Math.floor(Math.min(bounds.getNorth() + 90, bounds.getSouth() + 90) * 8);
-    const maxY = Math.floor(Math.max(bounds.getNorth() + 90, bounds.getSouth() + 90) * 8);
+  private boundsToTiles(bounds: EarthBBox): number[] {
+    const minX = Math.floor(Math.min(bounds.minlng + 180, bounds.maxlng + 180) * 8);
+    const maxX = Math.floor(Math.max(bounds.minlng + 180, bounds.maxlng + 180) * 8);
+    const minY = Math.floor(Math.min(bounds.minlat + 90, bounds.maxlat + 90) * 8);
+    const maxY = Math.floor(Math.max(bounds.minlat + 90, bounds.maxlat + 90) * 8);
     const xs = new Set<number>();
     for (let x = minX; x <= maxX; ++x) {
       let v = x;

@@ -7,7 +7,6 @@ import { PreferencesService } from '../preferences/preferences.service';
 import { SearchResult } from './fetch-source.interfaces';
 import { TrackUtils } from '@trailence/utils/track-utils';
 import { I18nService } from '../i18n/i18n.service';
-import * as L from 'leaflet';
 import { filterItemsDefined } from '@trailence/utils/rxjs/filter-defined';
 import { Arrays } from '@trailence/utils/arrays';
 import { TrailSourceType } from '@trailence/model/dto/trail';
@@ -16,6 +15,7 @@ import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from '@trailence/worker/web-app';
 import { NetworkService } from '../network/network.service';
 import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
+import { EarthBBox, EarthPoint } from '@trailence/utils/latlng';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   id: string;
@@ -40,7 +40,7 @@ export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
     return true;
   }
 
-  public override searchByArea(bounds: L.LatLngBounds, limit: number): Observable<SearchResult> {
+  public override searchByArea(bounds: EarthBBox, limit: number): Observable<SearchResult> {
     return this.findRoutesIds(bounds, limit).pipe(
       switchMap(ids => from(this.tableTrails.bulkGet(ids)).pipe(
         switchMap(knowns => new Observable<SearchResult>(subscriber => {
@@ -71,9 +71,9 @@ export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
     );
   }
 
-  private findRoutesIds(bounds: L.LatLngBounds, limit: number): Observable<string[]> {
+  private findRoutesIds(bounds: EarthBBox, limit: number): Observable<string[]> {
     return this.injector.get(OverpassClient).request<{elements: {id: number}[]}>(
-      "rel[type=\"route\"][route~\"(mtb)|(hiking)|(foot)|(nordic_walking)|(running)|(fitness_trail)|(inline_skates)\"](" + bounds.getSouth() + "," + bounds.getWest() + "," + bounds.getNorth() + "," + bounds.getEast() + ");out ids " + limit + ";",
+      "rel[type=\"route\"][route~\"(mtb)|(hiking)|(foot)|(nordic_walking)|(running)|(fitness_trail)|(inline_skates)\"](" + bounds.maxlat + "," + bounds.minlng + "," + bounds.minlat + "," + bounds.maxlng + ");out ids " + limit + ";",
       30
     ).pipe(
       map(response => response.elements.map(e => e.id.toString()))
@@ -135,7 +135,7 @@ export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
 
   private fillTrack(track: Track, members: OverpassElementMember[]): void { // NOSONAR
     const remaining = members.map(m => {
-      const segment = m.geometry.map(g => L.latLng(g.lat, g.lon));
+      const segment = m.geometry.map(g => ({lat: g.lat, lng: g.lon}));
       if (m.role === 'backward') segment.reverse();
       return segment;
     });
@@ -148,7 +148,7 @@ export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
       return segment;
     };
     while (remaining.length > 0) {
-      let points: L.LatLng[] = [];
+      let points: EarthPoint[] = [];
       points.push(...remaining.splice(0, 1)[0]);
       firstPoints.splice(0, 1);
       lastPoints.splice(0, 1);

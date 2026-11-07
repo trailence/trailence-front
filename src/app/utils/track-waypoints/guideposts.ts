@@ -2,7 +2,7 @@ import { POI } from '@trailence/services/map/poi';
 import { TrackWayPoint, TrackWayPointElement } from './track-waypoint';
 import { Track } from '@trailence/model/track';
 import { WayPointFromTrack } from './waypoints-from-track';
-import { distance } from '../latlng';
+import { distance, EarthPoint } from '../latlng';
 import { WayPoint } from '@trailence/model/way-point';
 import { Point } from '@trailence/model/point';
 import { TrackPointReference } from '../track-computed-data/types';
@@ -63,11 +63,11 @@ export function computeGuidepostsWayPoints(track: Track, pois: POI[], wayPoints:
     const wpPoint = wp.point;
     if (!wpPoint) continue;
     for (const poi of pois) {
-      const distance = wpPoint.pos.distanceTo(poi.pos);
-      if (distance < GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT) {
-        if (nearestGuidepost === undefined || distance < nerestDistance) {
+      const d = distance(wpPoint.pos, poi.pos);
+      if (d < GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT) {
+        if (nearestGuidepost === undefined || d < nerestDistance) {
           nearestGuidepost = poi;
-          nerestDistance = distance;
+          nerestDistance = d;
         }
       }
     }
@@ -98,10 +98,10 @@ export function computeGuidepostsWayPoints(track: Track, pois: POI[], wayPoints:
           wayPoints.some(wp => isWayPointAndDistanceLessThan(wp, GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT + 15, poi.pos))
       ) continue;
       previousPoi = poi;
-      let bestDistance = point.pos.distanceTo(poi.pos);
+      let bestDistance = distance(point.pos, poi.pos);
       let index = i;
       for (let j = i + 1; j < points.length; ++j) {
-        const d = points[j].pos.distanceTo(poi.pos);
+        const d = distance(points[j].pos, poi.pos);
         if (d < bestDistance) {
           bestDistance = d;
           index = j;
@@ -133,20 +133,20 @@ export function computeGuidepostsWayPoints(track: Track, pois: POI[], wayPoints:
   return changed;
 }
 
-function nearest(pois: POI[], pos: L.LatLng): POI | undefined {
+function nearest(pois: POI[], pos: EarthPoint): POI | undefined {
   let nearest: POI | undefined = undefined;
-  let distance = 0;
+  let nearestDistance = 0;
   for (const poi of pois) {
-    const d = pos.distanceTo(poi.pos);
-    if (d < GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT && (nearest === undefined || d < distance)) {
+    const d = distance(pos, poi.pos);
+    if (d < GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT && (nearest === undefined || d < nearestDistance)) {
       nearest = poi;
-      distance = d;
+      nearestDistance = d;
     }
   }
   return nearest;
 }
 
-function isWayPointAndDistanceLessThan(wp: TrackWayPoint, maxDistance: number, pos: {lat: number, lng: number}): boolean {
+function isWayPointAndDistanceLessThan(wp: TrackWayPoint, maxDistance: number, pos: EarthPoint): boolean {
   return wp.elements.some(e =>
     (e instanceof WayPointFromTrack && distance(pos, e.wayPoint.point.pos) < maxDistance) ||
     (e instanceof BreakPoint && distance(pos, e.getPoint()!.pos) < maxDistance)

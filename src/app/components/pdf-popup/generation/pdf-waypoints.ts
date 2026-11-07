@@ -1,10 +1,10 @@
 import { HorizBounds, PdfContext } from './pdf-context';
-import { MapAnchor } from '../../map/markers/map-anchor';
-import { anchorBorderColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor } from '../../map/track/map-track-way-points';
+import { anchorBorderColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor } from '@trailence/components/map/elements/map-track-anchors';
 import { addSvgToPdf } from './pdf-icon';
 import { generatePdfText } from './pdf-text';
 import { getWaypointData } from '../waypoints-utils';
 import { WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
+import { createMapAchorSvgString } from '@trailence/components/map/utils/map-anchor';
 
 export function generateWaypointsTextToPdf(ctx: PdfContext, y: number, horiz: HorizBounds) {
   const userLang = ctx.preferences.preferences.lang;
@@ -47,7 +47,7 @@ function generateWaypoint(ctx: PdfContext, waypoint: WayPointFromTrack, name: st
     nameSize++;
   }
 
-  const svg = MapAnchor.createSvg(
+  const svg = createMapAchorSvgString(
     waypoint.isDeparture ? anchorDepartureBorderColor : anchorBorderColor,
     waypoint.isDeparture ? ctx.i18n.texts.way_points.D : waypoint.isArrival ? ctx.i18n.texts.way_points.A : '' + waypoint.index,
     waypoint.isDeparture ? anchorDepartureTextColor : anchorTextColor,

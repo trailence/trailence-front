@@ -2,11 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { catchError, map, Observable, of, switchMap, tap, timer, zip } from 'rxjs';
 import { environment } from '@env/environment';
-import * as L from 'leaflet';
 import { Place } from './place';
 import { Track } from '@trailence/model/track';
 import { Segment } from '@trailence/model/segment';
-import { samePositionRound } from '@trailence/model/point';
 import { PointDescriptor } from '@trailence/model/point-descriptor';
 import { PreferencesService } from '../preferences/preferences.service';
 import { RequestLimiter } from '@trailence/utils/request-limiter';
@@ -14,6 +12,7 @@ import { Progress, ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
 import { parseCoordinates } from '@trailence/utils/coordinates-parser';
 import { OverpassClient } from './overpass-client.service';
+import { bboxFromEarthPointAndMeters, distance, EarthPoint, projectEarthPointForZoom, samePositionRound } from '@trailence/utils/latlng';
 
 @Injectable({
   providedIn: 'root'
@@ -28,10 +27,10 @@ export class GeoService {
     private readonly overpass: OverpassClient,
   ) {}
 
-  public findNearestPlaces(latitude: number, longitude: number, metersRadius: number): Observable<string[][]> {
-    const bounds = new L.LatLng(latitude, longitude).toBounds(metersRadius);
+  public findNearestPlaces(position: EarthPoint, metersRadius: number): Observable<string[][]> {
+    const bounds = bboxFromEarthPointAndMeters(position, metersRadius / 2);
     const fromOSM = this.overpass.request<OverpassResponse>(
-      "node[\"place\"~\"(municipality)|(city)|(borough)|(suburb)|(quarter)|(town)|(village)|(hamlet)\"][\"name\"](" + bounds.getSouth() + "," + bounds.getWest() + "," + bounds.getNorth() + "," + bounds.getEast() + ");out meta;",
+      "node[\"place\"~\"(municipality)|(city)|(borough)|(suburb)|(quarter)|(town)|(village)|(hamlet)\"][\"name\"](" + bounds.minlat + "," + bounds.minlng + "," + bounds.maxlat + "," + bounds.maxlng + ");out meta;",
       15
     ).pipe(
       map(response => {
@@ -42,7 +41,7 @@ export class GeoService {
       }),
       catchError(() => of([] as string[][]))
     );
-    const fromServer = this.http.get<string[][]>(environment.apiBaseUrl + '/place/v1?lat=' + latitude + '&lng=' + longitude + '&radius=' + metersRadius + '&lang=' + this.prefService.preferences.lang).pipe(
+    const fromServer = this.http.get<string[][]>(environment.apiBaseUrl + '/place/v1?lat=' + position.lat + '&lng=' + position.lng + '&radius=' + metersRadius + '&lang=' + this.prefService.preferences.lang).pipe(
       catchError(() => of([] as string[][]))
     );
     return zip(fromOSM, fromServer).pipe(
@@ -99,10 +98,10 @@ export class GeoService {
 
   public fillPointsElevationWithRestrictedApi(
     points: PointDescriptor[],
-    api: (points: L.LatLngLiteral[], progress?: Progress) => Observable<(number|undefined)[] | undefined>,
+    api: (points: EarthPoint[], progress?: Progress) => Observable<(number|undefined)[] | undefined>,
     progress?: Progress
   ): Observable<any> {
-    let coordinates: L.LatLngLiteral[] = [];
+    let coordinates: EarthPoint[] = [];
     let minDistance = 10;
     let skipped = 0;
     do {
@@ -111,7 +110,7 @@ export class GeoService {
       for (const point of points) {
         const pos = point.pos;
         const c = {lat: Math.floor(pos.lat * 100000) / 100000, lng: Math.floor(pos.lng * 100000) / 100000};
-        const i = coordinates.findIndex(c2 => L.latLng(c2.lat, c2.lng).distanceTo(c) < minDistance);
+        const i = coordinates.findIndex(c2 => distance(c2, c) < minDistance);
         if (i >= 0) {
           skipped++;
           continue;
@@ -128,8 +127,8 @@ export class GeoService {
         if (!result) return false;
         for (const point of points) {
           const pos = point.pos;
-          const c = L.latLng(Math.floor(pos.lat * 100000) / 100000, Math.floor(pos.lng * 100000) / 100000);
-          const i = coordinates.findIndex(c2 => L.latLng(c2.lat, c2.lng).distanceTo(c) < minDistance);
+          const c = {lat: Math.floor(pos.lat * 100000) / 100000, lng: Math.floor(pos.lng * 100000) / 100000};
+          const i = coordinates.findIndex(c2 => distance(c2, c) < minDistance);
           if (result.length < i || !result[i]) continue;
           point.ele = result[i];
         }
@@ -185,7 +184,7 @@ export class GeoService {
     );
   }
 
-  private getElevationFromOpenMeteo(points: L.LatLngLiteral[], progress?: Progress): Observable<(number | undefined)[] | undefined> {
+  private getElevationFromOpenMeteo(points: EarthPoint[], progress?: Progress): Observable<(number | undefined)[] | undefined> {
     const requests: Observable<any>[] = [];
     const limiter = new RequestLimiter(1);
     for (let i = 0; i < points.length; i += 100) {
@@ -222,7 +221,7 @@ export class GeoService {
         }
         return result;
       }),
-      catchError(e => of(undefined))
+      catchError(_ => of(undefined))
     );
   }
 
@@ -276,7 +275,7 @@ export class GeoService {
     );
   } */
 
-  private getElevationFromOpenElevation(points: L.LatLngLiteral[], progress?: Progress): Observable<(number | undefined)[] | undefined> {
+  private getElevationFromOpenElevation(points: EarthPoint[], progress?: Progress): Observable<(number | undefined)[] | undefined> {
     const requests: Observable<any>[] = [];
     const limiter = new RequestLimiter(1);
     let locations = '';
@@ -320,14 +319,14 @@ export class GeoService {
         }
         return results;
       }),
-      catchError(e => of(undefined))
+      catchError(_ => of(undefined))
     );
   }
 
   private getElevationFromTiles(points: PointDescriptor[], url: string, maxZoom: number, progress?: Progress): Observable<any> {
     const tiles: {x: number, y: number, nb: number}[] = [];
     for (const point of points) {
-      const crsPt = L.CRS.EPSG3857.latLngToPoint(point.pos, maxZoom);
+      const crsPt = projectEarthPointForZoom(point.pos, maxZoom);
       const tile = {x: Math.floor(crsPt.x / 256), y: Math.floor(crsPt.y / 256)};
       const t = tiles.find(t => t.x === tile.x && t.y === tile.y);
       if (t) t.nb++; else tiles.push({...tile, nb: 1});
@@ -356,14 +355,14 @@ export class GeoService {
           img.onerror = err => subscriber.error(err);
           img.src = urlCreator.createObjectURL(blob);
         })),
-        catchError(e => of(undefined)),
+        catchError(_ => of(undefined)),
         tap(() => progress?.addWorkDone(tile.nb)),
       )
     );
     return (requests.length === 0 ? of([]) : zip(requests)).pipe(
       map(images => {
         for (const point of points) {
-          const crsPt = L.CRS.EPSG3857.latLngToPoint(point.pos, maxZoom);
+          const crsPt = projectEarthPointForZoom(point.pos, maxZoom);
           const tile = {x: Math.floor(crsPt.x / 256), y: Math.floor(crsPt.y / 256)};
           const index = tiles.findIndex(t => t.x === tile.x && t.y === tile.y);
           if (index < 0 || !images[index]) continue;

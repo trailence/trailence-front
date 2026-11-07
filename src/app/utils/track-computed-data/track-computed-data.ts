@@ -17,8 +17,8 @@ import { AllWaysItem, OsmStatsItem, OsmWaysMatchItem, TrackComputedDataCacheServ
 import { AllWaysResponse } from '@trailence/services/map/ways';
 import { PoisResponse } from '@trailence/services/map/pois';
 import { GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT } from '../track-waypoints/guideposts';
-import { extendsAround } from '../leaflet-utils';
 import { filterDefined } from '../rxjs/filter-defined';
+import { extendBboxWithMeters } from '../latlng';
 
 export class TrackComputedData {
 
@@ -48,7 +48,7 @@ export class TrackComputedData {
             const server = this.networkService.server;
             if (fromCache && server && fromCache.osmDataVersion === server.osmDataVersions[this.mapService.geoDataVersion])
               return of({pois: fromCache.pois, partial: false, done: true, osmDataVersion: fromCache.osmDataVersion});
-            return this.mapService.pois.getPois(extendsAround(bounds, GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT + 1), ['guidepost']).pipe(filter(p => p.done));
+            return this.mapService.pois.getPois(extendBboxWithMeters(bounds, GUIDEPOST_MAX_DISTANCE_FROM_EXISTING_WAYPOINT + 1), ['guidepost']).pipe(filter(p => p.done));
           })
         );
       },

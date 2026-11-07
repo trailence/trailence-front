@@ -20,13 +20,9 @@ import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { QuotaService } from '../auth/quota.service';
 import { ModerationService } from '../moderation/moderation.service';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
-import { TrailLoopType } from '@trailence/model/dto/trail-loop-type';
-import { TrailActivity, TrailActivityGroup } from '@trailence/model/dto/trail-activity';
 import { ErrorService } from '../progress/error.service';
 import { Track } from '@trailence/model/track';
-import * as L from 'leaflet';
 import { estimateSimilarity } from '../track-edition/path-analysis/similarity';
-import { boundingBoxAround } from '@trailence/utils/leaflet-utils';
 import { NetworkService } from '../network/network.service';
 import { isPublicationCollection, SHARED_OWNER_PREFIX, TrailCollectionType } from '@trailence/model/dto/trail-collection';
 import { CommonDatabaseService } from './common-database.service';
@@ -36,6 +32,7 @@ import { getLogger } from '@trailence/utils/console';
 import { Share } from '@trailence/model/share';
 import { StoreLoadStatus } from './store/store';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from '@trailence/model/snapshots';
+import { bboxFromEarthPointAndMeters, bboxPadRatio } from '@trailence/utils/latlng';
 
 const logger = getLogger('trail.service');
 
@@ -245,8 +242,8 @@ export class TrailService {
     if (trail.owner !== auth.email) return EMPTY;
     const trackBounds = track.metadata.bounds;
     if (!trackBounds) return EMPTY;
-    const trackCloseArea = L.latLngBounds(trackBounds.getSouthWest(), trackBounds.getNorthEast()).pad(0.5);
-    const trackLargeArea = boundingBoxAround(track.departurePoint!.pos, 50000);
+    const trackCloseArea = bboxPadRatio(trackBounds, 0.5);
+    const trackLargeArea = bboxFromEarthPointAndMeters(track.departurePoint!.pos, 50000);
     return from(import('./my-public-trails.service').then(module => this.injector.get(module.MyPublicTrailsService))).pipe(
       switchMap(service => service.myPublicTrails$),
       switchMap(mines => {

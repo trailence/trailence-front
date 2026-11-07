@@ -1,17 +1,18 @@
 import { Point2D } from '@trailence/utils/geometry-utils';
+import { EarthBBox, EarthPoint } from '@trailence/utils/latlng';
 
 export class MapGenerator {
 
   public static readonly tileSize = 256;
 
-  public static computeMapBounds(trackBounds: L.LatLngBounds, width: number, height: number, margin: number = 0.025): {zoom: number, bounds: Bounds} {
+  public static computeMapBounds(trackBounds: EarthBBox, width: number, height: number, margin: number = 0.025): {zoom: number, bounds: Bounds} {
     let zoom = 5;
-    let bounds = convertBounds(trackBounds.getNorth(), trackBounds.getWest(), trackBounds.getSouth(), trackBounds.getEast(), zoom);
+    let bounds = convertBounds(trackBounds.minlat, trackBounds.minlng, trackBounds.maxlat, trackBounds.maxlng, zoom);
     const maxPathWidth = width - (width * margin * 2);
     const maxPathHeight = height - (height * margin * 2);
     while (zoom < 17 && (bounds.x2 - bounds.x1) * this.tileSize < maxPathWidth && (bounds.y2 - bounds.y1) * this.tileSize < maxPathHeight) {
       zoom++;
-      const newBounds = convertBounds(trackBounds.getNorth(), trackBounds.getWest(), trackBounds.getSouth(), trackBounds.getEast(), zoom);
+      const newBounds = convertBounds(trackBounds.minlat, trackBounds.minlng, trackBounds.maxlat, trackBounds.maxlng, zoom);
       if ((newBounds.x2 - newBounds.x1) * this.tileSize > maxPathWidth || (newBounds.y2 - newBounds.y1) * this.tileSize > maxPathHeight) {
         zoom--;
         break;
@@ -21,7 +22,7 @@ export class MapGenerator {
     return {zoom, bounds};
   }
 
-  public static computeMap(trackBounds: L.LatLngBounds, width: number, height: number, margin: number = 0.025): MapBounds {
+  public static computeMap(trackBounds: EarthBBox, width: number, height: number, margin: number = 0.025): MapBounds {
     const mapBounds = this.computeMapBounds(trackBounds, width, height, margin);
     const bounds = mapBounds.bounds;
     const pathYMiddle = (bounds.y1 + (bounds.y2 - bounds.y1) / 2) * this.tileSize;
@@ -43,7 +44,7 @@ export class MapGenerator {
     return {zoom: mapBounds.zoom, topTile, bottomTile, leftTile, rightTile, topDiff, leftDiff, mapLeft, mapTop };
   }
 
-  public static getPathPt(pos: L.LatLngLiteral, zoom: number, mapLeft: number, mapTop: number): Point2D {
+  public static getPathPt(pos: EarthPoint, zoom: number, mapLeft: number, mapTop: number): Point2D {
     return {x: (lon2pt(pos.lng, zoom) * this.tileSize) - mapLeft, y: (lat2pt(pos.lat, zoom) * this.tileSize) - mapTop};
   }
 

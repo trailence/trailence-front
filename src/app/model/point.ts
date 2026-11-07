@@ -1,9 +1,10 @@
+import { EarthPoint } from '@trailence/utils/latlng';
 import { PointDescriptor } from './point-descriptor';
 import { Track } from './track';
 
 export interface Point extends PointDescriptor {
 
-  pos: L.LatLng;
+  pos: EarthPoint;
   ele: number | undefined;
   time: number | undefined;
   posAccuracy: number | undefined;
@@ -20,22 +21,8 @@ export interface Point extends PointDescriptor {
 
   readonly computedSpeed: number | undefined;
 
-  distanceTo(other: L.LatLngExpression): number;
+  distanceTo(other: EarthPoint): number;
   durationFromStart(track: Track): number | undefined;
   distanceFromStart(track: Track): number;
 
-}
-
-export function samePosition(p1?: L.LatLngLiteral, p2?: L.LatLngLiteral): boolean {
-  if (!p1) return !p2;
-  if (!p2) return false;
-  return p1.lat === p2.lat && p1.lng === p2.lng;
-}
-
-export function samePositionRound(p1: L.LatLngLiteral, p2: L.LatLngLiteral, roundFactor = 1000000): boolean {
-  const lat1 = Math.round(p1.lat * roundFactor);
-  const lng1 = Math.round(p1.lng * roundFactor);
-  const lat2 = Math.round(p2.lat * roundFactor);
-  const lng2 = Math.round(p2.lng * roundFactor);
-  return Math.abs(lat1 - lat2) <= 1 && Math.abs(lng1 - lng2) <= 1;
 }

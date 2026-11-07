@@ -51,7 +51,7 @@ export class AdminStatsBuilder implements GraphProvider<AdminStatsConfig> {
                 color: textColor,
               },
               grid: {
-                color: new Color(textColor).setAlpha(0.33).toString()
+                color: Color.parse(textColor).setAlpha(0.33).toString()
               },
               stacked: stats.length > 1,
             },

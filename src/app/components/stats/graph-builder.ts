@@ -167,7 +167,7 @@ export class GraphBuilder implements GraphProvider<StatsConfig> {
               },
             },
             grid: {
-              color: new Color(textColor).setAlpha(0.33).toString()
+              color: Color.parse(textColor).setAlpha(0.33).toString()
             }
           },
           x: {

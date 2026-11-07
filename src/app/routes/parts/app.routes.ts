@@ -37,7 +37,7 @@ export const appPublicRoutes: Routes = [
     path: 'user-routes/:trailsId',
     data: { 'trailsType': 'user-public' },
     loadComponent: () => import('../../pages/trails/trails.page').then(m => m.TrailsPage)
-  },
+  },/* TODO refacto
   {
     path: 'trail/trailence/:trailId',
     data: { 'trailOwner': 'trailence' },
@@ -56,7 +56,7 @@ export const appPublicRoutes: Routes = [
   {
     path: 'live-group/:path1',
     loadComponent: () => import('../../pages/live-group/live-group.page').then(m => m.LiveGroupPage)
-  },
+  },*/
   {
     path: 'privacy-policy',
     loadComponent: () => import('../../pages/privacy-policy/privacy-policy.page').then(m => m.PrivacyPolicyPage)
@@ -77,7 +77,7 @@ export const appAuthRoutes: Routes = [
   {
     path: 'trails/:trailsType/:trailsId/:trailsFrom',
     loadComponent: () => import('../../pages/trails/trails.page').then(m => m.TrailsPage)
-  },
+  },/* TODO refacto
   {
     path: 'trail/:trailOwner/:trailId/:trailOwner2/:trailId2',
     loadComponent: () => import('../../pages/trail/trail.page').then(m => m.TrailPage)
@@ -93,7 +93,7 @@ export const appAuthRoutes: Routes = [
   {
     path: 'trail',
     loadComponent: () => import('../../pages/trail/trail.page').then(m => m.TrailPage)
-  },
+  },*/
   {
     path: 'preferences',
     loadComponent: () => import('../../pages/preferences/preferences.page').then(m => m.PreferencesPage)
@@ -101,11 +101,11 @@ export const appAuthRoutes: Routes = [
   {
     path: 'myaccount',
     loadComponent: () => import('../../pages/myaccount/myaccount.page').then(m => m.MyaccountPage)
-  },
+  },/* TODO refacto
   {
     path: 'trail-planner',
     loadComponent: () => import('../../pages/trail-planner/trail-planner.page').then(m => m.TrailPlannerPage)
-  },
+  },*/
   {
     path: 'notifications',
     loadComponent: () => import('../../pages/notifications/notifications.page').then(m => m.NotificationsPage)

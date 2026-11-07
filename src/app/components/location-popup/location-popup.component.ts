@@ -116,7 +116,7 @@ export class LocationPopupComponent implements OnInit, OnDestroy {
     const radiusValue = this.preferencesService.preferences.distanceUnit === 'METERS' ? this.radiusValue * 1000 : Math.round(this.i18n.milesToMeters(this.radiusValue));
     this.trackService.getSimplifiedTrack$(this.trail.currentTrackUuid, this.trail.owner).pipe(
       firstTimeout(t => !!t, 10000, () => null as SimplifiedTrackSnapshot | null),
-      switchMap(t => t ? this.geo.findNearestPlaces(t.points[0].lat, t.points[0].lng, radiusValue) : throwError(() => new Error('track not found'))),
+      switchMap(t => t ? this.geo.findNearestPlaces(t.points[0], radiusValue) : throwError(() => new Error('track not found'))),
     ).subscribe({
       next: places => {
         this.proposedPlaces = [];
@@ -149,7 +149,7 @@ export class LocationPopupComponent implements OnInit, OnDestroy {
   }
 
   close(role: string): void {
-    this.modalController.dismiss(null, role);
+    void this.modalController.dismiss(null, role);
   }
 
 }

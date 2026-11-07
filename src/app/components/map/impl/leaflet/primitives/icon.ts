@@ -105,7 +105,7 @@ export class LeafletIcon extends IconPrimitive<Leaflet> implements LeafletPrimit
   }
   private removeRotateListener(): void {
     if (!this.rotateListener) return;
-    this.events.removeHoveristener(this.rotateListener);
+    this.events.removeHoverListener(this.rotateListener);
     this.rotateListener = undefined;
   }
 

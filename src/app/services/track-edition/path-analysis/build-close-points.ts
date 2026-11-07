@@ -1,5 +1,5 @@
 import { Track } from '@trailence/model/track';
-import * as L from 'leaflet';
+import { distance, EarthPoint } from '@trailence/utils/latlng';
 
 export function getDistancesForAnalysis(track: Track) {
   const trackDistance = track.metadata.distance;
@@ -9,23 +9,23 @@ export function getDistancesForAnalysis(track: Track) {
     ({closePoints: 500, maxDistance: 1000, maxDiff: 0.04});
 }
 
-export function buildClosePointsFromTrack(track: Track, maxDistance: number): {point: L.LatLng, distanceToPrevious: number}[] {
+export function buildClosePointsFromTrack(track: Track, maxDistance: number): {point: EarthPoint, distanceToPrevious: number}[] {
   return buildClosePoints(track.getAllPositions(), maxDistance);
 }
 
-export function buildClosePoints(points: L.LatLng[], maxDistance: number): {point: L.LatLng, distanceToPrevious: number}[] {
+export function buildClosePoints(points: EarthPoint[], maxDistance: number): {point: EarthPoint, distanceToPrevious: number}[] {
   if (points.length === 0) return [];
-  const result: {point: L.LatLng, distanceToPrevious: number}[] = [];
+  const result: {point: EarthPoint, distanceToPrevious: number}[] = [];
   result.push({point: points[0], distanceToPrevious: 0});
   let previous = points[0];
   for (let i = 1; i < points.length; ++i) {
     const p = points[i];
     let distanceToPrevious: number;
-    while ((distanceToPrevious = p.distanceTo(previous)) > maxDistance) {
-      let np = L.latLng(previous.lat + (p.lat - previous.lat) / 2, previous.lng + (p.lng - previous.lng) / 2);
+    while ((distanceToPrevious = distance(p, previous)) > maxDistance) {
+      let np = {lat: previous.lat + (p.lat - previous.lat) / 2, lng: previous.lng + (p.lng - previous.lng) / 2};
       let distanceToPrevious2: number;
-      while ((distanceToPrevious2 = np.distanceTo(previous)) > maxDistance) {
-        np = L.latLng(previous.lat + (np.lat - previous.lat) / 2, previous.lng + (np.lng - previous.lng) / 2);
+      while ((distanceToPrevious2 = distance(np, previous)) > maxDistance) {
+        np = {lat: previous.lat + (np.lat - previous.lat) / 2, lng: previous.lng + (np.lng - previous.lng) / 2};
       }
       result.push({point: np, distanceToPrevious: distanceToPrevious2});
       previous = np;

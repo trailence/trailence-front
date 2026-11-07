@@ -32,6 +32,12 @@ export class Segment {
     );
   }
 
+  public get pointsWithChanges$(): Observable<Point[]> {
+    return this._points.pipe(
+      switchMap(points => concat(of(points), this._pointsChanges$.pipe(map(() => this.points)))),
+    );
+  }
+
   public append(point: PointDescriptor): Point {
     const p = new PointImpl(this._meta, point, this._points.value.at(-1), undefined, this._pointsChanges$);
     this._points.value.push(p);

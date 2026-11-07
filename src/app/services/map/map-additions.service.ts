@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { concat, defer, map, merge, Observable, of, tap } from 'rxjs';
 import { OfflineMapService } from './offline-map.service';
-import * as L from 'leaflet';
 import { POI, POIType } from './poi';
 import { Way, WayPermission } from './way';
+import { EarthBBox } from '@trailence/utils/latlng';
 
 @Injectable({providedIn: 'root'})
 export class MapAdditionsService {
@@ -12,7 +12,7 @@ export class MapAdditionsService {
     private readonly mapOffline: OfflineMapService,
   ) {}
 
-  public getAdditions(bounds: L.LatLngBounds, options: MapAdditionsOptions): Observable<{pois: POI[], ways: Way[], done: boolean, partial: boolean}> {
+  public getAdditions(bounds: EarthBBox, options: MapAdditionsOptions): Observable<{pois: POI[], ways: Way[], done: boolean, partial: boolean}> {
     const requests: Observable<{pois: POI[], ways: Way[], done: boolean, partial: boolean}>[] = [];
     const poiTypes: POIType[] = [];
     if (options.waterPoint) poiTypes.push('water');

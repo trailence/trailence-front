@@ -5,7 +5,7 @@ import { MapRenderer } from '../impl/map-renderer';
 import { MapPrimitive } from '../primitives/primitive';
 import { SvgBoundsPrimitive } from '../primitives/svg';
 
-export class MapBubble extends MapElement {
+export class MapBubble extends MapElement<MapBubble> {
 
   constructor(
     id: string,
@@ -40,10 +40,10 @@ export class MapBubble extends MapElement {
   private _primitive?: SvgBoundsPrimitive<any>;
   protected override createPrimitives$(renderer: MapRenderer): Observable<MapPrimitive<any, MapRenderer>[]> {
     if (this._primitive) {
-      this.events.unbind(this._primitive);
+      this.events._unbind(this._primitive);
     }
     this._primitive = renderer.createSvgBounds(this.id, this.bubbleBounds, this.svg, {});
-    this.events.bind(this._primitive);
+    this.events._bind(this._primitive);
     return of([this._primitive]);
   }
 

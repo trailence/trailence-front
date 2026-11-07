@@ -12,7 +12,6 @@ import { PreferencesService } from '../preferences/preferences.service';
 import { SegmentDto } from '@trailence/model/dto/segment';
 import { WayPointDto } from '@trailence/model/dto/way-point';
 import { TrackDto } from '@trailence/model/dto/track';
-import * as L from 'leaflet';
 import { TypeUtils } from '@trailence/utils/type-utils';
 import { PendingRequests, PendingRequestsMultiple } from '@trailence/utils/pending-requests';
 import { SimplifiedPoint, SimplifiedTrackSnapshot, TrackMetadataSnapshot } from '@trailence/model/snapshots';
@@ -22,6 +21,7 @@ import { TrackComputedDataCacheService } from '../database/track-computed-data-c
 import { NetworkService } from '../network/network.service';
 import { Filters } from '../preferences/preferences';
 import { getLogger } from '@trailence/utils/console';
+import { EarthBBox, projectEarthPointForZoom, unprojectToEarthPointForZoom } from '@trailence/utils/latlng';
 
 const logger = getLogger('trailence.plugin');
 
@@ -65,12 +65,12 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
 
   public override canSearchByArea(): boolean { return true };
 
-  public override searchByArea(bounds: L.LatLngBounds, limit: number): Observable<SearchResult> {
+  public override searchByArea(bounds: EarthBBox, limit: number): Observable<SearchResult> {
     return this.injector.get(HttpService).post<{uuids: string[], hasMoreResults: boolean}>(environment.apiBaseUrl + '/public/trails/v1/searchByBounds', {
-      north: bounds.getNorth(),
-      south: bounds.getSouth(),
-      west: bounds.getWest(),
-      east: bounds.getEast(),
+      north: bounds.minlat,
+      south: bounds.maxlat,
+      west: bounds.minlng,
+      east: bounds.maxlng,
       maxResults: limit,
     }).pipe(
       switchMap(searchResponse =>
@@ -360,9 +360,9 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
     return true;
   }
 
-  public override searchBubbles(bounds: L.LatLngBounds, zoom: number, filters: Filters, lang: string): Observable<SearchBubblesResult> {
-    const topLeft = L.CRS.EPSG3857.latLngToPoint(bounds.getNorthWest(), zoom);
-    const bottomRight = L.CRS.EPSG3857.latLngToPoint(bounds.getSouthEast(), zoom);
+  public override searchBubbles(bounds: EarthBBox, zoom: number, filters: Filters, lang: string): Observable<SearchBubblesResult> {
+    const topLeft = projectEarthPointForZoom({lat: bounds.minlat, lng: bounds.minlng}, zoom);
+    const bottomRight = projectEarthPointForZoom({lat: bounds.maxlat, lng: bounds.maxlng}, zoom);
     const startY = Math.floor(topLeft.y / 128);
     const endY = Math.floor(bottomRight.y / 128);
     const startX = Math.floor(topLeft.x / 128);
@@ -408,7 +408,7 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
     .pipe(
       map(result => ({
         trailsByTile: result.trailsByTile.map(r => ({
-          pos: L.CRS.EPSG3857.pointToLatLng(L.point((r.tile % nbTilesByY) * 128 + 64, Math.floor(r.tile / nbTilesByY) * 128 + 64), zoom),
+          pos: unprojectToEarthPointForZoom({x: (r.tile % nbTilesByY) * 128 + 64, y: Math.floor(r.tile / nbTilesByY) * 128 + 64}, zoom),
           count: r.nbTrails,
         })),
         uuids: result.uuids,

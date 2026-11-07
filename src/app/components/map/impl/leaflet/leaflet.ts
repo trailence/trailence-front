@@ -13,6 +13,8 @@ import { Point2D } from '@trailence/utils/geometry-utils';
 import { SvgBoundsOptions } from '../../primitives/svg';
 import { LeafletSvgBounds } from './primitives/svg';
 import { LeafletUtils } from './leaflet-utils';
+import { IconOptions, IconPrimitive } from '../../primitives/icon';
+import { LeafletIcon } from './primitives/icon';
 
 export class Leaflet extends MapRenderer {
 
@@ -64,13 +66,16 @@ export class Leaflet extends MapRenderer {
   public override getBounds(): EarthBBox | undefined {
     return this.map ? LeafletUtils.fromLeafletBounds(this.map.getBounds()) : undefined;
   }
-  public override fitBounds(bounds: EarthBBox): this {
-    this.map?.fitBounds(LeafletUtils.toLeafletBounds(bounds));
+  public override fitBounds(bounds: EarthBBox, flying: boolean): this {
+    const target = LeafletUtils.toLeafletBounds(bounds);
+    if (flying) this.map?.flyToBounds(target);
+    else this.map?.fitBounds(target);
     return this;
   }
 
-  public override goTo(center: EarthPoint, zoom?: number): void {
-    this.map?.setView(center, zoom);
+  public override goTo(center: EarthPoint, zoom: number | undefined, flying: boolean): void {
+    if (flying) this.map?.flyTo(center, zoom);
+    else this.map?.setView(center, zoom);
   }
 
   public override getMinZoom(): number {
@@ -100,6 +105,10 @@ export class Leaflet extends MapRenderer {
 
   public override createSvgBounds(id: string, bounds: EarthBBox, svg: string | SVGSVGElement, options: SvgBoundsOptions) {
     return new LeafletSvgBounds(id, bounds, svg, options);
+  }
+
+  public override createIcon(id: string, position: EarthPoint, options: IconOptions): IconPrimitive<any> {
+    return new LeafletIcon(id, position, options);
   }
 
   public override getViewportSize(): Point2D | undefined {

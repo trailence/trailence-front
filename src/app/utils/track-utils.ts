@@ -1,11 +1,11 @@
-import { Point, samePositionRound } from '../model/point';
+import { Point } from '../model/point';
 import { PointDescriptor } from '../model/point-descriptor';
-import * as L from 'leaflet';
 import { Track } from '../model/track';
 import { Segment } from '../model/segment';
 import { WayPoint } from '../model/way-point';
 import { computeWayPointsFromTrack } from './track-waypoints/waypoints-from-track';
 import { TrackPointReference } from './track-computed-data/types';
+import { distance, EarthPoint, samePositionRound } from './latlng';
 
 export class TrackUtils {
 
@@ -74,8 +74,7 @@ export class TrackUtils {
   public static getDistanceFromPreviousPoint(points: PointDescriptor[], index: number): number {
     const p = points[index];
     if ((p as any)['distanceFromPreviousPoint'] !== undefined) return (p as Point).distanceFromPreviousPoint;
-    const pos = p.pos instanceof L.LatLng ? p.pos : L.latLng(p.pos.lat, p.pos.lng);
-    return pos.distanceTo(points[index - 1].pos);
+    return distance(p.pos, points[index - 1].pos);
   }
 
   public static distanceBetweenPoints(segments: Segment[], startSegment: number, startPoint: number, endSegment: number, endPoint: number): number {
@@ -88,12 +87,12 @@ export class TrackUtils {
     }
   }
 
-  public static distanceBetweenLatLng(points: L.LatLngExpression[], startIndex: number, endIndex: number): number {
+  public static distanceBetweenLatLng(points: EarthPoint[], startIndex: number, endIndex: number): number {
     let total = 0;
-    let p = L.latLng(points[startIndex]);
+    let p = points[startIndex];
     for (let i = startIndex + 1; i <= endIndex; ++i) {
-      const p2 = L.latLng(points[i]);
-      total += p.distanceTo(p2);
+      const p2 = points[i];
+      total += distance(p, p2);
       p = p2;
     }
     return total;
@@ -118,15 +117,14 @@ export class TrackUtils {
     return true;
   }
 
-  public static findClosestPoint(pos: L.LatLngLiteral, points: L.LatLngLiteral[], maxDistance: number = -1): number {
+  public static findClosestPoint(pos: EarthPoint, points: EarthPoint[], maxDistance: number = -1): number {
     if (points.length === 0) return -1;
     let closestIndex = -1;
     let closestDistance = -1;
-    const p = L.latLng(pos);
     for (let i = 0; i < points.length; ++i) {
       const p2 = points[i];
-      if (p.lat === p2.lat && p.lng === p2.lng) return i;
-      const d = p.distanceTo(p2);
+      if (pos.lat === p2.lat && pos.lng === p2.lng) return i;
+      const d = distance(pos, p2);
       if (d <= 0.1) return i;
       if ((maxDistance < 0 || d <= maxDistance) && (closestDistance === -1 || d < closestDistance)) {
         closestIndex = i;
@@ -136,14 +134,13 @@ export class TrackUtils {
     return closestIndex;
   }
 
-  public static findClosestPoints(pos: L.LatLngLiteral, points: L.LatLngLiteral[], maxDistance: number = -1): number[] {
+  public static findClosestPoints(pos: EarthPoint, points: EarthPoint[], maxDistance: number = -1): number[] {
     if (points.length === 0) return [];
     let closestIndexes: number[] = [];
     let closestDistance = -1;
-    const p = L.latLng(pos);
     for (let i = 0; i < points.length; ++i) {
       const p2 = points[i];
-      const d = p.distanceTo(p2);
+      const d = distance(pos, p2);
       if ((maxDistance < 0 || d <= maxDistance) && (closestDistance === -1 || d <= closestDistance)) {
         if (d === closestDistance) closestIndexes.push(i);
         else closestIndexes = [i];
@@ -153,18 +150,17 @@ export class TrackUtils {
     return closestIndexes;
   }
 
-  public static findClosestPointInTrack(pos: L.LatLngLiteral, track: Track, maxDistance: number = -1): {segmentIndex: number, pointIndex: number} | undefined {
+  public static findClosestPointInTrack(pos: EarthPoint, track: Track, maxDistance: number = -1): {segmentIndex: number, pointIndex: number} | undefined {
     let closestSegmentIndex = -1;
     let closestPointIndex = -1;
     let closestDistance = -1;
-    const p = L.latLng(pos);
     const segments = track.segments;
     for (let si = 0; si < segments.length; ++si) {
       const points = segments[si].points;
       for (let pi = 0; pi < points.length; ++pi) {
         const p2 = points[pi].pos;
-        if (p.lat === p2.lat && p.lng === p2.lng) return {segmentIndex: si, pointIndex: pi};
-        const d = p.distanceTo(p2);
+        if (pos.lat === p2.lat && pos.lng === p2.lng) return {segmentIndex: si, pointIndex: pi};
+        const d = distance(pos, p2);
         if (d <= 0.1) return {segmentIndex: si, pointIndex: pi};
         if ((maxDistance < 0 || d <= maxDistance) && (closestDistance === -1 || d < closestDistance)) {
           closestSegmentIndex = si;
@@ -176,15 +172,14 @@ export class TrackUtils {
     return closestSegmentIndex >= 0 ? {segmentIndex: closestSegmentIndex, pointIndex: closestPointIndex} : undefined;
   }
 
-  public static findLastClosePointInTrack(pos: L.LatLngLiteral, track: Track, maxDistance: number): {segmentIndex: number, pointIndex: number} | undefined {
+  public static findLastClosePointInTrack(pos: EarthPoint, track: Track, maxDistance: number): {segmentIndex: number, pointIndex: number} | undefined {
     let closestIndex: {segmentIndex: number, pointIndex: number} | undefined = undefined;
     let closestDistance = -1;
-    const p = L.latLng(pos);
     let segmentIndex = 0;
     for (const segment of track.segments) {
       let pointIndex = 0;
       for (const point of segment.points) {
-        const d = p.distanceTo(point.pos);
+        const d = distance(pos, point.pos);
         if (d <= maxDistance && (closestDistance === -1 || d < closestDistance || segmentIndex > closestIndex!.segmentIndex || pointIndex > closestIndex!.pointIndex + 25)) {
           closestIndex = {segmentIndex, pointIndex};
           closestDistance = d;
@@ -197,18 +192,17 @@ export class TrackUtils {
   }
 
 
-  public static findNextClosestPointInTrack(pos: L.LatLngLiteral, track: Track, maxDistance: number, from: TrackPointReference): TrackPointReference | undefined { // NOSONAR
+  public static findNextClosestPointInTrack(pos: EarthPoint, track: Track, maxDistance: number, from: TrackPointReference): TrackPointReference | undefined { // NOSONAR
     let closestSegmentIndex = -1;
     let closestPointIndex = -1;
     let closestDistance = -1;
-    const p = L.latLng(pos);
     const segments = track.segments;
     for (let si = from.segmentIndex; si < segments.length; ++si) {
       const points = segments[si].points;
       for (let pi = (si === from.segmentIndex ? from.pointIndex : 0); pi < points.length; ++pi) {
         const p2 = points[pi].pos;
-        if (p.lat === p2.lat && p.lng === p2.lng) return {segmentIndex: si, pointIndex: pi};
-        const d = p.distanceTo(p2);
+        if (pos.lat === p2.lat && pos.lng === p2.lng) return {segmentIndex: si, pointIndex: pi};
+        const d = distance(pos, p2);
         if (d <= maxDistance && (closestDistance === -1 || d < closestDistance)) {
           closestSegmentIndex = si;
           closestPointIndex = pi;
@@ -266,7 +260,7 @@ export class TrackUtils {
     return track.wayPoints.filter(wp => waypoints.find(c => c.wayPoint.isEquals(wp)));
   }
 
-  public static getWayPointAt(track: Track, position: L.LatLngLiteral): WayPoint | undefined {
+  public static getWayPointAt(track: Track, position: EarthPoint): WayPoint | undefined {
     for (const wp of track.wayPoints) {
       if (wp.point.pos.lat === position.lat && wp.point.pos.lng === position.lng)
         return wp;
@@ -276,7 +270,7 @@ export class TrackUtils {
     for (const wp of track.wayPoints) {
       if (samePositionRound(wp.point.pos, position))
         return wp;
-      const d = L.CRS.Earth.distance(wp.point.pos, position);
+      const d = distance(wp.point.pos, position);
       if (d < 5 && (!closest || d < closestDistance)) {
         closest = wp;
         closestDistance = d;
@@ -317,12 +311,12 @@ export class TrackUtils {
 
   // Path
 
-  public static findPath(track: Track, startPos: L.LatLng, endPos: L.LatLng): PointDescriptor[] | undefined {
+  public static findPath(track: Track, startPos: EarthPoint, endPos: EarthPoint): PointDescriptor[] | undefined {
     let best: PointDescriptor[] | undefined = undefined;
     let bestDistance: number | undefined;
     for (const segment of track.segments) {
       for (let pi = 0; pi < segment.points.length; pi++) {
-        if (segment.points[pi].pos.distanceTo(startPos) < 25) {
+        if (distance(segment.points[pi].pos, startPos) < 25) {
           const startPointIndex = this.findBestPoint(segment, pi, startPos, 1);
           const path = this.findPathFrom(segment, startPointIndex, endPos);
           if (!path) {
@@ -341,12 +335,12 @@ export class TrackUtils {
     return best;
   }
 
-  private static findBestPoint(segment: Segment, pi: number, pos: L.LatLng, direction: number): number {
+  private static findBestPoint(segment: Segment, pi: number, pos: EarthPoint, direction: number): number {
     let bestIndex = pi;
-    let bestDist = segment.points[pi].pos.distanceTo(pos);
+    let bestDist = distance(segment.points[pi].pos, pos);
     for (pi = pi + direction; pi >= 0 && pi < segment.points.length; pi += direction) {
       const p = segment.points[pi];
-      const d = p.pos.distanceTo(pos);
+      const d = distance(p.pos, pos);
       if (d <= bestDist) {
         bestIndex = pi;
         bestDist = d;
@@ -357,7 +351,7 @@ export class TrackUtils {
     return bestIndex;
   }
 
-  private static findPathFrom(segment: Segment, startIndex: number, target: L.LatLng): PointDescriptor[] | undefined {
+  private static findPathFrom(segment: Segment, startIndex: number, target: EarthPoint): PointDescriptor[] | undefined {
     // may be forward, or backward
     const forward = this.getPath(segment, startIndex, target, 1);
     const backward = this.getPath(segment, startIndex, target, -1);
@@ -369,10 +363,10 @@ export class TrackUtils {
     return backward;
   }
 
-  private static getPath(segment: Segment, startIndex: number, target: L.LatLng, direction: number): PointDescriptor[] | undefined {
+  private static getPath(segment: Segment, startIndex: number, target: EarthPoint, direction: number): PointDescriptor[] | undefined {
     for (let endIndex = startIndex + direction; endIndex >= 0 && endIndex < segment.points.length - 1; endIndex += direction) {
       const p = segment.points[endIndex];
-      if (p.pos.distanceTo(target) < 25) {
+      if (distance(p.pos, target) < 25) {
         const bestEnd = this.findBestPoint(segment, endIndex, target, direction);
         return direction > 0 ? segment.points.slice(startIndex, bestEnd + 1) : segment.points.slice(bestEnd, startIndex + 1).reverse();
       }

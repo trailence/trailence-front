@@ -17,7 +17,7 @@ export class ElevationLegendPlugin implements C.Plugin<"line"> {
     ctx.save();
     let x = xAxis.width > 270 ? xAxis.right : chart.canvas.clientWidth;
     for (let i = gradeColors.length -1; i >= 0; --i) {
-      const bg = new Color(gradeColors[i]);
+      const bg = Color.parse(gradeColors[i]);
       ctx.fillStyle = gradeColors[i];
       ctx.fillRect(x - width, xAxis.bottom - height, width, height);
       if (bg.r + bg.g + bg.b < 120 * 3)

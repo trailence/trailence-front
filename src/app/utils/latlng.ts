@@ -1,4 +1,4 @@
-import { Point2D } from './geometry-utils';
+import { BBox2D, Point2D } from './geometry-utils';
 
 export const EARTH_RADIUS = 6371000; // meters
 const DEG_TO_RAD = Math.PI / 180;
@@ -16,6 +16,15 @@ export function sameOptionalPosition(p1: EarthPoint | undefined, p2: EarthPoint 
   if (p2 === undefined) return false;
   return p1.lat === p2.lat && p1.lng === p2.lng;
 }
+
+export function samePositionRound(p1: EarthPoint, p2: EarthPoint, roundFactor = 1000000): boolean {
+  const lat1 = Math.round(p1.lat * roundFactor);
+  const lng1 = Math.round(p1.lng * roundFactor);
+  const lat2 = Math.round(p2.lat * roundFactor);
+  const lng2 = Math.round(p2.lng * roundFactor);
+  return Math.abs(lat1 - lat2) <= 1 && Math.abs(lng1 - lng2) <= 1;
+}
+
 
 export function normalizePoint(point: EarthPoint): EarthPoint {
   const n = {lat: normalizeLatitude(point.lat), lng: normalizeLongitude(point.lng)};
@@ -153,6 +162,79 @@ export function bboxFromList(bboxes: EarthBBox[]): EarthBBox | undefined {
   let result = bboxes[0];
   for (let i = 1; i < bboxes.length; ++i) result = extendBBox(result, bboxes[i]);
   return result;
+}
+
+export function projectEarthBBoxForZoom(bbox: EarthBBox, zoom: number): BBox2D {
+  const topLeft = projectEarthPointForZoom({lat: bbox.minlat, lng: bbox.minlng}, zoom);
+  const bottomRight = projectEarthPointForZoom({lat: bbox.maxlat, lng: bbox.maxlng}, zoom);
+  return {
+    minX: topLeft.x,
+    minY: topLeft.y,
+    maxX: bottomRight.x,
+    maxY: bottomRight.y,
+  };
+}
+
+export function unprojectToEarthBBoxForZoom(bbox: BBox2D, zoom: number): EarthBBox {
+  const topLeft = unprojectToEarthPointForZoom({x: bbox.minX, y: bbox.minY}, zoom);
+  const bottomRight = unprojectToEarthPointForZoom({x: bbox.maxX, y: bbox.maxY}, zoom);
+  return {
+    minlat: topLeft.lat,
+    minlng: topLeft.lng,
+    maxlat: bottomRight.lat,
+    maxlng: bottomRight.lng,
+  };
+}
+
+const APPROXIMATE_METERS_PER_DEGREE = 111320;
+
+export function bboxFromEarthPointAndMeters(point: EarthPoint, distanceMeters: number): EarthBBox {
+  const latOffset = distanceMeters / APPROXIMATE_METERS_PER_DEGREE;
+  const lngOffset = latOffset / Math.cos(DEG_TO_RAD * point.lat);
+  return {
+    minlat: point.lat - latOffset,
+    maxlat: point.lat + latOffset,
+    minlng: point.lng - lngOffset,
+    maxlng: point.lng + lngOffset,
+  };
+}
+
+export function extendBboxWithMeters(bbox: EarthBBox, distanceMeters: number): EarthBBox {
+  const latOffset = distanceMeters / APPROXIMATE_METERS_PER_DEGREE;
+  return {
+    minlat: bbox.minlat - latOffset,
+    maxlat: bbox.maxlat + latOffset,
+    minlng: bbox.minlng - latOffset / Math.cos(DEG_TO_RAD * bbox.maxlat),
+    maxlng: bbox.maxlng + latOffset / Math.cos(DEG_TO_RAD * bbox.minlat),
+  };
+}
+
+export function bboxContainsBBox(container: EarthBBox, contained: EarthBBox): boolean {
+  return contained.minlat >= container.minlat && contained.maxlat <= container.maxlat && contained.minlng >= container.minlng && contained.maxlng <= container.maxlng;
+}
+
+export function bboxOverlaps(b1: EarthBBox, b2: EarthBBox): boolean {
+  return (b2.minlat > b1.maxlat) && (b2.maxlat < b1.minlat) &&
+    (b2.maxlng > b1.minlng) && (b2.minlng < b1.maxlng);
+}
+
+/** clean bbox to remove the ones contained in an other one */
+export function cleanBbox(allBounds: EarthBBox[]): void {
+  for (let i = 1; i < allBounds.length; ++i) {
+    const b1 = allBounds[i];
+    let remove = false;
+    for (let j = 0; j < i; ++j) {
+      const b2 = allBounds[j];
+      if (bboxContainsBBox(b2, b1)) {
+        remove = true;
+        break;
+      }
+    }
+    if (remove) {
+      allBounds.splice(i, 1);
+      i--;
+    }
+  }
 }
 
 /**
@@ -342,21 +424,4 @@ export function bearing(from: EarthPoint, to: EarthPoint): number {
   // Normalize to [0, 360)
   θ = (θ + 360) % 360;
   return θ;
-  /*
-  const φ1 = from.lat * Math.PI / 180;
-  const φ2 = to.lat * Math.PI / 180;
-  const λ1 = from.lng * Math.PI / 180;
-  const λ2 = to.lng * Math.PI / 180;
-
-  const y = Math.sin(λ2 - λ1) * Math.cos(φ2);
-  const x =
-    Math.cos(φ1) * Math.sin(φ2) -
-    Math.sin(φ1) * Math.cos(φ2) * Math.cos(λ2 - λ1);
-
-  let θ = Math.atan2(y, x) * 180 / Math.PI;
-
-  // Normalize to [0, 360)
-  θ = (θ + 360) % 360;
-
-  return θ;*/
 }

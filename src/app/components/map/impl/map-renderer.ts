@@ -6,6 +6,7 @@ import { Polyline, PolylineOptions } from '../primitives/polyline';
 import { MapPrimitive } from '../primitives/primitive';
 import { Point2D } from '@trailence/utils/geometry-utils';
 import { SvgBoundsOptions, SvgBoundsPrimitive } from '../primitives/svg';
+import { IconOptions, IconPrimitive } from '../primitives/icon';
 
 export type MapRendererType = 'leaflet' | 'maplibre';
 
@@ -42,10 +43,10 @@ export abstract class MapRenderer {
 
   public abstract bringToFront(primitive: MapPrimitive<any, MapRenderer>): void;
 
-  public abstract goTo(center: EarthPoint, zoom?: number): void;
+  public abstract goTo(center: EarthPoint, zoom: number | undefined, flying: boolean): void;
 
   public abstract getBounds(): EarthBBox | undefined;
-  public abstract fitBounds(bounds: EarthBBox): this;
+  public abstract fitBounds(bounds: EarthBBox, flying: boolean): this;
 
   public abstract getMinZoom(): number;
   public abstract getMaxZoom(): number;
@@ -57,6 +58,7 @@ export abstract class MapRenderer {
   public abstract createCircle(id: string, position: EarthPoint, options: CircleOptions): Circle<any>;
   public abstract createPolyline(id: string, positions: EarthPoint[][], options: PolylineOptions): Polyline<any>;
   public abstract createSvgBounds(id: string, bounds: EarthBBox, svg: string | SVGSVGElement, options: SvgBoundsOptions): SvgBoundsPrimitive<any>;
+  public abstract createIcon(id: string, position: EarthPoint, options: IconOptions): IconPrimitive<any>;
 
   public abstract getViewportSize(): Point2D | undefined;
   public abstract projectToViewport(point: EarthPoint): Point2D;

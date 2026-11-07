@@ -144,10 +144,10 @@ export class CenterMapOnMyPositionTool implements MapTool {
           } else if (!sameBbox(insets.visible, previous.insets.visible) && !isPointInBBox(pos, insets.visible)) {
             toggle$.next(false);
           } else if (!samePosition(pos, previous.pos) && !isPointInBBox(pos, insets.centerArea)) {
-            state.renderer.goTo(pos);
+            state.renderer.goTo(pos, undefined, true);
           }
         } else {
-          state.renderer.goTo(pos, state.zoom < FOLLOW_LOCATION_MIN_ZOOM ? FOLLOW_LOCATION_DEFAULT_ZOOM : undefined);
+          state.renderer.goTo(pos, state.zoom < FOLLOW_LOCATION_MIN_ZOOM ? FOLLOW_LOCATION_DEFAULT_ZOOM : undefined, true);
         }
         previous = {pos, zoom: state.zoom, insets};
       }

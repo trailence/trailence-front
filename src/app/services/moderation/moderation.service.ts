@@ -11,7 +11,6 @@ import { PreferencesService } from '../preferences/preferences.service';
 import { CacheService, TimeoutCache, TimeoutCacheDb } from '../cache/cache.service';
 import { PhotoDto } from '@trailence/model/dto/photo';
 import { Photo } from '@trailence/model/photo';
-import * as L from 'leaflet';
 import { SegmentDto } from '@trailence/model/dto/segment';
 import { WayPointDto } from '@trailence/model/dto/way-point';
 import { estimateTimeForTrack } from '../track-edition/time/time-estimation';
@@ -32,7 +31,7 @@ import { TrackComputedDataCacheService } from '../database/track-computed-data-c
 import { ModerationCounters } from '@trailence/model/dto/moderation-counters';
 import { getLogger } from '@trailence/utils/console';
 import { MAX_TIME_DIFF_TO_POSITION_PHOTO_BY_DATE } from '../database/photo.service';
-import { normalizePoint } from '@trailence/utils/latlng';
+import { EarthPoint, normalizePoint, projectEarthPointForZoom } from '@trailence/utils/latlng';
 
 const logger = getLogger('moderation.service');
 
@@ -372,10 +371,9 @@ export class ModerationService {
 
     const tile128ByZoom: number[] = [];
     await step(1, () => {
-      const crs = L.CRS.EPSG3857;
       const departure = normalizePoint(track.departurePoint!.pos);
       for (let zoom = 1; zoom <= 10; ++zoom) {
-        const point = crs.latLngToPoint(departure, zoom);
+        const point = projectEarthPointForZoom(departure, zoom);
         tile128ByZoom.push(Math.floor(point.y / 128) * (4 << zoom) + Math.floor(point.x / 128));
       }
       return Promise.resolve();
@@ -397,7 +395,7 @@ export class ModerationService {
       photos.sort((p1, p2) => p1.index - p2.index);
       for (let index = 0; index < photos.length; ++index) {
         const p = photos[index];
-        let photoPos: L.LatLngLiteral | undefined;
+        let photoPos: EarthPoint | undefined;
         let photoDate: number | undefined;
         let photoDateTz: number | undefined
 
@@ -452,10 +450,10 @@ export class ModerationService {
       estimatedDuration,
       loopType: trail.loopType!,
       activity: trail.activity!,
-      boundsNorth: track.metadata.bounds!.getNorth(),
-      boundsSouth: track.metadata.bounds!.getSouth(),
-      boundsWest: track.metadata.bounds!.getWest(),
-      boundsEast: track.metadata.bounds!.getEast(),
+      boundsNorth: track.metadata.bounds!.minlat,
+      boundsSouth: track.metadata.bounds!.maxlat,
+      boundsWest: track.metadata.bounds!.minlng,
+      boundsEast: track.metadata.bounds!.maxlng,
       tile128ByZoom,
       simplifiedPath,
       fullTrack: fullTrack.s!,

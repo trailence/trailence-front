@@ -289,7 +289,7 @@ export class SearchTrailsService {
       '#000000',
     );
     bubble.events.addClickListener((bubble, event) => {
-      event.renderer.fitBounds(bounds);
+      event.renderer.fitBounds(bounds, true);
     });
     return bubble;
   }
