@@ -10,7 +10,7 @@ import { Track } from '@trailence/model/track';
 import { PreferencesService } from '../preferences/preferences.service';
 import { Arrays } from '@trailence/utils/arrays';
 import { TrailSourceType } from '@trailence/model/dto/trail';
-import { TrackMetadataSnapshot } from '@trailence/model/snapshots';
+import { trackBoundsToEarthBBox, TrackMetadataSnapshot } from '@trailence/model/snapshots';
 import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from '@trailence/worker/web-app';
 import { TrackComputedDataCacheService } from '../database/track-computed-data-cache.service';
@@ -98,8 +98,8 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
   public override searchByArea(bounds: EarthBBox, limit: number): Observable<SearchResult> {
     const center = bboxCenter(bounds);
     const radius = Math.floor(Math.max(
-      distance({lat: bounds.minlat, lng: bounds.maxlng}, {lat: bounds.maxlat, lng: bounds.maxlng}),
-      distance({lat: bounds.minlat, lng: bounds.maxlng}, {lat: bounds.minlat, lng: bounds.minlng})
+      distance({lat: bounds.maxlat, lng: bounds.maxlng}, {lat: bounds.minlat, lng: bounds.maxlng}),
+      distance({lat: bounds.maxlat, lng: bounds.maxlng}, {lat: bounds.maxlat, lng: bounds.minlng})
     ));
     return this.injector.get(HttpService).get<string[]>(
       environment.apiBaseUrl + '/search-trails/v1/outdooractive' +
@@ -110,7 +110,7 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
     ).pipe(
       switchMap(ids => from(this.tableMetadata.bulkGet(ids.map(id => id + '-original'))).pipe(
         switchMap(knowns => new Observable<SearchResult>(subscriber => {
-          const valid = knowns.filter(meta => meta?.bounds && bboxOverlaps({minlat: meta.bounds[0][0], maxlat: meta.bounds[1][0], minlng: meta.bounds[1][1], maxlng: meta.bounds[0][1]}, bounds)) as TrackMetadataSnapshot[];
+          const valid = knowns.filter(meta => meta?.bounds && bboxOverlaps(trackBoundsToEarthBBox(meta.bounds), bounds)) as TrackMetadataSnapshot[];
           const unknowns = filterItemsDefined(knowns.map((metadata, index) => metadata ? undefined : ids[index]));
           if (valid.length === 0 && unknowns.length === 0) {
             subscriber.next({trails: [], end: true, tooManyResults: false});
@@ -128,7 +128,7 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
             trails$.push(
               ...Arrays.chunk(unknowns, 5)
               .map(chunck => this.fetchTrailsByIds$(chunck, 5).pipe(
-                map(result => result.filter(r => r.metadata.bounds && bboxOverlaps(bounds, {minlat: r.metadata.bounds[0][0], maxlat: r.metadata.bounds[1][0], minlng: r.metadata.bounds[1][1], maxlng: r.metadata.bounds[0][1]})).map(r => r.trail))
+                map(result => result.filter(r => r.metadata.bounds && bboxOverlaps(bounds, trackBoundsToEarthBBox(r.metadata.bounds))).map(r => r.trail))
               ))
             );
           }

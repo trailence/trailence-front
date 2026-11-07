@@ -67,8 +67,8 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
 
   public override searchByArea(bounds: EarthBBox, limit: number): Observable<SearchResult> {
     return this.injector.get(HttpService).post<{uuids: string[], hasMoreResults: boolean}>(environment.apiBaseUrl + '/public/trails/v1/searchByBounds', {
-      north: bounds.minlat,
-      south: bounds.maxlat,
+      north: bounds.maxlat,
+      south: bounds.minlat,
       west: bounds.minlng,
       east: bounds.maxlng,
       maxResults: limit,
@@ -361,8 +361,8 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
   }
 
   public override searchBubbles(bounds: EarthBBox, zoom: number, filters: Filters, lang: string): Observable<SearchBubblesResult> {
-    const topLeft = projectEarthPointForZoom({lat: bounds.minlat, lng: bounds.minlng}, zoom);
-    const bottomRight = projectEarthPointForZoom({lat: bounds.maxlat, lng: bounds.maxlng}, zoom);
+    const topLeft = projectEarthPointForZoom({lat: bounds.maxlat, lng: bounds.minlng}, zoom);
+    const bottomRight = projectEarthPointForZoom({lat: bounds.minlat, lng: bounds.maxlng}, zoom);
     const startY = Math.floor(topLeft.y / 128);
     const endY = Math.floor(bottomRight.y / 128);
     const startX = Math.floor(topLeft.x / 128);

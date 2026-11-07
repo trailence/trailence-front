@@ -1,6 +1,6 @@
 import { BehaviorSubject, combineLatest, EMPTY, from, map, Observable, of, switchMap, timeout } from 'rxjs';
 import { MapTool } from '../map/map-tool';
-import { MapElement, MapElementPointerEvent } from '../map/map-element';
+import { MapElement } from '../map/map-element';
 import { Trail } from '@trailence/model/trail';
 import { MapBubble } from '../map/elements/map-bubble';
 import { EventEmitter, Injector } from '@angular/core';
@@ -9,7 +9,7 @@ import { MenuItem } from '../menus/menu-item';
 import { observableWithCache } from '@trailence/utils/rxjs/observable-with-cache';
 import { CollectionObservableCache } from '@trailence/utils/rxjs/collection-cache';
 import { TrailService } from '@trailence/services/database/trail.service';
-import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from '@trailence/model/snapshots';
+import { SimplifiedTrackSnapshot, trackBoundsToEarthBBox, TrackMetadataSnapshot } from '@trailence/model/snapshots';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { getLogger } from '@trailence/utils/console';
 import { MapTrackPath } from '../map/elements/map-track-path';
@@ -18,6 +18,7 @@ import { Color } from '@trailence/utils/color';
 import { MapElementsToolGroup } from '../map/tools/map-elements-tools';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
 import { earthBBox } from '@trailence/utils/latlng';
+import { MapPointerEvent } from '../map/map-events';
 
 const logger = getLogger('trails-and-map');
 
@@ -38,7 +39,7 @@ export class ToggleBubblesTool implements MapTool {
   private readonly activable$ = new BehaviorSubject<boolean>(false);
   private readonly showBubbles$ = new BehaviorSubject<boolean>(false);
 
-  clickOnTrail = new EventEmitter<{mapTrack: MapTrackPath, event: MapElementPointerEvent}>();
+  clickOnTrail = new EventEmitter<{mapTrack: MapTrackPath, event: MapPointerEvent}>();
 
   getMapElements$(): Observable<MapElement[]> {
     const trailService = this.injector.get(TrailService);
@@ -141,7 +142,7 @@ export class ToggleBubblesTool implements MapTool {
   }
 
   private buildBubblesFromTracks(tracks: {trail: Trail, track: TrackMetadataSnapshot | null}[]): Observable<MapBubble[]> {
-    const bounds = tracks.map(t => t.track?.bounds).filter(b => !!b).map(b => earthBBox({lat: b[0][0], lng: b[0][1]}, {lat: b[1][0], lng: b[1][1]}));
+    const bounds = tracks.map(t => t.track?.bounds).filter(b => !!b).map(b => trackBoundsToEarthBBox(b));
     return combineLatest([
       this.map$.pipe(
         filterDefined(),

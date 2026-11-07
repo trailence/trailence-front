@@ -1,8 +1,8 @@
-import { EarthBBox, EarthPoint } from '@trailence/utils/latlng';
+import { EarthBBox } from '@trailence/utils/latlng';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { MapRenderer } from './impl/map-renderer';
 import { MapPrimitive } from './primitives/primitive';
-import { Point2D } from '@trailence/utils/geometry-utils';
+import { MapPointerEvent } from './map-events';
 
 export interface MapElementPosition {
   layer: string;
@@ -99,15 +99,15 @@ export class MapElementEvents<T extends MapElement> {
     }
   }
 
-  private readonly clickListeners: InternalListener<T, MapElementPointerEvent>[] = [];
+  private readonly clickListeners: InternalListener<T, MapPointerEvent>[] = [];
 
-  public addClickListener(listener: (mapElement: T, event: MapElementPointerEvent) => void): this {
-    const l: InternalListener<T, MapElementPointerEvent> = { external: listener, internal: event => listener(this.mapElement, event) };
+  public addClickListener(listener: (mapElement: T, event: MapPointerEvent) => void): this {
+    const l: InternalListener<T, MapPointerEvent> = { external: listener, internal: event => listener(this.mapElement, event) };
     this.clickListeners.push(l);
     for (const primitive of this.bound) this.bindClick(primitive, l);
     return this;
   }
-  public removeClickListener(listener: (mapElement: T, event: MapElementPointerEvent) => void): this {
+  public removeClickListener(listener: (mapElement: T, event: MapPointerEvent) => void): this {
     const index = this.clickListeners.findIndex(l => l.external === listener);
     if (index >= 0) {
       const l = this.clickListeners.splice(index, 1)[0];
@@ -115,22 +115,22 @@ export class MapElementEvents<T extends MapElement> {
     }
     return this;
   }
-  private bindClick(primitive: MapPrimitive<any, any>, listener: InternalListener<T, MapElementPointerEvent>): void {
+  private bindClick(primitive: MapPrimitive<any, any>, listener: InternalListener<T, MapPointerEvent>): void {
     primitive.events.addClickListener(listener.internal);
   }
-  private unbindClick(primitive: MapPrimitive<any, any>, listener: InternalListener<T, MapElementPointerEvent>): void {
+  private unbindClick(primitive: MapPrimitive<any, any>, listener: InternalListener<T, MapPointerEvent>): void {
     primitive.events.removeClickListener(listener.internal);
   }
 
-  private readonly hoverListeners: InternalListener<T, MapElementPointerEvent | undefined>[] = [];
+  private readonly hoverListeners: InternalListener<T, MapPointerEvent | undefined>[] = [];
 
-  public addHoverListener(listener: (mapElement: T, event: MapElementPointerEvent | undefined) => void): this {
-    const l: InternalListener<T, MapElementPointerEvent | undefined> = { external: listener, internal: event => listener(this.mapElement, event) };
+  public addHoverListener(listener: (mapElement: T, event: MapPointerEvent | undefined) => void): this {
+    const l: InternalListener<T, MapPointerEvent | undefined> = { external: listener, internal: event => listener(this.mapElement, event) };
     this.hoverListeners.push(l);
     for (const primitive of this.bound) this.bindHover(primitive, l);
     return this;
   }
-  public removeHoverListener(listener: (mapElement: T, event: MapElementPointerEvent | undefined) => void): this {
+  public removeHoverListener(listener: (mapElement: T, event: MapPointerEvent | undefined) => void): this {
     const index = this.hoverListeners.findIndex(l => l.external === listener);
     if (index >= 0) {
       const l = this.hoverListeners.splice(index, 1)[0];
@@ -138,10 +138,10 @@ export class MapElementEvents<T extends MapElement> {
     }
     return this;
   }
-  private bindHover(primitive: MapPrimitive<any, any>, listener: InternalListener<T, MapElementPointerEvent | undefined>): void {
+  private bindHover(primitive: MapPrimitive<any, any>, listener: InternalListener<T, MapPointerEvent | undefined>): void {
     primitive.events.addHoverListener(listener.internal);
   }
-  private unbindHover(primitive: MapPrimitive<any, any>, listener: InternalListener<T, MapElementPointerEvent | undefined>): void {
+  private unbindHover(primitive: MapPrimitive<any, any>, listener: InternalListener<T, MapPointerEvent | undefined>): void {
     primitive.events.removeHoverListener(listener.internal);
   }
 
@@ -150,10 +150,4 @@ export class MapElementEvents<T extends MapElement> {
 interface InternalListener<T, E> {
   external: (mapElement: T, event: E) => void;
   internal: (event: E) => void;
-}
-
-export interface MapElementPointerEvent {
-  renderer: MapRenderer;
-  viewportPoint: Point2D;
-  geographicPoint: EarthPoint;
 }

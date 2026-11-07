@@ -15,6 +15,7 @@ import { LeafletSvgBounds } from './primitives/svg';
 import { LeafletUtils } from './leaflet-utils';
 import { IconOptions, IconPrimitive } from '../../primitives/icon';
 import { LeafletIcon } from './primitives/icon';
+import { MapPointerEvent } from '../../map-events';
 
 export class Leaflet extends MapRenderer {
 
@@ -23,6 +24,7 @@ export class Leaflet extends MapRenderer {
   public override get type(): MapRendererType { return 'leaflet'; }
 
   public override async init(): Promise<any> {
+    globalThis.L = L; // needed for leaflet rotate
     await this.injector.get(AssetsService).loadJs('leaflet-rotate.1.js');
 
     const mapLayersService = this.injector.get(MapLayersService);
@@ -46,6 +48,12 @@ export class Leaflet extends MapRenderer {
       touchRotateInertia: 15,
       rotateControl: false,
     } as any);
+
+    const map = this.map;
+    map.on('resize', () => this.mapState.center = map.getCenter());
+    map.on('move', () => this.mapState.center = map.getCenter());
+    map.on('zoom', () => this.mapState.zoom = map.getZoom());
+    map.on('click', e => this.events.click.trigger(() => this.toMapPointerEvent(e)));
   }
 
   protected override destroyMap(): void {
@@ -160,6 +168,14 @@ export class Leaflet extends MapRenderer {
     }
     if (val >= min && val <= max) return val;
     return latitude;
+  }
+
+  private toMapPointerEvent(e: L.LeafletMouseEvent): MapPointerEvent {
+    return {
+      renderer: this,
+      geographicPoint: e.latlng,
+      viewportPoint: e.containerPoint,
+    };
   }
 
 }

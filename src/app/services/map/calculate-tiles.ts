@@ -12,8 +12,8 @@ export function calculateTilesFromBounds(zoomLevel: number, bounds: EarthBBox[],
     }
     const bound = bounds[boundIndex];
     const area = L.bounds(
-      crs.latLngToPoint({lat: bound.minlat, lng: bound.minlng}, zoomLevel),
-      crs.latLngToPoint({lat: bound.maxlat, lng: bound.maxlng}, zoomLevel)
+      crs.latLngToPoint({lat: bound.maxlat, lng: bound.minlng}, zoomLevel),
+      crs.latLngToPoint({lat: bound.minlat, lng: bound.maxlng}, zoomLevel)
     );
     addTilesPoints(coordsSet, points, area, tileSize, xSize);
     setTimeout(() => nextBound(boundIndex + 1).then(resolve), 0);

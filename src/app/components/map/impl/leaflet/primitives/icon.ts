@@ -3,7 +3,7 @@ import { Leaflet } from '../leaflet';
 import { LeafletPrimitive } from './primitive';
 import * as L from 'leaflet';
 import { LeafletPrimitiveEvents } from './events';
-import { MapPointerEvent } from '@trailence/components/map/primitives/primitive';
+import { MapPointerEvent } from '@trailence/components/map/map-events';
 
 export class LeafletIcon extends IconPrimitive<Leaflet> implements LeafletPrimitive {
 

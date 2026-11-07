@@ -17,6 +17,10 @@ export interface TrackMetadataSnapshot {
   localUpdate: number;
 }
 
+export function trackBoundsToEarthBBox(bounds: [[number, number],[number, number]]): {minlat: number, maxlat: number, minlng: number, maxlng: number} {
+  return {minlat: bounds[1][0], maxlat: bounds[0][0], minlng: bounds[1][1], maxlng: bounds[0][1]};
+}
+
 export interface SimplifiedTrackSnapshot {
   uuid: string;
   owner: string;

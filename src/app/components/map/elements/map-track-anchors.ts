@@ -71,8 +71,8 @@ export class MapTrackAnchors extends MapElement<MapTrackAnchors> {
         if (!show) return of([]);
         const departure$ = this.track instanceof Track ? this.getDeparture$(this.track) : of(this.track.points.at(0));
         const arrival$ = this._neverShowArrival.pipe(
-          switchMap(showArrival => {
-            if (!showArrival) return of(undefined);
+          switchMap(hideArrival => {
+            if (hideArrival) return of(undefined);
             return this.track instanceof Track ? this.getArrival$(this.track) : of(this.track.points.at(-1));
           })
         );

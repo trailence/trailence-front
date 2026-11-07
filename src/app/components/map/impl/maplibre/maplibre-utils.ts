@@ -18,15 +18,15 @@ export class MapLibreUtils {
 
   public static fromMapLibreBounds(bounds: LngLatBounds): EarthBBox {
     return {
-      minlat: bounds.getNorth(),
-      maxlat: bounds.getSouth(),
+      minlat: bounds.getSouth(),
+      maxlat: bounds.getNorth(),
       minlng: bounds.getWest(),
       maxlng: bounds.getEast(),
     }
   }
 
   public static toMapLibreBounds(bounds: EarthBBox): LngLatBounds {
-    return new LngLatBounds([bounds.minlng, bounds.maxlat, bounds.maxlng, bounds.minlat]);
+    return new LngLatBounds([bounds.minlng, bounds.minlat, bounds.maxlng, bounds.maxlat]);
   }
 
 }

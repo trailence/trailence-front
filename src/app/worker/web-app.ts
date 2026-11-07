@@ -30,7 +30,7 @@ export class WorkerService {
   public parsePois(blob: Blob, type: POIType, bounds: EarthBBox): Promise<POI[]> {
     return this.request<POI[]>({
       request: WorkerRequest.PARSE_POIS,
-      payload: {blob, type, south: bounds.maxlat, north: bounds.minlat, east: bounds.maxlng, west: bounds.minlng},
+      payload: {blob, type, south: bounds.minlat, north: bounds.maxlat, east: bounds.maxlng, west: bounds.minlng},
       transferable: [blob]
     });
   }
@@ -38,7 +38,7 @@ export class WorkerService {
   public parseWays(blob: Blob, bounds: EarthBBox): Promise<{ways: Way[], references: WayReference[]}> {
     return this.request<{ways: Way[], references: WayReference[]}>({
       request: WorkerRequest.PARSE_WAYS,
-      payload: {blob, south: bounds.maxlat, north: bounds.minlat, east: bounds.maxlng, west: bounds.minlng},
+      payload: {blob, south: bounds.minlat, north: bounds.maxlat, east: bounds.maxlng, west: bounds.minlng},
       transferable: [blob]
     });
   }

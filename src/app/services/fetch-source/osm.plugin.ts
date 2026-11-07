@@ -73,7 +73,7 @@ export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
 
   private findRoutesIds(bounds: EarthBBox, limit: number): Observable<string[]> {
     return this.injector.get(OverpassClient).request<{elements: {id: number}[]}>(
-      "rel[type=\"route\"][route~\"(mtb)|(hiking)|(foot)|(nordic_walking)|(running)|(fitness_trail)|(inline_skates)\"](" + bounds.maxlat + "," + bounds.minlng + "," + bounds.minlat + "," + bounds.maxlng + ");out ids " + limit + ";",
+      "rel[type=\"route\"][route~\"(mtb)|(hiking)|(foot)|(nordic_walking)|(running)|(fitness_trail)|(inline_skates)\"](" + bounds.minlat + "," + bounds.minlng + "," + bounds.maxlat + "," + bounds.maxlng + ");out ids " + limit + ";",
       30
     ).pipe(
       map(response => response.elements.map(e => e.id.toString()))

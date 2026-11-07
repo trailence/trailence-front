@@ -5,7 +5,16 @@ const DEG_TO_RAD = Math.PI / 180;
 const RAD_TO_DEG = 180 / Math.PI;
 
 export type EarthPoint = {lat: number, lng: number, ele?: number};
-export type EarthBBox = {minlat: number, maxlat: number, minlng: number, maxlng: number};
+export type EarthBBox = {
+  /** South (minY) */
+  minlat: number,
+  /** North (maxY) */
+  maxlat: number,
+  /** West (minX) */
+  minlng: number,
+  /** East (maxX) */
+  maxlng: number
+};
 
 export function samePosition(p1: EarthPoint, p2: EarthPoint): boolean {
   return p1.lat === p2.lat && p1.lng === p2.lng;
@@ -165,24 +174,24 @@ export function bboxFromList(bboxes: EarthBBox[]): EarthBBox | undefined {
 }
 
 export function projectEarthBBoxForZoom(bbox: EarthBBox, zoom: number): BBox2D {
-  const topLeft = projectEarthPointForZoom({lat: bbox.minlat, lng: bbox.minlng}, zoom);
-  const bottomRight = projectEarthPointForZoom({lat: bbox.maxlat, lng: bbox.maxlng}, zoom);
+  const bottomLeft = projectEarthPointForZoom({lat: bbox.minlat, lng: bbox.minlng}, zoom);
+  const topRight = projectEarthPointForZoom({lat: bbox.maxlat, lng: bbox.maxlng}, zoom);
   return {
-    minX: topLeft.x,
-    minY: topLeft.y,
-    maxX: bottomRight.x,
-    maxY: bottomRight.y,
+    minX: bottomLeft.x,
+    minY: bottomLeft.y,
+    maxX: topRight.x,
+    maxY: topRight.y,
   };
 }
 
 export function unprojectToEarthBBoxForZoom(bbox: BBox2D, zoom: number): EarthBBox {
-  const topLeft = unprojectToEarthPointForZoom({x: bbox.minX, y: bbox.minY}, zoom);
-  const bottomRight = unprojectToEarthPointForZoom({x: bbox.maxX, y: bbox.maxY}, zoom);
+  const bottomLeft = unprojectToEarthPointForZoom({x: bbox.minX, y: bbox.minY}, zoom);
+  const topRight = unprojectToEarthPointForZoom({x: bbox.maxX, y: bbox.maxY}, zoom);
   return {
-    minlat: topLeft.lat,
-    minlng: topLeft.lng,
-    maxlat: bottomRight.lat,
-    maxlng: bottomRight.lng,
+    minlat: bottomLeft.lat,
+    minlng: bottomLeft.lng,
+    maxlat: topRight.lat,
+    maxlng: topRight.lng,
   };
 }
 
@@ -214,7 +223,7 @@ export function bboxContainsBBox(container: EarthBBox, contained: EarthBBox): bo
 }
 
 export function bboxOverlaps(b1: EarthBBox, b2: EarthBBox): boolean {
-  return (b2.minlat > b1.maxlat) && (b2.maxlat < b1.minlat) &&
+  return (b2.maxlat > b1.minlat) && (b2.minlat < b1.maxlat) &&
     (b2.maxlng > b1.minlng) && (b2.minlng < b1.maxlng);
 }
 

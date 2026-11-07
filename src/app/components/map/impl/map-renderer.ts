@@ -7,6 +7,7 @@ import { MapPrimitive } from '../primitives/primitive';
 import { Point2D } from '@trailence/utils/geometry-utils';
 import { SvgBoundsOptions, SvgBoundsPrimitive } from '../primitives/svg';
 import { IconOptions, IconPrimitive } from '../primitives/icon';
+import { MapEvents } from '../map-events';
 
 export type MapRendererType = 'leaflet' | 'maplibre';
 
@@ -16,6 +17,7 @@ export abstract class MapRenderer {
     protected readonly injector: Injector,
     protected readonly containerId: string,
     public readonly mapState: MapState,
+    public readonly events: MapEvents,
   ) {}
 
   public abstract get type(): MapRendererType;

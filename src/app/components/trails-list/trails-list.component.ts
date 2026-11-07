@@ -35,7 +35,7 @@ import { TrailInfo } from '@trailence/services/fetch-source/fetch-source.interfa
 import { isPublicationCollection, SHARED_OWNER_PREFIX, TrailCollectionType } from '@trailence/model/dto/trail-collection';
 import { collection$items } from '@trailence/utils/rxjs/collection$items';
 import { Tag } from '@trailence/model/tag';
-import { TrackMetadataSnapshot } from '@trailence/model/snapshots';
+import { trackBoundsToEarthBBox, TrackMetadataSnapshot } from '@trailence/model/snapshots';
 import { Arrays } from '@trailence/utils/arrays';
 import { NgTemplateOutlet } from '@angular/common';
 import { PhotoService } from '@trailence/services/database/photo.service';
@@ -549,7 +549,7 @@ export class TrailsListComponent extends AbstractComponent {
     if (filters.onlyVisibleOnMap && mapBounds) {
       return this.mapTrails.filter(t => {
         const b = t.track?.bounds;
-        return !b || bboxOverlaps(mapBounds, {minlat: b[0][0], minlng: b[1][1], maxlat: b[1][0], maxlng: b[0][1]});
+        return !b || bboxOverlaps(mapBounds, trackBoundsToEarthBBox(b));
       });
     }
     this.hasRating = this.mapTrails.some(t => t.info?.rating !== undefined);

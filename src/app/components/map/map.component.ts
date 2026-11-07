@@ -14,6 +14,8 @@ import { CenterMapOnMyPositionTool, GeolocationToolGroup, ShowMyGeolocationTool 
 import { TraceRecorderService } from '@trailence/services/trace-recorder/trace-recorder.service';
 import { projectEarthBBoxForZoom, unprojectToEarthBBoxForZoom } from '@trailence/utils/latlng';
 import { bbox2DContainsBBox2D, bbox2DPadding, extendBBox2D } from '@trailence/utils/geometry-utils';
+import { MapEvents } from './map-events';
+import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 
 export interface MapOptions {
   geoLocationDisabled?: boolean;
@@ -25,7 +27,9 @@ export interface MapOptions {
   selector: 'app-map',
   templateUrl: './map.component.html',
   styleUrl: './map.component.scss',
-  imports: [],
+  imports: [
+    ToolbarComponent,
+  ],
 })
 export class MapComponent extends AbstractComponent {
 
@@ -40,6 +44,8 @@ export class MapComponent extends AbstractComponent {
   private readonly _map$ = new BehaviorSubject<MapRenderer | undefined>(undefined);
   private readonly _elementsRenderer = new MapElementsRenderer(this.injector, this._map$);
   readonly _tools = new MapTools();
+
+  public readonly events = new MapEvents();
 
   public get renderer$(): Observable<MapRenderer | undefined> { return this._map$; }
   public get renderer(): MapRenderer | undefined { return this._map$.value; }
@@ -72,7 +78,7 @@ export class MapComponent extends AbstractComponent {
     this._elementsRenderer.setSource({id: 'map-basics', elements$: of(basicElements)});
     if (this.elements$) this._elementsRenderer.setSource({id: 'input', elements$: this.elements$});
     this._state = new MapState(this.mapId);
-    this._mapInit = new MapRendererInitializer(this.injector, this._containerId, this._state, this, this._map$);
+    this._mapInit = new MapRendererInitializer(this.injector, this._containerId, this._state, this, this.events, this._map$);
     this.injector.get(MapStateHistoryService).register(this._state, this.visible$);
     this._tools.init(this.whenVisible, this.tools$, this.injector, this, toolsGroups, tools);
   }

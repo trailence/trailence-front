@@ -386,7 +386,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
   }
 
   public override searchByArea(bounds: EarthBBox, limit: number): Observable<SearchResult> {
-    const bbox = '' + bounds.minlng + '%2C' + bounds.maxlng + '%2C' + bounds.maxlat + '%2C' + bounds.minlat;
+    const bbox = '' + bounds.minlng + '%2C' + bounds.maxlng + '%2C' + bounds.minlat + '%2C' + bounds.maxlat;
     return this.injector.get(HttpService).get<{id: number, url: string}[]>(environment.apiBaseUrl + '/search-trails/v1/visorando?bbox=' + bbox).pipe(
       switchMap(allItems => new Observable<SearchResult>(subscriber => {
         const nextItems = (emitted: number, startIndex: number) => {

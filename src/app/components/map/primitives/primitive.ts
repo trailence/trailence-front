@@ -3,7 +3,7 @@ import { MapRenderer } from '../impl/map-renderer';
 import { Arrays, NestedArray } from '@trailence/utils/arrays';
 import { MapUtils } from '../map-utils';
 import { combineLatest, Subscription } from 'rxjs';
-import { Point2D } from '@trailence/utils/geometry-utils';
+import { MapPointerEvent } from '../map-events';
 
 export abstract class MapPrimitive<O, R extends MapRenderer> {
 
@@ -76,12 +76,6 @@ export abstract class MapPrimitive<O, R extends MapRenderer> {
 
   public abstract readonly events: MapPrimitiveEvents<any, any, any>;
 
-}
-
-export interface MapPointerEvent {
-  renderer: MapRenderer;
-  viewportPoint: Point2D;
-  geographicPoint: EarthPoint;
 }
 
 export abstract class MapPrimitiveEvents<O, R extends MapRenderer, P extends MapPrimitive<O, R>> {

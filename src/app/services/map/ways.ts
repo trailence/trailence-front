@@ -188,8 +188,8 @@ export class Ways {
   private boundsToTiles(bounds: EarthBBox): number[] {
     const minX = Math.floor(Math.min(bounds.minlng + 180, bounds.maxlng + 180) * 8);
     const maxX = Math.floor(Math.max(bounds.minlng + 180, bounds.maxlng + 180) * 8);
-    const minY = Math.floor(Math.min(bounds.minlat + 90, bounds.maxlat + 90) * 8);
-    const maxY = Math.floor(Math.max(bounds.minlat + 90, bounds.maxlat + 90) * 8);
+    const minY = Math.floor(Math.min(bounds.maxlat + 90, bounds.minlat + 90) * 8);
+    const maxY = Math.floor(Math.max(bounds.maxlat + 90, bounds.minlat + 90) * 8);
     const xs = new Set<number>();
     for (let x = minX; x <= maxX; ++x) {
       let v = x;

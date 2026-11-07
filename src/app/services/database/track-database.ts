@@ -432,7 +432,7 @@ export class TrackDatabase implements StoreWithCleaning {
       lowestAltitude: m.lowestAltitude,
       duration: m.duration,
       startDate: m.startDate,
-      bounds: b ? [[b.minlat, b.maxlng], [b.maxlat, b.minlng]] : undefined,
+      bounds: b ? [[b.maxlat, b.maxlng], [b.minlat, b.minlng]] : undefined,
       breaksDuration: track.computed.breaksSnapshot.total,
       estimatedDuration: track.computed.timeEstimationSnapshot.total,
       localUpdate: Date.now(),

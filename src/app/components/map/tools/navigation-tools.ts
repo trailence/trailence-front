@@ -51,8 +51,9 @@ export class GoBackTool implements MapTool {
       .setDisabled(true)
       .setAction(() => {
         if (entry !== undefined) {
+          const e = entry;
           service.popState(entry);
-          mapComponent.renderer?.goTo(entry.center, entry.zoom, false);
+          mapComponent.renderer?.goTo(e.center, e.zoom, false);
         }
       });
     return mapComponent.renderer$.pipe(

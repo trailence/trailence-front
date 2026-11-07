@@ -32,7 +32,7 @@ export class MapTrackPath extends MapElement<MapTrackPath> {
     this._showArrows$ = new BehaviorSubject(arrowsColor !== undefined);
   }
 
-  private readonly _color: Color;
+  private _color: Color;
   private _weight: number;
   private readonly _eleColors$: BehaviorSubject<boolean>;
   private _arrowsColor: Color | undefined;
@@ -44,6 +44,7 @@ export class MapTrackPath extends MapElement<MapTrackPath> {
   public get color(): Color { return this._color; }
   public set color(value: Color) {
     if (Color.areSame(value, this._color)) return;
+    this._color = value;
     if (this._pathMonoColor) {
       this._pathMonoColor.setOptions({
         color: value,

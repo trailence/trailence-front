@@ -24,8 +24,8 @@ export function buildBubblesFromBoundsAndZoom(bounds: EarthBBox[], zoom: number)
     } while (true);
   }
   return bubbles.map(b => {
-    const p1 = projectEarthPointForZoom({lat: b.bounds.minlat, lng: b.bounds.minlng}, zoom);
-    const p2 = projectEarthPointForZoom({lat: b.bounds.maxlat, lng: b.bounds.maxlng}, zoom);
+    const p1 = projectEarthPointForZoom({lat: b.bounds.maxlat, lng: b.bounds.maxlng}, zoom);
+    const p2 = projectEarthPointForZoom({lat: b.bounds.minlat, lng: b.bounds.minlng}, zoom);
     const center = projectEarthPointForZoom(bboxCenter(b.bounds), zoom);
     const width = Math.floor(Math.abs(p1.x - p2.x)) + 1;
     const height = Math.floor(Math.abs(p1.y - p2.y)) + 1;

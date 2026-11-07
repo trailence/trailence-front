@@ -4,6 +4,7 @@ import { Injector, NgZone } from '@angular/core';
 import { MapRenderer, MapRendererType } from './map-renderer';
 import { AbstractComponent } from '@trailence/utils/component-utils';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
+import { MapEvents } from '../map-events';
 
 export class MapRendererInitializer {
 
@@ -12,6 +13,7 @@ export class MapRendererInitializer {
     private readonly containerId: string,
     private readonly mapState: MapState,
     private readonly component: AbstractComponent,
+    private readonly events: MapEvents,
     map$: BehaviorSubject<MapRenderer | undefined>,
   ) {
     this.subscription = injector.get(NgZone).runOutsideAngular(() => {
@@ -58,10 +60,10 @@ export class MapRendererInitializer {
     const map$: Promise<MapRenderer> =
       this.mapState.is3d ?
         import('./maplibre/maplibre')
-        .then(module => new module.MapLibre(this.injector, this.containerId, this.mapState))
+        .then(module => new module.MapLibre(this.injector, this.containerId, this.mapState, this.events))
       :
         import('./leaflet/leaflet')
-        .then(module => new module.Leaflet(this.injector, this.containerId, this.mapState))
+        .then(module => new module.Leaflet(this.injector, this.containerId, this.mapState, this.events))
       ;
     return map$.then(impl => impl.init().then(() => impl));
   }
