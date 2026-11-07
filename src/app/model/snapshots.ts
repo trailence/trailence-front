@@ -10,7 +10,8 @@ export interface TrackMetadataSnapshot {
   lowestAltitude?: number;
   duration?: number;
   startDate?: number;
-  bounds?: L.LatLngTuple[];
+  /** [[north, east], [south, west]] */
+  bounds?: [[number, number],[number, number]];
   breaksDuration: number;
   estimatedDuration: number;
   localUpdate: number;

@@ -16,14 +16,14 @@ import { distance2d, Point2D } from '@trailence/utils/geometry-utils';
 export class MapTrackPath extends MapElement {
 
   constructor(
-    private readonly _trail: Trail | undefined,
-    private readonly _track: Track | SimplifiedTrackSnapshot,
+    public readonly trail: Trail | undefined,
+    public readonly track: Track | SimplifiedTrackSnapshot,
     color: Color,
     eleColors: boolean = false,
     weight: number = 3,
     arrowsColor: Color | undefined = undefined,
   ) {
-    super('track-' + _track.uuid + '#' + _track.owner, {layer: MAP_TRACKS_LAYER});
+    super('track-' + track.uuid + '#' + track.owner, {layer: MAP_TRACKS_LAYER});
     this._color = color;
     this._weight = weight;
     this._eleColors$ = new BehaviorSubject(eleColors);
@@ -31,7 +31,7 @@ export class MapTrackPath extends MapElement {
     this._showArrows$ = new BehaviorSubject(arrowsColor !== undefined);
   }
 
-  private _color: Color;
+  private readonly _color: Color;
   private _weight: number;
   private readonly _eleColors$: BehaviorSubject<boolean>;
   private _arrowsColor: Color | undefined;
@@ -86,8 +86,8 @@ export class MapTrackPath extends MapElement {
   }
 
   public get fitBounds$(): Observable<EarthBBox | undefined> {
-    if (this._track instanceof Track) return this._track.metadata.bounds$;
-    return of(this.boundsFromSimplifiedPoints(this._track.points));
+    if (this.track instanceof Track) return this.track.metadata.bounds$;
+    return of(this.boundsFromSimplifiedPoints(this.track.points));
   }
   private boundsFromSimplifiedPoints(points: SimplifiedPoint[]): EarthBBox | undefined {
     let minlat, maxlat, minlng, maxlng;
@@ -102,14 +102,14 @@ export class MapTrackPath extends MapElement {
   }
 
   protected override createPrimitives$(renderer: MapRenderer): Observable<MapPrimitive<any,any>[]> {
-    const points$: Observable<EarthPoint[][]> = this._track instanceof Track ?
-      this._track.segments$.pipe(
+    const points$: Observable<EarthPoint[][]> = this.track instanceof Track ?
+      this.track.segments$.pipe(
         switchMap(segments => combineLatestSafe(segments.map(s => s.points$))),
         debounceTimeExtended(0, 100, 100),
         map(segments => segments.map(points => points.map(p =>({lat: p.pos.lat, lng: p.pos.lng, ele: p.ele})))),
         share(),
       ) :
-      of([this._track.points]);
+      of([this.track.points]);
     const path$ = combineLatest([
       points$,
       this._eleColors$,

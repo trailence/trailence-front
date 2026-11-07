@@ -35,6 +35,7 @@ import { TrailCollection } from '@trailence/model/trail-collection';
 import { getLogger } from '@trailence/utils/console';
 import { Share } from '@trailence/model/share';
 import { StoreLoadStatus } from './store/store';
+import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from '@trailence/model/snapshots';
 
 const logger = getLogger('trail.service');
 
@@ -225,6 +226,16 @@ export class TrailService {
     return combineLatest([this._store.isLoaded$, this._store.syncStatus$]).pipe(
       map(([loaded, sync]) => loaded && !sync.needsUpdateFromServer)
     );
+  }
+
+  public getSimplifiedTrack$(trail: Trail, trackUuid: string): Observable<SimplifiedTrackSnapshot | null> {
+    if (trail.fromModeration) return this.injector.get(ModerationService).getSimplifiedTrack$(trail.uuid, trail.owner, trackUuid);
+    return this.trackService.getSimplifiedTrack$(trackUuid, trail.owner);
+  }
+
+  public getTrackMetadata$(trail: Trail, trackUuid: string): Observable<TrackMetadataSnapshot | null> {
+    if (trail.fromModeration) return this.injector.get(ModerationService).getTrackMetadata$(trail.uuid, trail.owner, trackUuid);
+    return this.trackService.getMetadata$(trackUuid, trail.owner);
   }
 
   public proposeToPublish(trail: Trail, track: Track): Observable<string> {

@@ -8,6 +8,7 @@ import { combineLatestSafe } from '@trailence/utils/rxjs/combineLatestSafe';
 import { ZoomInTool, ZoomLevelLabel, ZoomOutTool, ZoomToolGroup } from './tools/zoom-tools';
 import { OrientationToolGroup, RotationTool } from './tools/orientation-tools';
 import { FitBoundsTool, GoBackTool, NavigationToolGroup } from './tools/navigation-tools';
+import { MapElementsToolGroup } from './tools/map-elements-tools';
 
 export class MapTools {
   _leftTools: MenuItem[] = [];
@@ -92,6 +93,8 @@ const baseToolGroups: MapToolGroup[] = [
   ZoomToolGroup,
   OrientationToolGroup,
   NavigationToolGroup,
+
+  MapElementsToolGroup,
 ];
 
 const baseTools: MapTool[] = [

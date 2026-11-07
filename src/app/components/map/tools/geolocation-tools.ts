@@ -108,6 +108,7 @@ export class CenterMapOnMyPositionTool implements MapTool {
         // live, listen to toggle
         return toggle$.pipe(
           map(enabled => {
+            item.setVisible(true);
             if (!enabled) {
               subscription?.unsubscribe();
               subscription = undefined;

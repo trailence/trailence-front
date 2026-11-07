@@ -6,7 +6,8 @@
     <app-map #map
       [mapId]="viewId"
       [elements$]="mapElements$"
-      [rightTools]="mapToolbarRightItems"
+      [tools$]="mapTools$"
+      [options]="mapOptions"
       (mouseClickPoint)="onTrailClickOnMap($event)"
     >
       @if (mapToolbarTopItems.length > 0) {
