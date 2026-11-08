@@ -1,6 +1,5 @@
 import { Injectable, Injector, NgZone, OnDestroy } from '@angular/core';
-import * as L from 'leaflet';
-import { MapLayer, MapLayersService } from './map-layers.service';
+import { MapLayersService } from './map-layers.service';
 import { Progress, ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
 import { Observable, bufferCount, catchError, combineLatest, firstValueFrom, map, merge, of, switchMap, tap, zip } from 'rxjs';
@@ -19,6 +18,7 @@ import { POI_TYPES, POIType } from './poi';
 import { CleanupService } from '../database/cleanup/cleanup.service';
 import { getLogger } from '@trailence/utils/console';
 import { EarthBBox } from '@trailence/utils/latlng';
+import { MapLayer } from './layers/map-layer';
 
 const logger = getLogger('offline-map.service');
 
@@ -49,7 +49,7 @@ export class OfflineMapService implements OnDestroy {
     private readonly injector: Injector,
   ) {
     const tables: DbTable<any>[] = [];
-    for (const layer of this.layers.possibleLayers) {
+    for (const layer of this.layers.getAllPossibleLayersNames()) {
       const layerTables = new DbTablesMetaBlob<TileMetadata>(injector, layer, 'meta', 'tiles', 'key, date', 'key');
       this.tilesTables.set(layer, layerTables);
       tables.push(...layerTables.getTables());
@@ -79,10 +79,10 @@ export class OfflineMapService implements OnDestroy {
     return this.injector.get(AssetsService).getIcon('poi-' + type, true);
   }
 
-  public save(layer: MapLayer, crs: L.CRS, tileLayer: L.TileLayer, toDownload: Map<number, L.Point[]>): void {
+  public save(layer: MapLayer, toDownload: Map<number, L.Point[]>): void {
     const table = this.tilesTables.get(layer.name);
     if (!table) return;
-    new Saver(table, layer, crs, tileLayer, toDownload, this.injector).start();
+    new Saver(table, layer, toDownload, this.injector).start();
 
   }
 
@@ -112,18 +112,18 @@ export class OfflineMapService implements OnDestroy {
     })
   }
 
-  public getTile(layerName: string, coords: L.Coords): Observable<BinaryContent | undefined> {
+  public getTile(layerName: string, x: number, y: number, z: number): Observable<BinaryContent | undefined> {
     return this.ngZone.runOutsideAngular(() => {
       const table = this.tilesTables.get(layerName);
       if (!table) return of(undefined);
-      const contentType = this.layers.layers.find(l => l.name === layerName)?.tileMimeFormat;
-      return table.getBlob$('' + coords.z + '_' + coords.y + '_' + coords.x, contentType).pipe(map(b => b ? new BinaryContent(b) : undefined));
+      const contentType = this.layers.getLayer(layerName)?.mimeFormat;
+      return table.getBlob$('' + z + '_' + y + '_' + x, contentType).pipe(map(b => b ? new BinaryContent(b) : undefined));
     });
   }
 
   public computeContent(): Observable<{items: number, size: number}> {
     const startTime = Date.now();
-    return combineLatest(this.layers.layers.map(layer => this.computeLayerContent(layer.name))).pipe(
+    return combineLatest(this.layers.getAllLayers('raster').map(layer => this.computeLayerContent(layer.name))).pipe(
       map(list => {
         const result = {items: 0, size: 0};
         for (const layer of list) {
@@ -162,20 +162,20 @@ export class OfflineMapService implements OnDestroy {
   private unregisterCleaning(): void {
     if (this._destroyed) return;
     const service = this.injector.get(CleanupService);
-    for (const layer of this.layers.layers) {
-      service.remove('offline-map-' + layer.name);
+    for (const layer of this.layers.getAllPossibleLayersNames()) {
+      service.remove('offline-map-' + layer);
     }
   }
 
   private registerCleaning(): void {
     if (this._destroyed) return;
     const service = this.injector.get(CleanupService);
-    for (const layer of this.layers.layers) {
+    for (const layer of this.layers.getAllPossibleLayersNames()) {
       service.add({
-        id: 'offline-map-' + layer.name,
-        name: 'Offline map ' + layer.displayName,
+        id: 'offline-map-' + layer,
+        name: 'Offline map ' + layer,
         every: 7 * 24 * 60 * 60 * 1000,
-        execute: () => this.cleanExpiredLayer(layer.name)
+        execute: () => this.cleanExpiredLayer(layer)
       });
     }
   }
@@ -205,8 +205,6 @@ class Saver {
   constructor(
     private readonly table: DbTablesMetaBlob<TileMetadata>,
     private readonly layer: MapLayer,
-    private readonly crs: L.CRS,
-    private readonly tileLayer: L.TileLayer,
     private readonly toDownload: Map<number, L.Point[]>,
     private readonly injector: Injector,
   ) {
@@ -271,12 +269,14 @@ class Saver {
       const requests: Observable<{blob: Blob | undefined, key: string, tile: L.Point, error: any}>[] = [];
       for (let i = startIndex; i < startIndex + 1000 && i < tiles.length; ++i) {
         const c = tiles[i];
-        (c as any)['z'] = zoomLevel;
         const key = this.getDbKey(c.x, c.y, zoomLevel);
         requests.push(this.limiter.add(() =>
-          this.mapLayerService.getBlob(this.layer, this.layer.getTileUrl(this.tileLayer, c as L.Coords, this.crs))
+          this.layer.download(c.x, c.y, zoomLevel)
           .pipe(
-            map(blob => ({blob, key, tile: c, error: undefined})),
+            map(result => {
+              if (result instanceof Blob) return {blob: result, key, tile: c, error: undefined};
+              return {blob: undefined, key, tile: c, error: new Error(result.message)};
+            }),
             catchError(e => of({blob: undefined, key, tile: c, error: e})),
           )
         ));

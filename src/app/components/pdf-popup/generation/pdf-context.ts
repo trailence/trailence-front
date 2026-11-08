@@ -4,7 +4,7 @@ import { Trail } from '@trailence/model/trail';
 import { AssetsService } from '@trailence/services/assets/assets.service';
 import { TrailInfo } from '@trailence/services/fetch-source/fetch-source.interfaces';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
-import { MapLayer } from '@trailence/services/map/map-layers.service';
+import { MapLayer } from '@trailence/services/map/layers/map-layer';
 import { PreferencesService } from '@trailence/services/preferences/preferences.service';
 import { WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
 

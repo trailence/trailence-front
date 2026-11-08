@@ -3,7 +3,6 @@ import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonRang
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { MapLayerSelectionComponent } from '../map-layer-selection/map-layer-selection.component';
 import { PreferencesService } from '@trailence/services/preferences/preferences.service';
-import { MapLayer } from '@trailence/services/map/map-layers.service';
 import { OfflineMapService } from '@trailence/services/map/offline-map.service';
 import * as L from 'leaflet';
 import { Track } from '@trailence/model/track';
@@ -14,6 +13,7 @@ import { BehaviorSubject, debounceTime, switchMap, tap } from 'rxjs';
 import { calculateTilesFromBounds, calculateTilesFromPaths } from '@trailence/services/map/calculate-tiles';
 import { getLogger } from '@trailence/utils/console';
 import { bboxPadRatio, cleanBbox, EarthBBox } from '@trailence/utils/latlng';
+import { MapLayer } from '@trailence/services/map/layers/map-layer';
 
 const logger = getLogger('download-map-popup');
 
@@ -88,7 +88,7 @@ export class DownloadMapPopupComponent implements OnInit, OnChanges {
     this.optionsChanged.next(true);
   }
 
-  private getSelection(): {layer: MapLayer, tiles: L.TileLayer}[] {
+  private getSelection(): MapLayer[] {
     return this.layerSelection!.getSelectedLayers();
   }
 
@@ -116,10 +116,10 @@ export class DownloadMapPopupComponent implements OnInit, OnChanges {
     }
     const layersCounts: Promise<number>[] = [];
     for (const layer of this.getSelection()) {
-      let layerCache = cachePadding.get(layer.layer.name);
+      let layerCache = cachePadding.get(layer.name);
       if (!layerCache) {
         layerCache = new Map<number, {points: L.Point[], toDownload: L.Point[]}>();
-        cachePadding.set(layer.layer.name, layerCache);
+        cachePadding.set(layer.name, layerCache);
       }
       layersCounts.push(this.computeLayerDownload(layer, maxZoom, params, layerCache, result));
     }
@@ -130,12 +130,12 @@ export class DownloadMapPopupComponent implements OnInit, OnChanges {
     return {toDownload: result, params};
   }
 
-  private async computeLayerDownload(layer: {layer: MapLayer, tiles: L.TileLayer}, maxZoom: number, params: {allBounds: EarthBBox[], paths: L.LatLngExpression[], pathAroundMeters: number}, layerCache: Map<number, {points: L.Point[], toDownload: L.Point[]}>, result: Map<string, Map<number, L.Point[]>>): Promise<number> {
+  private async computeLayerDownload(layer: MapLayer, maxZoom: number, params: {allBounds: EarthBBox[], paths: L.LatLngExpression[], pathAroundMeters: number}, layerCache: Map<number, {points: L.Point[], toDownload: L.Point[]}>, result: Map<string, Map<number, L.Point[]>>): Promise<number> {
     const layerResult = new Map<number, L.Point[]>();
     let layerTotal = 0;
     const crs = L.CRS.EPSG3857;
     const zoomsPromises: Promise<{points: L.Point[], toDownload: L.Point[]}>[] = [];
-    for (let zoom = Math.max(layer.layer.minZoom, 1); zoom <= Math.min(maxZoom, layer.layer.maxZoom); ++zoom) {
+    for (let zoom = Math.max(layer.minZoom, 1); zoom <= Math.min(maxZoom, layer.maxZoom); ++zoom) {
       let zoomCache = layerCache.get(zoom);
       let zoomCalculation$: Promise<{points: L.Point[], toDownload: L.Point[]}>;
       if (zoomCache) {
@@ -144,12 +144,12 @@ export class DownloadMapPopupComponent implements OnInit, OnChanges {
         zoomCalculation$ = Promise.resolve(zoomCache);
       } else {
         const calculation$ = zoom <= 17 || params.paths.length === 0 ?
-          calculateTilesFromBounds(zoom, params.allBounds, crs, layer.layer.tileSize) :
-          calculateTilesFromPaths(zoom, params.paths, params.pathAroundMeters, crs, layer.layer.tileSize);
+          calculateTilesFromBounds(zoom, params.allBounds, crs, layer.tileSize) :
+          calculateTilesFromPaths(zoom, params.paths, params.pathAroundMeters, crs, layer.tileSize);
         const points$ = calculation$.catch(e => {logger.error(e); return [];});
         zoomCalculation$ = points$.then(async points => {
           try {
-            return {points, toDownload: await this.offlineMap.getTilesToDownload(points, zoom, layer.layer.name)};
+            return {points, toDownload: await this.offlineMap.getTilesToDownload(points, zoom, layer.name)};
           } catch (e) {
             logger.error(e);
             return {points, toDownload: []};
@@ -171,7 +171,7 @@ export class DownloadMapPopupComponent implements OnInit, OnChanges {
     }
     await Promise.all(zoomsPromises);
     if (layerResult.size > 0)
-      result.set(layer.layer.name, layerResult);
+      result.set(layer.name, layerResult);
     return layerTotal;
   }
 
@@ -209,12 +209,12 @@ export class DownloadMapPopupComponent implements OnInit, OnChanges {
     }).catch(e => logger.error(e));
   }
 
-  private downloadMaps(computed: Map<string, Map<number, L.Point[]>>, selection: {layer: MapLayer, tiles: L.TileLayer}[], allBounds: EarthBBox[]): void {
+  private downloadMaps(computed: Map<string, Map<number, L.Point[]>>, selection: MapLayer[], allBounds: EarthBBox[]): void {
     for (const layer of selection) {
-      const toDownload = computed.get(layer.layer.name);
+      const toDownload = computed.get(layer.name);
       if (toDownload) {
-        logger.info('Launch download of offline map layer', layer.layer.name, 'zooms', Array.from(toDownload.entries()).map(e => 'zoom ' + e[0] + '=' + e[1].length));
-        this.offlineMap.save(layer.layer, L.CRS.EPSG3857, layer.tiles, toDownload);
+        logger.info('Launch download of offline map layer', layer.name, 'zooms', Array.from(toDownload.entries()).map(e => 'zoom ' + e[0] + '=' + e[1].length));
+        this.offlineMap.save(layer, toDownload);
       }
     }
     this.offlineMap.saveOsm(allBounds);

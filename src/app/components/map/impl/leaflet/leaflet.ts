@@ -20,6 +20,7 @@ import { RotateMode } from '../../map-state';
 import { Subscriptions } from '@trailence/utils/rxjs/subscription-utils';
 import { PreferencesService } from '@trailence/services/preferences/preferences.service';
 import { DistanceUnit } from '@trailence/services/preferences/preferences';
+import { createLeafletLayer } from './leaflet-layer';
 
 export class Leaflet extends MapRenderer {
 
@@ -33,15 +34,13 @@ export class Leaflet extends MapRenderer {
     await this.injector.get(AssetsService).loadJs('leaflet-rotate.1.js');
 
     const mapLayersService = this.injector.get(MapLayersService);
-    const layer = mapLayersService.layers.find(lay => lay.name === this.mapState.tilesName)
-      ?? mapLayersService.layers.find(lay => lay.name === mapLayersService.getDefaultLayer())
-      ?? mapLayersService.layers[0];
-    const overlays = this.mapState.overlays.map(name => mapLayersService.overlays.find(o => o.name === name)).filter(o => !!o);
+    const layer = mapLayersService.getLayerOrDefault(this.mapState.tilesName);
+    const overlays = this.mapState.overlays.map(name => mapLayersService.getLayer(name)).filter(o => !!o);
 
     this.map = L.map(this.containerId, {
       center: this.mapState.center,
       zoom: Math.floor(this.mapState.zoom),
-      layers: [layer.create(), ...overlays.map(o => o.create())],
+      layers: [createLeafletLayer(layer), ...overlays.map(o => createLeafletLayer(o))],
       zoomControl: false,
       worldCopyJump: true,
       //zoomSnap: 0.5,

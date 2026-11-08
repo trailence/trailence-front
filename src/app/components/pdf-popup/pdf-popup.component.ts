@@ -99,6 +99,7 @@ export class PdfPopup implements OnInit, OnDestroy {
       try {
         const json = JSON.parse(s);
         this.qrCodeActivated = !!json.qrCode;
+        const layer = (json.mapLayer ? this.mapLayerService.getLayerOrDefault(json.mapLayer) : undefined) ?? this.mapLayerService.getDefaultLayer();
         return {
           model: TypeUtils.valueToEnum(json.model, PdfModel) ?? PdfModel.BIG_MAP,
           includeDescription: !!json.includeDescription,
@@ -106,7 +107,7 @@ export class PdfPopup implements OnInit, OnDestroy {
           includeElevation: !!json.includeElevation,
           includeAvatar: json.includeAvatar === 'small' ? 'small' : json.includeAvatar === 'large' ? 'large' : undefined,
           includePhoto: !!json.includePhoto,
-          mapLayer: (json.mapLayer ? this.mapLayerService.layers.find(l => l.name === json.mapLayer) : undefined) ?? this.mapLayerService.layers.find(l => l.name === this.mapLayerService.getDefaultLayer())!,
+          mapLayer: layer,
         }
       } catch (e) {
         logger.error('Cannot parse saved pdf options', e);
@@ -120,7 +121,7 @@ export class PdfPopup implements OnInit, OnDestroy {
       includeElevation: true,
       includeAvatar: undefined,
       includePhoto: false,
-      mapLayer: this.mapLayerService.layers.find(l => l.name === this.mapLayerService.getDefaultLayer())!,
+      mapLayer: this.mapLayerService.getDefaultLayer(),
     }
   }
 
@@ -218,7 +219,7 @@ export class PdfPopup implements OnInit, OnDestroy {
         initialSelection: [this.options.mapLayer.name],
         onSelectionChanged: (sel: string[]) => {
           if (sel.length === 1) {
-            const newLayer = this.mapLayerService.layers.find(l => l.name === sel[0]);
+            const newLayer = this.mapLayerService.getLayer(sel[0]);
             if (newLayer && newLayer !== this.options.mapLayer) {
               this.options.mapLayer = newLayer;
               this.optionsChanged();

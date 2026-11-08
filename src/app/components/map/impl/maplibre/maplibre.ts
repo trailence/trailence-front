@@ -1,4 +1,4 @@
-import { MapLibreMap, MapMouseEvent, setWorkerUrl } from 'maplibre-gl';
+import { addProtocol, MapLibreMap, MapMouseEvent, RasterSourceSpecification, setWorkerUrl, SourceSpecification } from 'maplibre-gl';
 import { MapRenderer, MapRendererType } from '../map-renderer';
 import { CircleOptions } from '../../primitives/circle';
 import { MapLibreCircle } from './primitives/circle';
@@ -18,8 +18,12 @@ import { assetsDependencies } from '@trailence/assets-dependencies';
 import { MapPointerEvent } from '../../map-events';
 import { AssetsService } from '@trailence/services/assets/assets.service';
 import { RotateMode } from '../../map-state';
+import { TRAILENCE_PROTOCOL } from './map-layer-protocol';
+import { MapLayersService } from '@trailence/services/map/map-layers.service';
+import { MapLayer } from '@trailence/services/map/layers/map-layer';
 
 setWorkerUrl(environment.assetsUrl + '/' + assetsDependencies['maplibre-gl-worker']);
+addProtocol('trailence', (params, abortController) => TRAILENCE_PROTOCOL.handleRequest(params, abortController));
 
 export class MapLibre extends MapRenderer {
 
@@ -30,8 +34,10 @@ export class MapLibre extends MapRenderer {
   public getMaplibreMap(): MapLibreMap | undefined { return this.map; }
 
   public override async init() {
+    TRAILENCE_PROTOCOL.injector = this.injector;
     this.injector.get(AssetsService).loadCss(assetsDependencies['maplibre-gl-css']);
     return new Promise(resolve => {
+      const layer = this.injector.get(MapLayersService).getLayerOrDefault(this.mapState.tilesName);
       this.map = new MapLibreMap({
         container: this.containerId,
         center: this.mapState.center,
@@ -41,13 +47,7 @@ export class MapLibre extends MapRenderer {
         style: {
           version: 8,
           sources: {
-              osm: {
-                  type: 'raster',
-                  tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
-                  tileSize: 256,
-                  attribution: '&copy; OpenStreetMap Contributors',
-                  maxzoom: 19
-              },
+              baselayer: this.getRasterSource(layer),
               // Use a different source for terrain and hillshade layers, to improve render quality
               terrainSource: {
                   type: 'raster-dem',
@@ -62,9 +62,9 @@ export class MapLibre extends MapRenderer {
           },
           layers: [
               {
-                  id: 'osm',
+                  id: 'base',
                   type: 'raster',
-                  source: 'osm'
+                  source: 'baselayer'
               },
               {
                   id: 'hills',
@@ -94,6 +94,17 @@ export class MapLibre extends MapRenderer {
       map.on('click', e => this.events.click.trigger(() => this.toMapPointerEvent(e)));
       map.on('style.load', () => resolve(true));
     });
+  }
+
+  private getRasterSource(layer: MapLayer): RasterSourceSpecification {
+    return {
+      type: 'raster',
+      tiles: ['trailence://' + layer.name + '/{x}/{y}/{z}'],
+      tileSize: layer.tileSize,
+      attribution: layer.attribution,
+      minzoom: Math.max(1, layer.minZoom),
+      maxzoom: layer.maxZoom,
+    }
   }
 
   protected override destroyMap(): void {

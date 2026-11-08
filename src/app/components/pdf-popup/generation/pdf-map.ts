@@ -7,6 +7,7 @@ import { Point2D } from '@trailence/utils/geometry-utils';
 import { createMapAchorSvgString } from '@trailence/components/map/utils/map-anchor';
 import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorDABorderColor, anchorDATextColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor } from '@trailence/components/map/elements/map-track-anchors';
 import { distance } from '@trailence/utils/latlng';
+import { firstValueFrom, from } from 'rxjs';
 
 const logger = getLogger('pdf-map');
 
@@ -55,21 +56,21 @@ async function drawTiles(ctx: PdfContext, x: number, y: number, width: number, h
   ctx.doc.rect(x, y, width, height).clip();
   for (let tileY = mapBounds.topTile; tileY <= mapBounds.bottomTile; tileY++) {
     for (let tileX = mapBounds.leftTile; tileX <= mapBounds.rightTile; tileX++) {
-      const url = ctx.mapLayer.templateUrl
-        .replace('{z}', '' + mapBounds.zoom)
-        .replace('{y}', '' + tileY)
-        .replace('{x}', '' + tileX)
-        .replace('{s}', 'a');
       try {
-        const image = await globalThis.fetch(url).then(r => r.arrayBuffer());
-        ctx.doc.image(
-          image,
-          x + (MapGenerator.tileSize * (tileX - mapBounds.leftTile) + mapBounds.leftDiff) / RATIO,
-          y + (MapGenerator.tileSize * (tileY - mapBounds.topTile) + mapBounds.topDiff) / RATIO,
-          { width: MapGenerator.tileSize / RATIO, height: MapGenerator.tileSize / RATIO }
-        );
+        const dl = await firstValueFrom(ctx.mapLayer.download(tileX, tileY, mapBounds.zoom));
+        if (dl instanceof Blob) {
+          const image = await dl.arrayBuffer();
+          ctx.doc.image(
+            image,
+            x + (MapGenerator.tileSize * (tileX - mapBounds.leftTile) + mapBounds.leftDiff) / RATIO,
+            y + (MapGenerator.tileSize * (tileY - mapBounds.topTile) + mapBounds.topDiff) / RATIO,
+            { width: MapGenerator.tileSize / RATIO, height: MapGenerator.tileSize / RATIO }
+          );
+        } else {
+          throw new Error('Cannot download tile: ' + dl.message);
+        }
       } catch (e) {
-        logger.error('Error loading tile for PDF', url, e);
+        logger.error('Error loading tile for PDF', e);
         ctx.injector.get(ErrorService).addTechnicalError(e, 'pages.pdf_popup.error_downloading_tile', []);
         break;
       }

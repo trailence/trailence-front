@@ -64,9 +64,9 @@ export function distance(latlng1: EarthPoint, latlng2: EarthPoint) {
   return EARTH_RADIUS * c;
 }
 
-const EPSG3857_MAX_LATITUDE = 85.0511287798;
-const EPSG3857_EARTH_RADIUS = 6378137;
-const EPSG3857_TRANSFORM_SCALE = 0.5 / (Math.PI * EPSG3857_EARTH_RADIUS);
+export const EPSG3857_MAX_LATITUDE = 85.0511287798;
+export const EPSG3857_EARTH_RADIUS = 6378137;
+export const EPSG3857_TRANSFORM_SCALE = 0.5 / (Math.PI * EPSG3857_EARTH_RADIUS);
 
 /** Projection using EPSG3857 */
 export function projectEarthPoint(p: EarthPoint): Point2D {

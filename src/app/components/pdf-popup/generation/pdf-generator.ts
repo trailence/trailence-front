@@ -15,7 +15,6 @@ import { Track } from '@trailence/model/track';
 import { generateElevationGraphToPdf } from './pdf-elevation-graph';
 import { addQrCodeToPdf } from './pdf-qrcode';
 import { hasWaypointsContent } from '../waypoints-utils';
-import { MapLayer } from '@trailence/services/map/map-layers.service';
 import { FetchSourceService } from '@trailence/services/fetch-source/fetch-source.service';
 import { BinaryContent } from '@trailence/utils/binary-content';
 import { PdfFixedColumnsLayout, pdfFullWidth, PdfSectionGenerator } from './pdf-layout-helper';
@@ -24,6 +23,7 @@ import { computeWayPointsFromTrack, WayPointFromTrack } from '@trailence/utils/t
 import { assetsDependencies } from '@trailence/assets-dependencies';
 import { getLogger } from '@trailence/utils/console';
 import { distance } from '@trailence/utils/latlng';
+import { MapLayer } from '@trailence/services/map/layers/map-layer';
 
 const logger = getLogger('pdf-generator');
 
