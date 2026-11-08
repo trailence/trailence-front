@@ -16,10 +16,15 @@ import { LeafletUtils } from './leaflet-utils';
 import { IconOptions, IconPrimitive } from '../../primitives/icon';
 import { LeafletIcon } from './primitives/icon';
 import { MapPointerEvent } from '../../map-events';
+import { RotateMode } from '../../map-state';
+import { Subscriptions } from '@trailence/utils/rxjs/subscription-utils';
+import { PreferencesService } from '@trailence/services/preferences/preferences.service';
+import { DistanceUnit } from '@trailence/services/preferences/preferences';
 
 export class Leaflet extends MapRenderer {
 
   private map?: L.Map;
+  private subscriptions = new Subscriptions();
 
   public override get type(): MapRendererType { return 'leaflet'; }
 
@@ -50,13 +55,35 @@ export class Leaflet extends MapRenderer {
     } as any);
 
     const map = this.map;
+    map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank">Leaflet</a>');
     map.on('resize', () => this.mapState.center = map.getCenter());
     map.on('move', () => this.mapState.center = map.getCenter());
     map.on('zoom', () => this.mapState.zoom = map.getZoom());
+    map.on('zoomanim', e => this.mapState.zoom = e.zoom);
     map.on('click', e => this.events.click.trigger(() => this.toMapPointerEvent(e)));
+    map.on('touchrotate', e => {
+      this.mapState.rotateMode = RotateMode.CUSTOM;
+      this.mapState.bearing = (e as any).touchRotateBearing;
+    });
+    map.on('rotate', e => this.mapState.bearing = (e as any).theta);
+
+    let distanceUnit: DistanceUnit | undefined = undefined;
+    let scale: L.Control.Scale | undefined = undefined;
+    this.subscriptions.add(this.injector.get(PreferencesService).preferences$.subscribe(prefs => {
+      if (distanceUnit !== prefs.distanceUnit) {
+        if (scale) scale.remove();
+        scale = L.control.scale({
+          metric: prefs.distanceUnit === 'METERS',
+          imperial: prefs.distanceUnit === 'IMPERIAL',
+        });
+        distanceUnit = prefs.distanceUnit;
+        scale.addTo(map);
+      }
+    }));
   }
 
   protected override destroyMap(): void {
+    this.subscriptions.unsubscribe();
     this.map?.remove();
   }
 
@@ -124,11 +151,13 @@ export class Leaflet extends MapRenderer {
   }
 
   public override projectToViewport(point: EarthPoint): Point2D {
-    return this.map!.project(point).subtract(this.map!.getPixelOrigin());
+    //return this.map!.project(point).subtract(this.map!.getPixelOrigin());
+    return this.map!.latLngToContainerPoint(point);
   }
 
   public override unprojectFromViewport(point: Point2D): EarthPoint {
-    return this.map!.layerPointToLatLng([point.x, point.y]);
+    //return this.map!.layerPointToLatLng([point.x, point.y]);
+    return this.map!.containerPointToLatLng([point.x, point.y]);
   }
 
   public override getPointWithOffset(point: EarthPoint): EarthPoint {

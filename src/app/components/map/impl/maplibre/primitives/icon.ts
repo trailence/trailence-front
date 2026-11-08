@@ -3,6 +3,7 @@ import { MapLibre } from '../maplibre';
 import { MapLibrePrimitive } from './primitive';
 import { Marker, PositionAnchor } from 'maplibre-gl';
 import { MapLibrePrimitiveEvents } from './events';
+import { samePoint } from '@trailence/utils/geometry-utils';
 
 export class MapLibreIcon extends IconPrimitive<MapLibre> implements MapLibrePrimitive {
 
@@ -20,12 +21,10 @@ export class MapLibreIcon extends IconPrimitive<MapLibre> implements MapLibrePri
   }
 
   private buildSvg(): HTMLElement {
-    if (typeof this.options.icon === 'string') {
-      return new DOMParser().parseFromString(this.options.icon, 'image/svg+xml').documentElement;
-    }
-    const div = document.createElement('DIV');
-    div.appendChild(this.options.icon);
-    return div;
+    const svg = typeof this.options.icon === 'string' ? new DOMParser().parseFromString(this.options.icon, 'image/svg+xml').documentElement : this.options.icon;
+    svg.setAttribute('width', this.options.iconRenderSize.x + 'px');
+    svg.setAttribute('height', this.options.iconRenderSize.y + 'px');
+    return svg as HTMLElement;
   }
 
   private buildAnchor(): PositionAnchor {
@@ -52,7 +51,11 @@ export class MapLibreIcon extends IconPrimitive<MapLibre> implements MapLibrePri
   }
 
   protected override applyNewOptions(renderer: MapLibre, previous: IconOptions): void {
-    // TODO
+    if (!this.marker) return;
+    if (this.options.icon !== previous.icon || !samePoint(this.options.iconRenderSize, previous.iconRenderSize || this.options.iconAnchor !== previous.iconAnchor)) {
+      this.removePrimitiveFromMap(renderer);
+      this.addPrimitiveToMap(renderer);
+    }
   }
 
   getLayersIds(): string[] {

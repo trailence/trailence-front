@@ -23,6 +23,7 @@ const dependencies = [
     module: 'maplibre-gl',
     files: [
       { name: 'maplibre-gl-worker', src: 'dist/maplibre-gl-worker.mjs', dst: 'maplibre-gl-worker.<version>.mjs' },
+      { name: 'maplibre-gl-css', src: 'dist/maplibre-gl.css', dst: 'maplibre-gl.<version>.css' },
     ]
   }
 ];

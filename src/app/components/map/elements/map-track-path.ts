@@ -111,7 +111,24 @@ export class MapTrackPath extends MapElement<MapTrackPath> {
     }
   );
 
+  public override destroy(): void {
+    this.reset();
+  }
+
+  private reset(): void {
+    if (this._pathMonoColor) {
+      this.events._unbind(this._pathMonoColor);
+      this._pathMonoColor = undefined;
+    }
+    if (this._pathEleColors) {
+      this._pathEleColors.byColor.forEach(c => this.events._unbind(c.polyline));
+      this._pathEleColors = undefined;
+    }
+    this._arrows = [];
+  }
+
   protected override createPrimitives$(renderer: MapRenderer): Observable<MapPrimitive<any,any>[]> {
+    this.reset();
     const points$: Observable<EarthPoint[][]> = this.track instanceof Track ?
       this.track.segments$.pipe(
         switchMap(segments => combineLatestSafe(segments.map(s => s.points$))),

@@ -4,6 +4,7 @@ import { LeafletPrimitive } from './primitive';
 import * as L from 'leaflet';
 import { LeafletPrimitiveEvents } from './events';
 import { MapPointerEvent } from '@trailence/components/map/map-events';
+import { samePoint } from '@trailence/utils/geometry-utils';
 
 export class LeafletIcon extends IconPrimitive<Leaflet> implements LeafletPrimitive {
 
@@ -70,7 +71,7 @@ export class LeafletIcon extends IconPrimitive<Leaflet> implements LeafletPrimit
   protected override applyNewOptions(renderer: Leaflet, previous: IconOptions): void {
     if (!this.marker) return;
 
-    if (this.options.icon !== previous.icon) {
+    if (this.options.icon !== previous.icon || !samePoint(this.options.iconRenderSize, previous.iconRenderSize || this.options.iconAnchor !== previous.iconAnchor)) {
       this.marker.setIcon(this.buildIcon());
     }
 

@@ -71,30 +71,29 @@ export class MapLibreCircle extends Circle<MapLibre> implements MapLibrePrimitiv
   }
 
   protected override applyNewOptions(renderer: MapLibre, previous: CircleOptions): void {
+    const map = renderer.getMaplibreMap()!;
     if (!previous.fillColor && this.options.fillColor) {
       // fill added
       this.addFillLayer();
     } else if (previous.fillColor && !this.options.fillColor) {
       // fill removed
-      renderer.getMaplibreMap()!.removeLayer(this.id + '$fill');
+      map.removeLayer(this.id + '$fill');
     } else if (previous.fillColor && this.options.fillColor && !Color.areSame(previous.fillColor, this.options.fillColor)) {
       // fill color changed
-      const layer = renderer.getMaplibreMap()!.getLayer(this.id + '$fill');
-      layer?.setPaintProperty('fill-color', this.options.fillColor.toHexString(false));
-      layer?.setPaintProperty('fill-opacity', this.options.fillColor.a);
+      map.setPaintProperty(this.id + '$fill', 'fill-color', this.options.fillColor.toHexString(false));
+      map.setPaintProperty(this.id + '$fill', 'fill-opacity', this.options.fillColor.a);
     }
     if (!previous.strokeColor && this.options.strokeColor) {
       // stroke added
       this.addStrokeLayer();
     } else if (previous.strokeColor && !this.options.strokeColor) {
       // stroke removed
-      renderer.getMaplibreMap()!.removeLayer(this.id + '$stroke');
+      map.removeLayer(this.id + '$stroke');
     } else if (previous.strokeColor && this.options.strokeColor && (!Color.areSame(previous.strokeColor, this.options.strokeColor) || (previous.strokeWidth ?? 1) !== (this.options.strokeWidth ?? 1))) {
       // stroke changed
-      const layer = renderer.getMaplibreMap()!.getLayer(this.id + '$stroke');
-      layer?.setPaintProperty('line-color', this.options.strokeColor.toHexString(false));
-      layer?.setPaintProperty('line-opacity', this.options.strokeColor.a);
-      layer?.setPaintProperty('line-width', this.options.strokeWidth ?? 1);
+      map.setPaintProperty(this.id + '$stroke', 'line-color', this.options.strokeColor.toHexString(false));
+      map.setPaintProperty(this.id + '$stroke', 'line-opacity', this.options.strokeColor.a);
+      map.setPaintProperty(this.id + '$stroke', 'line-width', this.options.strokeWidth ?? 1);
     }
   }
 

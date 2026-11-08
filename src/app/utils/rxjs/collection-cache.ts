@@ -1,5 +1,42 @@
-import { Observable, Subscriber, Subscription } from 'rxjs';
+import { Observable, Subscriber, Subscription, switchMap } from 'rxjs';
 
+/**
+ * From a source emitting a list of T[], emit a list of R[] using the given mapper,
+ * and keep a cache of subscriptions using a CollectionObservableCache.
+ */
+export function collectionCache<T, R>(
+  source: Observable<T[]>,
+  mapper: (element: T) => Observable<R>,
+  elementComparator: (e1: T, e2: T) => boolean = (e1, e2) => e1 === e2,
+): Observable<R[]> {
+  return new Observable<R[]>(subscriber => {
+    const cache = new CollectionObservableCache<T, R>(mapper, elementComparator);
+    const sourceSubscription = source.pipe(
+      switchMap(list => cache.combineLatest(list)),
+    ).subscribe({
+      next: e => subscriber.next(e),
+      complete: () => subscriber.complete(),
+      error: e => subscriber.error(e),
+    });
+    return () => {
+      sourceSubscription.unsubscribe();
+      cache.destroy();
+    };
+  });
+}
+
+/**
+ * From a list of T, call the mapper to get an Observable of R, and subscribe to it.
+ * This class keeps in cache the subscription to each T element.
+ * When a new list is provided, compares each element using the given comparator,
+ * reuse the subscription if already subscribed, unsubscribe from removed elements,
+ * and subscribe to new elements.
+ *
+ * It emits using a combineLatest behavior: each element T must have emitted a R.
+ *
+ * The destroy method must be called once not used, so current subscriptions are
+ * unsubscribed.
+ */
 export class CollectionObservableCache<T, R> {
 
   constructor(

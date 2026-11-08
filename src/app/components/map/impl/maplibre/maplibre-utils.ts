@@ -13,7 +13,7 @@ export class MapLibreUtils {
     const rightLatLng = map.unproject(rightPointScreen);
 
     // Use the Haversine formula to find the distance in meters for 1 pixel
-    return distance(centerPt, rightLatLng);
+    return distance(centerPt, rightLatLng) * pixels;
   }
 
   public static fromMapLibreBounds(bounds: LngLatBounds): EarthBBox {

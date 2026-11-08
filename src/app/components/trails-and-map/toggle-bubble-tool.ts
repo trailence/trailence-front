@@ -1,4 +1,4 @@
-import { BehaviorSubject, combineLatest, EMPTY, from, map, Observable, of, switchMap, timeout } from 'rxjs';
+import { BehaviorSubject, combineLatest, EMPTY, from, map, Observable, of, switchMap } from 'rxjs';
 import { MapTool } from '../map/map-tool';
 import { MapElement } from '../map/map-element';
 import { Trail } from '@trailence/model/trail';
@@ -17,8 +17,8 @@ import { PRIMARY_TRACK_COLOR } from '../trail/trail-colors';
 import { Color } from '@trailence/utils/color';
 import { MapElementsToolGroup } from '../map/tools/map-elements-tools';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
-import { earthBBox } from '@trailence/utils/latlng';
 import { MapPointerEvent } from '../map/map-events';
+import { defaultOnTimeout } from '@trailence/utils/rxjs/default-on-timeout';
 
 const logger = getLogger('trails-and-map');
 
@@ -52,37 +52,34 @@ export class ToggleBubblesTool implements MapTool {
           t => trailService.getSimplifiedTrack$(t.trail, t.trackUuid).pipe(
             filterDefined(),
             map(track => ({trail: t.trail, track})),
-            timeout({
-              first: 1000,
-              with: () => {
-                logger.warn('Simplified track not found after 1s for trail', t.trail.owner, t.trail.uuid, t.trackUuid);
-                return of({trail: t.trail, track: null});
-              }
-            })
+            defaultOnTimeout(1000, () => {
+              logger.warn('Simplified track not found after 1s for trail', t.trail.owner, t.trail.uuid, t.trackUuid);
+              return {trail: t.trail, track: null};
+            }),
           ),
           (t1, t2) => t1.trackUuid === t2.trackUuid && t1.trail.owner === t2.trail.owner,
         ),
         simplifiedTrackToMapElements: new CollectionObservableCache<{trail: Trail, track: SimplifiedTrackSnapshot | null}, MapTrackPath | null>(
           t => of(this.buildMapTrackPathFromSimplifiedTrack(t.trail, t.track)),
-          (t1, t2) => t1.trail.uuid === t2.trail.uuid && t1.trail.owner === t2.trail.owner,
+          (t1, t2) => t1.trail.uuid === t2.trail.uuid && t1.trail.owner === t2.trail.owner && t1.track === t2.track,
         ),
         trailToTrackMetadata: new CollectionObservableCache<{trail: Trail, trackUuid: string}, {trail: Trail, track: TrackMetadataSnapshot | null}>(
           t => trailService.getTrackMetadata$(t.trail, t.trackUuid).pipe(
             filterDefined(),
             map(track => ({trail: t.trail, track})),
-            timeout({
-              first: 1000,
-              with: () => {
-                logger.warn('Track metadata not found after 1s for trail', t.trail.owner, t.trail.uuid, t.trackUuid);
-                return of({trail: t.trail, track: null});
-              }
-            })
+            defaultOnTimeout(1000, () => {
+              logger.warn('Track metadata not found after 1s for trail', t.trail.owner, t.trail.uuid, t.trackUuid);
+              return {trail: t.trail, track: null};
+            }),
           ),
           (t1, t2) => t1.trackUuid === t2.trackUuid && t1.trail.owner === t2.trail.owner,
         ),
       }),
       cache => {
         cache.trailToTrackUuid.destroy();
+        cache.trailToSimplifiedTrack.destroy();
+        cache.simplifiedTrackToMapElements.destroy();
+        cache.trailToTrackMetadata.destroy();
       },
       cache => combineLatest([
         this.trails$,

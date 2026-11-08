@@ -4,6 +4,7 @@ import { GeoJSONSource, SourceSpecification } from 'maplibre-gl';
 import { EarthPoint } from '@trailence/utils/latlng';
 import { MapLibre } from '../maplibre';
 import { MapLibrePrimitiveEvents } from './events';
+import { Color } from '@trailence/utils/color';
 
 export class MapLibrePolyline extends Polyline<MapLibre> implements MapLibrePrimitive {
 
@@ -52,7 +53,14 @@ export class MapLibrePolyline extends Polyline<MapLibre> implements MapLibrePrim
   }
 
   protected override applyNewOptions(renderer: MapLibre, previous: PolylineOptions): void {
-    // TODO
+    const map = renderer.getMaplibreMap()!;
+    if (!Color.areSame(this.options.color, previous.color)) {
+      map.setPaintProperty(this.id, 'line-color', this.options.color.toHexString(false));
+      map.setPaintProperty(this.id, 'line-opacity', this.options.color.a);
+    }
+    if (this.options.width !== previous.width) {
+      map.setPaintProperty(this.id, 'line-width', this.options.width);
+    }
   }
 
   protected override removePrimitiveFromMap(renderer: MapLibre): void {

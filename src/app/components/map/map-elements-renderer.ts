@@ -1,10 +1,10 @@
-import { BehaviorSubject, combineLatest, filter, map, Observable, Subscription, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, filter, map, Observable, Subscription, switchMap, tap } from 'rxjs';
 import { MAP_ELEMENT_LAYERS, MapElement, MapElementPosition, MapElementsLayer } from './map-element';
 import { Injector, NgZone } from '@angular/core';
-import { mapList } from '@trailence/utils/rxjs/mapList';
 import { MapRenderer } from './impl/map-renderer';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
 import { MapPrimitive } from './primitives/primitive';
+import { collectionCache } from '@trailence/utils/rxjs/collection-cache';
 
 export interface MapElementsSource {
   id: string;
@@ -20,14 +20,15 @@ export class MapElementsRenderer {
     this.subscription = injector.get(NgZone).runOutsideAngular(() =>
       map$.pipe(
         filter(renderer => !!renderer),
+        tap(() => this.rendererChanged()),
         switchMap(renderer =>
-          mapList(this.sources$, source =>
-            mapList(source.elements$, element =>
+          collectionCache(this.sources$, source =>
+            collectionCache(source.elements$, element =>
               combineLatest([
                 element.getPositionOnMap$(),
                 element.getPrimitives$(renderer)
               ]).pipe(
-                map(([position, primitives]) => ({element, position, primitives}))
+                map(([position, primitives]) => ({element, position, primitives})),
               )
             )
           ).pipe(
@@ -88,11 +89,16 @@ export class MapElementsRenderer {
         renderer.add(primitive);
       }
     }
+    const newElements = elements.map(e => e.element);
     for (const element of this._currentElements$.value)
-      if (!elements.some(e => e.element === element))
+      if (!newElements.includes(element))
         element.destroy();
     this._currentPrimitives = primitives;
-    this._currentElements$.next(elements.map(e => e.element));
+    this._currentElements$.next(newElements);
+  }
+
+  private rendererChanged(): void {
+    this._currentPrimitives = [];
   }
 
 }

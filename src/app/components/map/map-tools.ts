@@ -9,11 +9,11 @@ import { ZoomInTool, ZoomLevelLabel, ZoomOutTool, ZoomToolGroup } from './tools/
 import { OrientationToolGroup, RotationTool } from './tools/orientation-tools';
 import { FitBoundsTool, GoBackTool, NavigationToolGroup } from './tools/navigation-tools';
 import { MapElementsToolGroup } from './tools/map-elements-tools';
+import { Map3dToggleTool } from './tools/map-3d-toggle-tool';
 
 export class MapTools {
   _leftTools: MenuItem[] = [];
   _rightTools: MenuItem[] = [];
-  _topTools: MenuItem[] = [];
 
   private readonly inputTools$ = new BehaviorSubject<{groups?: MapToolGroup[], tools?: MapTool[]}>({});
   private subscription?: Subscription;
@@ -42,17 +42,14 @@ export class MapTools {
         switchMap(inputTools => {
           const leftGroups: MapToolGroup[] = [];
           const rightGroups: MapToolGroup[] = [];
-          const topGroups: MapToolGroup[] = [];
           for (const group of [...baseToolGroups, ...additionalGroups, ...(inputTools.groups ?? [])]) {
             switch (group.pane) {
               case 'left': leftGroups.push(group); break;
               case 'right': rightGroups.push(group); break;
-              case 'top': topGroups.push(group); break;
             }
           }
           leftGroups.sort(toolOrderComparator);
           rightGroups.sort(toolOrderComparator);
-          topGroups.sort(toolOrderComparator);
 
           const toolsByGroup = new Map<string, MapTool[]>();
           for (const tool of [...baseTools, ...additionalTools, ...(inputTools.tools ?? [])]) {
@@ -68,12 +65,10 @@ export class MapTools {
 
           const leftTools: MapTool[][] = leftGroups.map(group => toolsByGroup.get(group.id)).filter(tools => !!tools);
           const rightTools: MapTool[][] = rightGroups.map(group => toolsByGroup.get(group.id)).filter(tools => !!tools);
-          const topTools: MapTool[][] = topGroups.map(group => toolsByGroup.get(group.id)).filter(tools => !!tools);
 
           return combineLatest([
             toMenuItems$(leftTools, injector, mapComponent).pipe(tap(tools => this._leftTools = tools)),
             toMenuItems$(rightTools, injector, mapComponent).pipe(tap(tools => this._rightTools = tools)),
-            toMenuItems$(topTools, injector, mapComponent).pipe(tap(tools => this._topTools = tools)),
           ]);
         }),
       ),
@@ -94,6 +89,7 @@ const baseToolGroups: MapToolGroup[] = [
   OrientationToolGroup,
   NavigationToolGroup,
 
+  { id: 'map-config', pane: 'right', order: -1000000 },
   MapElementsToolGroup,
 ];
 
@@ -104,6 +100,8 @@ const baseTools: MapTool[] = [
   new RotationTool(),
   new FitBoundsTool(),
   new GoBackTool(),
+
+  new Map3dToggleTool(),
 ];
 
 function toolOrderComparator(t1: MapTool | MapToolGroup, t2: MapTool | MapToolGroup): number {

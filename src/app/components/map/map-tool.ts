@@ -5,7 +5,7 @@ import { MenuItem } from '../menus/menu-item';
 
 export interface MapToolGroup {
   readonly id: string;
-  readonly pane: 'left' | 'right' | 'top';
+  readonly pane: 'left' | 'right';
   /** Lowest first. */
   readonly order: number;
 }

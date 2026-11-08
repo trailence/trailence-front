@@ -19,8 +19,8 @@ export class MapShowMyPositionService {
   ) {
     combineLatest([traceRecorder.current$, liveGroupService.groups$, liveGroupService.paused$])
     .subscribe(([recording, groups, groupsPaused]) => {
-      if (!!recording || (!!groups?.length && !groupsPaused)) this.enable();
-      else this.disable();
+      if (!!recording || (!!groups?.length && !groupsPaused)) this.disable();
+      else this.enable();
     });
   }
 
