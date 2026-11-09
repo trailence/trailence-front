@@ -1,13 +1,14 @@
 export class BinaryContent {
 
-  private readonly contentType: string;
+  private contentType: string;
   private base64?: string;
   private blob?: Blob;
   private buffer?: ArrayBuffer;
   private uint8Array?: Uint8Array;
+  private holder?: BinaryContentHolder;
 
   constructor(
-    data: string | Blob | ArrayBuffer | Uint8Array,
+    data: string | Blob | ArrayBuffer | Uint8Array | BinaryContentHolder,
     contentType?: string
   ) {
     if (typeof data === 'string') {
@@ -25,6 +26,9 @@ export class BinaryContent {
     } else if (data instanceof Uint8Array) {
       this.uint8Array = data;
       this.contentType = contentType ?? '';
+    } else if (data instanceof BinaryContentHolder) {
+      this.holder = data;
+      this.contentType = '';
     } else {
       throw new TypeError('Unexpected binary data type: ' + (typeof data));
     }
@@ -38,6 +42,7 @@ export class BinaryContent {
   }
 
   public getContentType(): string {
+    if (this.contentType === '' && this.holder?.contentType) this.contentType = this.holder.contentType() ?? '';
     return this.contentType;
   }
 
@@ -60,6 +65,13 @@ export class BinaryContent {
       this.base64 = this.bufferToBase64(this.buffer);
       return Promise.resolve(this.base64);
     }
+    if (this.holder) {
+      let promise: Promise<any> | undefined;
+      if (this.holder.uint8Array) promise = this.toUint8Array();
+      else if (this.holder.arraybuffer) promise = this.toArrayBuffer();
+      else if (this.holder.blob) promise = this.toBlob();
+      if (promise) return promise.then(() => this.toBase64());
+    }
     return Promise.reject("Unknown data type");
   }
 
@@ -74,6 +86,15 @@ export class BinaryContent {
     if (this.uint8Array) {
       this.blob = new Blob([this.uint8Array.buffer as ArrayBuffer], { type: this.contentType });
       return Promise.resolve(this.blob);
+    }
+    if (this.holder) {
+      if (this.holder.blob) {
+        const result = this.holder.blob().then(b => { this.blob = b; return b; })
+        this.holder = undefined;
+        return result;
+      }
+      if (this.holder.arraybuffer) return this.toArrayBuffer().then(() => this.toBlob());
+      if (this.holder.uint8Array) return this.toUint8Array().then(() => this.toBlob());
     }
     if (this.base64) {
       this.blob = BinaryContent.b64toBlob(this.base64, this.contentType);
@@ -95,6 +116,15 @@ export class BinaryContent {
         return buffer;
       });
     }
+    if (this.holder) {
+      if (this.holder.arraybuffer) {
+        const result = this.holder.arraybuffer().then(a => { this.buffer = a; return a; })
+        this.holder = undefined;
+        return result;
+      }
+      if (this.holder.blob) return this.toBlob().then(() => this.toArrayBuffer());
+      if (this.holder.uint8Array) return this.toUint8Array().then(() => this.toArrayBuffer());
+    }
     if (this.base64) {
       this.uint8Array = Uint8Array.from(atob(this.base64), c => c.charCodeAt(0)); // NOSONAR
       this.buffer = this.uint8Array.buffer as ArrayBuffer;
@@ -115,6 +145,15 @@ export class BinaryContent {
       this.uint8Array = Uint8Array.from(atob(this.base64), c => c.charCodeAt(0)); // NOSONAR
       return Promise.resolve(this.uint8Array);
     }
+    if (this.holder) {
+      if (this.holder.uint8Array) {
+        const result = this.holder.uint8Array().then(a => { this.uint8Array = a; return a; })
+        this.holder = undefined;
+        return result;
+      }
+      if (this.holder.blob) return this.toBlob().then(() => this.toUint8Array());
+      if (this.holder.arraybuffer) return this.toArrayBuffer().then(() => this.toUint8Array());
+    }
     return this.toArrayBuffer().then(a => {
       this.uint8Array = new Uint8Array(a);
       return this.uint8Array;
@@ -125,22 +164,41 @@ export class BinaryContent {
     if (this.buffer) return Promise.resolve(this.buffer);
     if (this.blob) return Promise.resolve(this.blob);
     if (this.uint8Array) return Promise.resolve(this.uint8Array.buffer as ArrayBuffer);
+    if (this.holder) {
+      if (this.holder.arraybuffer) {
+        const result = this.holder.arraybuffer().then(a => { this.buffer = a; return a; });
+        this.holder = undefined;
+        return result;
+      }
+      if (this.holder.blob) {
+        const result = this.holder.blob().then(a => { this.blob = a; return a; });
+        this.holder = undefined;
+        return result;
+      }
+    }
     return this.toArrayBuffer();
   }
 
-  public toRaw(): ArrayBuffer | Blob | Uint8Array | string {
+  public toRaw(): ArrayBuffer | Blob | Uint8Array | string | undefined {
     if (this.buffer) return this.buffer;
     if (this.blob) return this.blob;
     if (this.uint8Array) return this.uint8Array;
-    return this.base64!;
+    return this.base64;
   }
 
-  public getSize(): number {
+  public getSize(): number | undefined {
     if (this.buffer) return this.buffer.byteLength;
     if (this.blob) return this.blob.size;
     if (this.uint8Array) return this.uint8Array.byteLength;
-    this.uint8Array = Uint8Array.from(atob(this.base64!), c => c.charCodeAt(0)); // NOSONAR
-    return this.uint8Array.byteLength;
+    if (this.holder) {
+      const s = this.holder.size?.();
+      if (s !== undefined) return s;
+    }
+    if (this.base64) {
+      this.uint8Array = Uint8Array.from(atob(this.base64), c => c.charCodeAt(0)); // NOSONAR
+      return this.uint8Array.byteLength;
+    }
+    return undefined;
   }
 
   public static b64toBlob(b64Data: string, contentType: string = '', sliceSize: number = 512) {
@@ -185,4 +243,14 @@ export class BinaryContent {
       return data + String.fromCharCode(byte); // NOSONAR
     }, ''));
   }
+}
+
+export class BinaryContentHolder {
+  constructor(
+    public readonly contentType?: () => string | undefined,
+    public readonly size?: () => number | undefined,
+    public readonly blob?: () => Promise<Blob>,
+    public readonly arraybuffer?: () => Promise<ArrayBuffer>,
+    public readonly uint8Array?: () => Promise<Uint8Array>,
+  ) {}
 }

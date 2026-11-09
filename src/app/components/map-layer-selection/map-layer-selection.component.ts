@@ -88,18 +88,18 @@ export class MapLayerSelectionComponent implements OnInit {
     this.selectionChange.emit(this.selection);
   }
 
-  layerClick(layer: {layer: MapLayer, tiles: L.TileLayer}): void {
+  layerClick(layer: MapLayer): void {
     if (this.multiple) {
-      const index = this.selection.indexOf(layer.layer.name);
+      const index = this.selection.indexOf(layer.name);
       if (index >= 0) {
         this.selection.splice(index, 1);
       } else {
-        this.selection.push(layer.layer.name);
+        this.selection.push(layer.name);
       }
-    } else if (this.selection.length > 0 && this.selection[0] === layer.layer.name) {
+    } else if (this.selection.length > 0 && this.selection[0] === layer.name) {
       this.selection = [];
     } else {
-      this.selection = [layer.layer.name];
+      this.selection = [layer.name];
     }
     this.selectionChange.emit(this.selection);
   }

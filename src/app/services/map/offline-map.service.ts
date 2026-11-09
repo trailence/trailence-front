@@ -2,7 +2,7 @@ import { Injectable, Injector, NgZone, OnDestroy } from '@angular/core';
 import { MapLayersService } from './map-layers.service';
 import { Progress, ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
-import { Observable, bufferCount, catchError, combineLatest, firstValueFrom, map, merge, of, switchMap, tap, zip } from 'rxjs';
+import { Observable, bufferCount, catchError, combineLatest, firstValueFrom, from, map, merge, of, switchMap, tap, zip } from 'rxjs';
 import { RequestLimiter } from '@trailence/utils/request-limiter';
 import { BinaryContent } from '@trailence/utils/binary-content';
 import { PreferencesService } from '../preferences/preferences.service';
@@ -273,9 +273,10 @@ class Saver {
         requests.push(this.limiter.add(() =>
           this.layer.download(c.x, c.y, zoomLevel)
           .pipe(
-            map(result => {
-              if (result instanceof Blob) return {blob: result, key, tile: c, error: undefined};
-              return {blob: undefined, key, tile: c, error: new Error(result.message)};
+            switchMap(result => {
+              if (result instanceof BinaryContent)
+                return from(result.toBlob()).pipe(map(blob => ({blob, key, tile: c, error: undefined})));
+              return of({blob: undefined, key, tile: c, error: new Error(result.message)});
             }),
             catchError(e => of({blob: undefined, key, tile: c, error: e})),
           )

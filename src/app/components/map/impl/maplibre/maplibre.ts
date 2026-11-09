@@ -21,6 +21,7 @@ import { RotateMode } from '../../map-state';
 import { TRAILENCE_PROTOCOL } from './map-layer-protocol';
 import { MapLayersService } from '@trailence/services/map/map-layers.service';
 import { MapLayer } from '@trailence/services/map/layers/map-layer';
+import { AbstractComponent, IdGenerator } from '@trailence/utils/component-utils';
 
 setWorkerUrl(environment.assetsUrl + '/' + assetsDependencies['maplibre-gl-worker']);
 addProtocol('trailence', (params, abortController) => TRAILENCE_PROTOCOL.handleRequest(params, abortController));
@@ -28,13 +29,13 @@ addProtocol('trailence', (params, abortController) => TRAILENCE_PROTOCOL.handleR
 export class MapLibre extends MapRenderer {
 
   private map?: MapLibreMap;
+  private readonly _id = IdGenerator.generateId();
 
   public override get type(): MapRendererType { return 'maplibre'; }
 
   public getMaplibreMap(): MapLibreMap | undefined { return this.map; }
 
-  public override async init() {
-    TRAILENCE_PROTOCOL.injector = this.injector;
+  public override async init(mapComponent: AbstractComponent) {
     this.injector.get(AssetsService).loadCss(assetsDependencies['maplibre-gl-css']);
     return new Promise(resolve => {
       const layer = this.injector.get(MapLayersService).getLayerOrDefault(this.mapState.tilesName);
@@ -82,6 +83,7 @@ export class MapLibre extends MapRenderer {
         },
       });
       const map = this.map;
+      TRAILENCE_PROTOCOL.registerMap(this._id, this.injector, map, mapComponent.visible$);
       map.on('move', () => this.mapState.center = map.getCenter());
       map.on('zoom', () => this.mapState.zoom = map.getZoom());
       map.on('rotate', e => {
@@ -99,7 +101,7 @@ export class MapLibre extends MapRenderer {
   private getRasterSource(layer: MapLayer): RasterSourceSpecification {
     return {
       type: 'raster',
-      tiles: ['trailence://' + layer.name + '/{x}/{y}/{z}'],
+      tiles: ['trailence://' + this._id + '/' + layer.name + '/{x}/{y}/{z}'],
       tileSize: layer.tileSize,
       attribution: layer.attribution,
       minzoom: Math.max(1, layer.minZoom),
@@ -108,6 +110,7 @@ export class MapLibre extends MapRenderer {
   }
 
   protected override destroyMap(): void {
+    TRAILENCE_PROTOCOL.unregisterMap(this._id);
     this.map?.remove();
   }
 

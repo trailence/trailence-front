@@ -165,7 +165,8 @@ export class FileService implements IFileService {
     const zip = new JSZip.default();
     let nextFile: { filename: string; data: BinaryContent; } | null;
     while ((nextFile = await contentProvider()) !== null) { // NOSONAR
-      const data = nextFile.data.toRaw();
+      let data = nextFile.data.toRaw();
+      if (!data) data = await nextFile.data.toBlob();
       zip.file(nextFile.filename, data, {
         base64: typeof data === 'string',
         binary: true

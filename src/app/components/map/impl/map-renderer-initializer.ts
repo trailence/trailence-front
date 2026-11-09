@@ -65,7 +65,7 @@ export class MapRendererInitializer {
         import('./leaflet/leaflet')
         .then(module => new module.Leaflet(this.injector, this.containerId, this.mapState, this.events))
       ;
-    return map$.then(impl => impl.init().then(() => impl));
+    return map$.then(impl => impl.init(this.component).then(() => impl));
   }
 
 }

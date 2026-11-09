@@ -66,6 +66,26 @@ export class Leaflet extends MapRenderer {
     });
     map.on('rotate', e => this.mapState.bearing = (e as any).theta);
 
+    let currentLayer = layer.name;
+    this.subscriptions.add(this.mapState.tilesName$.subscribe(layerName => {
+      if (layerName === currentLayer) return;
+      const newLayer = mapLayersService.getLayerOrDefault(layerName);
+      if (newLayer.name === currentLayer) return;
+      let found: L.Layer | undefined = undefined;
+      map.eachLayer(l => {
+        const id = (l as any)['_trailenceMapLayerId'];
+        if (id) {
+          if (id === newLayer.name) found = l;
+          else if (mapLayersService.getLayer(id) !== undefined) map.removeLayer(l);
+        }
+      });
+      if (found) {
+        if (!map.hasLayer(found)) map.addLayer(found);
+      } else {
+        map.addLayer(createLeafletLayer(newLayer));
+      }
+    }));
+
     let distanceUnit: DistanceUnit | undefined = undefined;
     let scale: L.Control.Scale | undefined = undefined;
     this.subscriptions.add(this.injector.get(PreferencesService).preferences$.subscribe(prefs => {

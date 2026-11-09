@@ -10,6 +10,7 @@ import { OrientationToolGroup, RotationTool } from './tools/orientation-tools';
 import { FitBoundsTool, GoBackTool, NavigationToolGroup } from './tools/navigation-tools';
 import { MapElementsToolGroup } from './tools/map-elements-tools';
 import { Map3dToggleTool } from './tools/map-3d-toggle-tool';
+import { MapLayerSelectionTool } from './tools/layer-selection-tool';
 
 export class MapTools {
   _leftTools: MenuItem[] = [];
@@ -101,6 +102,7 @@ const baseTools: MapTool[] = [
   new FitBoundsTool(),
   new GoBackTool(),
 
+  new MapLayerSelectionTool(),
   new Map3dToggleTool(),
 ];
 

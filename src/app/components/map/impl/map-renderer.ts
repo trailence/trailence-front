@@ -8,6 +8,7 @@ import { Point2D } from '@trailence/utils/geometry-utils';
 import { SvgBoundsOptions, SvgBoundsPrimitive } from '../primitives/svg';
 import { IconOptions, IconPrimitive } from '../primitives/icon';
 import { MapEvents } from '../map-events';
+import { AbstractComponent } from '@trailence/utils/component-utils';
 
 export type MapRendererType = 'leaflet' | 'maplibre';
 
@@ -22,7 +23,7 @@ export abstract class MapRenderer {
 
   public abstract get type(): MapRendererType;
 
-  public abstract init(): Promise<any>;
+  public abstract init(mapComponent: AbstractComponent): Promise<any>;
   public destroy(): void {
     for (const primitive of [...this.primitives]) this.remove(primitive); // NOSONAR
     this.destroyMap();

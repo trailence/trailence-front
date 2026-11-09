@@ -227,7 +227,7 @@ export class LocalFilesService {
     dir = this.sanitizeDir(dir);
     filename = this.sanitizeFilename(filename);
     return this.operation(dir, filename, 'saveBinary', () =>
-      this.plugin.saveBinaryFile({dir, filename, size: data.getSize()})
+      this.plugin.saveBinaryFile({dir, filename, size: data.getSize()!})
       .then(init => (init as any)['id'] ? data.toUint8Array().then(content =>this.saveBinaryChunk((init as any).id, (init as any).maxChunkSize, content, 0)) : {})
       .then(() => true)
     );

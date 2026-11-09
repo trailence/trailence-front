@@ -8,6 +8,7 @@ import { createMapAchorSvgString } from '@trailence/components/map/utils/map-anc
 import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorDABorderColor, anchorDATextColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor } from '@trailence/components/map/elements/map-track-anchors';
 import { distance } from '@trailence/utils/latlng';
 import { firstValueFrom, from } from 'rxjs';
+import { BinaryContent } from '@trailence/utils/binary-content';
 
 const logger = getLogger('pdf-map');
 
@@ -58,8 +59,8 @@ async function drawTiles(ctx: PdfContext, x: number, y: number, width: number, h
     for (let tileX = mapBounds.leftTile; tileX <= mapBounds.rightTile; tileX++) {
       try {
         const dl = await firstValueFrom(ctx.mapLayer.download(tileX, tileY, mapBounds.zoom));
-        if (dl instanceof Blob) {
-          const image = await dl.arrayBuffer();
+        if (dl instanceof BinaryContent) {
+          const image = await dl.toArrayBuffer();
           ctx.doc.image(
             image,
             x + (MapGenerator.tileSize * (tileX - mapBounds.leftTile) + mapBounds.leftDiff) / RATIO,
