@@ -37,6 +37,7 @@ export interface BaseLayerConfig {
   mimeFormat: string;
   tileSize?: number;
   bounds?: EarthBBox;
+  demEncoding?: 'terrarium';
 }
 
 export abstract class MapLayer {
@@ -56,6 +57,7 @@ export abstract class MapLayer {
     this.mimeFormat = config.mimeFormat;
     this.tileSize = config.tileSize ?? 256;
     this.bounds = config.bounds;
+    this.demEncoding = config.demEncoding;
   }
 
   public readonly name: string;
@@ -73,6 +75,7 @@ export abstract class MapLayer {
   public readonly mimeFormat: string;
   public readonly tileSize: number;
   public readonly bounds: EarthBBox | undefined;
+  public readonly demEncoding: 'terrarium' | undefined;
 
   public abstract getUrl(x: number, y: number, z: number): string;
 
@@ -227,6 +230,10 @@ export class TileResult {
 
   public toImageElement(img: HTMLImageElement, ondone: () => void, onerror: (e: Error) => void): void {
     if (this.type === 'not-found') {
+      if (this.layer.type !== 'raster') {
+        onerror(new Error('Tile not found'));
+        return;
+      }
       const svg = this.getNotFoundSvgString();
       img.src = 'data:image/svg+xml;base64,' + btoa(svg);
       img.classList.remove('map-tile-error', 'map-tile-loading');
@@ -235,6 +242,10 @@ export class TileResult {
       return;
     }
     if (this.type === 'error') {
+      if (this.layer.type !== 'raster') {
+        onerror(new Error('Tile cannot be loaded'));
+        return;
+      }
       const svg = this.getErrorSvgString();
       img.src = 'data:image/svg+xml;base64,' + btoa(svg);
       img.classList.remove('map-tile-loading');
@@ -349,27 +360,33 @@ export class TileResult {
 
   private async svgToCanvas(svg: string) {
     const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-    const bitmap = await createImageBitmap(svgBlob);
+    const url = URL.createObjectURL(svgBlob);
     try {
+      const img = new Image();
+      img.src = url;
+      await img.decode();
+
       const canvas = document.createElement('canvas');
       canvas.width = this.layer.tileSize;
       canvas.height = this.layer.tileSize;
 
       const ctx = canvas.getContext('2d')!;
-      ctx.drawImage(bitmap, 0, 0, this.layer.tileSize, this.layer.tileSize);
+      ctx.drawImage(img, 0, 0, this.layer.tileSize, this.layer.tileSize);
 
       return canvas;
     } finally {
-      bitmap.close();
+      URL.revokeObjectURL(url);
     }
   }
 
   public async toArrayBuffer(): Promise<ArrayBuffer> {
     if (this.type === 'not-found') {
+      if (this.layer.type !== 'raster') throw new Error('Tile not found');
       const canvas = await this.svgToCanvas(this.getNotFoundSvgString());
       return await this.canvasToArrayBuffer(canvas);
     }
     if (this.type === 'error') {
+      if (this.layer.type !== 'raster') throw new Error('Tile cannot be loaded');
       const canvas = await this.svgToCanvas(this.getErrorSvgString());
       return await this.canvasToArrayBuffer(canvas);
     }
@@ -417,9 +434,9 @@ export class TileResult {
     const id = IdGenerator.generateId();
     return '<svg width="800px" height="800px" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">'
       + '<defs>'
-      + '<pattern id="' + id + '" patternUnits="userSpaceOnUse" width="40" height="40" patternTransform="rotate(-45)">'
-      + '<rect width="40" height="40" fill="rgba(128,128,128,0.2)" />'
-      + '<rect width="20" height="40" fill="rgba(128,128,128,0.3)" />'
+      + '<pattern id="' + id + '" patternUnits="userSpaceOnUse" width="80" height="80" patternTransform="rotate(-45)">'
+      + '<rect width="80" height="80" fill="rgba(128,128,128,0.2)" />'
+      + '<rect width="40" height="80" fill="rgba(128,128,128,0.3)" />'
       + '</pattern>'
       + '</defs>'
       + '<rect width="1920" height="1920" fill="url(#' + id + ')" />'
@@ -436,9 +453,9 @@ export class TileResult {
     const id = IdGenerator.generateId();
     return '<svg width="800px" height="800px" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">'
       + '<defs>'
-      + '<pattern id="' + id + '" patternUnits="userSpaceOnUse" width="40" height="40" patternTransform="rotate(-45)">'
-      + '<rect width="40" height="40" fill="rgba(255,128,0,0.2)" />'
-      + '<rect width="20" height="40" fill="rgba(255,128,0,0.3)" />'
+      + '<pattern id="' + id + '" patternUnits="userSpaceOnUse" width="80" height="80" patternTransform="rotate(-45)">'
+      + '<rect width="80" height="80" fill="rgba(255,128,0,0.2)" />'
+      + '<rect width="40" height="80" fill="rgba(255,128,0,0.3)" />'
       + '</pattern>'
       + '</defs>'
       + '<rect width="1920" height="1920" fill="url(#' + id + ')" />'

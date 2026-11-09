@@ -56,7 +56,21 @@ export function createWorldLayers(injector: Injector): (MapLayer | {name: string
     {
       name: 'tfo',
       layer$: thunderForestLayer(injector),
-    }
+    },
+    new DefaultMapLayer(injector, {
+      name: 'mapterhorn',
+      displayName: 'Mapterhorn',
+      type: 'raster-dem',
+      attribution: '<a href="https://mapterhorn.com/attribution">© Mapterhorn</a>',
+      urlTemplate: 'https://tiles.mapterhorn.com/{z}/{x}/{y}.webp',
+      maxZoom: 17,
+      tileSize: 512,
+      example:'',
+      mimeFormat: 'image/webp',
+      maxConcurrentRequests: 5,
+      bounds: {minlat: -85.0511287, minlng: -180, maxlat: 85.0511287, maxlng: 180},
+      demEncoding: 'terrarium',
+    }),
   ]
 }
 

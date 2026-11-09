@@ -99,7 +99,7 @@ export class PdfPopup implements OnInit, OnDestroy {
       try {
         const json = JSON.parse(s);
         this.qrCodeActivated = !!json.qrCode;
-        const layer = (json.mapLayer ? this.mapLayerService.getLayerOrDefault(json.mapLayer) : undefined) ?? this.mapLayerService.getDefaultLayer();
+        const layer = (json.mapLayer ? this.mapLayerService.getLayerOrDefault('raster', json.mapLayer) : undefined) ?? this.mapLayerService.getDefaultLayer('raster');
         return {
           model: TypeUtils.valueToEnum(json.model, PdfModel) ?? PdfModel.BIG_MAP,
           includeDescription: !!json.includeDescription,
@@ -121,7 +121,7 @@ export class PdfPopup implements OnInit, OnDestroy {
       includeElevation: true,
       includeAvatar: undefined,
       includePhoto: false,
-      mapLayer: this.mapLayerService.getDefaultLayer(),
+      mapLayer: this.mapLayerService.getDefaultLayer('raster'),
     }
   }
 

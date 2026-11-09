@@ -1,4 +1,4 @@
-import { addProtocol, MapLibreMap, MapMouseEvent, RasterSourceSpecification, setWorkerUrl, SourceSpecification } from 'maplibre-gl';
+import { addProtocol, MapLibreMap, MapMouseEvent, RasterDEMSourceSpecification, RasterSourceSpecification, setWorkerUrl, SourceSpecification } from 'maplibre-gl';
 import { MapRenderer, MapRendererType } from '../map-renderer';
 import { CircleOptions } from '../../primitives/circle';
 import { MapLibreCircle } from './primitives/circle';
@@ -38,7 +38,8 @@ export class MapLibre extends MapRenderer {
   public override async init(mapComponent: AbstractComponent) {
     this.injector.get(AssetsService).loadCss(assetsDependencies['maplibre-gl-css']);
     return new Promise(resolve => {
-      const layer = this.injector.get(MapLayersService).getLayerOrDefault(this.mapState.tilesName);
+      const layer = this.injector.get(MapLayersService).getLayerOrDefault('raster', this.mapState.tilesName);
+      const dem = this.injector.get(MapLayersService).getDefaultLayer('raster-dem');
       this.map = new MapLibreMap({
         container: this.containerId,
         center: this.mapState.center,
@@ -50,16 +51,7 @@ export class MapLibre extends MapRenderer {
           sources: {
               baselayer: this.getRasterSource(layer),
               // Use a different source for terrain and hillshade layers, to improve render quality
-              terrainSource: {
-                  type: 'raster-dem',
-                  url: 'https://tiles.mapterhorn.com/tilejson.json',
-                  maxzoom: 17,
-              },
-              hillshadeSource: {
-                  type: 'raster-dem',
-                  url: 'https://tiles.mapterhorn.com/tilejson.json',
-                  maxzoom: 17,
-              }
+              demSource: this.getRasterDemSource(dem),
           },
           layers: [
               {
@@ -70,13 +62,13 @@ export class MapLibre extends MapRenderer {
               {
                   id: 'hills',
                   type: 'hillshade',
-                  source: 'hillshadeSource',
+                  source: 'demSource',
                   layout: {visibility: 'visible'},
                   paint: {'hillshade-shadow-color': '#473B24'}
               }
           ],
           terrain: {
-              source: 'terrainSource',
+              source: 'demSource',
               exaggeration: 1
           },
           sky: {}
@@ -106,6 +98,18 @@ export class MapLibre extends MapRenderer {
       attribution: layer.attribution,
       minzoom: Math.max(1, layer.minZoom),
       maxzoom: layer.maxZoom,
+    }
+  }
+
+  private getRasterDemSource(layer: MapLayer): RasterDEMSourceSpecification {
+    return {
+      type: 'raster-dem',
+      tiles: ['trailence://' + this._id + '/' + layer.name + '/{x}/{y}/{z}'],
+      tileSize: layer.tileSize,
+      attribution: layer.attribution,
+      minzoom: Math.max(1, layer.minZoom),
+      maxzoom: layer.maxZoom,
+      encoding: layer.demEncoding,
     }
   }
 

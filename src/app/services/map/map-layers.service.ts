@@ -56,16 +56,16 @@ export class MapLayersService {
     if (darkmap) this.toggleDarkMap();
   }
 
-  public getLayer(name: string): MapLayer | undefined {
-    return this._layers.find(l => l.name === name);
+  public getLayer(name: string, type?: MapLayerType): MapLayer | undefined {
+    return this._layers.find(l => l.name === name && (type === undefined || type === l.type));
   }
 
-  public getLayerOrDefault(name: string): MapLayer {
-    return this.getLayer(name) ?? this.getDefaultLayer();
+  public getLayerOrDefault(type: MapLayerType, name: string): MapLayer {
+    return this.getLayer(name, type) ?? this.getDefaultLayer(type);
   }
 
-  public getDefaultLayer(): MapLayer {
-    return this._layers.find(l => l.name === 'osm') ?? this._layers[0];
+  public getDefaultLayer(type: MapLayerType): MapLayer {
+    return this._layers.find(l => l.type === type)!;
   }
 
   public getAllPossibleLayersNames(): string[] {

@@ -13,7 +13,8 @@ export class MapLibreTrailenceProtocol {
     const mapId = path[0];
     const map = this._maps.get(mapId);
     if (!map) throw new Error('Map not registered');
-    const layer = map.injector.get(MapLayersService).getLayerOrDefault(path[1]);
+    const layer = map.injector.get(MapLayersService).getLayer(path[1]);
+    if (!layer) throw new Error('Layer not found: ' + path[1]);
     const x = Number.parseInt(path[2]);
     const y = Number.parseInt(path[3]);
     const z = Number.parseInt(path[4]);

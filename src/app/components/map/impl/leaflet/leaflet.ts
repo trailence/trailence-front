@@ -34,8 +34,8 @@ export class Leaflet extends MapRenderer {
     await this.injector.get(AssetsService).loadJs('leaflet-rotate.1.js');
 
     const mapLayersService = this.injector.get(MapLayersService);
-    const layer = mapLayersService.getLayerOrDefault(this.mapState.tilesName);
-    const overlays = this.mapState.overlays.map(name => mapLayersService.getLayer(name)).filter(o => !!o);
+    const layer = mapLayersService.getLayerOrDefault('raster', this.mapState.tilesName);
+    const overlays = this.mapState.overlays.map(name => mapLayersService.getLayer(name, 'raster-overlay')).filter(o => !!o);
 
     this.map = L.map(this.containerId, {
       center: this.mapState.center,
@@ -69,7 +69,7 @@ export class Leaflet extends MapRenderer {
     let currentLayer = layer.name;
     this.subscriptions.add(this.mapState.tilesName$.subscribe(layerName => {
       if (layerName === currentLayer) return;
-      const newLayer = mapLayersService.getLayerOrDefault(layerName);
+      const newLayer = mapLayersService.getLayerOrDefault('raster', layerName);
       if (newLayer.name === currentLayer) return;
       let found: L.Layer | undefined = undefined;
       map.eachLayer(l => {
