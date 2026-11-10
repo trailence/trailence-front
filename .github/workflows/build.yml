@@ -215,7 +215,7 @@ jobs:
             type=ref,prefix=snapshot-,event=branch
             type=ref,event=tag
       - name: Cache Docker Compose Images
-        uses: seijikohara/docker-compose-cache-action@7eca8749b61e50c04f784d3a620bbee7b574c35f #v1.9.2
+        uses: seijikohara/docker-compose-cache-action@9fc49139bb37e02334b4fc863b31b526ab9b5365 #v1.9.5
         with:
           compose-files: |
             e2e/github/docker-compose.yml
