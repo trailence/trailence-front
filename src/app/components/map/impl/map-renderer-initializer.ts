@@ -5,6 +5,7 @@ import { MapRenderer, MapRendererType } from './map-renderer';
 import { AbstractComponent } from '@trailence/utils/component-utils';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
 import { MapEvents } from '../map-events';
+import { WEBGL_SUPPORT } from '@trailence/services/map/map-layers.service';
 
 export class MapRendererInitializer {
 
@@ -23,7 +24,7 @@ export class MapRendererInitializer {
       )
       .subscribe(([visible, is3d, currentMap, initializing]) => {
         if (!visible || initializing) return;
-        const expectedType: MapRendererType = is3d ? 'maplibre' : 'leaflet';
+        const expectedType: MapRendererType = is3d && WEBGL_SUPPORT ? 'maplibre' : 'leaflet';
         if (currentMap?.type === expectedType) return;
         this.initializing$.next(true);
         map$.next(undefined);

@@ -11,6 +11,8 @@ import { FitBoundsTool, GoBackTool, NavigationToolGroup } from './tools/navigati
 import { MapElementsToolGroup } from './tools/map-elements-tools';
 import { Map3dToggleTool } from './tools/map-3d-toggle-tool';
 import { MapLayerSelectionTool } from './tools/layer-selection-tool';
+import { DarkToggleTool } from './tools/dark-toggle-tool';
+import { DownloadMapGroup, DownloadMapTool } from './tools/download-map-tool';
 
 export class MapTools {
   _leftTools: MenuItem[] = [];
@@ -91,6 +93,7 @@ const baseToolGroups: MapToolGroup[] = [
   NavigationToolGroup,
 
   { id: 'map-config', pane: 'right', order: -1000000 },
+  DownloadMapGroup,
   MapElementsToolGroup,
 ];
 
@@ -104,6 +107,8 @@ const baseTools: MapTool[] = [
 
   new MapLayerSelectionTool(),
   new Map3dToggleTool(),
+  new DarkToggleTool(),
+  new DownloadMapTool(),
 ];
 
 function toolOrderComparator(t1: MapTool | MapToolGroup, t2: MapTool | MapToolGroup): number {

@@ -1,8 +1,9 @@
 import { Injector } from '@angular/core';
 import { MenuItem } from '@trailence/components/menus/menu-item';
-import { EMPTY, map, Observable, switchMap } from 'rxjs';
+import { EMPTY, map, Observable, of, switchMap } from 'rxjs';
 import { MapTool } from '../map-tool';
 import { MapComponent } from '../map.component';
+import { WEBGL_SUPPORT } from '@trailence/services/map/map-layers.service';
 
 export class Map3dToggleTool implements MapTool {
 
@@ -12,10 +13,12 @@ export class Map3dToggleTool implements MapTool {
   createMenuItem$(injector: Injector, mapComponent: MapComponent): Observable<MenuItem> {
     const item = new MenuItem()
       .setIcon('3d')
+      .setVisible(WEBGL_SUPPORT)
       .setAction(() => {
         const state = mapComponent.renderer?.mapState;
         if (state) state.is3d = !state.is3d;
       });
+    if (!WEBGL_SUPPORT) return of(item);
     return mapComponent.renderer$.pipe(
       switchMap(renderer => {
         if (!renderer) return EMPTY;

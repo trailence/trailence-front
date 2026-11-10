@@ -242,8 +242,7 @@ body.dark-map {
   --way-forbidden-color: #B03030FF;
   --way-permissive-color: #D09000FF;
 
-  .leaflet-layer,
-  .leaflet-control {
+  .leaflet-layer, .leaflet-control, .maplibregl-canvas {
     filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
   }
   .leaflet-position-marker {

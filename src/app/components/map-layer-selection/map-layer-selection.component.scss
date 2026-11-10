@@ -46,6 +46,11 @@
       background-color: rgba(var(--ion-color-secondary-rgb), 0.2);
     }
   }
+  &:not(.as-button) {
+    .name {
+      padding-left: 4px;
+    }
+  }
 }
 .modal-content {
   height: 100%;

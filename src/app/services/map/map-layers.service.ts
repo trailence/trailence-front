@@ -9,8 +9,20 @@ import { createNorwayLayers } from './layers/world/norway';
 import { createSwedenLayers } from './layers/world/sweden';
 import { createSwissLayers } from './layers/world/swiss';
 import { createUsaLayers } from './layers/world/usa';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 const LOCALSTORAGE_KEY_DARKMAP = 'trailence.dark-map';
+
+function isWebGLSupported() {
+  try {
+    const canvas = document.createElement('canvas');
+    return !!(window.WebGLRenderingContext && (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+  } catch (_) { // NOSONAR
+    return false;
+  }
+}
+
+export const WEBGL_SUPPORT = isWebGLSupported();
 
 @Injectable({
   providedIn: 'root'
@@ -20,7 +32,7 @@ export class MapLayersService {
   private readonly _layers: MapLayer[];
   private readonly _possibleLayers: string[];
 
-  private _darkMap = false;
+  private readonly _darkMap$ = new BehaviorSubject<boolean>(false);
 
   constructor(private readonly injector: Injector) {
     this._layers = [];
@@ -78,11 +90,13 @@ export class MapLayersService {
   }
 
 
-  public get darkMapEnabled(): boolean { return this._darkMap; }
+  public get darkMapEnabled(): boolean { return this._darkMap$.value; }
+  public get darkMapEnabled$(): Observable<boolean> { return this._darkMap$; }
 
   public toggleDarkMap(): void {
-    this._darkMap = !this._darkMap;
-    if (this._darkMap) {
+    const dark = !this._darkMap$.value;
+    this._darkMap$.next(dark);
+    if (dark) {
       localStorage.setItem(LOCALSTORAGE_KEY_DARKMAP, "true");
       globalThis.document.body.classList.add('dark-map');
     } else {
@@ -91,7 +105,7 @@ export class MapLayersService {
     }
     const maps = globalThis.document.getElementsByTagName('app-map');
     for (let i = 0; i < maps.length; ++i) {
-      if (this._darkMap) {
+      if (dark) {
         maps.item(i)!.classList.remove('light-theme');
         maps.item(i)!.classList.add('dark-theme');
       } else {
@@ -101,7 +115,7 @@ export class MapLayersService {
     }
     const fullscreen = globalThis.document.getElementsByClassName('map-full-screen');
     for (let i = 0; i < fullscreen.length; ++i) {
-      if (this._darkMap) {
+      if (dark) {
         fullscreen.item(i)!.classList.remove('light-theme');
         fullscreen.item(i)!.classList.add('dark-theme');
       } else {
@@ -112,7 +126,7 @@ export class MapLayersService {
   }
 
   public applyDarkMap(element: HTMLElement): void {
-    element.classList.add(this._darkMap ? 'dark-theme' : 'light-theme');
+    element.classList.add(this._darkMap$.value ? 'dark-theme' : 'light-theme');
   }
 
 }

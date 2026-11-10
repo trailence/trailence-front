@@ -18,8 +18,7 @@ export function createLeafletLayer(layer: MapLayer): L.TileLayer {
   const tileLayer = new L.TileLayer('', options);
   (tileLayer as any)._trailenceMapLayerId = layer.name;
   (tileLayer as any)['createTile'] = function(coords: L.Coords, done: L.DoneCallback) {
-    const img = document.createElement('IMG') as HTMLImageElement;
-    img.classList.add('map-tile-loading');
+    const img = TileResult.createImageElement();
     void layer.getTileOrFallback(coords.x, coords.y, coords.z)
     .then(result => {
       result.toImageElement(img, () => done(undefined, img), e => done(e, img));

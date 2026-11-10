@@ -16,6 +16,7 @@ import { projectEarthBBoxForZoom, unprojectToEarthBBoxForZoom } from '@trailence
 import { bbox2DContainsBBox2D, bbox2DPadding, extendBBox2D } from '@trailence/utils/geometry-utils';
 import { MapEvents } from './map-events';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
+import { Trail } from '@trailence/model/trail';
 
 export interface MapOptions {
   geoLocationDisabled?: boolean;
@@ -37,6 +38,8 @@ export class MapComponent extends AbstractComponent {
   @Input() elements$?: Observable<MapElement[]>;
   @Input() options!: MapOptions;
   @Input() tools$?: Observable<{groups?: MapToolGroup[], tools?: MapTool[]}>;
+
+  @Input() downloadMapTrail?: Trail;
 
   readonly _containerId = IdGenerator.generateId('map-');
   private _state?: MapState;

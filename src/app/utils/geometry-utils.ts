@@ -18,6 +18,15 @@ export function distance2d(p1: Point2D, p2: Point2D): number {
   return Math.hypot(p2.x - p1.x, p2.y - p1.y);
 }
 
+export function bbox2D(p1: Point2D, p2: Point2D): BBox2D {
+  return {
+    minX: Math.min(p1.x, p2.x),
+    maxX: Math.max(p1.x, p2.x),
+    minY: Math.min(p1.y, p2.y),
+    maxY: Math.max(p1.y, p2.y),
+  };
+}
+
 export function bbox2DContainsBBox2D(container: BBox2D, contained: BBox2D): boolean {
   return contained.minX >= container.minX && contained.maxX <= container.maxX && contained.minY >= container.minY && contained.maxY <= container.maxY;
 }

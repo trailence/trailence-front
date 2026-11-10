@@ -1222,7 +1222,8 @@
     "todo": "élément(s) à télécharger",
     "downloading": {
       "progress_title": "Téléchargement de {{1}}"
-    }
+    },
+    "include_3d": "Télécharger les éléments pour la vue 3D"
   },
   "layers_popup": {
     "title": "Fond de carte",

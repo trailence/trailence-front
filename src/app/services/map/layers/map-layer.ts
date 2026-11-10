@@ -36,6 +36,7 @@ export interface BaseLayerConfig {
   downloadType?: MapDownloadType;
   mimeFormat: string;
   tileSize?: number;
+  tileResolution?: number;
   bounds?: EarthBBox;
   demEncoding?: 'terrarium';
 }
@@ -58,6 +59,7 @@ export abstract class MapLayer {
     this.tileSize = config.tileSize ?? 256;
     this.bounds = config.bounds;
     this.demEncoding = config.demEncoding;
+    this.tileResolution = config.tileResolution ?? 1;
   }
 
   public readonly name: string;
@@ -76,6 +78,7 @@ export abstract class MapLayer {
   public readonly tileSize: number;
   public readonly bounds: EarthBBox | undefined;
   public readonly demEncoding: 'terrarium' | undefined;
+  public readonly tileResolution: number;
 
   public abstract getUrl(x: number, y: number, z: number): string;
 
@@ -207,6 +210,12 @@ export interface DownloadError {
   message: string;
 }
 
+const CLASS_TILE_LOADING = 'map-tile-loading';
+const CLASS_TILE_ERROR = 'map-tile-error';
+const CLASS_TILE_NOT_FOUND = 'map-tile-not-available';
+const CLASS_TILE_OFFLINE = 'map-tile-offline';
+const CLASS_TILE_FALLBACK = 'map-tile-fallback';
+
 export class TileResult {
   constructor(
     public readonly layer: MapLayer,
@@ -228,28 +237,53 @@ export class TileResult {
     return typeof this.result === 'string' ? undefined : this.result[0];
   }
 
+  public static createImageElement(): HTMLImageElement {
+    const img = document.createElement('IMG') as HTMLImageElement;
+    img.classList.add(CLASS_TILE_LOADING);
+    return img;
+  }
+
+
   public toImageElement(img: HTMLImageElement, ondone: () => void, onerror: (e: Error) => void): void {
+    // reset class
+    img.classList.add(CLASS_TILE_LOADING);
+    img.classList.remove(CLASS_TILE_ERROR, CLASS_TILE_NOT_FOUND, CLASS_TILE_OFFLINE, CLASS_TILE_FALLBACK);
+    let classScale: string | undefined;
+    img.classList.forEach(c => { if (c.startsWith(CLASS_TILE_FALLBACK + '-')) classScale = c; });
+    if (classScale) img.classList.remove(classScale);
+    // reset style
+    img.style.width = this.layer.tileSize + 'px';
+    img.style.height = this.layer.tileSize + 'px';
+    img.style.marginTop = '';
+    img.style.marginLeft = '';
+    img.style.clip = '';
+    img.style.clipPath = '';
+    img.src = '';
+
+
     if (this.type === 'not-found') {
       if (this.layer.type !== 'raster') {
+        img.classList.remove(CLASS_TILE_LOADING);
+        img.classList.add(CLASS_TILE_ERROR);
         onerror(new Error('Tile not found'));
         return;
       }
       const svg = this.getNotFoundSvgString();
       img.src = 'data:image/svg+xml;base64,' + btoa(svg);
-      img.classList.remove('map-tile-error', 'map-tile-loading');
-      img.classList.add('map-tile-not-available');
+      img.classList.remove(CLASS_TILE_LOADING);
+      img.classList.add(CLASS_TILE_NOT_FOUND);
       ondone();
       return;
     }
     if (this.type === 'error') {
+      img.classList.remove(CLASS_TILE_LOADING);
+      img.classList.add(CLASS_TILE_ERROR);
       if (this.layer.type !== 'raster') {
         onerror(new Error('Tile cannot be loaded'));
         return;
       }
       const svg = this.getErrorSvgString();
       img.src = 'data:image/svg+xml;base64,' + btoa(svg);
-      img.classList.remove('map-tile-loading');
-      img.classList.add('map-tile-error');
       ondone();
       return;
     }
@@ -261,15 +295,15 @@ export class TileResult {
       .then(url => {
         img.onload = () => {
           if (this.type === 'offline')
-            img.classList.add('map-tile-offline');
-          img.classList.remove('map-tile-error', 'map-tile-loading');
+            img.classList.add(CLASS_TILE_OFFLINE);
+          img.classList.remove(CLASS_TILE_LOADING);
           URL.revokeObjectURL(url);
           ondone();
         };
         img.onerror = e => {
           URL.revokeObjectURL(url);
-          img.classList.add('map-tile-error');
-          img.classList.remove('map-tile-loading');
+          img.classList.remove(CLASS_TILE_LOADING);
+          img.classList.add(CLASS_TILE_ERROR);
           onerror(new Error('' + e));
         };
         img.src = url;
@@ -296,15 +330,15 @@ export class TileResult {
         img.style.clipPath = 'inset(' + top + 'px ' + 'calc(100% - ' + (left + tileSize) + 'px) calc(100% - ' + (top + tileSize) + 'px) ' + left + 'px)';
 
         img.onload = () => {
-          img.classList.add('map-tile-fallback', 'map-tile-fallback-' + scale);
-          img.classList.remove('map-tile-error', 'map-tile-loading');
+          img.classList.remove(CLASS_TILE_LOADING);
+          img.classList.add(CLASS_TILE_FALLBACK, CLASS_TILE_FALLBACK + '-' + scale);
           URL.revokeObjectURL(url);
           ondone();
         };
         img.onerror = e => {
           URL.revokeObjectURL(url);
-          img.classList.add('map-tile-error');
-          img.classList.remove('map-tile-loading');
+          img.classList.remove(CLASS_TILE_LOADING);
+          img.classList.add(CLASS_TILE_ERROR);
           onerror(new Error('' + e));
         };
         img.src = url;
@@ -316,22 +350,22 @@ export class TileResult {
     .then(canvas => new Promise<Blob | null>(r => canvas.toBlob(r, 'image/png')))
     .then(blob => {
       if (!blob) {
-        img.classList.add('map-tile-error');
-        img.classList.remove('map-tile-loading');
+        img.classList.remove(CLASS_TILE_LOADING);
+        img.classList.add(CLASS_TILE_ERROR);
         onerror(new Error('Cannot generate tile'));
         return;
       }
       const url = URL.createObjectURL(blob);
       img.onload = () => {
-        img.classList.add('map-tile-fallback', 'map-tile-fallback-0.5');
-        img.classList.remove('map-tile-error', 'map-tile-loading');
+        img.classList.remove(CLASS_TILE_LOADING);
+        img.classList.add(CLASS_TILE_FALLBACK, CLASS_TILE_FALLBACK + '-0.5');
         URL.revokeObjectURL(url);
         ondone();
       };
       img.onerror = e => {
         URL.revokeObjectURL(url);
-        img.classList.add('map-tile-error');
-        img.classList.remove('map-tile-loading');
+        img.classList.remove(CLASS_TILE_LOADING);
+        img.classList.add(CLASS_TILE_ERROR);
         onerror(new Error('' + e));
       };
       img.src = url;
@@ -339,12 +373,13 @@ export class TileResult {
   }
 
   private async mergeTilesToCanvas(subTiles: BinaryContent[]) {
+    const resolution = this.layer.tileSize * this.layer.tileResolution;
     const canvas = document.createElement('canvas');
-    canvas.width = this.layer.tileSize;
-    canvas.height = this.layer.tileSize;
+    canvas.width = resolution;
+    canvas.height = resolution;
 
     const ctx = canvas.getContext('2d')!;
-    const half = this.layer.tileSize / 2;
+    const half = resolution / 2;
 
     const bitmaps = await Promise.all(subTiles.map(t => t.toBlob().then(blob => createImageBitmap(blob))));
 
@@ -366,12 +401,14 @@ export class TileResult {
       img.src = url;
       await img.decode();
 
+      const resolution = this.layer.tileSize * this.layer.tileResolution;
+
       const canvas = document.createElement('canvas');
-      canvas.width = this.layer.tileSize;
-      canvas.height = this.layer.tileSize;
+      canvas.width = resolution;
+      canvas.height = resolution;
 
       const ctx = canvas.getContext('2d')!;
-      ctx.drawImage(img, 0, 0, this.layer.tileSize, this.layer.tileSize);
+      ctx.drawImage(img, 0, 0, resolution, resolution);
 
       return canvas;
     } finally {
@@ -396,7 +433,9 @@ export class TileResult {
     }
     if (this.fallbackZ < this.originalZ) {
       // fallback with a less zoom
-      const tileSize = this.layer.tileSize;
+      throw new Error('TODO less zoom');
+      /*
+      const resolution = this.layer.tileSize * this.layer.tileResolution;
       const scale = Math.pow(2, this.originalZ - this.fallbackZ);
       const relativeX = this.originalX - this.fallbackX * scale;
       const relativeY = this.originalY - this.fallbackY * scale;
@@ -404,8 +443,8 @@ export class TileResult {
       const fallbackBitmap = await createImageBitmap(fallbackBlob);
 
       const canvas = document.createElement('canvas');
-      canvas.width = tileSize;
-      canvas.height = tileSize;
+      canvas.width = resolution;
+      canvas.height = resolution;
       const ctx = canvas.getContext('2d')!;
       ctx.drawImage(
         fallbackBitmap,
@@ -414,14 +453,16 @@ export class TileResult {
         fallbackBitmap.width / scale,
         fallbackBitmap.height / scale,
         0, 0,
-        tileSize, tileSize
+        resolution, resolution
       );
       fallbackBitmap.close();
-      return await this.canvasToArrayBuffer(canvas);
+      return await this.canvasToArrayBuffer(canvas);*/
     }
     // scale with zoom + 1
+    throw new Error('TODO zoom + 1')
+    /*
     const canvas = await this.mergeTilesToCanvas(content);
-    return await this.canvasToArrayBuffer(canvas);
+    return await this.canvasToArrayBuffer(canvas);*/
   }
 
   private async canvasToArrayBuffer(canvas: HTMLCanvasElement) {

@@ -22,14 +22,22 @@ import { TRAILENCE_PROTOCOL } from './map-layer-protocol';
 import { MapLayersService } from '@trailence/services/map/map-layers.service';
 import { MapLayer } from '@trailence/services/map/layers/map-layer';
 import { AbstractComponent, IdGenerator } from '@trailence/utils/component-utils';
+import { Subscriptions } from '@trailence/utils/rxjs/subscription-utils';
 
 setWorkerUrl(environment.assetsUrl + '/' + assetsDependencies['maplibre-gl-worker']);
 addProtocol('trailence', (params, abortController) => TRAILENCE_PROTOCOL.handleRequest(params, abortController));
+
+export const RASTER_SOURCE = 'rasterSource';
+export const RASTER_LAYER = 'rasterLayer';
+export const HILLS_SOURCE = 'hillsSource';
+export const HILLS_LAYER = 'hillsLayer';
+export const TERRAIN_SOURCE = 'terrainSource';
 
 export class MapLibre extends MapRenderer {
 
   private map?: MapLibreMap;
   private readonly _id = IdGenerator.generateId();
+  private readonly subscriptions = new Subscriptions();
 
   public override get type(): MapRendererType { return 'maplibre'; }
 
@@ -37,9 +45,14 @@ export class MapLibre extends MapRenderer {
 
   public override async init(mapComponent: AbstractComponent) {
     this.injector.get(AssetsService).loadCss(assetsDependencies['maplibre-gl-css']);
+    const layersService = this.injector.get(MapLayersService);
     return new Promise(resolve => {
-      const layer = this.injector.get(MapLayersService).getLayerOrDefault('raster', this.mapState.tilesName);
-      const dem = this.injector.get(MapLayersService).getDefaultLayer('raster-dem');
+      let layer = layersService.getLayerOrDefault('raster', this.mapState.tilesName);
+      const dem = layersService.getDefaultLayer('raster-dem');
+      const sources: {[_: string]: SourceSpecification} = {};
+      sources[RASTER_SOURCE] = this.getRasterSource(layer);
+      sources[HILLS_SOURCE] = this.getRasterDemSource(dem);
+      sources[TERRAIN_SOURCE] = this.getRasterDemSource(dem);
       this.map = new MapLibreMap({
         container: this.containerId,
         center: this.mapState.center,
@@ -48,30 +61,26 @@ export class MapLibre extends MapRenderer {
         pitch: 60,
         style: {
           version: 8,
-          sources: {
-              baselayer: this.getRasterSource(layer),
-              // Use a different source for terrain and hillshade layers, to improve render quality
-              demSource: this.getRasterDemSource(dem),
-          },
+          sources,
           layers: [
               {
-                  id: 'base',
+                  id: RASTER_LAYER,
                   type: 'raster',
-                  source: 'baselayer'
+                  source: RASTER_SOURCE,
               },
               {
-                  id: 'hills',
+                  id: HILLS_LAYER,
                   type: 'hillshade',
-                  source: 'demSource',
+                  source: HILLS_SOURCE,
                   layout: {visibility: 'visible'},
                   paint: {'hillshade-shadow-color': '#473B24'}
               }
           ],
           terrain: {
-              source: 'demSource',
+              source: TERRAIN_SOURCE,
               exaggeration: 1
           },
-          sky: {}
+          sky: {},
         },
       });
       const map = this.map;
@@ -86,7 +95,22 @@ export class MapLibre extends MapRenderer {
         this.mapState.bearing = map.getBearing();
       });
       map.on('click', e => this.events.click.trigger(() => this.toMapPointerEvent(e)));
-      map.on('style.load', () => resolve(true));
+      map.on('style.load', () => {
+        resolve(true);
+        this.subscriptions.add(this.mapState.tilesName$.subscribe(name => {
+          const newLayer = layersService.getLayerOrDefault('raster', name);
+          if (newLayer === layer) return;
+          layer = newLayer;
+          map.removeLayer(RASTER_LAYER);
+          map.removeSource(RASTER_SOURCE);
+          map.addSource(RASTER_SOURCE, this.getRasterSource(layer));
+          map.addLayer({
+            id: RASTER_LAYER,
+            type: 'raster',
+            source: RASTER_SOURCE,
+          });
+        }));
+      });
     });
   }
 
@@ -94,7 +118,7 @@ export class MapLibre extends MapRenderer {
     return {
       type: 'raster',
       tiles: ['trailence://' + this._id + '/' + layer.name + '/{x}/{y}/{z}'],
-      tileSize: layer.tileSize,
+      tileSize: layer.tileSize * layer.tileResolution,
       attribution: layer.attribution,
       minzoom: Math.max(1, layer.minZoom),
       maxzoom: layer.maxZoom,
@@ -105,7 +129,7 @@ export class MapLibre extends MapRenderer {
     return {
       type: 'raster-dem',
       tiles: ['trailence://' + this._id + '/' + layer.name + '/{x}/{y}/{z}'],
-      tileSize: layer.tileSize,
+      tileSize: layer.tileSize * layer.tileResolution,
       attribution: layer.attribution,
       minzoom: Math.max(1, layer.minZoom),
       maxzoom: layer.maxZoom,
@@ -114,6 +138,7 @@ export class MapLibre extends MapRenderer {
   }
 
   protected override destroyMap(): void {
+    this.subscriptions.unsubscribe();
     TRAILENCE_PROTOCOL.unregisterMap(this._id);
     this.map?.remove();
   }

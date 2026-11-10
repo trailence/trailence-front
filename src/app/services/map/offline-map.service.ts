@@ -19,6 +19,7 @@ import { CleanupService } from '../database/cleanup/cleanup.service';
 import { getLogger } from '@trailence/utils/console';
 import { EarthBBox } from '@trailence/utils/latlng';
 import { MapLayer } from './layers/map-layer';
+import { Point2D } from '@trailence/utils/geometry-utils';
 
 const logger = getLogger('offline-map.service');
 
@@ -79,7 +80,7 @@ export class OfflineMapService implements OnDestroy {
     return this.injector.get(AssetsService).getIcon('poi-' + type, true);
   }
 
-  public save(layer: MapLayer, toDownload: Map<number, L.Point[]>): void {
+  public save(layer: MapLayer, toDownload: Map<number, Point2D[]>): void {
     const table = this.tilesTables.get(layer.name);
     if (!table) return;
     new Saver(table, layer, toDownload, this.injector).start();
@@ -94,7 +95,7 @@ export class OfflineMapService implements OnDestroy {
     }
   }
 
-  public getTilesToDownload(tiles: L.Point[], zoomLevel: number, layerName: string): Promise<L.Point[]> {
+  public getTilesToDownload(tiles: Point2D[], zoomLevel: number, layerName: string): Promise<Point2D[]> {
     const table = this.tilesTables.get(layerName);
     if (!table) return Promise.resolve([]);
     const maxCacheValidDate = Date.now() - this.injector.get(PreferencesService).preferences.offlineMapMaxKeepDays * 24 * 60 * 60 * 1000;
@@ -102,7 +103,7 @@ export class OfflineMapService implements OnDestroy {
     return firstValueFrom(table.metadata.getByKeys$(toSearch))
     .then(metas => {
       const byKey = new Map<string, TileMetadata>(metas.map(m => [m.key, m]));
-      const result: L.Point[] = [];
+      const result: Point2D[] = [];
       for (const tile of tiles) {
         const key = '' + zoomLevel + '_' + tile.y + '_' + tile.x;
         const meta = byKey.get(key);
@@ -205,7 +206,7 @@ class Saver {
   constructor(
     private readonly table: DbTablesMetaBlob<TileMetadata>,
     private readonly layer: MapLayer,
-    private readonly toDownload: Map<number, L.Point[]>,
+    private readonly toDownload: Map<number, Point2D[]>,
     private readonly injector: Injector,
   ) {
     this.limiter = new RequestLimiter(layer.maxConcurrentRequests);
@@ -244,7 +245,7 @@ class Saver {
 
   private cancelled = false;
   private currentZoom: number;
-  private readonly errorsByZoom = new Map<number, L.Point[]>();
+  private readonly errorsByZoom = new Map<number, Point2D[]>();
 
   private process(zoomIndex: number): Promise<any> {
     this.currentZoom = zoomIndex;
@@ -260,13 +261,13 @@ class Saver {
     return '' + z + '_' + y + '_' + x;
   }
 
-  private downloadTiles(zoomLevel: number, tiles: L.Point[]): Promise<any> {
+  private downloadTiles(zoomLevel: number, tiles: Point2D[]): Promise<any> {
     this.progress.workDone = 0;
     this.progress.workAmount = tiles.length + 1;
     this.progress.subTitle = 'Zoom ' + zoomLevel + ': 0/' + tiles.length;
     let done = 0;
     const processNext1000 = (startIndex: number) => new Promise(resolve => {
-      const requests: Observable<{blob: Blob | undefined, key: string, tile: L.Point, error: any}>[] = [];
+      const requests: Observable<{blob: Blob | undefined, key: string, tile: Point2D, error: any}>[] = [];
       for (let i = startIndex; i < startIndex + 1000 && i < tiles.length; ++i) {
         const c = tiles[i];
         const key = this.getDbKey(c.x, c.y, zoomLevel);

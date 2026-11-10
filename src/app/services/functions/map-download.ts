@@ -4,8 +4,9 @@ import { Trail } from '@trailence/model/trail';
 import { filterItemsDefined } from '@trailence/utils/rxjs/filter-defined';
 import { TrackService } from '../database/track.service';
 import { ModalController } from '@ionic/angular';
+import { EarthBBox } from '@trailence/utils/latlng';
 
-export function openMapDownloadDialog(injector: Injector, trails: Trail[], bounds?: L.LatLngBounds, layer?: string) {
+export function openMapDownloadDialog(injector: Injector, trails: Trail[], bounds?: EarthBBox, layer?: string) {
   const tracks$ = trails.length === 0 ? of([]) : combineLatest(trails.map(trail =>
     injector.get(TrackService).getFullTrackReady$(trail.currentTrackUuid, trail.owner).pipe(catchError(() => of(null)))
   )).pipe(
@@ -14,7 +15,7 @@ export function openMapDownloadDialog(injector: Injector, trails: Trail[], bound
     map(tracks => filterItemsDefined(tracks))
   );
   tracks$.subscribe(async (tracks) => {
-    const module = await import('../../components/download-map-popup/download-map-popup.component');
+    const module = await import('../../components/map/tools/download-map-popup/download-map-popup.component');
     const modal = await injector.get(ModalController).create({
       component: module.DownloadMapPopupComponent,
       backdropDismiss: false,
@@ -24,6 +25,6 @@ export function openMapDownloadDialog(injector: Injector, trails: Trail[], bound
         layer,
       }
     });
-    modal.present();
+    await modal.present();
   });
 }

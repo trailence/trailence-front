@@ -1,6 +1,7 @@
-import { BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, map, Observable, skip, Subscription } from 'rxjs';
+import { BehaviorSubject, combineLatest, debounceTime, Observable, skip, Subscription } from 'rxjs';
 import { MapAdditionsOptions } from '@trailence/services/map/map-additions.service';
 import { EarthPoint } from '@trailence/utils/latlng';
+import { WEBGL_SUPPORT } from '@trailence/services/map/map-layers.service';
 
 const LOCALSTORAGE_KEY_MAPSTATE_PREFIX = 'trailence.map-state.';
 
@@ -115,7 +116,7 @@ export class MapState {
       }
       if (json['bearing'] && typeof json['bearing'] === 'number') this.bearing = json['bearing'];
       if (json['rotateMode'] && Object.values(RotateMode).includes(json['rotateMode'])) this.rotateMode = json['rotateMode'];
-      if (json['is3d']) this.is3d = true;
+      if (json['is3d'] && WEBGL_SUPPORT) this.is3d = true;
     }
   }
 
