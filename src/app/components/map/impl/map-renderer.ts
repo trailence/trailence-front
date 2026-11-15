@@ -9,6 +9,7 @@ import { SvgBoundsOptions, SvgBoundsPrimitive } from '../primitives/svg';
 import { IconOptions, IconPrimitive } from '../primitives/icon';
 import { MapEvents } from '../map-events';
 import { AbstractComponent } from '@trailence/utils/component-utils';
+import { HtmlMarkerOptions, HtmlMarkerPrimitive } from '../primitives/html-marker';
 
 export type MapRendererType = 'leaflet' | 'maplibre';
 
@@ -22,6 +23,7 @@ export abstract class MapRenderer {
   ) {}
 
   public abstract get type(): MapRendererType;
+  public getInjector(): Injector { return this.injector; }
 
   public abstract init(mapComponent: AbstractComponent): Promise<any>;
   public destroy(): void {
@@ -29,6 +31,8 @@ export abstract class MapRenderer {
     this.destroyMap();
   }
   protected abstract destroyMap(): void;
+
+  public abstract invalidateSize(): void;
 
   protected primitives: MapPrimitive<any, MapRenderer>[] = [];
 
@@ -62,6 +66,7 @@ export abstract class MapRenderer {
   public abstract createPolyline(id: string, positions: EarthPoint[][], options: PolylineOptions): Polyline<any>;
   public abstract createSvgBounds(id: string, bounds: EarthBBox, svg: string | SVGSVGElement, options: SvgBoundsOptions): SvgBoundsPrimitive<any>;
   public abstract createIcon(id: string, position: EarthPoint, options: IconOptions): IconPrimitive<any>;
+  public abstract createHtmlMarker(id: string, position: EarthPoint, options: HtmlMarkerOptions): HtmlMarkerPrimitive<any>;
 
   public abstract getViewportSize(): Point2D | undefined;
   public abstract projectToViewport(point: EarthPoint): Point2D;

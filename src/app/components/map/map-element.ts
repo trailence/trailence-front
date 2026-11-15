@@ -17,6 +17,7 @@ export interface MapElementsLayer {
 
 export const MAP_TRACKS_LAYER = 'tracks';
 export const MAP_SELECTED_TRACK_LAYER = 'selected-track';
+export const MAP_POIS_LAYER = 'pois';
 export const MAP_WAYPOINTS_LAYER = 'waypoints';
 export const MAP_GEOLOCATION_LAYER = 'geolocation';
 
@@ -28,6 +29,10 @@ export const MAP_ELEMENT_LAYERS: MapElementsLayer[] = [
   {
     name: MAP_SELECTED_TRACK_LAYER,
     zIndex: 101,
+  },
+  {
+    name: MAP_POIS_LAYER,
+    zIndex: 150,
   },
   {
     name: MAP_WAYPOINTS_LAYER,

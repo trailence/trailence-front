@@ -1,4 +1,4 @@
-import { Component, Input, SimpleChanges } from '@angular/core';
+import { Component, ElementRef, Input, SimpleChanges } from '@angular/core';
 import { AbstractComponent, IdGenerator } from '@trailence/utils/component-utils';
 import { MapState, RotateMode } from './map-state';
 import { MapRendererInitializer } from './impl/map-renderer-initializer';
@@ -17,6 +17,7 @@ import { bbox2DContainsBBox2D, bbox2DPadding, extendBBox2D } from '@trailence/ut
 import { MapEvents } from './map-events';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { Trail } from '@trailence/model/trail';
+import { MapLayersService } from '@trailence/services/map/map-layers.service';
 
 export interface MapOptions {
   geoLocationDisabled?: boolean;
@@ -47,6 +48,7 @@ export class MapComponent extends AbstractComponent {
   private readonly _map$ = new BehaviorSubject<MapRenderer | undefined>(undefined);
   private readonly _elementsRenderer = new MapElementsRenderer(this.injector, this._map$);
   readonly _tools = new MapTools();
+  private readonly _fullscreen$ = new BehaviorSubject<boolean>(false);
 
   public readonly events = new MapEvents();
 
@@ -54,6 +56,7 @@ export class MapComponent extends AbstractComponent {
   public get renderer(): MapRenderer | undefined { return this._map$.value; }
 
   public get state(): MapState | undefined { return this._state; }
+  public get fullscreen$(): Observable<boolean> { return this._fullscreen$; }
 
   public get mapElements$(): Observable<MapElement[]> { return this._elementsRenderer.elements$; }
 
@@ -81,6 +84,7 @@ export class MapComponent extends AbstractComponent {
     this._elementsRenderer.setSource({id: 'map-basics', elements$: of(basicElements)});
     if (this.elements$) this._elementsRenderer.setSource({id: 'input', elements$: this.elements$});
     this._state = new MapState(this.mapId);
+    this.injector.get(MapLayersService).applyDarkMap(this.injector.get(ElementRef).nativeElement);
     this._mapInit = new MapRendererInitializer(this.injector, this._containerId, this._state, this, this.events, this._map$);
     this.injector.get(MapStateHistoryService).register(this._state, this.visible$);
     this._tools.init(this.whenVisible, this.tools$, this.injector, this, toolsGroups, tools);
@@ -93,6 +97,10 @@ export class MapComponent extends AbstractComponent {
     this._state?.destroy();
     this._mapInit?.destroy();
     this._elementsRenderer.destroy();
+  }
+
+  public setSource(id: string, elements$: Observable<MapElement[]>): void {
+    this._elementsRenderer.setSource({id, elements$});
   }
 
   public setRotation(mode: RotateMode, bearing: number | undefined = undefined, animated = false): void {
@@ -124,6 +132,36 @@ export class MapComponent extends AbstractComponent {
     const targetPixelsBox = extendBBox2D(visibleBox, elementBox);
     const targetBounds = unprojectToEarthBBoxForZoom(targetPixelsBox, zoom);
     renderer.fitBounds(targetBounds, flying);
+  }
+
+  public enterFullScreen(): void {
+    const ionApp = document.getElementsByTagName('ion-app')[0];
+    if (!ionApp) return;
+    const container = document.createElement('DIV');
+    container.id = 'map-fullscreen-' + this._containerId;
+    container.className = 'map-full-screen';
+    this.injector.get(MapLayersService).applyDarkMap(container);
+    ionApp.appendChild(container);
+    const nativeElement = this.injector.get(ElementRef).nativeElement;
+    while (nativeElement.children.length > 0)
+      container.appendChild(nativeElement.children.item(0));
+    this.renderer?.invalidateSize();
+    this._fullscreen$.next(true);
+  }
+
+  public exitFullScreen(): void {
+    const container = document.getElementById('map-fullscreen-' + this._containerId);
+    if (!container) return;
+    const nativeElement = this.injector.get(ElementRef).nativeElement;
+    while (container.children.length > 0)
+      nativeElement.appendChild(container.children.item(0));
+    container.remove();
+    this.renderer?.invalidateSize();
+    this._fullscreen$.next(false);
+  }
+
+  public toggleFullScreen(): void {
+    if (this._fullscreen$.value) this.exitFullScreen(); else this.enterFullScreen();
   }
 
 }

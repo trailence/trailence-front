@@ -1,7 +1,7 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonRange, IonFooter, IonButtons, IonButton, ModalController, IonSpinner, IonCheckbox } from "@ionic/angular";
 import { I18nService } from '@trailence/services/i18n/i18n.service';
-import { MapLayerSelectionComponent } from '../../../map-layer-selection/map-layer-selection.component';
+import { MapLayerSelectionComponent } from '../map-layer-selection/map-layer-selection.component';
 import { PreferencesService } from '@trailence/services/preferences/preferences.service';
 import { OfflineMapService } from '@trailence/services/map/offline-map.service';
 import { Track } from '@trailence/model/track';

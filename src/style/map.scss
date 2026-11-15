@@ -212,7 +212,31 @@ app-map, div.map-full-screen {
   }
 }
 
-.leaflet-pane.leaflet-tooltip-pane .leaflet-tooltip {
+.maplibregl-map div.maplibregl-marker.html-marker {
+  background-color: black;
+  border-radius: 3px;
+  &.maplibregl-marker-anchor-left {
+    margin-left: 10px;
+    &::before {
+      content: '';
+      left: 0;
+      margin-left: -11px;
+      top: 50%;
+      margin-top: -6px;
+      position: absolute;
+      pointer-events: none;
+      border: 6px solid transparent;
+      background: transparent;
+      border-right-color: black;
+    }
+  }
+}
+div.poi-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.leaflet-pane.leaflet-tooltip-pane .leaflet-tooltip, .maplibregl-map div.maplibregl-marker {
   &.poi {
     padding: 1px;
     line-height: 1;
@@ -274,12 +298,12 @@ body.dark-map {
       border-color: rgba(255, 255, 255, 0.2);
     }
 
-    div.leaflet-tooltip-pane div.leaflet-tooltip {
+    div.leaflet-tooltip-pane div.leaflet-tooltip, .maplibregl-map div.maplibregl-marker.html-marker {
       background-color: #fff;
       border-color: #fff;
       color: #222;
     }
-    div.leaflet-tooltip-pane div.leaflet-tooltip-right:before {
+    div.leaflet-tooltip-pane div.leaflet-tooltip-right:before, .maplibregl-map div.maplibregl-marker.html-marker.maplibregl-marker-anchor-left:before {
       border-right-color: #fff;
     }
     div.leaflet-tooltip-pane div.leaflet-tooltip-left:before {

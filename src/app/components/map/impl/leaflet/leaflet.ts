@@ -21,6 +21,10 @@ import { Subscriptions } from '@trailence/utils/rxjs/subscription-utils';
 import { PreferencesService } from '@trailence/services/preferences/preferences.service';
 import { DistanceUnit } from '@trailence/services/preferences/preferences';
 import { createLeafletLayer } from './leaflet-layer';
+import { POI } from '@trailence/services/map/poi';
+import { Observable, of } from 'rxjs';
+import { HtmlMarkerOptions, HtmlMarkerPrimitive } from '../../primitives/html-marker';
+import { LeafletHtmlMarker } from './primitives/html-marker';
 
 export class Leaflet extends MapRenderer {
 
@@ -106,6 +110,10 @@ export class Leaflet extends MapRenderer {
     this.map?.remove();
   }
 
+  public override invalidateSize(): void {
+    this.map?.invalidateSize();
+  }
+
   public getLeafletMap(): L.Map | undefined {
     return this.map;
   }
@@ -163,6 +171,10 @@ export class Leaflet extends MapRenderer {
 
   public override createIcon(id: string, position: EarthPoint, options: IconOptions): IconPrimitive<any> {
     return new LeafletIcon(id, position, options);
+  }
+
+  public override createHtmlMarker(id: string, position: EarthPoint, options: HtmlMarkerOptions): HtmlMarkerPrimitive<any> {
+    return new LeafletHtmlMarker(id, position, options);
   }
 
   public override getViewportSize(): Point2D | undefined {

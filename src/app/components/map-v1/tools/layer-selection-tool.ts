@@ -16,7 +16,7 @@ export class MapLayerSelectionTool extends MapTool {
   private _execute(ctx: MapToolContext): Observable<any> {
     const modalController = ctx.injector.get(ModalController);
     return new Observable(subscriber => {
-      void import('../../map-layer-selection/map-layer-selection.component')
+      void import('../../map/tools/map-layer-selection/map-layer-selection.component')
       .then(module => modalController.create({
         component: module.MapLayerSelectionComponent,
         componentProps: {

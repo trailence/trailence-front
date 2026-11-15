@@ -23,6 +23,10 @@ import { MapLayersService } from '@trailence/services/map/map-layers.service';
 import { MapLayer } from '@trailence/services/map/layers/map-layer';
 import { AbstractComponent, IdGenerator } from '@trailence/utils/component-utils';
 import { Subscriptions } from '@trailence/utils/rxjs/subscription-utils';
+import { POI } from '@trailence/services/map/poi';
+import { map, Observable } from 'rxjs';
+import { HtmlMarkerOptions, HtmlMarkerPrimitive } from '../../primitives/html-marker';
+import { MapLibreHtmlMarker } from './primitives/html-marker';
 
 setWorkerUrl(environment.assetsUrl + '/' + assetsDependencies['maplibre-gl-worker']);
 addProtocol('trailence', (params, abortController) => TRAILENCE_PROTOCOL.handleRequest(params, abortController));
@@ -143,6 +147,10 @@ export class MapLibre extends MapRenderer {
     this.map?.remove();
   }
 
+  public override invalidateSize(): void {
+    this.map?.resize();
+  }
+
   public override bringToFront(primitive: MapPrimitive<any, MapRenderer>): void {
     (primitive as unknown as MapLibrePrimitive).getLayersIds().forEach(id => this.map!.moveLayer(id));
   }
@@ -191,6 +199,10 @@ export class MapLibre extends MapRenderer {
 
   public override createIcon(id: string, position: EarthPoint, options: IconOptions): IconPrimitive<any> {
     return new MapLibreIcon(id, position, options);
+  }
+
+  public override createHtmlMarker(id: string, position: EarthPoint, options: HtmlMarkerOptions): HtmlMarkerPrimitive<any> {
+    return new MapLibreHtmlMarker(id, position, options);
   }
 
   public override getViewportSize(): Point2D | undefined {

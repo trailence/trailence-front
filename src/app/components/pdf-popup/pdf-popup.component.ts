@@ -211,7 +211,7 @@ export class PdfPopup implements OnInit, OnDestroy {
   }
 
   async selectLayer() {
-    const module = await import('../map-layer-selection/map-layer-selection.component');
+    const module = await import('../map/tools/map-layer-selection/map-layer-selection.component');
     const modal = await this.modalController.create({
       component: module.MapLayerSelectionComponent,
       componentProps: {

@@ -10,6 +10,7 @@ import { BinaryContent, BinaryContentHolder } from '@trailence/utils/binary-cont
 import { NetworkService } from '@trailence/services/network/network.service';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { IdGenerator } from '@trailence/utils/component-utils';
+import { ImageUtils } from '@trailence/utils/image-utils';
 
 // `true` for browsers on a high-resolution "retina" screen
 export const RETINA = window.devicePixelRatio > 1;
@@ -393,38 +394,15 @@ export class TileResult {
     return canvas;
   }
 
-  private async svgToCanvas(svg: string) {
-    const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(svgBlob);
-    try {
-      const img = new Image();
-      img.src = url;
-      await img.decode();
-
-      const resolution = this.layer.tileSize * this.layer.tileResolution;
-
-      const canvas = document.createElement('canvas');
-      canvas.width = resolution;
-      canvas.height = resolution;
-
-      const ctx = canvas.getContext('2d')!;
-      ctx.drawImage(img, 0, 0, resolution, resolution);
-
-      return canvas;
-    } finally {
-      URL.revokeObjectURL(url);
-    }
-  }
-
   public async toArrayBuffer(): Promise<ArrayBuffer> {
     if (this.type === 'not-found') {
       if (this.layer.type !== 'raster') throw new Error('Tile not found');
-      const canvas = await this.svgToCanvas(this.getNotFoundSvgString());
+      const canvas = await ImageUtils.svgToCanvas(this.getNotFoundSvgString(), this.layer.tileSize * this.layer.tileResolution, this.layer.tileSize * this.layer.tileResolution);
       return await this.canvasToArrayBuffer(canvas);
     }
     if (this.type === 'error') {
       if (this.layer.type !== 'raster') throw new Error('Tile cannot be loaded');
-      const canvas = await this.svgToCanvas(this.getErrorSvgString());
+      const canvas = await ImageUtils.svgToCanvas(this.getErrorSvgString(), this.layer.tileSize * this.layer.tileResolution, this.layer.tileSize * this.layer.tileResolution);
       return await this.canvasToArrayBuffer(canvas);
     }
     const content = this.result as BinaryContent[];
@@ -433,8 +411,6 @@ export class TileResult {
     }
     if (this.fallbackZ < this.originalZ) {
       // fallback with a less zoom
-      throw new Error('TODO less zoom');
-      /*
       const resolution = this.layer.tileSize * this.layer.tileResolution;
       const scale = Math.pow(2, this.originalZ - this.fallbackZ);
       const relativeX = this.originalX - this.fallbackX * scale;
@@ -456,13 +432,11 @@ export class TileResult {
         resolution, resolution
       );
       fallbackBitmap.close();
-      return await this.canvasToArrayBuffer(canvas);*/
+      return await this.canvasToArrayBuffer(canvas);
     }
     // scale with zoom + 1
-    throw new Error('TODO zoom + 1')
-    /*
     const canvas = await this.mergeTilesToCanvas(content);
-    return await this.canvasToArrayBuffer(canvas);*/
+    return await this.canvasToArrayBuffer(canvas);
   }
 
   private async canvasToArrayBuffer(canvas: HTMLCanvasElement) {

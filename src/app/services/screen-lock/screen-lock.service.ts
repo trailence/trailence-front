@@ -35,4 +35,8 @@ export class ScreenLockService {
     });
   }
 
+  public toggle(): void {
+    void this.set(!this._enabled$.value);
+  }
+
 }

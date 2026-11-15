@@ -9,10 +9,10 @@ import { ZoomInTool, ZoomLevelLabel, ZoomOutTool, ZoomToolGroup } from './tools/
 import { OrientationToolGroup, RotationTool } from './tools/orientation-tools';
 import { FitBoundsTool, GoBackTool, NavigationToolGroup } from './tools/navigation-tools';
 import { MapElementsToolGroup } from './tools/map-elements-tools';
-import { Map3dToggleTool } from './tools/map-3d-toggle-tool';
-import { MapLayerSelectionTool } from './tools/layer-selection-tool';
-import { DarkToggleTool } from './tools/dark-toggle-tool';
 import { DownloadMapGroup, DownloadMapTool } from './tools/download-map-tool';
+import { PhoneLockGroup, PhoneLockTool } from './tools/phone-lock-tool';
+import { MapAdditionsTool, MapLayerSelectionTool, MapLayersToolsGroup } from './tools/map-layers-tools';
+import { DarkToggleTool, FullScreenTool, Map3dToggleTool, MapDisplayToolsGroup } from './tools/map-display-tools';
 
 export class MapTools {
   _leftTools: MenuItem[] = [];
@@ -92,8 +92,10 @@ const baseToolGroups: MapToolGroup[] = [
   OrientationToolGroup,
   NavigationToolGroup,
 
-  { id: 'map-config', pane: 'right', order: -1000000 },
+  MapLayersToolsGroup,
+  MapDisplayToolsGroup,
   DownloadMapGroup,
+  PhoneLockGroup,
   MapElementsToolGroup,
 ];
 
@@ -106,9 +108,12 @@ const baseTools: MapTool[] = [
   new GoBackTool(),
 
   new MapLayerSelectionTool(),
+  new MapAdditionsTool(),
   new Map3dToggleTool(),
   new DarkToggleTool(),
+  new FullScreenTool(),
   new DownloadMapTool(),
+  new PhoneLockTool(),
 ];
 
 function toolOrderComparator(t1: MapTool | MapToolGroup, t2: MapTool | MapToolGroup): number {
