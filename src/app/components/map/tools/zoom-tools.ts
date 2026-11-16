@@ -20,7 +20,9 @@ export class ZoomInTool implements MapTool {
     const item = new MenuItem()
       .setIcon('plus')
       .setAction(() => {
-        mapComponent.renderer?.zoomIn();
+        const renderer = mapComponent.renderer;
+        if (!renderer) return;
+        renderer.setZoom(Math.min(renderer.getMaxZoom(), Math.floor(renderer.mapState.zoom + 1)), true);
       });
     return mapComponent.renderer$.pipe(
       filterDefined(),
@@ -69,7 +71,11 @@ export class ZoomOutTool implements MapTool {
     const item = new MenuItem()
       .setIcon('minus')
       .setAction(() => {
-        mapComponent.renderer?.zoomOut();
+        const renderer = mapComponent.renderer;
+        if (!renderer) return;
+        let newZoom = Math.floor(renderer.mapState.zoom);
+        if (newZoom === renderer.mapState.zoom) newZoom--;
+        renderer.setZoom(Math.max(renderer.getMinZoom(), newZoom), true);
       });
     return mapComponent.renderer$.pipe(
       filterDefined(),

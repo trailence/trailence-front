@@ -30,7 +30,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
   public get visible(): boolean { return this._visible$.value; }
 
   constructor(
-    protected injector: Injector,
+    protected readonly injector: Injector,
   ) {
     this.ngZone = injector.get(NgZone);
     this.byStateAndVisible = new Resubscribeables(this.ngZone);

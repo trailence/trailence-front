@@ -21,9 +21,11 @@ export class LeafletPolyline extends Polyline<Leaflet> implements LeafletPrimiti
 
   private getLeafletOptions(): L.PolylineOptions {
     return {
-      color: this.options.color.toString(),
+      color: this.options.color.toHexString(false),
       weight: this.options.width,
       interactive: this.events.isInteractive(),
+      dashArray: this.options.dashArray?.map((v,i) => (i % 2) === 0 ? v : v * this.options.width)?.join(' '),
+      opacity: this.options.color.a,
       // TODO className
     };
   }

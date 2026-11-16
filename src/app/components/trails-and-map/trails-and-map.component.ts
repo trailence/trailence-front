@@ -100,14 +100,14 @@ export class TrailsAndMapComponent extends AbstractComponent {
   );
   mapOptions: MapOptions = {
   };
+  private readonly _map$ = new BehaviorSubject<MapComponent | undefined>(undefined);
   private readonly _bubbles$ = new BehaviorSubject<MapBubble[]>([]);
   private readonly mapTrails$ = new BehaviorSubject<Trail[]>([]);
-  private readonly tracksAndBubblesTool = new ToggleBubblesTool(this.injector, this.mapTrails$, this._bubbles$, this.map$);
+  private readonly tracksAndBubblesTool = new ToggleBubblesTool(this.injector, this.mapTrails$, this._bubbles$, this._map$);
   readonly mapTools$ = new BehaviorSubject<{groups?: MapToolGroup[], tools?: MapTool[]}>({tools: [this.tracksAndBubblesTool]});
 
   searchPlaceExpanded = false;
 
-  private readonly _map$ = new BehaviorSubject<MapComponent | undefined>(undefined);
   @ViewChild(MapComponent) set mapComponent(v: MapComponent) { this._map$.next(v); }
   public get map$() { return this._map$; }
   public get map() { return this._map$.value; }

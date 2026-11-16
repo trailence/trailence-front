@@ -28,15 +28,16 @@ export class MapRendererInitializer {
         if (currentMap?.type === expectedType) return;
         this.initializing$.next(true);
         map$.next(undefined);
-        currentMap?.destroy();
-        setTimeout(() => {
-          void this.init(0)
-          .then(newMap => {
-            this.initializing$.next(false);
-            if (!newMap) return;
-            map$.next(newMap);
-          });
-        }, 0);
+        if (currentMap?.type === 'maplibre' && mapState.pitch3d > 0) {
+          const pitch = mapState.pitch3d;
+          currentMap.setPitch(0, 900);
+          setTimeout(() => {
+            this.launchInit(currentMap, map$);
+            mapState.pitch3d = pitch;
+          }, 1000);
+        } else {
+          this.launchInit(currentMap, map$);
+        }
       });
     });
   }
@@ -50,23 +51,35 @@ export class MapRendererInitializer {
     this.subscription.unsubscribe();
   }
 
-  private async init(trial: number): Promise<MapRenderer | undefined> {
+  private launchInit(currentMap: MapRenderer | undefined, map$: BehaviorSubject<MapRenderer | undefined>): void {
+    currentMap?.destroy();
+    setTimeout(() => {
+      void this.init(0, currentMap)
+      .then(newMap => {
+        this.initializing$.next(false);
+        if (!newMap) return;
+        map$.next(newMap);
+      });
+    }, 0);
+  }
+
+  private async init(trial: number, previous: MapRenderer | undefined): Promise<MapRenderer | undefined> {
     if (this.destroyed || !this.component.visible) return undefined;
     const container = document.getElementById(this.containerId);
     if (!container?.clientHeight) {
       return new Promise(resolve => {
-        setTimeout(() => this.init(trial + 1).then(resolve), trial < 10 ? trial * 10 : 250);
+        setTimeout(() => this.init(trial + 1, previous).then(resolve), trial < 10 ? trial * 10 : 250);
       });
     }
-    const map$: Promise<MapRenderer> =
-      this.mapState.is3d ?
+    return this.mapState.is3d ?
         import('./maplibre/maplibre')
         .then(module => new module.MapLibre(this.injector, this.containerId, this.mapState, this.events))
+        .then(maplibre => maplibre.init(this.component, previous !== undefined).then(() => maplibre))
       :
         import('./leaflet/leaflet')
         .then(module => new module.Leaflet(this.injector, this.containerId, this.mapState, this.events))
+        .then(leaflet => leaflet.init().then(() => leaflet))
       ;
-    return map$.then(impl => impl.init(this.component).then(() => impl));
   }
 
 }

@@ -4,6 +4,9 @@ import { EarthPoint } from '@trailence/utils/latlng';
 import { WEBGL_SUPPORT } from '@trailence/services/map/map-layers.service';
 
 const LOCALSTORAGE_KEY_MAPSTATE_PREFIX = 'trailence.map-state.';
+const DEFAULT_PITCH_3D = 60;
+export const MIN_PITCH_3D = 0;
+export const MAX_PITCH_3D = 60;
 
 export enum RotateMode {
   NORTH = 'north',
@@ -27,7 +30,8 @@ export class MapState {
         this._additions$,
         this._rotateMode$,
         this._bearing$,
-        this._is3d$
+        this._is3d$,
+        this._pitch3d$,
       ]).pipe(
         skip(1),
         debounceTime(1000),
@@ -49,6 +53,7 @@ export class MapState {
   private readonly _rotateMode$ = new BehaviorSubject<RotateMode>(RotateMode.NORTH);
   private readonly _bearing$ = new BehaviorSubject<number>(0);
   private readonly _is3d$ = new BehaviorSubject<boolean>(false);
+  private readonly _pitch3d$ = new BehaviorSubject<number>(DEFAULT_PITCH_3D);
 
   public get center(): EarthPoint { return this._center$.value; }
   public get center$(): Observable<EarthPoint> { return this._center$; }
@@ -72,6 +77,13 @@ export class MapState {
   public get is3d(): boolean { return this._is3d$.value; }
   public get is3d$(): Observable<boolean> { return this._is3d$; }
   public set is3d(value: boolean) { if (this._is3d$.value !== value) this._is3d$.next(value); }
+
+  public get pitch3d(): number { return this._pitch3d$.value; }
+  public get pitch3d$(): Observable<number> { return this._pitch3d$; }
+  public set pitch3d(value: number) {
+    value = Math.max(MIN_PITCH_3D, Math.min(MAX_PITCH_3D, value));
+    if (this._pitch3d$.value !== value) this._pitch3d$.next(value);
+  }
 
   public get additions(): MapAdditionsOptions { return this._additions$.value; }
   public get additions$(): Observable<MapAdditionsOptions> { return this._additions$; }
@@ -117,6 +129,8 @@ export class MapState {
       if (json['bearing'] && typeof json['bearing'] === 'number') this.bearing = json['bearing'];
       if (json['rotateMode'] && Object.values(RotateMode).includes(json['rotateMode'])) this.rotateMode = json['rotateMode'];
       if (json['is3d'] && WEBGL_SUPPORT) this.is3d = true;
+      const pitch = json['pitch3d'];
+      if (typeof pitch === 'number' && pitch >= MIN_PITCH_3D && pitch <= MAX_PITCH_3D) this.pitch3d = pitch;
     }
   }
 
@@ -131,6 +145,7 @@ export class MapState {
       rotateMode: this.rotateMode,
       bearing: this.bearing,
       is3d: this.is3d,
+      pitch3d: this.pitch3d,
     }));
   }
 

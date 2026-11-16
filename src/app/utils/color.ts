@@ -67,6 +67,12 @@ export class Color {
     }
   }
 
+  public static fromCssVariable(variableName: string, element: HTMLElement): Color {
+    const styles = getComputedStyle(element);
+    const value = String(styles.getPropertyValue(variableName)).trim();
+    return Color.parse(value);
+  }
+
   public toString(): string {
     if (this._a === 1) {
       return 'rgb(' + this._r + ',' + this._g + ',' + this._b + ')';

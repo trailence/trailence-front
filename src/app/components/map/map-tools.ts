@@ -6,7 +6,7 @@ import { Injector } from '@angular/core';
 import { MapComponent } from './map.component';
 import { combineLatestSafe } from '@trailence/utils/rxjs/combineLatestSafe';
 import { ZoomInTool, ZoomLevelLabel, ZoomOutTool, ZoomToolGroup } from './tools/zoom-tools';
-import { OrientationToolGroup, RotationTool } from './tools/orientation-tools';
+import { OrientationToolGroup, PitchTool, RotationTool } from './tools/orientation-tools';
 import { FitBoundsTool, GoBackTool, NavigationToolGroup } from './tools/navigation-tools';
 import { MapElementsToolGroup } from './tools/map-elements-tools';
 import { DownloadMapGroup, DownloadMapTool } from './tools/download-map-tool';
@@ -104,6 +104,7 @@ const baseTools: MapTool[] = [
   new ZoomLevelLabel(),
   new ZoomOutTool(),
   new RotationTool(),
+  new PitchTool(),
   new FitBoundsTool(),
   new GoBackTool(),
 

@@ -47,9 +47,10 @@ export class MapLibre extends MapRenderer {
 
   public getMaplibreMap(): MapLibreMap | undefined { return this.map; }
 
-  public override async init(mapComponent: AbstractComponent) {
+  public async init(mapComponent: AbstractComponent, transitionFrom2d: boolean) {
     this.injector.get(AssetsService).loadCss(assetsDependencies['maplibre-gl-css']);
     const layersService = this.injector.get(MapLayersService);
+    if (this.mapState.zoom < 2) this.mapState.zoom = 2;
     return new Promise(resolve => {
       let layer = layersService.getLayerOrDefault('raster', this.mapState.tilesName);
       const dem = layersService.getDefaultLayer('raster-dem');
@@ -60,9 +61,10 @@ export class MapLibre extends MapRenderer {
       this.map = new MapLibreMap({
         container: this.containerId,
         center: this.mapState.center,
-        zoom: this.mapState.zoom,
+        zoom: this.mapState.zoom - 1,
+        zoomSnap: 0.1,
         bearing: this.mapState.bearing,
-        pitch: 60,
+        pitch: transitionFrom2d ? 0: this.mapState.pitch3d,
         style: {
           version: 8,
           sources,
@@ -90,7 +92,7 @@ export class MapLibre extends MapRenderer {
       const map = this.map;
       TRAILENCE_PROTOCOL.registerMap(this._id, this.injector, map, mapComponent.visible$);
       map.on('move', () => this.mapState.center = map.getCenter());
-      map.on('zoom', () => this.mapState.zoom = map.getZoom());
+      map.on('zoom', () => this.mapState.zoom = map.getZoom() + 1);
       map.on('rotate', e => {
         if (e.originalEvent) {
           // done by user
@@ -98,8 +100,14 @@ export class MapLibre extends MapRenderer {
         }
         this.mapState.bearing = map.getBearing();
       });
+      map.on('pitch', () => {
+        this.mapState.pitch3d = map.getPitch();
+      });
       map.on('click', e => this.events.click.trigger(() => this.toMapPointerEvent(e)));
-      map.on('style.load', () => {
+      map.on('style.load', e => {
+        if (transitionFrom2d) {
+          setTimeout(() => map.flyTo({pitch: this.mapState.pitch3d, essential: true, duration: 1000}), 1000);
+        }
         resolve(true);
         this.subscriptions.add(this.mapState.tilesName$.subscribe(name => {
           const newLayer = layersService.getLayerOrDefault('raster', name);
@@ -152,37 +160,40 @@ export class MapLibre extends MapRenderer {
   }
 
   public override bringToFront(primitive: MapPrimitive<any, MapRenderer>): void {
-    (primitive as unknown as MapLibrePrimitive).getLayersIds().forEach(id => this.map!.moveLayer(id));
+    (primitive as unknown as MapLibrePrimitive).getLayersIds().forEach(id => this.map?.moveLayer(id));
   }
 
   public override getBounds(): EarthBBox | undefined {
     return this.map ? MapLibreUtils.fromMapLibreBounds(this.map.getBounds()) : undefined;
   }
   public override fitBounds(bounds: EarthBBox, flying: boolean): this {
-    this.map?.fitBounds(MapLibreUtils.toMapLibreBounds(bounds), {animate: flying});
+    this.map?.fitBounds(MapLibreUtils.toMapLibreBounds(bounds), {animate: flying, essential: flying});
     return this;
   }
 
   public override goTo(center: EarthPoint, zoom: number | undefined, flying: boolean): void {
-    if (flying) this.map?.flyTo({center, zoom});
+    if (flying) this.map?.flyTo({center, zoom, essential: true});
     else this.map?.jumpTo({center, zoom});
   }
 
   public override getMinZoom(): number {
-    return this.map?.getMinZoom() ?? 1;
+    return (this.map?.getMinZoom() ?? 0) + 1;
   }
   public override getMaxZoom(): number {
-    return this.map?.getMaxZoom() ?? 1;
+    return (this.map?.getMaxZoom() ?? 0) + 1;
   }
-  public override zoomIn(): void {
-    this.map?.zoomIn();
-  }
-  public override zoomOut(): void {
-    this.map?.zoomOut();
+  public override setZoom(zoom: number, animate: boolean): void {
+    if (animate) this.map?.flyTo({zoom: zoom - 1, essential: true});
+    else this.map?.setZoom(zoom - 1);
   }
 
   public override setBearing(bearing: number, animate: boolean): void {
-    this.map?.setBearing(bearing); // TODO animate ??
+    if (animate) this.map?.flyTo({bearing: bearing, essential: true});
+    else this.map?.setBearing(bearing);
+  }
+  public override setPitch(pitch: number, animate: number | undefined): void {
+    if (animate) this.map?.flyTo({pitch: pitch, duration: animate, essential: true});
+    else this.map?.setPitch(pitch);
   }
 
   public override createCircle(id: string, position: EarthPoint, options: CircleOptions) {
@@ -230,6 +241,22 @@ export class MapLibre extends MapRenderer {
       geographicPoint: e.lngLat,
       viewportPoint: e.point,
     };
+  }
+
+  private _loopListeners?: (() => void)[];
+  public trigger(listener: () => void): void {
+    if (this._loopListeners === undefined) {
+      this._loopListeners = [listener];
+      setTimeout(() => this._loop(), 1);
+    } else {
+      this._loopListeners.push(listener);
+    }
+  }
+  private _loop(): void {
+    if (this._loopListeners === undefined || !this.map) return;
+    const listeners = this._loopListeners;
+    this._loopListeners = undefined;
+    for (const listener of listeners) listener();
   }
 
 }

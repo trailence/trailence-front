@@ -47,7 +47,7 @@ export function buildBubblesFromBoundsAndZoom(bounds: EarthBBox[], zoom: number)
       'tracks-bubble$' + bubbleBounds.minlat + '$' + bubbleBounds.minlng + '$' + bubbleBounds.maxlat + '$' + bubbleBounds.maxlng,
       bubbleBounds,
       bboxPadRatio(bubbleBounds, 0.5),
-      '#FF000060', '#FF000080', text, size < 25 ? 125 / (text.length + 1) : 100 / (text.length + 1), '#000000'
+      '#FF000060', '#FF000080', text, size < 25 ? 250 / (text.length + 1) : 200 / (text.length + 1), '#000000'
     );
   });
 }

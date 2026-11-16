@@ -1,15 +1,18 @@
-import { Injector } from '@angular/core';
+import { ElementRef, Injector } from '@angular/core';
 import { MapTool, MapToolGroup } from '../map-tool';
 import { MapComponent } from '../map.component';
 import { BehaviorSubject, combineLatest, distinctUntilChanged, EMPTY, map, Observable, of, switchMap, tap } from 'rxjs';
 import { MenuItem } from '@trailence/components/menus/menu-item';
 import { ModalController } from '@ionic/angular';
-import { countMapAdditionsOptions, MapAdditionsOptions, MapAdditionsService } from '@trailence/services/map/map-additions.service';
+import { countMapAdditionsOptions, hasForbiddenWaysEnabled, hasPermissiveWaysEnabled, hasPoisEnabled, MapAdditionsOptions, MapAdditionsService } from '@trailence/services/map/map-additions.service';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
 import { MapElement } from '../map-element';
 import { Subscriptions } from '@trailence/utils/rxjs/subscription-utils';
 import { PoisMapElement } from '../elements/pois';
 import { POI } from '@trailence/services/map/poi';
+import { Way, WayPermission } from '@trailence/services/map/way';
+import { WaysMapElement } from '../elements/ways';
+import { Color } from '@trailence/utils/color';
 
 export const MapLayersToolsGroup: MapToolGroup = {
   id: 'map-layers',
@@ -63,17 +66,62 @@ export class MapAdditionsTool implements MapTool {
     const elements$ = new BehaviorSubject<MapElement[]>([]);
     mapComponent.setSource('map-additions-tool', elements$);
     let poisElement: PoisMapElement | undefined = undefined;
+    let permissiveWays: WaysMapElement | undefined = undefined;
+    let forbiddenWays: WaysMapElement | undefined = undefined;
+    const updateElements = () => {
+      const elements: MapElement[] = [];
+      if (poisElement !== undefined) elements.push(poisElement);
+      if (permissiveWays !== undefined) elements.push(permissiveWays);
+      if (forbiddenWays !== undefined) elements.push(forbiddenWays);
+      elements$.next(elements);
+    };
     const setPois = (pois: POI[]) => {
       if (pois.length === 0) {
         if (poisElement !== undefined) {
           poisElement = undefined;
-          elements$.next([]);
+          updateElements();
         }
       } else if (poisElement !== undefined) {
         (poisElement.pois$ as BehaviorSubject<POI[]>).next(pois);
       } else {
         poisElement = new PoisMapElement('map-additions-pois', new BehaviorSubject<POI[]>(pois));
-        elements$.next([poisElement]);
+        updateElements();
+      }
+    };
+    const setPermissiveWays = (ways: Way[]) => {
+      if (ways.length === 0) {
+        if (permissiveWays !== undefined) {
+          permissiveWays = undefined;
+          updateElements();
+        }
+      } else if (permissiveWays !== undefined) {
+        (permissiveWays.ways$ as BehaviorSubject<Way[]>).next(ways);
+      } else {
+        permissiveWays = new WaysMapElement(
+          'map-additions-permissive-ways',
+          new BehaviorSubject<Way[]>(ways),
+          Color.fromCssVariable('--way-permissive-color', injector.get(ElementRef).nativeElement).setAlpha(0.75),
+          3, [4, 2],
+        );
+        updateElements();
+      }
+    };
+    const setForbiddenWays = (ways: Way[]) => {
+      if (ways.length === 0) {
+        if (forbiddenWays !== undefined) {
+          forbiddenWays = undefined;
+          updateElements();
+        }
+      } else if (forbiddenWays !== undefined) {
+        (forbiddenWays.ways$ as BehaviorSubject<Way[]>).next(ways);
+      } else {
+        forbiddenWays = new WaysMapElement(
+          'map-additions-forbidden-ways',
+          new BehaviorSubject<Way[]>(ways),
+          Color.fromCssVariable('--way-forbidden-color', injector.get(ElementRef).nativeElement).setAlpha(0.75),
+          3, [4, 2],
+        );
+        updateElements();
       }
     };
 
@@ -85,7 +133,8 @@ export class MapAdditionsTool implements MapTool {
           item.setBadges(undefined);
           item.setSpinner(undefined);
           setPois([]);
-          // TODO remove elements
+          setPermissiveWays([]);
+          setForbiddenWays([]);
           return of(item);
         }
         const getCount = () => renderer.mapState.overlays.length + countMapAdditionsOptions(renderer.mapState.additions);
@@ -125,7 +174,8 @@ export class MapAdditionsTool implements MapTool {
               }
               if (updated) item$.next(item);
               setPois([]);
-              // TODO remove elements
+              setPermissiveWays([]);
+              setForbiddenWays([]);
               return EMPTY;
             }
             if (item.getSpinner() === undefined) {
@@ -133,7 +183,9 @@ export class MapAdditionsTool implements MapTool {
               updated = true;
             }
             if (updated) item$.next(item);
-            // TODO remove elements not anymore in additions
+            if (!hasPoisEnabled(additions)) setPois([]);
+            if (!hasPermissiveWaysEnabled(additions)) setPermissiveWays([]);
+            if (!hasForbiddenWaysEnabled(additions)) setForbiddenWays([]);
             return combineLatest([
               renderer.mapState.center$,
               renderer.mapState.zoom$.pipe(map(zoom => Math.floor(zoom)), distinctUntilChanged()),
@@ -147,7 +199,8 @@ export class MapAdditionsTool implements MapTool {
                     item$.next(item);
                   }
                   setPois([]);
-                  // TODO remove elements
+                  setPermissiveWays([]);
+                  setForbiddenWays([]);
                   return EMPTY;
                 }
                 if (item.getSpinner() === undefined) {
@@ -155,16 +208,28 @@ export class MapAdditionsTool implements MapTool {
                   item$.next(item);
                 }
                 let pois: POI[] = [];
+                let permissiveWays: Way[] = [];
+                let forbiddenWays: Way[] = [];
                 return service.getAdditions(bounds, additions).pipe(
                   tap(result => {
                     pois.push(...result.pois);
+                    permissiveWays.push(...result.ways.filter(w =>
+                      (w.footPermission === WayPermission.PERMISSIVE && !!additions.permissiveWays) ||
+                      ((w.bicyclePermission === WayPermission.PERMISSIVE || w.bicyclePermission === WayPermission.DISMOUNT) && !!additions.permissiveBicycleWays)
+                    ));
+                    forbiddenWays.push(...result.ways.filter(w =>
+                      (w.footPermission === WayPermission.FORBIDDEN && !!additions.forbiddenWays) ||
+                      (w.bicyclePermission === WayPermission.FORBIDDEN && !!additions.forbiddenBicycleWays)
+                    ));
                   }),
                   debounceTimeExtended(100, 100, undefined, (p,n) => n.done),
                   tap(result => {
                     setPois(pois);
-                    // TODO
+                    setPermissiveWays(permissiveWays);
+                    setForbiddenWays(forbiddenWays);
                     item.setSpinner(undefined);
                     item$.next(item);
+                    // TODO partial
                   }),
                 );
               }),

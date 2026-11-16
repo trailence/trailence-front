@@ -63,3 +63,15 @@ export function countMapAdditionsOptions(options: MapAdditionsOptions): number {
   if (options.permissiveBicycleWays) count++;
   return count;
 }
+
+export function hasPoisEnabled(options: MapAdditionsOptions): boolean {
+  return !!options.guidepost || !!options.waterPoint || !!options.toilets;
+}
+
+export function hasPermissiveWaysEnabled(options: MapAdditionsOptions): boolean {
+  return !!options.permissiveWays || !!options.permissiveBicycleWays;
+}
+
+export function hasForbiddenWaysEnabled(options: MapAdditionsOptions): boolean {
+  return !!options.forbiddenWays || !!options.forbiddenBicycleWays;
+}

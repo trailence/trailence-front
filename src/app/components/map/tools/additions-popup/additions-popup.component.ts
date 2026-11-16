@@ -48,13 +48,13 @@ import { MapLayer } from '@trailence/services/map/layers/map-layer';
     </div>
     <div>
       <ion-checkbox [(ngModel)]="options.forbiddenWays" labelPlacement="end" (ngModelChange)="emitChange()">
-        <svg width="24px" height="4px" viewBox="0 0 24 4"><path stroke="var(--way-forbidden-color)" stroke-width="6" stroke-dasharray="4" fill="none" d="M0 0 H24"/></svg>
+        <svg width="24px" height="4px" viewBox="0 0 24 4"><path stroke="var(--way-forbidden-color)" stroke-width="6" stroke-dasharray="4 2" fill="none" d="M0 0 H24"/></svg>
         <ion-label>{{i18n.texts.mapAdditions.way_forbidden}}</ion-label>
       </ion-checkbox>
     </div>
     <div>
       <ion-checkbox [(ngModel)]="options.permissiveWays" labelPlacement="end" (ngModelChange)="emitChange()">
-        <svg width="24px" height="4px" viewBox="0 0 24 4"><path stroke="var(--way-permissive-color)" stroke-width="6" stroke-dasharray="4" fill="none" d="M0 0 H24"/></svg>
+        <svg width="24px" height="4px" viewBox="0 0 24 4"><path stroke="var(--way-permissive-color)" stroke-width="6" stroke-dasharray="4 2" fill="none" d="M0 0 H24"/></svg>
         <ion-label>{{i18n.texts.mapAdditions.way_permissive}}</ion-label>
       </ion-checkbox>
     </div>
@@ -63,13 +63,13 @@ import { MapLayer } from '@trailence/services/map/layers/map-layer';
     </div>
     <div>
       <ion-checkbox [(ngModel)]="options.forbiddenBicycleWays" labelPlacement="end" (ngModelChange)="emitChange()">
-        <svg width="24px" height="4px" viewBox="0 0 24 4"><path stroke="var(--way-forbidden-color)" stroke-width="6" stroke-dasharray="4" fill="none" d="M0 0 H24"/></svg>
+        <svg width="24px" height="4px" viewBox="0 0 24 4"><path stroke="var(--way-forbidden-color)" stroke-width="6" stroke-dasharray="4 2" fill="none" d="M0 0 H24"/></svg>
         <ion-label>{{i18n.texts.mapAdditions.way_forbidden}}</ion-label>
       </ion-checkbox>
     </div>
     <div>
       <ion-checkbox [(ngModel)]="options.permissiveBicycleWays" labelPlacement="end" (ngModelChange)="emitChange()">
-        <svg width="24px" height="4px" viewBox="0 0 24 4"><path stroke="var(--way-permissive-color)" stroke-width="6" stroke-dasharray="4" fill="none" d="M0 0 H24"/></svg>
+        <svg width="24px" height="4px" viewBox="0 0 24 4"><path stroke="var(--way-permissive-color)" stroke-width="6" stroke-dasharray="4 2" fill="none" d="M0 0 H24"/></svg>
         <ion-label>{{i18n.texts.mapAdditions.way_permissive}}</ion-label>
       </ion-checkbox>
     </div>

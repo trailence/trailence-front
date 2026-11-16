@@ -902,7 +902,12 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   enlargeSearchArea(event: Event): void {
-    this.map?.renderer?.zoomOut();
+    const renderer = this.map?.renderer;
+    if (renderer) {
+      let newZoom = Math.floor(renderer.mapState.zoom);
+      if (newZoom === renderer.mapState.zoom) newZoom--;
+      renderer.setZoom(Math.max(renderer.getMinZoom(), newZoom), true);
+    }
     /* TODO refacto
     this.map?.toolbars?.forEach(tb => {
       tb.computed.items.find(i => i.icon === 'search-map')?.item.action?.(event);

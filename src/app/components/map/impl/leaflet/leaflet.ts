@@ -21,19 +21,17 @@ import { Subscriptions } from '@trailence/utils/rxjs/subscription-utils';
 import { PreferencesService } from '@trailence/services/preferences/preferences.service';
 import { DistanceUnit } from '@trailence/services/preferences/preferences';
 import { createLeafletLayer } from './leaflet-layer';
-import { POI } from '@trailence/services/map/poi';
-import { Observable, of } from 'rxjs';
 import { HtmlMarkerOptions, HtmlMarkerPrimitive } from '../../primitives/html-marker';
 import { LeafletHtmlMarker } from './primitives/html-marker';
 
 export class Leaflet extends MapRenderer {
 
   private map?: L.Map;
-  private subscriptions = new Subscriptions();
+  private readonly subscriptions = new Subscriptions();
 
   public override get type(): MapRendererType { return 'leaflet'; }
 
-  public override async init(): Promise<any> {
+  public async init(): Promise<any> {
     globalThis.L = L; // needed for leaflet rotate
     await this.injector.get(AssetsService).loadJs('leaflet-rotate.1.js');
 
@@ -47,8 +45,9 @@ export class Leaflet extends MapRenderer {
       layers: [createLeafletLayer(layer), ...overlays.map(o => createLeafletLayer(o))],
       zoomControl: false,
       worldCopyJump: true,
-      //zoomSnap: 0.5,
-      //zoomDelta: 0.5,
+      zoomSnap: 0.1,
+      zoomDelta: 0.2,
+      wheelPxPerZoomLevel: 150,
       rotate: true,
       bearing: this.mapState.bearing,
       touchGestures: true,
@@ -146,15 +145,15 @@ export class Leaflet extends MapRenderer {
   public override getMaxZoom(): number {
     return this.map?.getMaxZoom() ?? 1;
   }
-  public override zoomIn(): void {
-    this.map?.zoomIn();
-  }
-  public override zoomOut(): void {
-    this.map?.zoomOut();
+  public override setZoom(zoom: number, animate: boolean): void {
+    this.map?.setZoom(zoom, {animate});
   }
 
   public override setBearing(bearing: number, animate: boolean): void {
     (this.map as any)?.setBearing(bearing, {animate});
+  }
+  public override setPitch(pitch: number, animate: number | undefined): void {
+    // not supported
   }
 
   public override createCircle(id: string, position: EarthPoint, options: CircleOptions) {

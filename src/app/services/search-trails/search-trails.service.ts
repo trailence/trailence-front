@@ -285,7 +285,7 @@ export class SearchTrailsService {
       '#80808080',
       '#C0C0C0C0',
       '' + r.count,
-      20,
+      40,
       '#000000',
     );
     bubble.events.addClickListener((bubble, event) => {

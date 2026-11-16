@@ -19,6 +19,7 @@ export class MapLibrePolyline extends Polyline<MapLibre> implements MapLibrePrim
         'line-color': this.options.color.toHexString(false),
         'line-opacity': this.options.color.a,
         'line-width': this.options.width,
+        ...(this.options.dashArray ? {'line-dasharray': this.options.dashArray.map(pixels => pixels / this.options.width)} : {}),
       },
     });
   }
@@ -57,6 +58,11 @@ export class MapLibrePolyline extends Polyline<MapLibre> implements MapLibrePrim
     if (!Color.areSame(this.options.color, previous.color)) {
       map.setPaintProperty(this.id, 'line-color', this.options.color.toHexString(false));
       map.setPaintProperty(this.id, 'line-opacity', this.options.color.a);
+      // bug in MapLibre: when changing color, it is not immediately taken into account
+      renderer.trigger(() => {
+        const source = map.getSource(this.id) as GeoJSONSource;
+        void source.getData().then(data => source.setData(data));
+      });
     }
     if (this.options.width !== previous.width) {
       map.setPaintProperty(this.id, 'line-width', this.options.width);

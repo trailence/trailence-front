@@ -6,6 +6,7 @@ import { MapRenderer } from '../impl/map-renderer';
 export interface PolylineOptions {
   color: Color;
   width: number;
+  dashArray?: number[];
 }
 
 export abstract class Polyline<R extends MapRenderer> extends MapPrimitiveMultiplePositions<PolylineOptions, R, EarthPoint[][]> {

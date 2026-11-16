@@ -25,7 +25,6 @@ export abstract class MapRenderer {
   public abstract get type(): MapRendererType;
   public getInjector(): Injector { return this.injector; }
 
-  public abstract init(mapComponent: AbstractComponent): Promise<any>;
   public destroy(): void {
     for (const primitive of [...this.primitives]) this.remove(primitive); // NOSONAR
     this.destroyMap();
@@ -57,10 +56,10 @@ export abstract class MapRenderer {
 
   public abstract getMinZoom(): number;
   public abstract getMaxZoom(): number;
-  public abstract zoomIn(): void;
-  public abstract zoomOut(): void;
+  public abstract setZoom(zoom: number, animate: boolean): void;
 
   public abstract setBearing(bearing: number, animate: boolean): void;
+  public abstract setPitch(pitch: number, animate: number | undefined): void;
 
   public abstract createCircle(id: string, position: EarthPoint, options: CircleOptions): Circle<any>;
   public abstract createPolyline(id: string, positions: EarthPoint[][], options: PolylineOptions): Polyline<any>;
