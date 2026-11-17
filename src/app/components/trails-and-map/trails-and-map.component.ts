@@ -5,7 +5,6 @@ import { TrailsListComponent } from '../trails-list/trails-list.component';
 import { BehaviorSubject, combineLatest, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { IonSegment, IonSegmentButton, IonButton, IonIcon, IonSpinner } from "@ionic/angular";
 import { I18nService } from '@trailence/services/i18n/i18n.service';
-import { TrackService } from '@trailence/services/database/track.service';
 import { TrailOverviewComponent } from '../trail-overview/trail-overview.component';
 import { Router } from '@angular/router';
 import { List } from 'immutable';
@@ -126,7 +125,6 @@ export class TrailsAndMapComponent extends AbstractComponent {
     injector: Injector,
     private readonly browser: BrowserService,
     public i18n: I18nService,
-    private readonly trackService: TrackService,
     private readonly router: Router,
     private readonly networkService: NetworkService,
     private readonly auth: AuthService,

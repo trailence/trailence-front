@@ -268,7 +268,6 @@ export class SearchTrailsService {
   }
 
   private searchBubbleResultToMapBubble(r: SearchBubblesTileResult, zoom: number): MapBubble {
-    //const pos = L.latLng(r.pos);
     const centerPoint = projectEarthPointForZoom(r.pos, zoom);
     const bubbleBounds = earthBBox(
       unprojectToEarthPointForZoom({x: centerPoint.x - 60, y: centerPoint.y - 60}, zoom),

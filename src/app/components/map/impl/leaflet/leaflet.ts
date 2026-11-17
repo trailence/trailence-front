@@ -47,7 +47,7 @@ export class Leaflet extends MapRenderer {
       worldCopyJump: true,
       zoomSnap: 0.1,
       zoomDelta: 0.2,
-      wheelPxPerZoomLevel: 150,
+      wheelPxPerZoomLevel: 100,
       rotate: true,
       bearing: this.mapState.bearing,
       touchGestures: true,

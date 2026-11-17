@@ -38,6 +38,7 @@ export class ToggleBubblesTool implements MapTool {
 
   private readonly activable$ = new BehaviorSubject<boolean>(false);
   private readonly showBubbles$ = new BehaviorSubject<boolean>(false);
+  private _hasBubbles = false;
 
   clickOnTrail = new EventEmitter<{mapTrack: MapTrackPath, event: MapPointerEvent}>();
 
@@ -88,17 +89,20 @@ export class ToggleBubblesTool implements MapTool {
       ]).pipe(
         switchMap(([trails, bubbles, showBubbles]) => {
           if (bubbles.length > 0) {
+            this._hasBubbles = true;
             // we have bubbles, this is the priority except if explicitely toggled by the user
             if (trails.length === 0 || !this.userSelectedTrailsExplicitely || showBubbles) {
               // bubbles
               this.userSelectedTrailsExplicitely = false;
-              this.setActivable(false);
+              this.setActivable(trails.length > 0);
               if (!showBubbles) {
                 this.showBubbles$.next(true);
                 return EMPTY;
               }
               return of(bubbles);
             }
+          } else {
+            this._hasBubbles = false;
           }
           if (trails.length === 0) {
             // nothing
@@ -109,6 +113,10 @@ export class ToggleBubblesTool implements MapTool {
           // trails
           this.setActivable(true);
           if (showBubbles) {
+            if (!this.userSelectedBubblesExplicitely) {
+              this.showBubbles$.next(false);
+              return EMPTY;
+            }
             return cache.trailToTrackUuid.combineLatest(trails).pipe(
               switchMap(trails => cache.trailToTrackMetadata.combineLatest(trails)),
               debounceTimeExtended(0, 10),
@@ -157,9 +165,15 @@ export class ToggleBubblesTool implements MapTool {
   createMenuItem$(injector: Injector, mapComponent: MapComponent): Observable<MenuItem> {
     const item = new MenuItem()
       .setAction(() => {
-        const current = this.showBubbles$.value;
-        this.userSelectedTrailsExplicitely = current;
-        this.showBubbles$.next(!current);
+        // explicit user choice
+        const newChoice = !this.showBubbles$.value;
+        if (this._hasBubbles) {
+          this.userSelectedTrailsExplicitely = !newChoice;
+        } else {
+          this.userSelectedBubblesExplicitely = newChoice;
+        }
+        this.showBubbles$.next(newChoice);
+        this.saveState();
       });
     return this.activable$.pipe(
       switchMap(activable => {
@@ -179,30 +193,49 @@ export class ToggleBubblesTool implements MapTool {
   }
 
   private _userSelectedTrailsExplicitely = false;
+  private _userSelectedBubblesExplicitely = false;
   private _storageKey?: string;
 
   private get userSelectedTrailsExplicitely(): boolean { return this._userSelectedTrailsExplicitely; }
   private set userSelectedTrailsExplicitely(value: boolean) {
     if (this._userSelectedTrailsExplicitely === value) return;
     this._userSelectedTrailsExplicitely = value;
-    if (this._storageKey) localStorage.setItem(this._storageKey, JSON.stringify(value));
+  }
+
+  private get userSelectedBubblesExplicitely(): boolean { return this._userSelectedBubblesExplicitely; }
+  private set userSelectedBubblesExplicitely(value: boolean) {
+    if (this._userSelectedBubblesExplicitely === value) return;
+    this._userSelectedBubblesExplicitely = value;
   }
 
   public setStateKey(key: string | undefined): void {
     this._storageKey = key;
     if (key) {
       const stateString = localStorage.getItem(key);
-      let state = false;
+      let trails = false;
+      let bubbles = false;
       if (stateString) {
         try {
-          state = !!JSON.parse(stateString);
+          const json = JSON.parse(stateString);
+          if (typeof json === 'boolean') {
+            bubbles = json; // TODO backward compatible, before 3.0.0 it was showBubbles
+          } else {
+            trails = !!json['trails'];
+            bubbles = !!json['bubbles'];
+          }
         } catch (e) { // NOSONAR
           // ignore
         }
       }
-      this._userSelectedTrailsExplicitely = state;
-      if (this.showBubbles$.value !== state) this.showBubbles$.next(state);
+      this._userSelectedTrailsExplicitely = trails;
+      this._userSelectedBubblesExplicitely = bubbles;
+      if (this.showBubbles$.value !== bubbles) this.showBubbles$.next(bubbles);
     }
+  }
+
+  private saveState(): void {
+    if (!this._storageKey) return;
+    localStorage.setItem(this._storageKey, JSON.stringify({trails: this._userSelectedTrailsExplicitely, bubbles: this._userSelectedBubblesExplicitely}));
   }
 
 }
