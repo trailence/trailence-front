@@ -37,7 +37,6 @@ export class LeafletHtmlMarker extends HtmlMarkerPrimitive<Leaflet> implements L
     if (!this.tooltip) return;
     this.tooltip.remove();
     this.tooltip = undefined;
-    this.events.removed();
   }
 
   protected override applyNewPosition(): void {

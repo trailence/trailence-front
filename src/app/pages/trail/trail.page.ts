@@ -1,12 +1,12 @@
 import { Component, Injector, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, combineLatest, map, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable, of, switchMap } from 'rxjs';
 import { HeaderComponent } from '@trailence/components/header/header.component';
 import { TrailComponent } from '@trailence/components/trail/trail.component';
 import { Trail } from '@trailence/model/trail';
 import { TrailMenuService } from '@trailence/services/database/trail-menu.service';
 import { TrailService } from '@trailence/services/database/trail.service';
-import { Recording, TraceRecorderService } from '@trailence/services/trace-recorder/trace-recorder.service';
+import { TraceRecorderService } from '@trailence/services/trace-recorder/trace-recorder.service';
 import { AbstractPage } from '@trailence/utils/component-utils';
 import { MenuItem } from '@trailence/components/menus/menu-item';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
@@ -49,7 +49,6 @@ export class TrailPage extends AbstractPage {
   title = '';
   title2?: string;
   backUrl?: string;
-  recording$ = new BehaviorSubject<Recording | null>(null);
   menu: MenuItem[] = [];
 
   titleLongPress = () => {
@@ -65,7 +64,6 @@ export class TrailPage extends AbstractPage {
     route: ActivatedRoute,
     private readonly trailMenuService: TrailMenuService,
     private readonly trailService: TrailService,
-    trailCollectionService: TrailCollectionService,
     traceRecorder: TraceRecorderService,
     private readonly toastController: ToastController,
     private readonly i18n: I18nService,
@@ -79,68 +77,76 @@ export class TrailPage extends AbstractPage {
         }
       )
     );
-    this.whenVisible.subscribe(traceRecorder.current$, recording => {
-      this.recording$.next(recording ?? null);
-    });
-    this.whenVisible.subscribe(combineLatest([
-      this.recording$.pipe(switchMap(t => t?.trail ? t.trail.name$ : of(undefined))),
-      this.trail$.pipe(
-        switchMap(t => {
-          if (!t) return of(undefined);
-          const info$ = t.owner.includes('@') ? of(undefined) : this.injector.get(FetchSourceService).getTrailInfo$(t.owner, t.uuid);
-          return combineLatest([t.name$, info$]).pipe(
-            switchMap(([trailName, trailInfo]) => (
-                t.fromModeration || !t.owner.includes('@') ? of(undefined) as Observable<string | undefined> :
-                t.owner === this.injector.get(AuthService).email ?
-                  trailCollectionService.getCollectionName$(t.collectionUuid, t.owner) :
-                  this.injector.get(ShareService).getSharesFromTrailSharedWithMe(t.uuid, t.owner).pipe(map(list => list.map(s => s.name).join(', ')))
-              ).pipe(
-                map(cn => ({
-                  trail: t,
-                  trailName: trailInfo?.lang && trailInfo.lang !== this.injector.get(PreferencesService).preferences.lang && trailInfo.nameTranslations?.[this.injector.get(PreferencesService).preferences.lang] ?
-                    trailInfo.nameTranslations[this.injector.get(PreferencesService).preferences.lang] : trailName,
-                  collectionName: cn
-                }))
-              )
-            )
-          );
-        })
+    // title
+    this.whenVisible.subscribe(
+      combineLatest([this.trail$, this.trail2$, traceRecorder.current$]).pipe(
+        switchMap(([t1, t2, recording]) => {
+          if (t1) {
+            if (t2) {
+              return combineLatest([
+                this.getTrailName$(t1),
+                this.getTrailName$(t2),
+                i18n.texts$
+              ]).pipe(
+                map(([t1Name, t2Name, texts]) => ({
+                  title: texts.pages.trail.title_compare as string,
+                  title2: t1Name + ' ' + texts.pages.trail.title_compare_and + ' ' + t2Name,
+                })),
+              );
+            }
+            return combineLatest([
+              this.getTrailName$(t1),
+              recording ? i18n.texts$.pipe(map(texts => texts.menu.current_trace as string)) :
+                (t1.fromModeration ? i18n.texts$.pipe(map(texts => texts.publications.moderation.menu_title as string)) : this.getCollectionName$(t1))
+            ]).pipe(
+              map(([title, title2]) => ({title, title2})),
+            );
+          }
+          if (recording) {
+            return combineLatest([
+              recording.trail.name$,
+              i18n.texts$.pipe(map(texts => texts.menu.current_trace as string)),
+            ]).pipe(
+              map(([title, title2]) => ({title, title2})),
+            );
+          }
+          return of({title: '', title2: ''});
+        }),
+        distinctUntilChanged((v1, v2) => v1.title === v2.title && v1.title2 === v2.title2),
       ),
-      this.trail2$.pipe(
-        switchMap(t => {
-          if (!t) return of(undefined);
-          const info$ = t.owner.includes('@') ? of(undefined) : this.injector.get(FetchSourceService).getTrailInfo$(t.owner, t.uuid);
-          return combineLatest([t.name$, info$]).pipe(
-            map(([trailName, trailInfo]) =>
-              trailInfo?.lang && trailInfo.lang !== this.injector.get(PreferencesService).preferences.lang && trailInfo.nameTranslations?.[this.injector.get(PreferencesService).preferences.lang] ?
-                trailInfo.nameTranslations[this.injector.get(PreferencesService).preferences.lang] : trailName
-            )
-          );
-        })
-      ),
-      this.i18n.texts$,
-    ]), ([rec, t1, t2, texts]) => { // NOSONAR
-      if (t1) {
-        if (t2) {
-          this.title = texts.pages.trail.title_compare;
-          this.title2 = t1.trailName + ' ' + texts.pages.trail.title_compare_and + ' ' + t2;
-        } else {
-          const colName = rec ? texts.menu.current_trace :
-            (t1.collectionName ?? (
-              t1.trail.fromModeration ? texts.publications.moderation.menu_title : ''
-            ));
-          this.title = t1.trailName;
-          this.title2 = colName.length > 0 ? colName : undefined;
-        }
-      } else if (rec) {
-        this.title = rec;
-        this.title2 = texts.menu.current_trace;
-      } else {
-        this.title = '';
-        this.title2 = undefined;
+      titles => {
+        this.title = titles.title;
+        this.title2 = titles.title2.length > 0 ? titles.title2 : undefined;
+        this.changesDetection.detectChanges();
       }
-      this.changesDetection.detectChanges();
-    });
+    );
+  }
+
+  private getTrailName$(trail: Trail): Observable<string> {
+    if (trail.owner.includes('@')) {
+      return trail.name$;
+    }
+    // from a plugin => we may translate the name
+    return combineLatest([
+      this.injector.get(FetchSourceService).getTrailInfo$(trail.owner, trail.uuid),
+      this.injector.get(PreferencesService).preferences$.pipe(
+        map(prefs => prefs.lang),
+        distinctUntilChanged(),
+      ),
+    ]).pipe(
+      switchMap(([trailInfo, lang]) => {
+        if (trailInfo?.lang && trailInfo.lang !== lang && trailInfo.nameTranslations?.[lang])
+          return of(trailInfo.nameTranslations?.[lang]);
+        return trail.name$;
+      }),
+    );
+  }
+
+  private getCollectionName$(trail: Trail): Observable<string> {
+    if (!trail.owner.includes('@')) return of('');
+    if (trail.owner === this.injector.get(AuthService).email)
+      return this.injector.get(TrailCollectionService).getCollectionName$(trail.collectionUuid, trail.owner);
+    return this.injector.get(ShareService).getSharesFromTrailSharedWithMe(trail.uuid, trail.owner).pipe(map(list => list.map(s => s.name).join(', ')))
   }
 
   protected override getComponentState() {

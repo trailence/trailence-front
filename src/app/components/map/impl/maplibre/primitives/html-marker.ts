@@ -7,7 +7,7 @@ import { HtmlMarkerOptions, HtmlMarkerPrimitive } from '@trailence/components/ma
 export class MapLibreHtmlMarker extends HtmlMarkerPrimitive<MapLibre> implements MapLibrePrimitive {
 
   private marker?: Marker;
-  public readonly events: MapLibrePrimitiveEvents<HtmlMarkerOptions, MapLibreHtmlMarker> = new MapLibrePrimitiveEvents<HtmlMarkerOptions, MapLibreHtmlMarker>(this);
+  public readonly events: MapLibrePrimitiveEvents<HtmlMarkerOptions, MapLibreHtmlMarker> = new MapLibrePrimitiveEvents<HtmlMarkerOptions, MapLibreHtmlMarker>();
 
   protected override addPrimitiveToMap(renderer: MapLibre): void {
     this.marker = new Marker({

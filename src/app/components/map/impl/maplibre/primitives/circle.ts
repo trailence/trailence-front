@@ -11,7 +11,7 @@ import { MapLibrePrimitiveEvents } from './events';
 export class MapLibreCircle extends Circle<MapLibre> implements MapLibrePrimitive {
 
   private subscription?: Subscription;
-  public readonly events: MapLibrePrimitiveEvents<CircleOptions, MapLibreCircle> = new MapLibrePrimitiveEvents<CircleOptions, MapLibreCircle>(this);
+  public readonly events: MapLibrePrimitiveEvents<CircleOptions, MapLibreCircle> = new MapLibrePrimitiveEvents<CircleOptions, MapLibreCircle>();
 
   protected override addPrimitiveToMap(renderer: MapLibre): void {
     renderer.getMaplibreMap()!.addSource(this.id, {

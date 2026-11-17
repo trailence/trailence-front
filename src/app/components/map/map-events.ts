@@ -10,7 +10,7 @@ export class MapEvents {
 
 export class MapEventListeners<T extends MapEvent> {
 
-  private _listeners: MapEventListener<T>[] = [];
+  private readonly _listeners: MapEventListener<T>[] = [];
 
   public addListener(listener: MapEventListener<T>): void {
     this._listeners.push(listener);

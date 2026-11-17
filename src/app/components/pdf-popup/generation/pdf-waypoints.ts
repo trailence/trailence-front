@@ -4,7 +4,7 @@ import { addSvgToPdf } from './pdf-icon';
 import { generatePdfText } from './pdf-text';
 import { getWaypointData } from '../waypoints-utils';
 import { WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
-import { createMapAchorSvgString } from '@trailence/components/map/utils/map-anchor';
+import { createMapAchorSvgString } from '@trailence/components/map/utils/map-anchor-svg';
 
 export function generateWaypointsTextToPdf(ctx: PdfContext, y: number, horiz: HorizBounds) {
   const userLang = ctx.preferences.preferences.lang;

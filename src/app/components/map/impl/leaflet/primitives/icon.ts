@@ -61,7 +61,6 @@ export class LeafletIcon extends IconPrimitive<Leaflet> implements LeafletPrimit
     this.marker.remove();
     this.marker = undefined;
     this.rotateListener = undefined;
-    this.events.removed();
   }
 
   protected override applyNewPosition(): void {
@@ -80,7 +79,7 @@ export class LeafletIcon extends IconPrimitive<Leaflet> implements LeafletPrimit
   }
 
 
-  private rotateListener?: (event: MapPointerEvent | undefined) => void;
+  private rotateListener?: (event: {primitive: LeafletIcon, pointerEvent: MapPointerEvent | undefined}) => void;
   private addRotateListener(): void {
     if (this.rotateListener) return;
     let rotate = false;
@@ -89,7 +88,7 @@ export class LeafletIcon extends IconPrimitive<Leaflet> implements LeafletPrimit
       const icon = (this.marker as any)._icon as HTMLImageElement;
       const pos = (icon as any)._leaflet_pos as L.Point;
       // TODO check it is working: we used event.layerPoint, but here viewportPoint = event.containerPoint
-      const mouse = event ? {x: event.viewportPoint.x - pos.x, y: event.viewportPoint.y - pos.y} : undefined;
+      const mouse = event.pointerEvent ? {x: event.pointerEvent.viewportPoint.x - pos.x, y: event.pointerEvent.viewportPoint.y - pos.y} : undefined;
       if (mouse && mouse.x > -23 && mouse.x < 23 && mouse.y > -43 && mouse.y < 3) {
         if (!rotate) {
           icon.style.transformOrigin = 'bottom center';
@@ -102,11 +101,11 @@ export class LeafletIcon extends IconPrimitive<Leaflet> implements LeafletPrimit
         rotate = false;
       }
     };
-    this.events.addHoverListener(this.rotateListener);
+    this.events.hover.addListener(this.rotateListener);
   }
   private removeRotateListener(): void {
     if (!this.rotateListener) return;
-    this.events.removeHoverListener(this.rotateListener);
+    this.events.hover.removeListener(this.rotateListener);
     this.rotateListener = undefined;
   }
 

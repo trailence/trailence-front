@@ -34,7 +34,6 @@ export class LeafletCircle extends Circle<Leaflet> implements LeafletPrimitive {
     if (!this.marker) return;
     this.marker.remove();
     this.marker = undefined;
-    this.events.removed();
   }
 
   protected override applyNewPosition(): void {

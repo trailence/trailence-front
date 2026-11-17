@@ -18,7 +18,7 @@ export class MapLibreSvgBounds extends SvgBoundsPrimitive<MapLibre> implements M
   }
 
   private readonly url: string;
-  public readonly events: MapLibrePrimitiveEvents<SvgBoundsOptions, MapLibreSvgBounds> = new MapLibrePrimitiveEvents<SvgBoundsOptions, MapLibreSvgBounds>(this);
+  public readonly events: MapLibrePrimitiveEvents<SvgBoundsOptions, MapLibreSvgBounds> = new MapLibrePrimitiveEvents<SvgBoundsOptions, MapLibreSvgBounds>();
 
   protected override addPrimitiveToMap(renderer: MapLibre): void {
     renderer.getMaplibreMap()!.addLayer({

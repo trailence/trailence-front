@@ -1,38 +1,19 @@
 import { Track } from '@trailence/model/track';
 import { MAP_WAYPOINTS_LAYER, MapElement } from '../map-element';
-import { SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
-import { BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable, of, switchMap } from 'rxjs';
 import { MapRenderer } from '../impl/map-renderer';
 import { MapPrimitive } from '../primitives/primitive';
-import { IconOptions, IconPrimitive } from '../primitives/icon';
-import { distance, EarthBBox, EarthPoint, sameOptionalPosition } from '@trailence/utils/latlng';
-import { MAX_DEPARTURE_ARRIVAL_DISTANCE } from '@trailence/utils/track-waypoints/waypoints-from-track';
-import { createMapAchorSvgString, MAP_ANCHOR_SVG_SIZE } from '../utils/map-anchor';
+import { IconPrimitive } from '../primitives/icon';
+import { EarthBBox } from '@trailence/utils/latlng';
+import { WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
+import { TrackWayPoint } from '@trailence/utils/track-waypoints/track-waypoint';
+import { createAIcon, createDAIcon, createDIcon, getAIconOptions, getDAIconOptions, getDIconOptions } from '../utils/map-anchors';
 
-export const anchorBorderColor = '#d00000';
-export const anchorFillColor = '#a00000';
-export const anchorTextColor = '#ffffff';
-
-export const anchorDABorderColor = 'rgba(64, 128, 0, 0.75)';
-export const anchorDATextColor = anchorTextColor;
-
-export const anchorDepartureBorderColor = 'rgba(0, 128, 0, 0.75)';
-export const anchorDepartureFillColor = 'rgb(0, 128, 0)';
-export const anchorDepartureTextColor = anchorTextColor;
-
-export const anchorArrivalBorderColor = 'rgba(196, 0, 0, 0.75)';
-export const anchorArrivalFillColor = 'rgb(196, 0, 0)';
-export const anchorArrivalTextColor = anchorTextColor;
-
-export const anchorBreakBorderColor = '#b0865cD8';
-export const anchorBreakFillColor = '#C8986890';
-export const anchorBreakTextColor = '#ffffff';
-
-export class MapTrackAnchors extends MapElement<MapTrackAnchors> {
+export class MapTrackAnchors extends MapElement<TrackWayPoint> {
 
   constructor(
-    public readonly track: Track | SimplifiedTrackSnapshot,
+    public readonly track: Track,
     private readonly i18n: I18nService,
     neverShowArrival: boolean = false,
     showDepartueAndArrival: boolean = false,
@@ -53,154 +34,88 @@ export class MapTrackAnchors extends MapElement<MapTrackAnchors> {
 
   public override fitBounds$: Observable<EarthBBox | undefined> = of(undefined);
 
-  protected override createPrimitives$(renderer: MapRenderer): Observable<MapPrimitive<any, MapRenderer>[]> {
+  protected override createPrimitives$(renderer: MapRenderer): Observable<{primitive: MapPrimitive<any, MapRenderer>, eventBinding: TrackWayPoint}[]> {
+    let da: DA = {texts: {}};
     return combineLatest([
-      this.createDA(renderer),
-      this.createWayPoints(renderer),
-      this.createBreaks(renderer),
-    ]).pipe(map(elements => elements.flat()));
-  }
-
-  private createDA(renderer: MapRenderer): Observable<IconPrimitive<MapRenderer>[]> {
-    let d: IconPrimitive<MapRenderer> | undefined;
-    let a: IconPrimitive<MapRenderer> | undefined;
-    let da: IconPrimitive<MapRenderer> | undefined;
-    let texts: any;
-    return this._showDepartureAndArrivals.pipe(
-      switchMap(show => {
-        if (!show) return of([]);
-        const departure$ = this.track instanceof Track ? this.getDeparture$(this.track) : of(this.track.points.at(0));
-        const arrival$ = this._neverShowArrival.pipe(
-          switchMap(hideArrival => {
-            if (hideArrival) return of(undefined);
-            return this.track instanceof Track ? this.getArrival$(this.track) : of(this.track.points.at(-1));
+      this._showDepartureAndArrivals,
+      this._showWayPoints,
+      this._showBreaks,
+    ]).pipe(
+      switchMap(([showDA, showWP, showBreaks]) => {
+        if (!showDA && !showWP && !showBreaks) return of([]);
+        return combineLatest([
+          this.track.computed.wayPoints$,
+          showDA ? this._neverShowArrival : of(false),
+          showDA ? this.i18n.texts$ : of({}),
+        ]).pipe(
+          map(([waypoints, hideArrival, texts]) => {
+            const icons: {primitive: MapPrimitive<any, MapRenderer>, eventBinding: TrackWayPoint}[] = [];
+            this.updateDA(renderer, waypoints, showDA, hideArrival, texts, da, icons);
+            // TODO waypoints
+            // TODO breaks
+            return icons;
           })
         );
-        return combineLatest([
-          departure$,
-          arrival$,
-          this.i18n.texts$,
-        ]).pipe(
-          map(([departurePoint, arrivalPoint, i18nTexts]) => {
-            if (!departurePoint) {
-              d = a = da = undefined;
-              return [];
-            }
-            if (arrivalPoint && distance(departurePoint, arrivalPoint) <= MAX_DEPARTURE_ARRIVAL_DISTANCE) {
-              // DA
-              d = a = undefined;
-              if (da) {
-                da.setPosition(departurePoint);
-                if (texts !== i18nTexts) {
-                  da.setOptions(this.getDAIconOptions(i18nTexts));
-                  texts = i18nTexts;
-                }
-              } else {
-                da = this.createDAIcon(renderer, departurePoint, i18nTexts);
-                texts = i18nTexts;
-              }
-              return [da];
-            }
-            da = undefined;
-            if (d) {
-              d.setPosition(departurePoint);
-              if (texts !== i18nTexts) {
-                d.setOptions(this.getDIconOptions(i18nTexts));
-              }
+      })
+    );
+  }
+
+  private updateDA(renderer: MapRenderer, waypoints: TrackWayPoint[], showDA: boolean, hideArrival: boolean, texts: any, current: DA, icons: {primitive: MapPrimitive<any, MapRenderer>, eventBinding: TrackWayPoint}[]): void {
+    if (!showDA) {
+      current.d = current.a = current.da = undefined;
+      return;
+    }
+    let departureFound = false;
+    let arrivalFound = false;
+    for (const wp of waypoints) {
+      const wpt = WayPointFromTrack.from(wp);
+      if (wpt) {
+        if (wpt.isDeparture) {
+          if (wpt.isArrival && !hideArrival) {
+            current.d = current.a = undefined;
+            if (current.da) {
+              current.da.setPosition(wpt.getPosition());
+              if (texts !== current.texts) current.da.setOptions(getDAIconOptions(texts));
             } else {
-              d = this.createDIcon(renderer, departurePoint, i18nTexts);
+              current.da = createDAIcon(this.id, renderer, wpt.getPosition(), texts);
             }
-            if (arrivalPoint) {
-              if (a) {
-                a.setPosition(arrivalPoint);
-                if (texts !== i18nTexts) {
-                  a.setOptions(this.getAIconOptions(i18nTexts));
-                }
-              } else {
-                a = this.createAIcon(renderer, arrivalPoint, i18nTexts);
-              }
+            current.texts = texts;
+            icons.push({primitive: current.da, eventBinding: wp});
+            return;
+          }
+          if (!departureFound) {
+            departureFound = true;
+            if (current.d) {
+              current.d.setPosition(wpt.getPosition());
+              if (texts !== current.texts) current.d.setOptions(getDIconOptions(texts));
             } else {
-              a = undefined;
+              current.d = createDIcon(this.id, renderer, wpt.getPosition(), texts);
             }
-            texts = i18nTexts;
-            return a ? [d, a] : [d];
-          }),
-        )
-      }),
-    );
+            icons.push({primitive: current.d, eventBinding: wp});
+          }
+        } else if (wpt.isArrival && !arrivalFound) {
+          arrivalFound = true;
+          if (current.a) {
+            current.a.setPosition(wpt.getPosition());
+            if (texts !== current.texts) current.a.setOptions(getAIconOptions(texts));
+          } else {
+            current.a = createAIcon(this.id, renderer, wpt.getPosition(), texts);
+          }
+          icons.push({primitive: current.a, eventBinding: wp});
+        }
+      }
+    }
+    current.texts = texts;
+    current.da = undefined;
+    if (!departureFound) current.d = undefined;
+    if (!arrivalFound) current.a = undefined;
   }
 
-  private getDeparture$(track: Track): Observable<EarthPoint | undefined> {
-    return track.segments$.pipe(
-      switchMap(segments => {
-        const segment = segments.at(0);
-        if (!segment) return of(undefined);
-        return segment.pointsWithChanges$.pipe(
-          map(points => points.at(0)?.pos),
-        );
-      }),
-      distinctUntilChanged(sameOptionalPosition),
-    );
-  }
+}
 
-  private getArrival$(track: Track): Observable<EarthPoint | undefined> {
-    return track.segments$.pipe(
-      switchMap(segments => {
-        const segment = segments.at(-1);
-        if (!segment) return of(undefined);
-        return segment.pointsWithChanges$.pipe(
-          map(points => points.at(-1)?.pos),
-        );
-      }),
-      distinctUntilChanged(sameOptionalPosition),
-    );
-  }
-
-  private createDAIcon(renderer: MapRenderer, position: EarthPoint, texts: any): IconPrimitive<MapRenderer> {
-    return renderer.createIcon(this.id + '$DA', position, this.getDAIconOptions(texts));
-  }
-  private getDAIconOptions(texts: any): IconOptions {
-    return {
-      icon: createMapAchorSvgString(anchorDABorderColor, texts.way_points.DA, anchorDATextColor, anchorDepartureFillColor, anchorArrivalFillColor),
-      iconOriginalSize: {x: MAP_ANCHOR_SVG_SIZE, y: MAP_ANCHOR_SVG_SIZE},
-      iconRenderSize: {x: 40, y: 40},
-      iconAnchor: 'bottom-center',
-      rotateOnMouseOver: true,
-    };
-  }
-
-  private createDIcon(renderer: MapRenderer, position: EarthPoint, texts: any): IconPrimitive<MapRenderer> {
-    return renderer.createIcon(this.id + '$D', position, this.getDIconOptions(texts));
-  }
-  private getDIconOptions(texts: any): IconOptions {
-    return {
-      icon: createMapAchorSvgString(anchorDepartureBorderColor, texts.way_points.D, anchorDepartureTextColor, anchorDepartureFillColor),
-      iconOriginalSize: {x: MAP_ANCHOR_SVG_SIZE, y: MAP_ANCHOR_SVG_SIZE},
-      iconRenderSize: {x: 40, y: 40},
-      iconAnchor: 'bottom-center',
-      rotateOnMouseOver: true,
-    };
-  }
-
-  private createAIcon(renderer: MapRenderer, position: EarthPoint, texts: any): IconPrimitive<MapRenderer> {
-    return renderer.createIcon(this.id + '$A', position, this.getAIconOptions(texts));
-  }
-  private getAIconOptions(texts: any): IconOptions {
-    return {
-      icon: createMapAchorSvgString(anchorArrivalBorderColor, texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor),
-      iconOriginalSize: {x: MAP_ANCHOR_SVG_SIZE, y: MAP_ANCHOR_SVG_SIZE},
-      iconRenderSize: {x: 40, y: 40},
-      iconAnchor: 'bottom-center',
-      rotateOnMouseOver: true,
-    };
-  }
-
-  private createWayPoints(renderer: MapRenderer): Observable<IconPrimitive<MapRenderer>[]> {
-    return of([]); // TODO
-  }
-
-  private createBreaks(renderer: MapRenderer): Observable<IconPrimitive<MapRenderer>[]> {
-    return of([]); // TODO
-  }
-
+interface DA {
+  d?: IconPrimitive<MapRenderer>;
+  a?: IconPrimitive<MapRenderer>;
+  da?: IconPrimitive<MapRenderer>;
+  texts: any;
 }

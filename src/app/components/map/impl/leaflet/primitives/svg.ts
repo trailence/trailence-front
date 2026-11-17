@@ -39,7 +39,6 @@ export class LeafletSvgBounds extends SvgBoundsPrimitive<Leaflet> implements Lea
     if (!this.overlay) return;
     this.overlay.remove();
     this.overlay = undefined;
-    this.events.removed();
   }
 
   protected override applyNewBounds(): void {

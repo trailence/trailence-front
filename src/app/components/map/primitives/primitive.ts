@@ -4,6 +4,7 @@ import { Arrays, NestedArray } from '@trailence/utils/arrays';
 import { MapUtils } from '../map-utils';
 import { combineLatest, Subscription } from 'rxjs';
 import { MapPointerEvent } from '../map-events';
+import { AppEvent, ReplayAppEvent } from '@trailence/utils/events';
 
 export abstract class MapPrimitive<O, R extends MapRenderer> {
 
@@ -32,15 +33,12 @@ export abstract class MapPrimitive<O, R extends MapRenderer> {
   public getRenderer(): R | undefined { return this.renderer; }
 
   protected renderer?: R;
-  protected onAddListeners: ((renderer: R) => void)[] = [];
-  protected onRemoveListeners: ((renderer: R) => void)[] = [];
 
   public addToMap(renderer: R): void {
     if (this.renderer !== undefined) throw new Error('Primitive already on map');
     this.renderer = renderer;
     this.addPrimitiveToMap(renderer);
-    this.events._addedToMap();
-    for (const listener of this.onAddListeners) listener(renderer);
+    this.events.addedToMap.trigger({primitive: this, renderer});
   }
   protected abstract addPrimitiveToMap(renderer: R): void;
 
@@ -48,29 +46,11 @@ export abstract class MapPrimitive<O, R extends MapRenderer> {
     if (!this.renderer) return;
     if (renderer !== this.renderer) return;
     this.removePrimitiveFromMap(renderer);
-    for (const listener of this.onRemoveListeners) listener(renderer);
+    this.events.addedToMap.cancelLatest();
+    this.events.removedFromMap.trigger({primitive: this, renderer: this.renderer});
     this.renderer = undefined;
   }
   protected abstract removePrimitiveFromMap(renderer: R): void;
-
-  public addListenerOnAdded(listener: (renderer: R) => void): void {
-    if (this.renderer) listener(this.renderer);
-    else this.onAddListeners.push(listener);
-  }
-
-  public removeListenerOnAdded(listener: (renderer: R) => void): void {
-    const index = this.onAddListeners.indexOf(listener);
-    if (index >= 0) this.onAddListeners.splice(index, 1);
-  }
-
-  public addListenerOnRemoved(listener: (renderer: R) => void): void {
-    this.onRemoveListeners.push(listener);
-  }
-
-  public removeListenerOnRemoved(listener: (renderer: R) => void): void {
-    const index = this.onRemoveListeners.indexOf(listener);
-    if (index >= 0) this.onRemoveListeners.splice(index, 1);
-  }
 
   // --- Events ---
 
@@ -78,6 +58,14 @@ export abstract class MapPrimitive<O, R extends MapRenderer> {
 
 }
 
+export class MapPrimitiveEvents<O, R extends MapRenderer, P extends MapPrimitive<O, R>> {
+  public readonly addedToMap = new ReplayAppEvent<{primitive: P, renderer: R}>();
+  public readonly removedFromMap = new AppEvent<{primitive: P, renderer: R}>();
+  public readonly click = new AppEvent<{primitive: P, pointerEvent: MapPointerEvent}>();
+  public readonly hover = new AppEvent<{primitive: P, pointerEvent: MapPointerEvent | undefined}>();
+}
+
+/*
 export abstract class MapPrimitiveEvents<O, R extends MapRenderer, P extends MapPrimitive<O, R>> {
 
   constructor(
@@ -132,6 +120,7 @@ export abstract class MapPrimitiveEvents<O, R extends MapRenderer, P extends Map
     for (const listener of listeners) listener(event);
   }
 }
+  */
 
 export abstract class MapPrimitiveSinglePosition<O, R extends MapRenderer> extends MapPrimitive<O, R> {
 

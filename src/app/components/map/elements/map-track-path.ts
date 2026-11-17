@@ -1,8 +1,8 @@
 import { Track } from '@trailence/model/track';
 import { MAP_TRACKS_LAYER, MapElement } from '../map-element';
-import { SimplifiedPoint, SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
+import { SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
 import { Trail } from '@trailence/model/trail';
-import { BehaviorSubject, combineLatest, defer, map, Observable, of, share, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable, of, share, switchMap } from 'rxjs';
 import { MapRenderer } from '../impl/map-renderer';
 import { Color } from '@trailence/utils/color';
 import { Polyline } from '../primitives/polyline';
@@ -14,7 +14,7 @@ import { getGradeRange, gradeColors } from '@trailence/components/trail-graph/gr
 import { distance2d, Point2D } from '@trailence/utils/geometry-utils';
 import { CachedValue } from '@trailence/utils/cached-value';
 
-export class MapTrackPath extends MapElement<MapTrackPath> {
+export class MapTrackPath extends MapElement<Track | SimplifiedTrackSnapshot> {
 
   constructor(
     public readonly trail: Trail | undefined,
@@ -22,7 +22,7 @@ export class MapTrackPath extends MapElement<MapTrackPath> {
     color: Color,
     eleColors: boolean = false,
     weight: number = 3,
-    arrowsColor: Color | undefined = undefined,
+    arrowsColor: Color | undefined = undefined, // undefined means not shown
   ) {
     super('track-' + track.uuid + '#' + track.owner, {layer: MAP_TRACKS_LAYER});
     this._color = color;
@@ -97,7 +97,7 @@ export class MapTrackPath extends MapElement<MapTrackPath> {
   public getBoundsFromSimplifiedTrack(): EarthBBox | undefined {
     return this._boundsFromSimplifiedTrackCache.get();
   }
-  private _boundsFromSimplifiedTrackCache = new CachedValue<EarthBBox | undefined>(
+  private readonly _boundsFromSimplifiedTrackCache = new CachedValue<EarthBBox | undefined>(
     () => {
       let minlat, maxlat, minlng, maxlng;
       for (const pt of (this.track as SimplifiedTrackSnapshot).points) {
@@ -116,18 +116,12 @@ export class MapTrackPath extends MapElement<MapTrackPath> {
   }
 
   private reset(): void {
-    if (this._pathMonoColor) {
-      this.events._unbind(this._pathMonoColor);
-      this._pathMonoColor = undefined;
-    }
-    if (this._pathEleColors) {
-      this._pathEleColors.byColor.forEach(c => this.events._unbind(c.polyline));
-      this._pathEleColors = undefined;
-    }
+    this._pathMonoColor = undefined;
+    this._pathEleColors = undefined;
     this._arrows = [];
   }
 
-  protected override createPrimitives$(renderer: MapRenderer): Observable<MapPrimitive<any,any>[]> {
+  protected override createPrimitives$(renderer: MapRenderer): Observable<{primitive: MapPrimitive<any,any>, eventBinding: Track | SimplifiedTrackSnapshot}[]> {
     this.reset();
     const points$: Observable<EarthPoint[][]> = this.track instanceof Track ?
       this.track.segments$.pipe(
@@ -144,22 +138,18 @@ export class MapTrackPath extends MapElement<MapTrackPath> {
       map(([points, eleColors]) => {
         if (eleColors) {
           if (this._pathMonoColor) {
-            this.events._unbind(this._pathMonoColor);
             this._pathMonoColor = undefined;
           }
           // TODO be able to update points ?
           this._pathEleColors = this.buildEleColors(renderer, points);
-          this._pathEleColors.byColor.forEach(c => this.events._bind(c.polyline));
           return [this._pathEleColors.border, ...this._pathEleColors.byColor.map(p => p.polyline)];
         }
         if (this._pathEleColors) {
-          this._pathEleColors.byColor.forEach(c => this.events._unbind(c.polyline));
           this._pathEleColors = undefined;
         }
         if (this._pathMonoColor) this.updatePath(this._pathMonoColor, points);
         else {
           this._pathMonoColor = this.buildPath(renderer, points);
-          this.events._bind(this._pathMonoColor);
         }
         return [this._pathMonoColor];
       }),
@@ -178,7 +168,7 @@ export class MapTrackPath extends MapElement<MapTrackPath> {
         return this._arrows;
       }),
     );
-    return combineLatest([path$, arrows$]).pipe(map(elements => elements.flat()));
+    return combineLatest([path$, arrows$]).pipe(map(elements => elements.flat().map(primitive => ({primitive, eventBinding: this.track}))));
   }
 
   private buildPath(renderer: MapRenderer, points: EarthPoint[][]): Polyline<any> {

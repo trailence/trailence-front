@@ -60,6 +60,13 @@ export class Arrays {
     return array;
   }
 
+  public static removeFirst<T>(array: T[], toRemove: T): boolean {
+    const index = array.indexOf(toRemove);
+    if (index < 0) return false;
+    array.splice(index, 1);
+    return true;
+  }
+
   public static mapToSet<T, R>(array: T[], mapper: (element: T) => R): Set<R> {
     const set = new Set<R>();
     for (const element of array) set.add(mapper(element));

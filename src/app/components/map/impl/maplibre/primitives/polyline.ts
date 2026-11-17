@@ -8,7 +8,7 @@ import { Color } from '@trailence/utils/color';
 
 export class MapLibrePolyline extends Polyline<MapLibre> implements MapLibrePrimitive {
 
-  public readonly events: MapLibrePrimitiveEvents<PolylineOptions, MapLibrePolyline> = new MapLibrePrimitiveEvents<PolylineOptions, MapLibrePolyline>(this);
+  public readonly events: MapLibrePrimitiveEvents<PolylineOptions, MapLibrePolyline> = new MapLibrePrimitiveEvents<PolylineOptions, MapLibrePolyline>();
 
   protected override addPrimitiveToMap(renderer: MapLibre): void {
     renderer.getMaplibreMap()!.addLayer({

@@ -37,7 +37,7 @@ export const appPublicRoutes: Routes = [
     path: 'user-routes/:trailsId',
     data: { 'trailsType': 'user-public' },
     loadComponent: () => import('../../pages/trails/trails.page').then(m => m.TrailsPage)
-  },/* TODO refacto
+  },
   {
     path: 'trail/trailence/:trailId',
     data: { 'trailOwner': 'trailence' },
@@ -47,7 +47,7 @@ export const appPublicRoutes: Routes = [
     path: 'trail/link/:trailId',
     data: { 'trailOwner': 'link' },
     loadComponent: () => import('../../pages/trail/trail.page').then(m => m.TrailPage)
-  },
+  },/* TODO refacto
   {
     path: 'live-group/join/:path2',
     data: { 'path1': 'join' },
@@ -77,7 +77,7 @@ export const appAuthRoutes: Routes = [
   {
     path: 'trails/:trailsType/:trailsId/:trailsFrom',
     loadComponent: () => import('../../pages/trails/trails.page').then(m => m.TrailsPage)
-  },/* TODO refacto
+  },
   {
     path: 'trail/:trailOwner/:trailId/:trailOwner2/:trailId2',
     loadComponent: () => import('../../pages/trail/trail.page').then(m => m.TrailPage)
@@ -93,7 +93,7 @@ export const appAuthRoutes: Routes = [
   {
     path: 'trail',
     loadComponent: () => import('../../pages/trail/trail.page').then(m => m.TrailPage)
-  },*/
+  },
   {
     path: 'preferences',
     loadComponent: () => import('../../pages/preferences/preferences.page').then(m => m.PreferencesPage)

@@ -8,7 +8,7 @@ import { samePoint } from '@trailence/utils/geometry-utils';
 export class MapLibreIcon extends IconPrimitive<MapLibre> implements MapLibrePrimitive {
 
   private marker?: Marker;
-  public readonly events: MapLibrePrimitiveEvents<IconOptions, MapLibreIcon> = new MapLibrePrimitiveEvents<IconOptions, MapLibreIcon>(this);
+  public readonly events: MapLibrePrimitiveEvents<IconOptions, MapLibreIcon> = new MapLibrePrimitiveEvents<IconOptions, MapLibreIcon>();
 
   protected override addPrimitiveToMap(renderer: MapLibre): void {
     this.marker = new Marker({

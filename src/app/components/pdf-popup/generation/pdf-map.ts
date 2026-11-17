@@ -4,7 +4,7 @@ import { addSvgToPdf } from './pdf-icon';
 import { ErrorService } from '@trailence/services/progress/error.service';
 import { getLogger } from '@trailence/utils/console';
 import { Point2D } from '@trailence/utils/geometry-utils';
-import { createMapAchorSvgString } from '@trailence/components/map/utils/map-anchor';
+import { createMapAchorSvgString } from '@trailence/components/map/utils/map-anchor-svg';
 import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorDABorderColor, anchorDATextColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor } from '@trailence/components/map/elements/map-track-anchors';
 import { distance } from '@trailence/utils/latlng';
 import { firstValueFrom, from } from 'rxjs';

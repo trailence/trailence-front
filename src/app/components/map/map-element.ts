@@ -1,8 +1,11 @@
 import { EarthBBox } from '@trailence/utils/latlng';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, map, Observable } from 'rxjs';
 import { MapRenderer } from './impl/map-renderer';
 import { MapPrimitive } from './primitives/primitive';
 import { MapPointerEvent } from './map-events';
+import { Arrays } from '@trailence/utils/arrays';
+import { MulticastObservable } from '@trailence/utils/rxjs/multicast-observable';
+import { AppEvent } from '@trailence/utils/events';
 
 export interface MapElementPosition {
   layer: string;
@@ -50,7 +53,7 @@ export const MAP_ELEMENT_LAYERS: MapElementsLayer[] = [
 ];
 
 
-export abstract class MapElement<C extends MapElement = any> {
+export abstract class MapElement<E> {
 
   constructor(
     public readonly id: string,
@@ -59,7 +62,7 @@ export abstract class MapElement<C extends MapElement = any> {
     this.positionOnMap$ = new BehaviorSubject<MapElementPosition>(initialPosition);
   }
 
-  public readonly events: MapElementEvents<C> = new MapElementEvents<C>(this as unknown as C);
+  public readonly events = new MapElementEvents<MapElement<E>, E>();
 
   public destroy() { /* nothing by default */ }
 
@@ -76,88 +79,49 @@ export abstract class MapElement<C extends MapElement = any> {
   public abstract fitBounds$: Observable<EarthBBox | undefined>;
 
   private _renderer?: MapRenderer;
-  private _primitives?: Observable<MapPrimitive<any, MapRenderer>[]>;
+  private _primitives?: MulticastObservable<MapPrimitive<any, MapRenderer>[]>;
 
   public getPrimitives$(renderer: MapRenderer): Observable<MapPrimitive<any, MapRenderer>[]> {
-    if (renderer === this._renderer && this._primitives) return this._primitives;
+    if (renderer === this._renderer && this._primitives) return this._primitives.asObservable();
+    const previous = this._primitives?.getLatest();
+    if (previous) for (const p of previous) this.unbind(p);
     this._renderer = renderer;
-    this._primitives = this.createPrimitives$(renderer);
-    return this._primitives;
+    this._primitives = new MulticastObservable<MapPrimitive<any, MapRenderer>[]>(
+      () => {
+        let previousPrimitives: MapPrimitive<any, MapRenderer>[] = [];
+        return this.createPrimitives$(renderer).pipe(
+          map(primitivesAndBinding => {
+            const removed: MapPrimitive<any, MapRenderer>[] = [...previousPrimitives];
+            const added: {primitive: MapPrimitive<any, MapRenderer>, eventBinding: E}[] = [];
+            const newList: MapPrimitive<any, MapRenderer>[] = [];
+            for (const p of primitivesAndBinding) {
+              const existing = Arrays.removeFirst(removed, p.primitive);
+              if (!existing) added.push(p);
+              newList.push(p.primitive);
+            }
+            for (const p of removed) this.unbind(p);
+            for (const p of added) this.bind(p.primitive, p.eventBinding);
+            return newList;
+          })
+        );
+      }
+    );
+    return this._primitives.asObservable();
   }
 
-  protected abstract createPrimitives$(renderer: MapRenderer): Observable<MapPrimitive<any, MapRenderer>[]>;
+  protected abstract createPrimitives$(renderer: MapRenderer): Observable<{primitive: MapPrimitive<any, MapRenderer>, eventBinding: E}[]>;
+
+  private bind(primitive: MapPrimitive<any, MapRenderer>, eventBinding: E): void {
+    this.events.click.bind(primitive.events.click, event => ({mapElement: this, element: eventBinding, pointerEvent: event.pointerEvent}));
+    this.events.hover.bind(primitive.events.hover, event => ({mapElement: this, element: eventBinding, pointerEvent: event.pointerEvent}));
+  }
+  private unbind(primitive: MapPrimitive<any, MapRenderer>): void {
+    this.events.click.unbind(primitive.events.click);
+    this.events.hover.unbind(primitive.events.hover);
+  }
 }
 
-export class MapElementEvents<T extends MapElement> {
-
-  constructor(
-    private readonly mapElement: T,
-  ) {}
-
-  private readonly bound: MapPrimitive<any, any>[] = [];
-
-  _bind(primitive: MapPrimitive<any, any>): void {
-    this.bound.push(primitive);
-    for (const listener of this.clickListeners) this.bindClick(primitive, listener);
-  }
-
-  _unbind(primitive: MapPrimitive<any, any>): void {
-    const index = this.bound.indexOf(primitive);
-    if (index >= 0) {
-      this.bound.splice(index, 1);
-      for (const listener of this.clickListeners) this.unbindClick(primitive, listener);
-    }
-  }
-
-  private readonly clickListeners: InternalListener<T, MapPointerEvent>[] = [];
-
-  public addClickListener(listener: (mapElement: T, event: MapPointerEvent) => void): this {
-    const l: InternalListener<T, MapPointerEvent> = { external: listener, internal: event => listener(this.mapElement, event) };
-    this.clickListeners.push(l);
-    for (const primitive of this.bound) this.bindClick(primitive, l);
-    return this;
-  }
-  public removeClickListener(listener: (mapElement: T, event: MapPointerEvent) => void): this {
-    const index = this.clickListeners.findIndex(l => l.external === listener);
-    if (index >= 0) {
-      const l = this.clickListeners.splice(index, 1)[0];
-      for (const primitive of this.bound) this.unbindClick(primitive, l);
-    }
-    return this;
-  }
-  private bindClick(primitive: MapPrimitive<any, any>, listener: InternalListener<T, MapPointerEvent>): void {
-    primitive.events.addClickListener(listener.internal);
-  }
-  private unbindClick(primitive: MapPrimitive<any, any>, listener: InternalListener<T, MapPointerEvent>): void {
-    primitive.events.removeClickListener(listener.internal);
-  }
-
-  private readonly hoverListeners: InternalListener<T, MapPointerEvent | undefined>[] = [];
-
-  public addHoverListener(listener: (mapElement: T, event: MapPointerEvent | undefined) => void): this {
-    const l: InternalListener<T, MapPointerEvent | undefined> = { external: listener, internal: event => listener(this.mapElement, event) };
-    this.hoverListeners.push(l);
-    for (const primitive of this.bound) this.bindHover(primitive, l);
-    return this;
-  }
-  public removeHoverListener(listener: (mapElement: T, event: MapPointerEvent | undefined) => void): this {
-    const index = this.hoverListeners.findIndex(l => l.external === listener);
-    if (index >= 0) {
-      const l = this.hoverListeners.splice(index, 1)[0];
-      for (const primitive of this.bound) this.unbindHover(primitive, l);
-    }
-    return this;
-  }
-  private bindHover(primitive: MapPrimitive<any, any>, listener: InternalListener<T, MapPointerEvent | undefined>): void {
-    primitive.events.addHoverListener(listener.internal);
-  }
-  private unbindHover(primitive: MapPrimitive<any, any>, listener: InternalListener<T, MapPointerEvent | undefined>): void {
-    primitive.events.removeHoverListener(listener.internal);
-  }
-
-}
-
-interface InternalListener<T, E> {
-  external: (mapElement: T, event: E) => void;
-  internal: (event: E) => void;
+export class MapElementEvents<T extends MapElement<U>, U> {
+  public readonly click = new AppEvent<{mapElement: T, element: U, pointerEvent: MapPointerEvent}>();
+  public readonly hover = new AppEvent<{mapElement: T, element: U, pointerEvent: MapPointerEvent | undefined}>();
 }

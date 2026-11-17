@@ -34,7 +34,6 @@ export class LeafletPolyline extends Polyline<Leaflet> implements LeafletPrimiti
     if (!this.polyline) return;
     this.polyline.remove();
     this.polyline = undefined;
-    this.events.removed();
   }
 
   protected override applyNewPositions(): void {

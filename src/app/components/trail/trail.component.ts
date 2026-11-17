@@ -55,7 +55,6 @@ import { CameraService } from '@trailence/services/camera/camera.service';
 import { WaypointsComponent } from './waypoints/waypoints.component';
 import { TrailsWaypoints } from './trail-waypoints';
 import { WayPoint } from '@trailence/model/way-point';
-import { samePositionRound } from '@trailence/model/point';
 import { MyPublicTrailsService } from '@trailence/services/database/my-public-trails.service';
 import { HttpService } from '@trailence/services/http/http.service';
 import { ErrorService } from '@trailence/services/progress/error.service';
@@ -76,10 +75,14 @@ import { MapElement } from '../map/map-element';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { TrackPointReference } from '@trailence/utils/track-computed-data/types';
 import { LiveGroupDto } from '@trailence/model/dto/live-group';
-import { PRIMARY_TRACK_ARROW_COLOR, PRIMARY_TRACK_COLOR, PRIMARY_TRACK_COLOR_DONE, SECONDARY_TRACK_ARROW_COLOR, SECONDARY_TRACK_COLOR, SELECTED_TRACK_SECTION_COLOR } from './trail-colors';
+import { PATH_ARROWS_DEFAULT_COLOR, PRIMARY_TRACK_ARROW_COLOR, PRIMARY_TRACK_COLOR, PRIMARY_TRACK_COLOR_DONE, SECONDARY_TRACK_ARROW_COLOR, SECONDARY_TRACK_COLOR, SELECTED_TRACK_SECTION_COLOR } from './trail-colors';
 import { getLogger } from '@trailence/utils/console';
 import { getActivityIcon } from '@trailence/model/dto/trail-activity';
 import { getLoopTypeIcon } from '@trailence/model/dto/trail-loop-type';
+import { MapTrackPath } from '../map/elements/map-track-path';
+import { samePositionRound } from '@trailence/utils/latlng';
+import { MapTrackAnchors } from '../map/elements/map-track-anchors';
+import { Color } from '@trailence/utils/color';
 
 const logger = getLogger('trail.component');
 
@@ -188,7 +191,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
 
   @Input() trail1$?: Observable<Trail | null>;
   @Input() trail2$?: Observable<Trail | null>;
-  @Input() recording$?: Observable<Recording | null>;
   @Input() tab: TAB_TYPE = 'map';
 
   showOriginal$ = new BehaviorSubject<boolean>(false);
@@ -205,7 +207,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   toolsBaseTrack$ = new BehaviorSubject<Track | undefined>(undefined);
   toolsModifiedTrack$ = new BehaviorSubject<Track | undefined>(undefined);
   toolsHideBaseTrack$ = new BehaviorSubject<boolean>(false);
-  mapElements$ = new BehaviorSubject<MapElement[]>([]);
   photos: Photo[] | undefined;
   photosHavingPosition: {photos: Photo[], point: L.LatLngExpression}[] | undefined;
   graphTrack1?: Track;
@@ -236,6 +237,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     showSpeed: true,
   };
 
+  map$ = new BehaviorSubject<MapComponent | undefined>(undefined);
   @ViewChild(MapComponent)
   set map(child: MapComponent | undefined) {
     this.map$.next(child);
@@ -244,8 +246,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     return this.map$.value;
   }
 
-  map$ = new BehaviorSubject<MapComponent | undefined>(undefined);
-
+  graph$ = new BehaviorSubject<TrailGraphComponent | undefined>(undefined);
   @ViewChild(TrailGraphComponent)
   set graph(child: TrailGraphComponent | undefined) {
     this.graph$.next(child ?? undefined);
@@ -253,8 +254,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   get graph() {
     return this.graph$.value;
   }
-
-  graph$ = new BehaviorSubject<TrailGraphComponent | undefined>(undefined);
 
   displayMode = 'loading';
   bottomSheetOpen = true;
@@ -276,7 +275,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   publicationChecklist?: PublicationChecklist;
   currentPublicTrailUuid?: string;
   isShowPublicTrailsAround = false;
-  publicTrailsAroundMapTracks$ = new BehaviorSubject<MapTrack[]>([]);
+  publicTrailsAroundMapTracks$ = new BehaviorSubject<MapTrackPath[]>([]);
   canTakePhoto = false;
   publishedTrail?: Trail;
   showTextHtml = false;
@@ -293,6 +292,18 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   toolsStack?: TrackEditToolsStack;
   toolsEnabled = false;
   @ViewChild('editTools') editTools?: TrackEditToolsComponent;
+
+  mapTracks$ = new BehaviorSubject<MapTrackPath[]>([]);
+  mapTracksAnchors$ = new BehaviorSubject<MapTrackAnchors[]>([]);
+
+  mapElements$: Observable<MapElement[]> = combineLatest([
+    this.mapTracks$,
+    this.mapTracksAnchors$,
+    this.publicTrailsAroundMapTracks$,
+  ]).pipe(
+    debounceTime(1),
+    map(elements => elements.flat()),
+  );
 
   @ViewChild('toolbar') toolbar?: ToolbarComponent;
   toolbarItems: MenuItem[] = [
@@ -524,8 +535,9 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         event.stopPropagation();
         event.preventDefault();
         this.showTrackWithElevationColors = !this.showTrackWithElevationColors;
-        const mapTrack = this.mapElements$.value.find(e => e instanceof MapTrack && e.track === this.tracks$.value[0]) as MapTrack | undefined;
-        mapTrack?.showPathWithElevationColors(this.showTrackWithElevationColors);
+        const mapTrack = this.mapTracks$.value.find(e => e.track === this.tracks$.value[0]);
+        if (mapTrack)
+          mapTrack.eleColors = this.showTrackWithElevationColors;
         this.changesDetection.detectChanges();
       })
       ;
@@ -556,12 +568,11 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     return {
       trail1: this.trail1$,
       trail2: this.trail2$,
-      recording: this.recording$,
     }
   }
 
   private goToRate = 0;
-  protected override onComponentStateChanged(previousState: any, newState: any): void {
+  protected override onComponentStateChanged(): void {
     if (globalThis.location?.hash?.startsWith('#rate')) this.goToRate = Date.now();
     else this.goToRate = 0;
     if (this._lock) {
@@ -578,13 +589,15 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this.comparison = undefined;
     this.currentPublicTrailUuid = undefined;
     this.tracks$.next([]);
-    this.mapElements$.next([]);
+    this.mapTracks$.next([]);
+    this.mapTracksAnchors$.next([]);
     this.canTakePhoto = false;
-    this.trailsForPhotoPopup = [];
     this.trailsWaypoints.reset();
     this.publishedTrail = undefined;
     this.proposeToPublish = undefined;
-    if (this.recording$) this.trailsForPhotoPopup.push(this.recording$.pipe(map(r => r?.trail ?? null)));
+    this.trailsForPhotoPopup = [
+      this.traceRecorder.current$.pipe(map(r => r?.trail ?? null)),
+    ];
     if (this.trail1$) this.trailsForPhotoPopup.push(this.trail1$);
     if (this.trail2$) this.trailsForPhotoPopup.push(this.trail2$);
     this.hasOsmTrack = false;
@@ -660,7 +673,14 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   proposeToPublish?: string;
 
   private listenForTracks(): void {
-    const recording$ = this.recording$ ? combineLatest([this.recording$, this.showOriginal$]).pipe(map(([r,s]) => r ? {recording: r, track: s ? r.rawTrack : r.track} : null)) : of(null);
+    const recording$ = this.traceRecorder.current$.pipe(
+      switchMap(recording => {
+        if (!recording) return of(null);
+        return this.showOriginal$.pipe(
+          map(showOriginal => ({recording, track: showOriginal ? recording.rawTrack : recording.track}))
+        );
+      })
+    );
     this.byStateAndVisible.subscribe(
       combineLatest([
         this.trail$(this.trail1$, true),
@@ -701,7 +721,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         }
         this.recording = recordingWithTrack ? recordingWithTrack.recording : null;
         const tracks: Track[] = [];
-        const mapElements: MapElement[] = [];
+        const mapTracks: MapTrackPath[] = [];
+        const anchors: MapTrackAnchors[] = [];
         this.graphTrack1 = undefined;
         this.graphTrack2 = undefined;
         if (trail1.track && trail2.track)
@@ -709,20 +730,21 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         else
           this.comparison = undefined;
 
-        let toolsBaseMapTrack: MapTrack | undefined = undefined;
+        let toolsBaseMapTrack: MapTrackPath | undefined = undefined;
         if (toolsBaseTrack && !recordingWithTrack && !trail2.trail) {
           this.canShowTrackWithElevationColors = false;
           tracks.push(toolsBaseTrack);
           this.graphTrack1 = toolsBaseTrack;
           if (!hideBaseTrack || !toolsModifiedTrack) {
-            toolsBaseMapTrack = new MapTrack(undefined, toolsBaseTrack, PRIMARY_TRACK_COLOR, 1, false, this.i18n);
-            toolsBaseMapTrack.showArrowPath(true, toolsModifiedTrack ? PRIMARY_TRACK_ARROW_COLOR : undefined);
+            // TODO do not recreate everytime
+            toolsBaseMapTrack = new MapTrackPath(undefined, toolsBaseTrack, Color.parse(PRIMARY_TRACK_COLOR), false, 3, Color.parse(toolsModifiedTrack ? PRIMARY_TRACK_ARROW_COLOR : PATH_ARROWS_DEFAULT_COLOR));
+            mapTracks.push(toolsBaseMapTrack);
             if (!toolsModifiedTrack) {
-              toolsBaseMapTrack.onWayPointClick = wp => this.highlightWayPoint(wp, true);
-              toolsBaseMapTrack.showDepartureAndArrivalAnchors();
-              toolsBaseMapTrack.showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
+              // TODO do not recreate everytime
+              const trackAnchors = new MapTrackAnchors(toolsBaseTrack, this.i18n, false, true, this.trailsWaypoints.showWaypointsOnMap, false);
+              trackAnchors.events.click.addListener(e => this.highlightWayPoint(e.element, true))
+              anchors.push(trackAnchors);
             }
-            mapElements.push(toolsBaseMapTrack);
           }
         }
         if (trail1.track && !toolsBaseTrack) {
