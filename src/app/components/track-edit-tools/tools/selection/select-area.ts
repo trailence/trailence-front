@@ -1,7 +1,7 @@
-import { Point2D } from '@trailence/utils/geometry-utils';
+import { BBox2D, bbox2DSize, Point2D } from '@trailence/utils/geometry-utils';
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
-import * as L from 'leaflet';
 import { PointReference, RangeReference } from '@trailence/model/point-reference';
+import { earthBBox, isPointInBBox } from '@trailence/utils/latlng';
 
 export class SelectAreaTool implements TrackEditTool {
 
@@ -19,7 +19,7 @@ export class SelectAreaTool implements TrackEditTool {
     void ctx.startInteractiveTool(
       () => [],
     ).then(iCtx => {
-      const mapElement = document.getElementById(iCtx.map.id) as HTMLDivElement;
+      const mapElement = document.getElementById(iCtx.map._containerId) as HTMLDivElement;
       const overlay = document.createElement('DIV');
       overlay.style.position = 'absolute';
       overlay.style.left = '0';
@@ -38,12 +38,17 @@ export class SelectAreaTool implements TrackEditTool {
       let startPoint: Point2D | undefined;
       let startPointAbsolute: Point2D | undefined;
       let endPoint: Point2D | undefined;
-      let bounds: L.Bounds | undefined;
+      let bounds: BBox2D | undefined;
       const updateBounds = () => { // NOSONAR
-        bounds = L.bounds(L.point({x: Math.min(startPoint!.x, endPoint!.x), y: Math.min(startPoint!.y, endPoint!.y)}), L.point({x: Math.max(startPoint!.x, endPoint!.x), y: Math.max(startPoint!.y, endPoint!.y)}));
-        const topLeft = iCtx.map.getMap()!.containerPointToLatLng(bounds.getTopLeft());
-        const bottomRight = iCtx.map.getMap()!.containerPointToLatLng(bounds.getBottomRight())
-        const mapBounds = L.latLngBounds(topLeft, bottomRight);
+        bounds = {
+          minX: Math.min(startPoint!.x, endPoint!.x),
+          minY: Math.min(startPoint!.y, endPoint!.y),
+          maxX: Math.max(startPoint!.x, endPoint!.x),
+          maxY: Math.max(startPoint!.y, endPoint!.y),
+        };
+        const topLeft = iCtx.map.renderer!.unprojectFromViewport({x: bounds.minX, y: bounds.minY});
+        const bottomRight = iCtx.map.renderer!.unprojectFromViewport({x: bounds.maxX, y: bounds.maxY});
+        const mapBounds = earthBBox(topLeft, bottomRight);
         let currentSection: {start: PointReference, end: PointReference, nbPoints: number} | undefined;
         let bestSection: {start: PointReference, end: PointReference, nbPoints: number} | undefined;
         for (let iSegment = 0; iSegment < track.segments.length; ++iSegment) {
@@ -51,7 +56,7 @@ export class SelectAreaTool implements TrackEditTool {
           const points = segment.points;
           for (let iPoint = 0; iPoint < points.length; ++iPoint) {
             const point = points[iPoint];
-            if (mapBounds.contains(point.pos)) {
+            if (isPointInBBox(point.pos, mapBounds)) {
               if (currentSection) {
                 currentSection.end = new PointReference(track, iSegment, iPoint);
                 currentSection.nbPoints++;
@@ -91,8 +96,8 @@ export class SelectAreaTool implements TrackEditTool {
         if (!startPoint) return;
         endPoint = {x: ev.pageX - (startPointAbsolute!.x - startPoint!.x), y: ev.pageY - (startPointAbsolute!.y - startPoint!.y)};
         updateBounds();
-        const topLeft = bounds!.getTopLeft();
-        const size = bounds!.getSize();
+        const topLeft = {x: bounds!.minX, y: bounds!.minY};
+        const size = bbox2DSize(bounds!);
         rect.style.top = topLeft.y + 'px';
         rect.style.left = topLeft.x + 'px';
         rect.style.width = size.x + 'px';

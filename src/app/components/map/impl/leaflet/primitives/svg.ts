@@ -6,7 +6,7 @@ import { LeafletUtils } from '../leaflet-utils';
 import { EarthBBox } from '@trailence/utils/latlng';
 import { LeafletPrimitiveEvents } from './events';
 
-export class LeafletSvgBounds extends SvgBoundsPrimitive<Leaflet> implements LeafletPrimitive {
+export class LeafletSvgBounds extends SvgBoundsPrimitive<Leaflet, LeafletSvgBounds> implements LeafletPrimitive<SvgBoundsOptions, LeafletSvgBounds> {
 
   constructor(
     id: string,
@@ -14,15 +14,16 @@ export class LeafletSvgBounds extends SvgBoundsPrimitive<Leaflet> implements Lea
     private readonly svg: string | SVGSVGElement,
     options: SvgBoundsOptions,
   ) {
-    super(id, bounds, options);
+    super(id, bounds, options, new LeafletPrimitiveEvents<SvgBoundsOptions, LeafletSvgBounds>(
+      () => this,
+      () => this.overlay?.options?.interactive === true,
+      () => this.overlay?.setStyle(this.getLeafletOptions()),
+    ));
   }
 
+  public get leafletEvents(): LeafletPrimitiveEvents<SvgBoundsOptions, LeafletSvgBounds> { return this.events as LeafletPrimitiveEvents<SvgBoundsOptions, LeafletSvgBounds>; }
+
   private overlay?: L.SVGOverlay;
-  public override readonly events: LeafletPrimitiveEvents<SvgBoundsOptions, LeafletSvgBounds> = new LeafletPrimitiveEvents<SvgBoundsOptions, LeafletSvgBounds>(
-    this,
-    () => this.overlay?.options?.interactive === true,
-    () => this.overlay?.setStyle(this.getLeafletOptions()),
-  );
 
   protected override addPrimitiveToMap(renderer: Leaflet): void {
     this.overlay = L.svgOverlay(this.svg, LeafletUtils.toLeafletBounds(this.bounds), this.getLeafletOptions());
@@ -31,7 +32,7 @@ export class LeafletSvgBounds extends SvgBoundsPrimitive<Leaflet> implements Lea
 
   private getLeafletOptions(): L.ImageOverlayOptions {
     return {
-      interactive: this.events.isInteractive(),
+      interactive: this.leafletEvents.isInteractive(),
     };
   }
 

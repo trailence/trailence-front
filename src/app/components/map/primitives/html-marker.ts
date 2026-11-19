@@ -8,6 +8,6 @@ export interface HtmlMarkerOptions {
   className?: string;
 }
 
-export abstract class HtmlMarkerPrimitive<R extends MapRenderer> extends MapPrimitiveSinglePosition<HtmlMarkerOptions, R> {
+export abstract class HtmlMarkerPrimitive<R extends MapRenderer, P extends HtmlMarkerPrimitive<R,P>> extends MapPrimitiveSinglePosition<HtmlMarkerOptions, R, P> {
 
 }

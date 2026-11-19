@@ -20,18 +20,18 @@ import { TrackMetadataConfig } from '../track-metadata/track-metadata.component'
 import { AsyncPipe } from '@angular/common';
 import { HIGHLIGHTED_TRACK_COLOR, PRIMARY_TRACK_COLOR, PRIMARY_TRACK_COLOR_DONE } from '../trail/trail-colors';
 import { MapComponent, MapOptions } from '../map/map.component';
-import { MAP_SELECTED_TRACK_LAYER, MAP_TRACKS_LAYER, MapElement } from '../map/map-element';
+import { AnyMapElement, MAP_SELECTED_TRACK_LAYER, MAP_TRACKS_LAYER } from '../map/map-element';
 import { MapBubble } from '../map/elements/map-bubble';
 import { MapTool, MapToolGroup } from '../map/map-tool';
 import { ToggleBubblesTool } from './toggle-bubble-tool';
 import { Arrays } from '@trailence/utils/arrays';
 import { MapTrackPath } from '../map/elements/map-track-path';
 import { Color } from '@trailence/utils/color';
-import { MapTrackAnchors } from '../map/elements/map-track-anchors';
 import { bboxPadRatio, isPointInBBox } from '@trailence/utils/latlng';
 import { SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
 import { distance2d } from '@trailence/utils/geometry-utils';
 import { MapPointerEvent } from '../map/map-events';
+import { MapSimplifiedTrackAnchors } from '../map/elements/map-simplified-track-anchors';
 
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
@@ -89,8 +89,8 @@ export class TrailsAndMapComponent extends AbstractComponent {
     showSpeed: false,
   };
 
-  private readonly tracksAndBubbles$ = new BehaviorSubject<MapElement[]>([]);
-  private readonly highlightedTrailAnchors$ = new BehaviorSubject<MapTrackAnchors | undefined>(undefined);
+  private readonly tracksAndBubbles$ = new BehaviorSubject<AnyMapElement[]>([]);
+  private readonly highlightedTrailAnchors$ = new BehaviorSubject<MapSimplifiedTrackAnchors | undefined>(undefined);
   mapElements$ = combineLatest([this.tracksAndBubbles$, this.highlightedTrailAnchors$]).pipe(
     map(([elements, anchors]) => {
       if (!anchors) return elements;
@@ -336,7 +336,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     }
     if (this.highlightedTrailAnchors$.value?.track !== highlightedMapTrack?.track) {
       this.highlightedTrailAnchors$.next(
-        highlightedMapTrack ? new MapTrackAnchors(highlightedMapTrack.track, this.i18n, false, true, false, false) : undefined
+        highlightedMapTrack ? new MapSimplifiedTrackAnchors(highlightedMapTrack.track as SimplifiedTrackSnapshot, this.i18n) : undefined
       );
     }
     this.trailsList?.setHighlighted(trail);
@@ -367,7 +367,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
       if (!bounds) continue;
       if (!isPointInBBox(event.geographicPoint, bboxPadRatio(bounds, 1))) continue;
       for (const pt of (track.track as SimplifiedTrackSnapshot).points) {
-        const pixel = event.renderer.projectToViewport(pt);
+        const pixel = event.renderer.projectToViewport(pt); // TODO improve
         const distance = distance2d(event.viewportPoint, pixel);
         if (distance <= 15) {
           otherTrails.push(track.trail!);

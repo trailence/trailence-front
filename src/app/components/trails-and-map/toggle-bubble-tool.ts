@@ -1,6 +1,6 @@
 import { BehaviorSubject, combineLatest, EMPTY, from, map, Observable, of, switchMap } from 'rxjs';
 import { MapTool } from '../map/map-tool';
-import { MapElement } from '../map/map-element';
+import { AnyMapElement, MapElement } from '../map/map-element';
 import { Trail } from '@trailence/model/trail';
 import { MapBubble } from '../map/elements/map-bubble';
 import { EventEmitter, Injector } from '@angular/core';
@@ -42,9 +42,9 @@ export class ToggleBubblesTool implements MapTool {
 
   clickOnTrail = new EventEmitter<{mapTrack: MapTrackPath, event: MapPointerEvent}>();
 
-  getMapElements$(): Observable<MapElement[]> {
+  getMapElements$(): Observable<AnyMapElement[]> {
     const trailService = this.injector.get(TrailService);
-    return observableWithCache<MapElement[], Cache>(
+    return observableWithCache<AnyMapElement[], Cache>(
       () => ({
         trailToTrackUuid: new CollectionObservableCache<Trail, {trail: Trail, trackUuid: string}>(
           trail => trail.currentTrackUuid$.pipe(map(trackUuid => ({trail, trackUuid})))
@@ -142,7 +142,7 @@ export class ToggleBubblesTool implements MapTool {
   private buildMapTrackPathFromSimplifiedTrack(trail: Trail, track: SimplifiedTrackSnapshot | null): MapTrackPath | null {
     if (track === null) return null;
     const mapTrack = new MapTrackPath(trail, track, TRACK_COLOR, false, 2, undefined);
-    mapTrack.events.addClickListener((mapTrack, event) => this.clickOnTrail.emit({mapTrack, event}));
+    mapTrack.events.click.addListener(event => this.clickOnTrail.emit({mapTrack: event.mapElement, event: event.pointerEvent}));
     return mapTrack;
   }
 

@@ -3,11 +3,15 @@ import { MapLibrePrimitive } from './primitive';
 import { Marker, PositionAnchor } from 'maplibre-gl';
 import { MapLibrePrimitiveEvents } from './events';
 import { HtmlMarkerOptions, HtmlMarkerPrimitive } from '@trailence/components/map/primitives/html-marker';
+import { EarthPoint } from '@trailence/utils/latlng';
 
-export class MapLibreHtmlMarker extends HtmlMarkerPrimitive<MapLibre> implements MapLibrePrimitive {
+export class MapLibreHtmlMarker extends HtmlMarkerPrimitive<MapLibre, MapLibreHtmlMarker> implements MapLibrePrimitive {
+
+  constructor(id: string, position: EarthPoint, options: HtmlMarkerOptions) {
+    super(id, position, options, new MapLibrePrimitiveEvents<HtmlMarkerOptions, MapLibreHtmlMarker>());
+  }
 
   private marker?: Marker;
-  public readonly events: MapLibrePrimitiveEvents<HtmlMarkerOptions, MapLibreHtmlMarker> = new MapLibrePrimitiveEvents<HtmlMarkerOptions, MapLibreHtmlMarker>();
 
   protected override addPrimitiveToMap(renderer: MapLibre): void {
     this.marker = new Marker({

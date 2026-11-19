@@ -7,11 +7,15 @@ import { Subscription } from 'rxjs';
 import { Color } from '@trailence/utils/color';
 import { MapLibre } from '../maplibre';
 import { MapLibrePrimitiveEvents } from './events';
+import { EarthPoint } from '@trailence/utils/latlng';
 
-export class MapLibreCircle extends Circle<MapLibre> implements MapLibrePrimitive {
+export class MapLibreCircle extends Circle<MapLibre, MapLibreCircle> implements MapLibrePrimitive {
+
+  constructor(id: string, position: EarthPoint, options: CircleOptions) {
+    super(id, position, options, new MapLibrePrimitiveEvents<CircleOptions, MapLibreCircle>());
+  }
 
   private subscription?: Subscription;
-  public readonly events: MapLibrePrimitiveEvents<CircleOptions, MapLibreCircle> = new MapLibrePrimitiveEvents<CircleOptions, MapLibreCircle>();
 
   protected override addPrimitiveToMap(renderer: MapLibre): void {
     renderer.getMaplibreMap()!.addSource(this.id, {

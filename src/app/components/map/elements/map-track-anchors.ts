@@ -5,10 +5,13 @@ import { BehaviorSubject, combineLatest, map, Observable, of, switchMap } from '
 import { MapRenderer } from '../impl/map-renderer';
 import { MapPrimitive } from '../primitives/primitive';
 import { IconPrimitive } from '../primitives/icon';
-import { EarthBBox } from '@trailence/utils/latlng';
+import { EarthBBox, EarthPoint, samePosition } from '@trailence/utils/latlng';
 import { WayPointFromTrack } from '@trailence/utils/track-waypoints/waypoints-from-track';
 import { TrackWayPoint } from '@trailence/utils/track-waypoints/track-waypoint';
-import { createAIcon, createDAIcon, createDIcon, getAIconOptions, getDAIconOptions, getDIconOptions } from '../utils/map-anchors';
+import { createAIcon, createDAIcon, createDIcon, createWPIcon, getAIconOptions, getDAIconOptions, getDIconOptions } from '../utils/map-anchors';
+import { Color } from '@trailence/utils/color';
+import { BreakPoint } from '@trailence/utils/track-waypoints/breakpoints';
+import { Arrays } from '@trailence/utils/arrays';
 
 export class MapTrackAnchors extends MapElement<TrackWayPoint> {
 
@@ -17,25 +20,52 @@ export class MapTrackAnchors extends MapElement<TrackWayPoint> {
     private readonly i18n: I18nService,
     neverShowArrival: boolean = false,
     showDepartueAndArrival: boolean = false,
-    showWayPoints: boolean = false,
-    showBreaks: boolean = false,
+    showWayPoints: Color | undefined = undefined,
+    showBreaks: Color | undefined = undefined,
   ) {
     super('waypoints-' + track.uuid + '#' + track.owner, {layer: MAP_WAYPOINTS_LAYER});
     this._neverShowArrival = new BehaviorSubject(neverShowArrival);
     this._showDepartureAndArrivals = new BehaviorSubject(showDepartueAndArrival);
-    this._showWayPoints = new BehaviorSubject(track instanceof Track ? showWayPoints : false);
-    this._showBreaks = new BehaviorSubject(track instanceof Track ? showBreaks : false);
+    this._showWayPoints = new BehaviorSubject(track instanceof Track ? showWayPoints : undefined);
+    this._showBreaks = new BehaviorSubject(track instanceof Track ? showBreaks : undefined);
   }
 
   private readonly _neverShowArrival: BehaviorSubject<boolean>; // in case of recording
   private readonly _showDepartureAndArrivals: BehaviorSubject<boolean>;
-  private readonly _showWayPoints: BehaviorSubject<boolean>;
-  private readonly _showBreaks: BehaviorSubject<boolean>;
+  private readonly _showWayPoints: BehaviorSubject<Color | undefined>;
+  private readonly _showBreaks: BehaviorSubject<Color | undefined>;
 
   public override fitBounds$: Observable<EarthBBox | undefined> = of(undefined);
 
-  protected override createPrimitives$(renderer: MapRenderer): Observable<{primitive: MapPrimitive<any, MapRenderer>, eventBinding: TrackWayPoint}[]> {
-    let da: DA = {texts: {}};
+  public get showWayPoints(): Color | undefined { return this._showWayPoints.value; }
+  public get showWayPoints$(): Observable<Color | undefined> { return this._showWayPoints; }
+  public set showWayPoints(value: Color | undefined) {
+    if (value) {
+      if (!this._showWayPoints.value || !Color.areSame(this._showWayPoints.value, value))
+        this._showWayPoints.next(value);
+    } else if (this._showWayPoints.value) {
+      this._showWayPoints.next(undefined);
+    }
+  }
+
+  public get showBreaks(): Color | undefined { return this._showBreaks.value; }
+  public get showBreaks$(): Observable<Color | undefined> { return this._showBreaks; }
+  public set showBreaks(value: Color | undefined) {
+    if (value) {
+      if (!this._showBreaks.value || !Color.areSame(this._showBreaks.value, value))
+        this._showBreaks.next(value);
+    } else if (this._showBreaks.value) {
+      this._showBreaks.next(undefined);
+    }
+  }
+
+  public static breakPointText(breakPoint: BreakPoint): string {
+    return breakPoint.isBreak ? '&#8987;' : breakPoint.isPause ? '&#x23F8;' : breakPoint.isResume ? '&#x23F5;' : '&#x23EF;';
+  }
+
+  protected override createPrimitives$(renderer: MapRenderer): Observable<{primitive: MapPrimitive<any, MapRenderer, any>, eventBinding: TrackWayPoint}[]> {
+    const da = new DA();
+    const wp = new WayPoints();
     return combineLatest([
       this._showDepartureAndArrivals,
       this._showWayPoints,
@@ -49,9 +79,9 @@ export class MapTrackAnchors extends MapElement<TrackWayPoint> {
           showDA ? this.i18n.texts$ : of({}),
         ]).pipe(
           map(([waypoints, hideArrival, texts]) => {
-            const icons: {primitive: MapPrimitive<any, MapRenderer>, eventBinding: TrackWayPoint}[] = [];
-            this.updateDA(renderer, waypoints, showDA, hideArrival, texts, da, icons);
-            // TODO waypoints
+            const icons: {primitive: MapPrimitive<any, MapRenderer, any>, eventBinding: TrackWayPoint}[] = [];
+            da.update(this.id, renderer, waypoints, showDA, hideArrival, texts, icons);
+            wp.update(this.id, renderer, waypoints, showWP, icons);
             // TODO breaks
             return icons;
           })
@@ -60,9 +90,17 @@ export class MapTrackAnchors extends MapElement<TrackWayPoint> {
     );
   }
 
-  private updateDA(renderer: MapRenderer, waypoints: TrackWayPoint[], showDA: boolean, hideArrival: boolean, texts: any, current: DA, icons: {primitive: MapPrimitive<any, MapRenderer>, eventBinding: TrackWayPoint}[]): void {
+}
+
+class DA {
+  private d?: IconPrimitive<MapRenderer, any>;
+  private a?: IconPrimitive<MapRenderer, any>;
+  private da?: IconPrimitive<MapRenderer, any>;
+  private texts: any = {};
+
+  update(id: string, renderer: MapRenderer, waypoints: TrackWayPoint[], showDA: boolean, hideArrival: boolean, texts: any, icons: {primitive: MapPrimitive<any, MapRenderer, any>, eventBinding: TrackWayPoint}[]): void {
     if (!showDA) {
-      current.d = current.a = current.da = undefined;
+      this.d = this.a = this.da = undefined;
       return;
     }
     let departureFound = false;
@@ -72,50 +110,76 @@ export class MapTrackAnchors extends MapElement<TrackWayPoint> {
       if (wpt) {
         if (wpt.isDeparture) {
           if (wpt.isArrival && !hideArrival) {
-            current.d = current.a = undefined;
-            if (current.da) {
-              current.da.setPosition(wpt.getPosition());
-              if (texts !== current.texts) current.da.setOptions(getDAIconOptions(texts));
+            this.d = this.a = undefined;
+            if (this.da) {
+              this.da.setPosition(wpt.getPosition());
+              if (texts !== this.texts) this.da.setOptions(getDAIconOptions(texts));
             } else {
-              current.da = createDAIcon(this.id, renderer, wpt.getPosition(), texts);
+              this.da = createDAIcon(id, renderer, wpt.getPosition(), texts);
             }
-            current.texts = texts;
-            icons.push({primitive: current.da, eventBinding: wp});
+            this.texts = texts;
+            icons.push({primitive: this.da, eventBinding: wp});
             return;
           }
           if (!departureFound) {
             departureFound = true;
-            if (current.d) {
-              current.d.setPosition(wpt.getPosition());
-              if (texts !== current.texts) current.d.setOptions(getDIconOptions(texts));
+            if (this.d) {
+              this.d.setPosition(wpt.getPosition());
+              if (texts !== this.texts) this.d.setOptions(getDIconOptions(texts));
             } else {
-              current.d = createDIcon(this.id, renderer, wpt.getPosition(), texts);
+              this.d = createDIcon(id, renderer, wpt.getPosition(), texts);
             }
-            icons.push({primitive: current.d, eventBinding: wp});
+            icons.push({primitive: this.d, eventBinding: wp});
           }
         } else if (wpt.isArrival && !arrivalFound) {
           arrivalFound = true;
-          if (current.a) {
-            current.a.setPosition(wpt.getPosition());
-            if (texts !== current.texts) current.a.setOptions(getAIconOptions(texts));
+          if (this.a) {
+            this.a.setPosition(wpt.getPosition());
+            if (texts !== this.texts) this.a.setOptions(getAIconOptions(texts));
           } else {
-            current.a = createAIcon(this.id, renderer, wpt.getPosition(), texts);
+            this.a = createAIcon(id, renderer, wpt.getPosition(), texts);
           }
-          icons.push({primitive: current.a, eventBinding: wp});
+          icons.push({primitive: this.a, eventBinding: wp});
         }
       }
     }
-    current.texts = texts;
-    current.da = undefined;
-    if (!departureFound) current.d = undefined;
-    if (!arrivalFound) current.a = undefined;
+    this.texts = texts;
+    this.da = undefined;
+    if (!departureFound) this.d = undefined;
+    if (!arrivalFound) this.a = undefined;
   }
 
 }
 
-interface DA {
-  d?: IconPrimitive<MapRenderer>;
-  a?: IconPrimitive<MapRenderer>;
-  da?: IconPrimitive<MapRenderer>;
-  texts: any;
+class WayPoints {
+  private icons: {icon: IconPrimitive<MapRenderer, any>, color: Color, index: number, position: EarthPoint}[] = [];
+
+  update(id: string, renderer: MapRenderer, waypoints: TrackWayPoint[], showWP: Color | undefined, icons: {primitive: MapPrimitive<any, MapRenderer, any>, eventBinding: TrackWayPoint}[]): void {
+    if (!showWP) {
+      this.icons = [];
+      return;
+    }
+    let newIcons: {icon: IconPrimitive<MapRenderer, any>, color: Color, index: number, position: EarthPoint}[] = [];
+    for (const wp of waypoints) {
+      const twp = WayPointFromTrack.from(wp);
+      if (!twp || twp.isDeparture || twp.isArrival || twp.isComputedOnly) continue;
+      const position = twp.getPosition();
+      const existing = Arrays.removeFirstMatching(this.icons, icon => icon.index === twp.index && Color.areSame(showWP, icon.color));
+      if (existing) {
+        const icon = existing.element;
+        if (!samePosition(icon.position, position)) {
+          icon.icon.setPosition(position)
+          icon.position = position;
+        }
+        newIcons.push(icon);
+        icons.push({primitive: icon.icon, eventBinding: wp});
+      } else {
+        const icon = createWPIcon(id, renderer, position, twp.index, showWP);
+        newIcons.push({icon, color: showWP.copy(), index: twp.index, position});
+        icons.push({primitive: icon, eventBinding: wp});
+      }
+    }
+    this.icons = newIcons;
+  }
+
 }

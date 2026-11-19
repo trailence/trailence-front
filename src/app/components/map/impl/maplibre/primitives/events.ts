@@ -2,7 +2,7 @@ import { MapPrimitive, MapPrimitiveEvents } from '@trailence/components/map/prim
 import { MapLibre } from '../maplibre';
 import { MapLibrePrimitive } from './primitive';
 
-export class MapLibrePrimitiveEvents<O, P extends MapPrimitive<O, MapLibre> & MapLibrePrimitive> extends MapPrimitiveEvents<O, MapLibre, P> {
+export class MapLibrePrimitiveEvents<O, P extends MapPrimitive<O, MapLibre, P> & MapLibrePrimitive> extends MapPrimitiveEvents<O, MapLibre, P> {
 
   // TODO
 

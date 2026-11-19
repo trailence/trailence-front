@@ -10,6 +10,6 @@ export interface CircleOptions {
   strokeWidth?: number;
 }
 
-export abstract class Circle<R extends MapRenderer> extends MapPrimitiveSinglePosition<CircleOptions, R> {
+export abstract class Circle<R extends MapRenderer, P extends Circle<R,P>> extends MapPrimitiveSinglePosition<CircleOptions, R, P> {
 
 }

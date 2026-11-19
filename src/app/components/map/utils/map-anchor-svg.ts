@@ -17,6 +17,9 @@ export const anchorBreakBorderColor = '#b0865cD8';
 export const anchorBreakFillColor = '#C8986890';
 export const anchorBreakTextColor = '#ffffff';
 
+export const anchorSelectedPointBorderColor = '#6060FFC0';
+export const anchorSelectedPointFillColor = '#6060FF80';
+
 export function createMapAnchorDataUrl(
   borderColor: string = '#000000',
   text: string = '',

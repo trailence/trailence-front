@@ -1,4 +1,5 @@
 import { Track } from '@trailence/model/track';
+import { EarthPoint } from '@trailence/utils/latlng';
 
 export class GraphPointReference {
 
@@ -6,7 +7,7 @@ export class GraphPointReference {
     public track: Track,
     public segmentIndex: number,
     public pointIndex: number,
-    public pos: L.LatLngLiteral,
+    public pos: EarthPoint,
     public ele: number | undefined,
     public time: number | undefined,
     public dataIndex: number,

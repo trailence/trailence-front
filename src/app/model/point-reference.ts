@@ -1,6 +1,7 @@
+import { TrackPointReference } from '@trailence/utils/track-computed-data/types';
 import { Track } from './track';
 
-export class PointReference {
+export class PointReference implements TrackPointReference {
   constructor(
     public readonly track: Track,
     public readonly segmentIndex: number,

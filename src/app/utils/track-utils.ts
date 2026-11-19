@@ -150,7 +150,7 @@ export class TrackUtils {
     return closestIndexes;
   }
 
-  public static findClosestPointInTrack(pos: EarthPoint, track: Track, maxDistance: number = -1): {segmentIndex: number, pointIndex: number} | undefined {
+  public static findClosestPointInTrack(pos: EarthPoint, track: Track, maxDistance: number = -1): TrackPointReference | undefined {
     let closestSegmentIndex = -1;
     let closestPointIndex = -1;
     let closestDistance = -1;

@@ -3,10 +3,10 @@ import { Leaflet } from '../leaflet';
 import { LeafletPrimitive } from './primitive';
 import { MapPointerEvent } from '@trailence/components/map/map-events';
 
-export class LeafletPrimitiveEvents<O, P extends MapPrimitive<O, Leaflet> & LeafletPrimitive> extends MapPrimitiveEvents<O, Leaflet, P> {
+export class LeafletPrimitiveEvents<O, P extends MapPrimitive<O, Leaflet, P> & LeafletPrimitive<O,P>> extends MapPrimitiveEvents<O, Leaflet, P> {
 
   constructor(
-    private readonly primitive: P,
+    private readonly getPrimitive: () => P,
     private readonly hasInteractiveOption: () => boolean,
     private readonly updateInteractiveOption: () => void,
   ) {
@@ -49,9 +49,9 @@ export class LeafletPrimitiveEvents<O, P extends MapPrimitive<O, Leaflet> & Leaf
   private _leafletClick?: {listener: (event: L.LeafletMouseEvent) => void, layer: L.Layer};
   private _listenClick(): void {
     if (this._leafletClick) return;
-    const layer = this.primitive.getLayer();
+    const layer = this.getPrimitive().getLayer();
     if (!layer) return;
-    const listener = (event: L.LeafletMouseEvent) => this.click.trigger({primitive: this.primitive, pointerEvent: this.toPointerEvent(event)});
+    const listener = (event: L.LeafletMouseEvent) => this.click.trigger({primitive: this.getPrimitive(), pointerEvent: this.toPointerEvent(event)});
     this._leafletClick = {layer, listener};
     layer.on('click', listener);
     this._updateInteractive();
@@ -68,10 +68,10 @@ export class LeafletPrimitiveEvents<O, P extends MapPrimitive<O, Leaflet> & Leaf
   private _leafletHover?: {hoverListener: (event: L.LeafletMouseEvent) => void, outListener: (event: L.LeafletMouseEvent) => void, layer: L.Layer};
   private _listenHover(): void {
     if (this._leafletHover) return;
-    const layer = this.primitive.getLayer();
+    const layer = this.getPrimitive().getLayer();
     if (!layer) return;
-    const hoverListener = (event: L.LeafletMouseEvent) => this.hover.trigger({primitive: this.primitive, pointerEvent: this.toPointerEvent(event)});
-    const outListener = (event: L.LeafletMouseEvent) => this.hover.trigger({primitive: this.primitive, pointerEvent: undefined});
+    const hoverListener = (event: L.LeafletMouseEvent) => this.hover.trigger({primitive: this.getPrimitive(), pointerEvent: this.toPointerEvent(event)});
+    const outListener = (event: L.LeafletMouseEvent) => this.hover.trigger({primitive: this.getPrimitive(), pointerEvent: undefined});
     this._leafletHover = {layer, hoverListener, outListener};
     layer.on('mouseover', hoverListener);
     layer.on('mouseout', outListener);
@@ -89,7 +89,7 @@ export class LeafletPrimitiveEvents<O, P extends MapPrimitive<O, Leaflet> & Leaf
 
   private toPointerEvent(event: L.LeafletMouseEvent): MapPointerEvent {
     return {
-      renderer: this.primitive.getRenderer()!,
+      renderer: this.getPrimitive().getRenderer()!,
       viewportPoint: event.containerPoint,
       geographicPoint: event.latlng,
     };

@@ -159,7 +159,7 @@ export class MapLibre extends MapRenderer {
     this.map?.resize();
   }
 
-  public override bringToFront(primitive: MapPrimitive<any, MapRenderer>): void {
+  public override bringToFront(primitive: MapPrimitive<any, MapRenderer, any>): void {
     (primitive as unknown as MapLibrePrimitive).getLayersIds().forEach(id => this.map?.moveLayer(id));
   }
 
@@ -174,6 +174,33 @@ export class MapLibre extends MapRenderer {
   public override goTo(center: EarthPoint, zoom: number | undefined, flying: boolean): void {
     if (flying) this.map?.flyTo({center, zoom, essential: true});
     else this.map?.jumpTo({center, zoom});
+  }
+
+  public override ensurePointVisible(lngLat: EarthPoint, flying: boolean): void {
+    if (!this.map) return;
+    const { width, height } = this.map.getContainer().getBoundingClientRect();
+    const point = this.map.project(lngLat);
+    const padding = 75;
+    let dx = 0;
+    let dy = 0;
+    if (point.x < padding) {
+      dx = padding - point.x;
+    } else if (point.x > width - padding) {
+      dx = width -padding - point.x;
+    }
+
+    if (point.y < padding) {
+      dy = padding - point.y;
+    } else if (point.y > height - padding) {
+      dy = height - padding - point.y;
+    }
+
+    if (dx !== 0 || dy !== 0) {
+      this.map.panBy([dx, dy], {
+        animate: flying,
+        essential: flying,
+      });
+    }
   }
 
   public override getMinZoom(): number {
@@ -208,11 +235,11 @@ export class MapLibre extends MapRenderer {
     return new MapLibreSvgBounds(id, bounds, svg, options);
   }
 
-  public override createIcon(id: string, position: EarthPoint, options: IconOptions): IconPrimitive<any> {
+  public override createIcon(id: string, position: EarthPoint, options: IconOptions): IconPrimitive<any, any> {
     return new MapLibreIcon(id, position, options);
   }
 
-  public override createHtmlMarker(id: string, position: EarthPoint, options: HtmlMarkerOptions): HtmlMarkerPrimitive<any> {
+  public override createHtmlMarker(id: string, position: EarthPoint, options: HtmlMarkerOptions): HtmlMarkerPrimitive<any, any> {
     return new MapLibreHtmlMarker(id, position, options);
   }
 

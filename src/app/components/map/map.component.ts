@@ -4,7 +4,7 @@ import { MapState, RotateMode } from './map-state';
 import { MapRendererInitializer } from './impl/map-renderer-initializer';
 import { BehaviorSubject, firstValueFrom, Observable, of } from 'rxjs';
 import { MapRenderer } from './impl/map-renderer';
-import { MapElement } from './map-element';
+import { AnyMapElement, MapElement } from './map-element';
 import { MapElementsRenderer } from './map-elements-renderer';
 import { createMyGeoLocationCursor } from './elements/geo-location-cursor';
 import { MapTool, MapToolGroup } from './map-tool';
@@ -36,7 +36,7 @@ export interface MapOptions {
 export class MapComponent extends AbstractComponent {
 
   @Input() mapId?: string;
-  @Input() elements$?: Observable<MapElement[]>;
+  @Input() elements$?: Observable<AnyMapElement[]>;
   @Input() options!: MapOptions;
   @Input() tools$?: Observable<{groups?: MapToolGroup[], tools?: MapTool[]}>;
 
@@ -58,7 +58,7 @@ export class MapComponent extends AbstractComponent {
   public get state(): MapState | undefined { return this._state; }
   public get fullscreen$(): Observable<boolean> { return this._fullscreen$; }
 
-  public get mapElements$(): Observable<MapElement[]> { return this._elementsRenderer.elements$; }
+  public get mapElements$(): Observable<AnyMapElement[]> { return this._elementsRenderer.elements$; }
 
   protected override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
     if (changes['elements$']) {
@@ -71,7 +71,7 @@ export class MapComponent extends AbstractComponent {
   }
 
   protected override initComponent(): void {
-    const basicElements: MapElement[] = [];
+    const basicElements: AnyMapElement[] = [];
     const toolsGroups: MapToolGroup[] = [];
     const tools: MapTool[] = [];
     if (this.options.geoLocationDisabled !== true) {
@@ -99,7 +99,7 @@ export class MapComponent extends AbstractComponent {
     this._elementsRenderer.destroy();
   }
 
-  public setSource(id: string, elements$: Observable<MapElement[]>): void {
+  public setSource(id: string, elements$: Observable<AnyMapElement[]>): void {
     this._elementsRenderer.setSource({id, elements$});
   }
 
@@ -113,7 +113,7 @@ export class MapComponent extends AbstractComponent {
     if (traceRecorder.recording) traceRecorder.setRotateMode(mode);
   }
 
-  public async ensureVisible(element: MapElement, padPixels = 10, flying: boolean = true) {
+  public async ensureVisible(element: AnyMapElement, padPixels = 10, flying: boolean = true) {
     const elementBounds = await firstValueFrom(element.fitBounds$);
     if (!elementBounds) return;
     const renderer = this.renderer;

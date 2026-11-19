@@ -6,7 +6,7 @@ import { MapRenderer } from '../impl/map-renderer';
 import { MapPrimitive } from '../primitives/primitive';
 import { EarthPoint } from '@trailence/utils/latlng';
 
-export class WaysMapElement extends MapElement<WaysMapElement> {
+export class WaysMapElement extends MapElement<null> {
 
   constructor(
     id: string,
@@ -20,15 +20,15 @@ export class WaysMapElement extends MapElement<WaysMapElement> {
 
   public override readonly fitBounds$ = of(undefined);
 
-  protected override createPrimitives$(renderer: MapRenderer): Observable<MapPrimitive<any, MapRenderer>[]> {
+  protected override createPrimitives$(renderer: MapRenderer): Observable<{primitive: MapPrimitive<any, MapRenderer, any>, eventBinding: null}[]> {
     return this.ways$.pipe(
       map(ways => {
         const positions: EarthPoint[][] = ways.map(way => way.points);
-        return [renderer.createPolyline(this.id, positions, {
+        return [{primitive: renderer.createPolyline(this.id, positions, {
           color: this.color,
           width: this.width,
           dashArray: this.dashArray,
-        })];
+        }), eventBinding: null}];
       })
     );
   }

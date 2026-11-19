@@ -1,33 +1,32 @@
 import { GraphPointReference } from '../trail-graph/graph-events';
 import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
-import { MapComponent } from '../map/map.component';
-import { MapTrackPointReference } from '../map/track/map-track-point-reference';
 import { PointReference } from '@trailence/model/point-reference';
+import { EarthPoint } from '@trailence/utils/latlng';
+import { MapCursors } from '../map/elements/map-cursors';
+import { MAP_GEOLOCATION_LAYER } from '../map/map-element';
 
 export class TrailHoverCursor {
 
   constructor(
-    private readonly getMap: () => MapComponent | undefined,
     private readonly getGraph: () => TrailGraphComponent | undefined,
   ) {}
 
-  private _hoverCursor: {pos: L.LatLngExpression}[] = [];
+  private _hoverCursor: {pos: EarthPoint}[] = [];
+
+  public mapCursors = new MapCursors('hover-cursors');
 
   private resetHover(): void {
-    const map = this.getMap();
-    if (map)
-      for (const cursor of this._hoverCursor)
-        map.cursors.removeCursor(cursor.pos);
+    this.mapCursors.removeAll();
     this._hoverCursor = [];
   }
 
-  mouseOverPointOnMap(event?: MapTrackPointReference) {
+  mouseOverPointOnMap(event?: PointReference) {
     this.resetHover();
     this.getGraph()?.hideCursor();
     if (event) {
-      const pos = event.position;
+      const pos = event.point.pos;
       if (pos) {
-        this.getMap()?.cursors.addCursor(pos);
+        this.mapCursors.addCursor(pos);
         this.getGraph()?.showCursorForPosition(pos.lat, pos.lng);
         this._hoverCursor.push({pos});
       }
@@ -39,13 +38,13 @@ export class TrailHoverCursor {
     for (const pt of references) {
       const pos = pt.pos;
       this._hoverCursor.push({pos});
-      this.getMap()?.cursors.addCursor(pos);
+      this.mapCursors.addCursor(pos);
     };
   }
 
   pointSelected(point: PointReference) {
     this.resetHover();
-    this.getMap()?.cursors.addCursor(point.point.pos);
+    this.mapCursors.addCursor(point.point.pos);
     this._hoverCursor.push({pos: point.point.pos});
     this.getGraph()?.showCursorForPosition(point.point.pos.lat, point.point.pos.lng);
   }

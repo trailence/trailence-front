@@ -9,14 +9,6 @@ export interface PolylineOptions {
   dashArray?: number[];
 }
 
-export abstract class Polyline<R extends MapRenderer> extends MapPrimitiveMultiplePositions<PolylineOptions, R, EarthPoint[][]> {
-
-  constructor(
-    id: string,
-    segments: EarthPoint[][],
-    options: PolylineOptions,
-  ) {
-    super(id, segments, options);
-  }
+export abstract class Polyline<R extends MapRenderer, P extends Polyline<R,P>> extends MapPrimitiveMultiplePositions<PolylineOptions, R, EarthPoint[][], P> {
 
 }

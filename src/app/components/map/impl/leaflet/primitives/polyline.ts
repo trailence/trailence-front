@@ -4,15 +4,21 @@ import * as L from 'leaflet';
 import { Color } from '@trailence/utils/color';
 import { Leaflet } from '../leaflet';
 import { LeafletPrimitiveEvents } from './events';
+import { EarthPoint } from '@trailence/utils/latlng';
 
-export class LeafletPolyline extends Polyline<Leaflet> implements LeafletPrimitive {
+export class LeafletPolyline extends Polyline<Leaflet, LeafletPolyline> implements LeafletPrimitive<PolylineOptions, LeafletPolyline> {
+
+  constructor(id: string, positions: EarthPoint[][], options: PolylineOptions) {
+    super(id, positions, options, new LeafletPrimitiveEvents<PolylineOptions, LeafletPolyline>(
+      () => this,
+      () => this.polyline?.options?.interactive === true,
+      () => this.polyline?.setStyle(this.getLeafletOptions()),
+    ));
+  }
+
+  public get leafletEvents(): LeafletPrimitiveEvents<PolylineOptions, LeafletPolyline> { return this.events as LeafletPrimitiveEvents<PolylineOptions, LeafletPolyline>; }
 
   private polyline: L.Polyline | undefined;
-  public override readonly events: LeafletPrimitiveEvents<PolylineOptions, LeafletPolyline> = new LeafletPrimitiveEvents<PolylineOptions, LeafletPolyline>(
-    this,
-    () => this.polyline?.options?.interactive === true,
-    () => this.polyline?.setStyle(this.getLeafletOptions()),
-  );
 
   protected override addPrimitiveToMap(renderer: Leaflet): void {
     this.polyline = L.polyline(this.positions, this.getLeafletOptions());
@@ -23,7 +29,7 @@ export class LeafletPolyline extends Polyline<Leaflet> implements LeafletPrimiti
     return {
       color: this.options.color.toHexString(false),
       weight: this.options.width,
-      interactive: this.events.isInteractive(),
+      interactive: this.leafletEvents.isInteractive(),
       dashArray: this.options.dashArray?.map((v,i) => (i % 2) === 0 ? v : v * this.options.width)?.join(' '),
       opacity: this.options.color.a,
       // TODO className

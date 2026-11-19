@@ -2,7 +2,7 @@ import { Track } from '@trailence/model/track';
 import { MAP_TRACKS_LAYER, MapElement } from '../map-element';
 import { SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
 import { Trail } from '@trailence/model/trail';
-import { BehaviorSubject, combineLatest, map, Observable, of, share, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable, of, switchMap } from 'rxjs';
 import { MapRenderer } from '../impl/map-renderer';
 import { Color } from '@trailence/utils/color';
 import { Polyline } from '../primitives/polyline';
@@ -37,9 +37,9 @@ export class MapTrackPath extends MapElement<Track | SimplifiedTrackSnapshot> {
   private readonly _eleColors$: BehaviorSubject<boolean>;
   private _arrowsColor: Color | undefined;
   private readonly _showArrows$: BehaviorSubject<boolean>;
-  private _pathMonoColor: Polyline<any> | undefined;
+  private _pathMonoColor: Polyline<any, any> | undefined;
   private _pathEleColors: undefined | PolylinesByElevation;
-  private _arrows: Polyline<any>[] = [];
+  private _arrows: Polyline<any, any>[] = [];
 
   public get color(): Color { return this._color; }
   public set color(value: Color) {
@@ -121,14 +121,13 @@ export class MapTrackPath extends MapElement<Track | SimplifiedTrackSnapshot> {
     this._arrows = [];
   }
 
-  protected override createPrimitives$(renderer: MapRenderer): Observable<{primitive: MapPrimitive<any,any>, eventBinding: Track | SimplifiedTrackSnapshot}[]> {
+  protected override createPrimitives$(renderer: MapRenderer): Observable<{primitive: MapPrimitive<any,any,any>, eventBinding: Track | SimplifiedTrackSnapshot}[]> {
     this.reset();
     const points$: Observable<EarthPoint[][]> = this.track instanceof Track ?
       this.track.segments$.pipe(
         switchMap(segments => combineLatestSafe(segments.map(s => s.points$))),
         debounceTimeExtended(0, 100, 100),
         map(segments => segments.map(points => points.map(p =>({lat: p.pos.lat, lng: p.pos.lng, ele: p.ele})))),
-        share(),
       ) :
       of([this.track.points]);
     const path$ = combineLatest([
@@ -171,14 +170,14 @@ export class MapTrackPath extends MapElement<Track | SimplifiedTrackSnapshot> {
     return combineLatest([path$, arrows$]).pipe(map(elements => elements.flat().map(primitive => ({primitive, eventBinding: this.track}))));
   }
 
-  private buildPath(renderer: MapRenderer, points: EarthPoint[][]): Polyline<any> {
+  private buildPath(renderer: MapRenderer, points: EarthPoint[][]): Polyline<any,any> {
     return renderer.createPolyline(this.id, points, {
       color: this._color!,
       width: this._weight,
     });
   }
 
-  private updatePath(path: Polyline<any>, points: EarthPoint[][]): void {
+  private updatePath(path: Polyline<any, any>, points: EarthPoint[][]): void {
     path.setPositions(points);
   }
 
@@ -259,7 +258,7 @@ export class MapTrackPath extends MapElement<Track | SimplifiedTrackSnapshot> {
       }
       points.push(pl.points);
     }
-    const byColor: {color: Color, polyline: Polyline<any>}[] = [];
+    const byColor: {color: Color, polyline: Polyline<any, any>}[] = [];
     for (const [color, points] of pointsByColor.entries()) {
       byColor.push({
         color,
@@ -275,8 +274,8 @@ export class MapTrackPath extends MapElement<Track | SimplifiedTrackSnapshot> {
 }
 
 interface PolylinesByElevation {
-  byColor: {color: Color, polyline: Polyline<any>}[],
-  border: Polyline<any>
+  byColor: {color: Color, polyline: Polyline<any, any>}[],
+  border: Polyline<any, any>
 }
 
 export const PATH_ARROWS_DEFAULT_COLOR = new Color(0, 0, 0, 1);
@@ -284,7 +283,7 @@ const PATH_ARROWS_BORDER_COLOR = new Color(255, 255, 255, 0.5);
 
 class Arrows {
 
-  public static buildArrows(renderer: MapRenderer, points: EarthPoint[][], zoom: number, weight: number, idPrefix: string, color: Color): Polyline<any>[] {
+  public static buildArrows(renderer: MapRenderer, points: EarthPoint[][], zoom: number, weight: number, idPrefix: string, color: Color): Polyline<any, any>[] {
     if (zoom < 10) return [];
     const allPoints = points.flat();
     if (allPoints.length < 3) return [];

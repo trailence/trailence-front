@@ -6,12 +6,12 @@ import { combineLatest, Subscription } from 'rxjs';
 import { MapPointerEvent } from '../map-events';
 import { AppEvent, ReplayAppEvent } from '@trailence/utils/events';
 
-export abstract class MapPrimitive<O, R extends MapRenderer> {
+export abstract class MapPrimitive<O, R extends MapRenderer, P extends MapPrimitive<O, R, P>> {
 
   constructor(
     public readonly id: string,
     options: O,
-    public data: any = undefined,
+    public readonly events: MapPrimitiveEvents<O, R, P>,
   ) {
     this.options = {...options};
   }
@@ -38,7 +38,7 @@ export abstract class MapPrimitive<O, R extends MapRenderer> {
     if (this.renderer !== undefined) throw new Error('Primitive already on map');
     this.renderer = renderer;
     this.addPrimitiveToMap(renderer);
-    this.events.addedToMap.trigger({primitive: this, renderer});
+    this.events.addedToMap.trigger({primitive: this as unknown as P, renderer});
   }
   protected abstract addPrimitiveToMap(renderer: R): void;
 
@@ -47,92 +47,32 @@ export abstract class MapPrimitive<O, R extends MapRenderer> {
     if (renderer !== this.renderer) return;
     this.removePrimitiveFromMap(renderer);
     this.events.addedToMap.cancelLatest();
-    this.events.removedFromMap.trigger({primitive: this, renderer: this.renderer});
+    this.events.removedFromMap.trigger({primitive: this as unknown as P, renderer: this.renderer});
     this.renderer = undefined;
   }
   protected abstract removePrimitiveFromMap(renderer: R): void;
 
-  // --- Events ---
-
-  public abstract readonly events: MapPrimitiveEvents<any, any, any>;
-
 }
 
-export class MapPrimitiveEvents<O, R extends MapRenderer, P extends MapPrimitive<O, R>> {
+export class MapPrimitiveEvents<O, R extends MapRenderer, P extends MapPrimitive<O, R, P>> {
   public readonly addedToMap = new ReplayAppEvent<{primitive: P, renderer: R}>();
   public readonly removedFromMap = new AppEvent<{primitive: P, renderer: R}>();
   public readonly click = new AppEvent<{primitive: P, pointerEvent: MapPointerEvent}>();
   public readonly hover = new AppEvent<{primitive: P, pointerEvent: MapPointerEvent | undefined}>();
 }
 
-/*
-export abstract class MapPrimitiveEvents<O, R extends MapRenderer, P extends MapPrimitive<O, R>> {
-
-  constructor(
-    protected readonly primitive: P,
-  ) {}
-
-  _addedToMap(): void {
-    if (this.clickListeners.length > 0) this.enableClickListeners();
-    if (this.hoverListeners.length > 0) this.enableHoverListeners();
-  }
-
-  protected clickListeners: ((event: MapPointerEvent) => void)[] = [];
-  protected hoverListeners: ((event: MapPointerEvent | undefined) => void)[] = [];
-
-  public addClickListener(listener: (event: MapPointerEvent) => void): void {
-    this.clickListeners.push(listener);
-    if (this.clickListeners.length === 1 && this.primitive.getRenderer()) this.enableClickListeners();
-  }
-  public removeClickListener(listener: (event: MapPointerEvent) => void): void {
-    const index = this.clickListeners.indexOf(listener);
-    if (index >= 0) {
-      this.clickListeners.splice(index, 1);
-      if (this.clickListeners.length === 0 && this.primitive.getRenderer()) this.disableClickListeners();
-    }
-  }
-  protected abstract enableClickListeners(): void;
-  protected abstract disableClickListeners(): void;
-  protected emitClick(eventProvider: () => MapPointerEvent): void {
-    if (this.clickListeners.length === 0) return;
-    const listeners = [...this.clickListeners];
-    const event = eventProvider();
-    for (const listener of listeners) listener(event);
-  }
-
-  public addHoverListener(listener: (event: MapPointerEvent | undefined) => void): void {
-    this.hoverListeners.push(listener);
-    if (this.hoverListeners.length === 1 && this.primitive.getRenderer()) this.enableHoverListeners();
-  }
-  public removeHoverListener(listener: (event: MapPointerEvent | undefined) => void): void {
-    const index = this.hoverListeners.indexOf(listener);
-    if (index >= 0) {
-      this.hoverListeners.splice(index, 1);
-      if (this.hoverListeners.length === 0 && this.primitive.getRenderer()) this.disableHoverListeners();
-    }
-  }
-  protected abstract enableHoverListeners(): void;
-  protected abstract disableHoverListeners(): void;
-  protected emitHover(eventProvider: () => MapPointerEvent | undefined): void {
-    if (this.hoverListeners.length === 0) return;
-    const listeners = [...this.hoverListeners];
-    const event = eventProvider();
-    for (const listener of listeners) listener(event);
-  }
-}
-  */
-
-export abstract class MapPrimitiveSinglePosition<O, R extends MapRenderer> extends MapPrimitive<O, R> {
+export abstract class MapPrimitiveSinglePosition<O, R extends MapRenderer, P extends MapPrimitiveSinglePosition<O,R,P>> extends MapPrimitive<O, R, P> {
 
   constructor(
     id: string,
     position: EarthPoint,
     options: O,
+    events: MapPrimitiveEvents<O, R, P>,
   ) {
-    super(id, options);
+    super(id, options, events);
     this.position = {...position};
-    this.addListenerOnAdded(renderer => this.addListenersForMapOffset(renderer));
-    this.addListenerOnRemoved(() => this.removeListenersForMapOffset());
+    this.events.addedToMap.addListener(event => this.addListenersForMapOffset(event.renderer));
+    this.events.removedFromMap.addListener(() => this.removeListenersForMapOffset());
   }
 
   protected position: EarthPoint;
@@ -164,17 +104,18 @@ export abstract class MapPrimitiveSinglePosition<O, R extends MapRenderer> exten
 
 }
 
-export abstract class MapPrimitiveMultiplePositions<O, R extends MapRenderer, P extends NestedArray<EarthPoint>[]> extends MapPrimitive<O, R> {
+export abstract class MapPrimitiveMultiplePositions<O, R extends MapRenderer, P extends NestedArray<EarthPoint>[], PR extends MapPrimitiveMultiplePositions<O,R,P,PR>> extends MapPrimitive<O, R, PR> {
 
   constructor(
     id: string,
     positions: P,
     options: O,
+    events: MapPrimitiveEvents<O, R, PR>,
   ) {
-    super(id, options);
+    super(id, options, events);
     this.positions = MapUtils.adjustPointsToAvoidGoingAroundEarth(positions);
-    this.addListenerOnAdded(renderer => this.addListenersForMapOffset(renderer));
-    this.addListenerOnRemoved(() => this.removeListenersForMapOffset());
+    this.events.addedToMap.addListener(event => this.addListenersForMapOffset(event.renderer));
+    this.events.removedFromMap.addListener(() => this.removeListenersForMapOffset());
   }
 
   protected positions: P;
@@ -208,16 +149,17 @@ export abstract class MapPrimitiveMultiplePositions<O, R extends MapRenderer, P 
 
 }
 
-export abstract class MapPrimitiveBounds<O, R extends MapRenderer> extends MapPrimitive<O, R> {
+export abstract class MapPrimitiveBounds<O, R extends MapRenderer, P extends MapPrimitiveBounds<O,R,P>> extends MapPrimitive<O, R, P> {
   constructor(
     id: string,
     bounds: EarthBBox,
     options: O,
+    events: MapPrimitiveEvents<O, R, P>,
   ) {
-    super(id, options);
+    super(id, options, events);
     this.bounds = {...bounds};
-    this.addListenerOnAdded(renderer => this.addListenersForMapOffset(renderer));
-    this.addListenerOnRemoved(() => this.removeListenersForMapOffset());
+    this.events.addedToMap.addListener(event => this.addListenersForMapOffset(event.renderer));
+    this.events.removedFromMap.addListener(() => this.removeListenersForMapOffset());
   }
 
   protected bounds: EarthBBox;

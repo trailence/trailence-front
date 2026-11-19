@@ -6,7 +6,7 @@ import { MenuItem } from '@trailence/components/menus/menu-item';
 import { ModalController } from '@ionic/angular';
 import { countMapAdditionsOptions, hasForbiddenWaysEnabled, hasPermissiveWaysEnabled, hasPoisEnabled, MapAdditionsOptions, MapAdditionsService } from '@trailence/services/map/map-additions.service';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
-import { MapElement } from '../map-element';
+import { AnyMapElement, MapElement } from '../map-element';
 import { Subscriptions } from '@trailence/utils/rxjs/subscription-utils';
 import { PoisMapElement } from '../elements/pois';
 import { POI } from '@trailence/services/map/poi';
@@ -63,13 +63,13 @@ export class MapAdditionsTool implements MapTool {
       .setIcon('info')
       .setAction(() => void this.openModal(injector, mapComponent));
 
-    const elements$ = new BehaviorSubject<MapElement[]>([]);
+    const elements$ = new BehaviorSubject<AnyMapElement[]>([]);
     mapComponent.setSource('map-additions-tool', elements$);
     let poisElement: PoisMapElement | undefined = undefined;
     let permissiveWays: WaysMapElement | undefined = undefined;
     let forbiddenWays: WaysMapElement | undefined = undefined;
     const updateElements = () => {
-      const elements: MapElement[] = [];
+      const elements: AnyMapElement[] = [];
       if (poisElement !== undefined) elements.push(poisElement);
       if (permissiveWays !== undefined) elements.push(permissiveWays);
       if (forbiddenWays !== undefined) elements.push(forbiddenWays);

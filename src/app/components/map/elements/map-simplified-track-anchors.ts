@@ -8,7 +8,7 @@ import { distance, EarthBBox, EarthPoint } from '@trailence/utils/latlng';
 import { MAX_DEPARTURE_ARRIVAL_DISTANCE } from '@trailence/utils/track-waypoints/waypoints-from-track';
 import { createAIcon, createDAIcon, createDIcon } from '../utils/map-anchors';
 
-export class MapTrackAnchors extends MapElement<{point: EarthPoint, isDeparture: boolean, isArrival: boolean}> {
+export class MapSimplifiedTrackAnchors extends MapElement<{point: EarthPoint, isDeparture: boolean, isArrival: boolean}> {
 
   constructor(
     public readonly track: SimplifiedTrackSnapshot,
@@ -19,7 +19,7 @@ export class MapTrackAnchors extends MapElement<{point: EarthPoint, isDeparture:
 
   public override fitBounds$: Observable<EarthBBox | undefined> = of(undefined);
 
-  protected override createPrimitives$(renderer: MapRenderer): Observable<{primitive: MapPrimitive<any, MapRenderer>, eventBinding: {point: EarthPoint, isDeparture: boolean, isArrival: boolean}}[]> {
+  protected override createPrimitives$(renderer: MapRenderer): Observable<{primitive: MapPrimitive<any, MapRenderer, any>, eventBinding: {point: EarthPoint, isDeparture: boolean, isArrival: boolean}}[]> {
     const departurePoint = this.track.points.at(0);
     if (!departurePoint) return of([]);
     const arrivalPoint = this.track.points.at(-1)!;

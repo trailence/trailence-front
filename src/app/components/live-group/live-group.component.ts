@@ -5,8 +5,7 @@ import { PreferencesService } from '@trailence/services/preferences/preferences.
 import { IonIcon, AlertController, IonButton } from '@ionic/angular';
 import { RelativeDateComponent } from '../relative-date/relative-date.component';
 import { MapComponent } from '../map/map.component';
-import { firstValueFrom, map, Observable, of, Subscription, switchMap } from 'rxjs';
-import * as L from 'leaflet';
+import { BehaviorSubject, firstValueFrom, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { MenuItem } from '../menus/menu-item';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { NetworkService } from '@trailence/services/network/network.service';
@@ -16,8 +15,9 @@ import { defaultAuthRoute, defaultPublicRoute } from '@trailence/routes/package.
 import { I18nPipe } from '@trailence/services/i18n/i18n-string';
 import { GeolocationService } from '@trailence/services/geolocation/geolocation.service';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
-import { BoundsBuilder } from '@trailence/utils/leaflet-utils';
 import { LiveGroupDto, LiveGroupMemberDto } from '@trailence/model/dto/live-group';
+import { MapRenderer } from '../map/impl/map-renderer';
+import { GeoLocationCursor } from '../map/elements/geo-location-cursor';
 
 @Component({
   selector: 'app-live-group',
@@ -69,7 +69,7 @@ export class LiveGroupComponent implements OnInit, OnChanges, OnDestroy {
   private mapSubscription?: Subscription;
   private locationSubscription?: Subscription;
   private mapComponent?: MapComponent;
-  private mapReady = false;
+  private mapRenderer?: MapRenderer;
 
   constructor(
     public readonly i18n: I18nService,
@@ -96,10 +96,10 @@ export class LiveGroupComponent implements OnInit, OnChanges, OnDestroy {
     this.updateMembers();
     this.mapSubscription?.unsubscribe();
     this.mapSubscription = this.mapComponent$.pipe(
-      switchMap(c => c ? c.ready$.pipe(map(r => [c,r] as [MapComponent | undefined, boolean])) : of([undefined, false] as [MapComponent | undefined, boolean]))
-    ).subscribe(m => {
-      this.mapComponent = m[0];
-      this.mapReady = m[1];
+      switchMap(m => m ? m.renderer$.pipe(map(r => ({m, r}))) : of(undefined)),
+    ).subscribe(result => {
+      this.mapComponent = result?.m;
+      this.mapRenderer = result?.r;
       this.updateMap();
     });
     this.toolbar = [...this.toolbar];
@@ -109,14 +109,8 @@ export class LiveGroupComponent implements OnInit, OnChanges, OnDestroy {
     this.networkSubscription?.unsubscribe();
     this.mapSubscription?.unsubscribe();
     this.locationSubscription?.unsubscribe();
-    if (this.mapComponent) {
-      this.mapComponent.removeFitBoundsProvider(this.mapBoundsProvider);
-      if (this._mapComponentShowPositionDisabled === this.mapComponent)
-        this.mapComponent.disableShowPosition$.next(this.mapComponent.disableShowPosition$.value - 1);
-      this._mapComponentShowPositionDisabled = undefined;
-    }
     this.mapComponent = undefined;
-    this.mapReady = false;
+    this.mapRenderer = undefined;
     this.updateMap();
   }
 
@@ -132,8 +126,8 @@ export class LiveGroupComponent implements OnInit, OnChanges, OnDestroy {
       this.highlighted = undefined;
     else {
       this.highlighted = member;
-      if (this.mapComponent && member.lastPosition)
-        this.mapComponent.ensurePointVisible(member.lastPosition);
+      if (this.mapRenderer && member.lastPosition)
+        this.mapRenderer.ensurePointVisible(member.lastPosition, true);
     }
     this.updateMap();
     this.changeDetector.detectChanges();
@@ -143,17 +137,12 @@ export class LiveGroupComponent implements OnInit, OnChanges, OnDestroy {
     this.liveGroupService.updateNow();
   }
 
-  private markers: L.CircleMarker[] = [];
-  private youMarker?: L.CircleMarker;
+  private markers$ = new BehaviorSubject<GeoLocationCursor[]>([]);
+  private youMarker?: GeoLocationCursor;
   private highlightedTooltip?: L.Tooltip;
-  private readonly mapBoundsProvider: () => L.LatLngBounds | undefined = () => {
-    const boundsBuilder = new BoundsBuilder();
-    for (const marker of this.markers) boundsBuilder.extendPoint(marker.getLatLng());
-    return boundsBuilder.getBounds();
-  };
-  private _mapComponentShowPositionDisabled?: MapComponent;
 
   private updateMap(): void { // NOSONAR
+  /* TODO refacto
     const nbMarkersBefore = this.markers.length;
     this.markers.forEach(m => m.remove());
     this.markers = [];
@@ -200,9 +189,11 @@ export class LiveGroupComponent implements OnInit, OnChanges, OnDestroy {
     } else {
       this._mapComponentShowPositionDisabled = undefined;
     }
+      */
   }
 
   private updateYou(): void {
+    /* TODO refacto
     if (this.geolocation.lastKnownPosition) {
       const you = this.members.find(m => m.you);
       if (you) {
@@ -212,12 +203,13 @@ export class LiveGroupComponent implements OnInit, OnChanges, OnDestroy {
     }
     if (!this.youMarker || !this.geolocation.lastKnownPosition) return;
     this.youMarker.setLatLng({lat: this.geolocation.lastKnownPosition.position.l!, lng: this.geolocation.lastKnownPosition.position.n!});
+    */
   }
 
   private leave(): void {
     const type = this.group.members.some(m => m.owner && m.you) ? 'stop' : 'leave';
     const alertController = this.injector.get(AlertController);
-    alertController.create({
+    void alertController.create({
       header: this.i18n.texts.pages.live_group.confirm[type].title,
       message: '',
       buttons: [
@@ -225,9 +217,9 @@ export class LiveGroupComponent implements OnInit, OnChanges, OnDestroy {
           text: this.i18n.texts.buttons.confirm,
           role: 'danger',
           handler: () => {
-            alertController.dismiss();
+            void alertController.dismiss();
             if (this.injector.get(Router).url.startsWith('/live-group/'))
-              this.injector.get(Router).navigateByUrl(this.injector.get(AuthService).auth ? defaultAuthRoute : defaultPublicRoute);
+              void this.injector.get(Router).navigateByUrl(this.injector.get(AuthService).auth ? defaultAuthRoute : defaultPublicRoute);
             if (type === 'stop') this.liveGroupService.removeGroup(this.group.slug).subscribe();
             else this.liveGroupService.leaveGroup(this.group.slug).subscribe();
           }
@@ -238,7 +230,7 @@ export class LiveGroupComponent implements OnInit, OnChanges, OnDestroy {
       ]
     }).then(a => {
       a.querySelector('div.alert-message')!.innerHTML = this.i18n.texts.pages.live_group.confirm[type].message;
-      a.present();
+      return a.present();
     });
   }
 

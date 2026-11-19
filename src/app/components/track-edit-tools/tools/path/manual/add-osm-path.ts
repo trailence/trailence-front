@@ -1,22 +1,35 @@
-import { combineLatest, distinctUntilChanged, of, Subscription, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, distinctUntilChanged, map, of, Subscription, switchMap } from 'rxjs';
 import { TrackEditToolContext } from '../../tool.interface';
 import { AddPointsContext, AddPointsTool } from './add-points-tool';
-import * as L from 'leaflet';
 import { WayUtils } from '@trailence/services/map/way-utils';
-import { MapTrack } from '@trailence/components/map/track/map-track';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
-import { MapTrackPointReference } from '@trailence/components/map/track/map-track-point-reference';
 import { Arrays } from '@trailence/utils/arrays';
 import { PointDescriptor } from '@trailence/model/point-descriptor';
 import { TrackUtils } from '@trailence/utils/track-utils';
 import { Way } from '@trailence/services/map/way';
 import { OfflineMapService } from '@trailence/services/map/offline-map.service';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
+import { WaysMapElement } from '@trailence/components/map/elements/ways';
 
 const MIN_ZOOM = 14;
 const MATCHING_MAX_DISTANCE = 2.5;
 
 const DEFAULT_COLOR = '#A030D0';
 const HIGHLIGHTED_COLOR = '#D080FF';
+
+export class AddOsmPath extends AddPointsTool {
+  override labelKey(ctx: TrackEditToolContext): string {
+    return 'add_points.osm.title';
+  }
+  override enableAddPoints(ctx: AddPointsContext): void {
+
+  }
+  override disableAddPoints(stop: boolean): void {
+
+  }
+}
+
+/*TODO refacto
 
 export class AddOsmPath extends AddPointsTool {
 
@@ -29,7 +42,7 @@ export class AddOsmPath extends AddPointsTool {
   private anchorMapClickSubscription?: Subscription;
 
   private allWays: Way[] = [];
-  private allMapTracks: MapTrack[] = [];
+  //private readonly mapWays$ = new BehaviorSubject<WaysMapElement[]>([]);
   private possibleWays: WayAndMapTrack[] = [];
   private possibleWaysFromCursor: WayAndMapTrack[] = [];
 
@@ -44,6 +57,7 @@ export class AddOsmPath extends AddPointsTool {
       this.anchor.marker.remove();
       return;
     }
+    ctx.map.setSource('add-osm-path', this.mapWays$);
     const matching = WayUtils.getMatchingWays(ctx.point.pos, this.allWays, MATCHING_MAX_DISTANCE);
     this.possibleWays = (matching.length > 0 ? matching : this.allWays).map(way => ({
       way,
@@ -54,9 +68,11 @@ export class AddOsmPath extends AddPointsTool {
 
   override enableAddPoints(ctx: AddPointsContext): void {
     if (this.waysSubscription === undefined) {
-      this.waysSubscription = combineLatest([ctx.map.getState().center$, ctx.map.getState().zoomInt$]).pipe(
-        distinctUntilChanged(),
-        switchMap(([center, zoom]) => zoom < MIN_ZOOM ? of({ways: []}) : ctx.injector.get(OfflineMapService).ways.getAllWays(ctx.map.getBounds()!, false)),
+      this.waysSubscription = ctx.map.renderer$.pipe(
+        filterDefined(),
+        switchMap(renderer => combineLatest([renderer.mapState.center$, renderer.mapState.zoom$.pipe(map(zoom => Math.floor(zoom)), distinctUntilChanged())]).pipe(
+          switchMap(([center, zoom]) => zoom < MIN_ZOOM ? of({ways: []}) : ctx.injector.get(OfflineMapService).ways.getAllWays(renderer.getBounds()!, false)),
+        )),
       ).subscribe(waysResponse => {
         const ways = WayUtils.mergeWays(waysResponse.ways, () => true) // TODO merge those which have compatible permission = same color
         this.allWays = ways;
@@ -244,3 +260,4 @@ interface WayAndMapTrack {
   way: Way;
   mapTrack: MapTrack;
 }
+*/

@@ -67,6 +67,13 @@ export class Arrays {
     return true;
   }
 
+  public static removeFirstMatching<T>(array: T[], predicate: (element: T) => boolean): {element: T} | undefined {
+    const index = array.findIndex(predicate);
+    if (index < 0) return undefined;
+    const element = array.splice(index, 1)[0];
+    return {element};
+  }
+
   public static mapToSet<T, R>(array: T[], mapper: (element: T) => R): Set<R> {
     const set = new Set<R>();
     for (const element of array) set.add(mapper(element));

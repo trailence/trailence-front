@@ -287,8 +287,8 @@ export class SearchTrailsService {
       40,
       '#000000',
     );
-    bubble.events.addClickListener((bubble, event) => {
-      event.renderer.fitBounds(bounds, true);
+    bubble.events.click.addListener(event => {
+      event.pointerEvent.renderer.fitBounds(bounds, true);
     });
     return bubble;
   }

@@ -246,6 +246,18 @@ export class Track extends Owned {
     return undefined;
   }
 
+  public forEachPointReference<T>(callback: (p: Point, ref: TrackPointReference) => T | null | undefined | void): T | undefined {
+    for (let segmentIndex = 0; segmentIndex < this.segments.length; ++segmentIndex) {
+      const segment = this.segments[segmentIndex];
+      for (let pointIndex = 0; pointIndex < segment.points.length; ++pointIndex) {
+        const point = segment.points[pointIndex];
+        const value = callback(point, {segmentIndex, pointIndex});
+        if (value) return value;
+      }
+    }
+    return undefined;
+  }
+
   public getPoint(reference: TrackPointReference): Point {
     return this.segments[reference.segmentIndex].points[reference.pointIndex];
   }

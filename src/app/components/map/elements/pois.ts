@@ -8,7 +8,7 @@ import { HtmlMarkerPrimitive } from '../primitives/html-marker';
 import { OfflineMapService } from '@trailence/services/map/offline-map.service';
 import { IdGenerator } from '@trailence/utils/component-utils';
 
-export class PoisMapElement extends MapElement<PoisMapElement> {
+export class PoisMapElement extends MapElement<POI> {
 
   constructor(
     id: string,
@@ -19,7 +19,7 @@ export class PoisMapElement extends MapElement<PoisMapElement> {
 
   public override readonly fitBounds$ = of(undefined);
 
-  protected override createPrimitives$(renderer: MapRenderer): Observable<MapPrimitive<any, MapRenderer>[]> {
+  protected override createPrimitives$(renderer: MapRenderer): Observable<{primitive: MapPrimitive<any, MapRenderer, any>, eventBinding: POI}[]> {
     return collectionCache(
       this.pois$,
       poi => this.createPoi(renderer, poi),
@@ -27,7 +27,7 @@ export class PoisMapElement extends MapElement<PoisMapElement> {
     );
   }
 
-  private createPoi(renderer: MapRenderer, poi: POI): Observable<HtmlMarkerPrimitive<MapRenderer>> {
+  private createPoi(renderer: MapRenderer, poi: POI): Observable<{primitive: HtmlMarkerPrimitive<MapRenderer, any>, eventBinding: POI}> {
     return renderer.getInjector().get(OfflineMapService).getPoiIcon$(poi.type).pipe(
       map(icon => {
         const id = this.id + '$poi$' + IdGenerator.generateId();
@@ -39,12 +39,15 @@ export class PoisMapElement extends MapElement<PoisMapElement> {
           span.innerText = poi.text;
           container.appendChild(span);
         }
-        return renderer.createHtmlMarker(id, poi.pos, {
-          html: container,
-          className: 'poi',
-          opacity: 0.75,
-          anchorPos: 'left',
-        })
+        return {primitive:
+          renderer.createHtmlMarker(id, poi.pos, {
+            html: container,
+            className: 'poi',
+            opacity: 0.75,
+            anchorPos: 'left',
+          }),
+          eventBinding: poi,
+        };
       })
     );
   }

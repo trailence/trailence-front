@@ -1,12 +1,17 @@
-import { BehaviorSubject, combineLatest, EMPTY, map, of, Subscription, switchMap } from 'rxjs';
+import { BehaviorSubject, EMPTY, Subscription, switchMap } from 'rxjs';
 import { PointReference, RangeReference } from '@trailence/model/point-reference';
 import { Track } from '@trailence/model/track';
 import { MapComponent } from '../map/map.component';
 import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
-import { MapTrackPointReference } from '../map/track/map-track-point-reference';
 import { GraphPointReference, GraphRange } from '../trail-graph/graph-events';
-import { MapAnchor } from '../map/markers/map-anchor';
 import { WayPoint } from '@trailence/model/way-point';
+import { MapSelectedPoint } from '../map/elements/map-selected-point';
+import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
+import { MapPointerEvent } from '../map/map-events';
+import { MapTrackPath } from '../map/elements/map-track-path';
+import { bboxPadRatio, distance, isPointInBBox } from '@trailence/utils/latlng';
+import { distance2d } from '@trailence/utils/geometry-utils';
+import { TrackPointReference } from '@trailence/utils/track-computed-data/types';
 
 export class TrailSelection {
 
@@ -16,32 +21,32 @@ export class TrailSelection {
   public extendingSelection = false;
   public readonly selectedWayPoint$ = new BehaviorSubject<WayPoint | undefined>(undefined);
 
+  public readonly mapSelectedPoint = new MapSelectedPoint('selected-point');
+
   constructor(
     public readonly map$: BehaviorSubject<MapComponent | undefined>,
     public readonly graph$: BehaviorSubject<TrailGraphComponent | undefined>,
+    public readonly mapTracks$: BehaviorSubject<MapTrackPath[]>,
   ) {
     this._mapClickSubscription = map$.pipe(
-      switchMap(map => map?.mouseClickPoint ?? EMPTY)
-    ).subscribe(click => this.mapClick(click));
+      filterDefined(),
+      switchMap(map => map.renderer$),
+      filterDefined(),
+    ).subscribe(renderer => renderer.events.click.addListener(event => this.mapClick(event)));
     this._elevationGraphClickSubscription = graph$.pipe(
       switchMap(graph => graph?.pointClick ?? EMPTY)
     ).subscribe(click => this.graphClick(click));
     this._elevationGraphSelectedSubscription = graph$.pipe(
       switchMap(graph => graph?.selected ?? EMPTY)
     ).subscribe(range => this.graphRange(range));
-    this._mapAnchorSubscription = combineLatest([map$.pipe(switchMap(m => m ? m.ready$.pipe(map(r => r ? m : undefined)) : of(undefined))), this.selection$])
-    .subscribe(([map, sel]) => {
-      if (!map) return;
+    this._mapAnchorSubscription = this.selection$.subscribe(sel => {
       if (sel && sel.length > 0 && (sel[0] instanceof PointReference)) {
-        this.selectedPointAnchor.marker.setLatLng(sel[0].point.pos);
-        map.addToMap(this.selectedPointAnchor.marker);
+        this.mapSelectedPoint.selection$.next(sel[0].point.pos);
       } else {
-        map.removeFromMap(this.selectedPointAnchor.marker);
+        this.mapSelectedPoint.selection$.next(undefined);
       }
-    })
+    });
   }
-
-  private readonly selectedPointAnchor = new MapAnchor({lat: 0, lng: 0}, '#6060FFC0', undefined, undefined, undefined, '#6060FF80', undefined, true, false);
 
   private readonly _mapClickSubscription: Subscription;
   private readonly _elevationGraphClickSubscription: Subscription;
@@ -251,16 +256,27 @@ export class TrailSelection {
   }
 
 
-  private mapClick(event: MapTrackPointReference[]): void {
-    event = event.filter(e => !e.track.ignoreCursorHover);
-    if (event.length === 0) {
+  private mapClick(event: MapPointerEvent): void {
+    const points: PointReference[] = [];
+    for (const mapTrack of this.mapTracks$.value) {
+      const track = mapTrack.track as Track;
+      const bounds = track.metadata.bounds;
+      if (!bounds) continue;
+      if (!isPointInBBox(event.geographicPoint, bboxPadRatio(bounds, 1))) continue;
+      let bestPoint: {ref: TrackPointReference, d: number} | undefined;
+      track.forEachPointReference((point, ref) => {
+        const pixel = event.renderer.projectToViewport(point.pos); // TODO improve (same as in trails-and-map)
+        const distancePixel = distance2d(event.viewportPoint, pixel);
+        if (distancePixel > 15) return;
+        const distanceMeters = distance(event.geographicPoint, point.pos);
+        if (!bestPoint || distanceMeters < bestPoint.d) bestPoint = {ref, d: distanceMeters};
+      });
+      if (bestPoint) points.push(new PointReference(track, bestPoint.ref.segmentIndex, bestPoint.ref.pointIndex));
+    }
+    if (points.length === 0) {
       this.cancelSelection();
       return;
     }
-    const mapPoints = event.filter(p => p.point !== undefined).sort(MapTrackPointReference.distanceComparator);
-    const points = mapPoints
-      .filter(p => p.track.track instanceof Track && p.segmentIndex !== undefined && p.pointIndex !== undefined)
-      .map(p => new PointReference(p.track.track as Track, p.segmentIndex!, p.pointIndex!));
     const newSelection: PointReference[] = [];
     for (const p of points) {
       if (!newSelection.some(s => s.track === p.track))

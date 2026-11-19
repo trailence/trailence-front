@@ -1,15 +1,10 @@
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { Track } from '@trailence/model/track';
 import { Trail } from '@trailence/model/trail';
-import { MapAnchor } from '../map/markers/map-anchor';
-import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorBreakBorderColor, anchorBreakFillColor, anchorBreakTextColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor, MapTrackWayPoints } from '../map/track/map-track-way-points';
-import { MapTrack } from '../map/track/map-track';
-import { samePositionRound } from '@trailence/model/point';
 import { PointReference } from '@trailence/model/point-reference';
 import { TrailSelection } from './trail-selection';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { Photo } from '@trailence/model/photo';
-import * as L from 'leaflet';
 import { Arrays } from '@trailence/utils/arrays';
 import { OfflineMapService } from '@trailence/services/map/offline-map.service';
 import { TrackWayPoint } from '@trailence/utils/track-waypoints/track-waypoint';
@@ -18,6 +13,11 @@ import { BreakPoint } from '@trailence/utils/track-waypoints/breakpoints';
 import { GuidepostWayPoint } from '@trailence/utils/track-waypoints/guideposts';
 import { OsmWayIntersection } from '@trailence/utils/track-waypoints/way-intersection';
 import { PRIMARY_TRACK_COLOR } from './trail-colors';
+import { MapTrackPath } from '../map/elements/map-track-path';
+import { distance, EarthPoint, samePositionRound } from '@trailence/utils/latlng';
+import { MapTrackAnchors } from '../map/elements/map-track-anchors';
+import { Color } from '@trailence/utils/color';
+import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorBreakBorderColor, anchorBreakFillColor, anchorBreakTextColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor, createMapAnchorDataUrl } from '../map/utils/map-anchor-svg';
 
 export class TrailsWaypoints {
 
@@ -27,7 +27,7 @@ export class TrailsWaypoints {
   public showBreaksOnMapLocked = false;
   public showWaypointsOnMap = true;
 
-  private photosWithPosition: {photos: Photo[], point: L.LatLngExpression}[] = [];
+  private photosWithPosition: {photos: Photo[], point: EarthPoint}[] = [];
 
   constructor(
     private readonly selection: TrailSelection,
@@ -39,7 +39,7 @@ export class TrailsWaypoints {
     this.update([]);
   }
 
-  public update(trails: {trail: Trail, track: Track, recording: boolean, mapTrack: MapTrack}[]): void {
+  public update(trails: {trail: Trail, track: Track, recording: boolean, mapTrack: MapTrackPath, mapTrackAnchors: MapTrackAnchors}[]): void {
     const toRemove = [...this.trails];
     const newTrails: TrailWaypoints[] = [];
     for (const trail of trails) {
@@ -51,14 +51,15 @@ export class TrailsWaypoints {
         t.trail = trail.trail;
         t.track = trail.track;
         t.mapTrack = trail.mapTrack;
+        t.mapTrackAnchors = trail.mapTrackAnchors;
         t.recording = trail.recording;
       } else {
-        newTrails.push(new TrailWaypoints(this, trail.trail, trail.track, trail.recording, trail.mapTrack, this.photosWithPosition, () => this.wayPointsUpdated()));
+        newTrails.push(new TrailWaypoints(this, trail.trail, trail.track, trail.recording, trail.mapTrack, trail.mapTrackAnchors, this.photosWithPosition, () => this.wayPointsUpdated()));
       }
     }
     for (const t of toRemove) t.destroy();
     this.trails = newTrails;
-    this.trails.forEach(t => t.mapTrack.showWayPointsAnchors(this.showWaypointsOnMap));
+    this.trails.forEach(t => t.mapTrackAnchors.showWayPoints = this.showWaypointsOnMap ? t.mapTrack.color : undefined);
     this.updateElementsShown();
   }
 
@@ -72,19 +73,21 @@ export class TrailsWaypoints {
     if (this.canShowBreaksOnMap()) {
       const multiple = this.trails.filter(t => t.showBreaks).length > 1;
       for (const t of this.trails) {
-        t.mapTrack.showBreaksAnchors(t.showBreaks ? (multiple ? 'colored' : 'normal') : undefined);
+        t.mapTrackAnchors.showBreaks = t.showBreaks ? (multiple ? t.mapTrack.color.copy().setAlpha(0.66) : Color.parse(anchorBreakFillColor)) : undefined;
       }
     } else {
-      for (const t of this.trails) t.mapTrack.showBreaksAnchors(undefined);
+      for (const t of this.trails) t.mapTrackAnchors.showBreaks =undefined;
     }
   }
 
   private updateGuidepostsShown(): void {
+    /* TODO refacto
     if (this.canShowGuidepostsOnMap()) {
       for (const t of this.trails) t.mapTrack.showGuideposts(t.showGuideposts);
     } else {
       for (const t of this.trails) t.mapTrack.showGuideposts(false);
     }
+      */
   }
 
   public isShowingAllBreaks(): boolean {
@@ -99,7 +102,7 @@ export class TrailsWaypoints {
 
   public toggleShowWaypointsOnMap(): void {
     this.showWaypointsOnMap = !this.showWaypointsOnMap;
-    for (const t of this.trails) t.mapTrack.showWayPointsAnchors(this.showWaypointsOnMap);
+    for (const t of this.trails) t.mapTrackAnchors.showWayPoints = this.showWaypointsOnMap ? t.mapTrack.color : undefined;
   }
 
   public isShowingAllGuideposts(): boolean {
@@ -122,7 +125,7 @@ export class TrailsWaypoints {
     this.updateElementsShown();
   }
 
-  public updatePhotos(photosWithPosition: {photos: Photo[], point: L.LatLngExpression}[]): void {
+  public updatePhotos(photosWithPosition: {photos: Photo[], point: EarthPoint}[]): void {
     this.photosWithPosition = photosWithPosition;
     let changed = false;
     for (const t of this.trails) {
@@ -172,7 +175,7 @@ export class TrailsWaypoints {
     }
     this._highlightedWayPoint = wp;
     this._highlightedWayPointFromClick = click;
-    if (trail) trail.mapTrack.highlightWayPoint(wp);
+    // TODO refacto if (trail) trail.mapTrack.highlightWayPoint(wp);
   }
 
   private waypointClick(wp: TrackWayPoint, trail: TrailWaypoints | undefined): void {
@@ -203,7 +206,7 @@ export class TrailsWaypoints {
       if (this.selection.selectedWayPoint$.value === WayPointFromTrack.from(wp)?.wayPoint)
         this.selection.selectedWayPoint$.next(undefined);
       const trail = this.trails.find(t => t.wayPoints.some(w => w.waypoint === wp));
-      if (trail) trail.mapTrack.unhighlightWayPoint(wp);
+      // TODO refacto if (trail) trail.mapTrack.unhighlightWayPoint(wp);
       if (trail && wp.elements.length === 1) {
         const e = wp.elements[0]!;
         if (e instanceof OsmWayIntersection) {
@@ -266,15 +269,16 @@ export class TrailWaypoints {
     return false;
   }
 
-  private currentPhotos: {photos: Photo[], point: L.LatLngExpression}[];
+  private currentPhotos: {photos: Photo[], point: EarthPoint}[];
 
   constructor(
     private readonly trails: TrailsWaypoints,
     trail: Trail,
     track: Track,
     public recording: boolean,
-    public mapTrack: MapTrack,
-    readonly initialPhotos: {photos: Photo[], point: L.LatLngExpression}[],
+    public mapTrack: MapTrackPath,
+    public mapTrackAnchors: MapTrackAnchors,
+    readonly initialPhotos: {photos: Photo[], point: EarthPoint}[],
     readonly onUpdated: () => void,
   ) {
     this.currentPhotos = initialPhotos;
@@ -309,24 +313,24 @@ export class TrailWaypoints {
         this.wayPointDepartureAndArrival = this.wayPoints.find(wp => wp.trackWayPoint?.isDepartureAndArrival());
         this.wayPointsImages = this.wayPoints.map(wp => {
           if (wp.trackWayPoint?.isDeparture)
-            return MapAnchor.createDataIcon(anchorDepartureBorderColor, this.trails.i18n.texts.way_points.D, anchorDepartureTextColor, anchorDepartureFillColor);
+            return createMapAnchorDataUrl(anchorDepartureBorderColor, this.trails.i18n.texts.way_points.D, anchorDepartureTextColor, anchorDepartureFillColor);
           if (wp.trackWayPoint?.isArrival && (!this.recording || wp.trackWayPoint?.isComputedOnly))
-            return MapAnchor.createDataIcon(anchorArrivalBorderColor, this.trails.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor);
+            return createMapAnchorDataUrl(anchorArrivalBorderColor, this.trails.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor);
           if (wp.trackWayPoint)
-            return MapAnchor.createDataIcon(anchorBorderColor, '' + wp.trackWayPoint.index, anchorTextColor, anchorFillColor);
+            return createMapAnchorDataUrl(anchorBorderColor, '' + wp.trackWayPoint.index, anchorTextColor, anchorFillColor);
           if (wp.breakPoint)
-            return MapAnchor.createDataIcon(anchorBreakBorderColor, MapTrackWayPoints.breakPointText(wp.breakPoint), anchorBreakTextColor, anchorBreakFillColor);
+            return createMapAnchorDataUrl(anchorBreakBorderColor, MapTrackAnchors.breakPointText(wp.breakPoint), anchorBreakTextColor, anchorBreakFillColor);
           return undefined;
         });
         if (this.wayPointDepartureAndArrival)
-          this.wayPointsImages.push(MapAnchor.createDataIcon(anchorArrivalBorderColor, this.trails.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor));
+          this.wayPointsImages.push(createMapAnchorDataUrl(anchorArrivalBorderColor, this.trails.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor));
         this.intersectionsImages = this.wayPoints.map(wp => wp.intersection?.toSvg(PRIMARY_TRACK_COLOR))
         this.onUpdated();
       }
     );
   }
 
-  public updatePhotos(photosWithPosition: {photos: Photo[], point: L.LatLngExpression}[]): boolean {
+  public updatePhotos(photosWithPosition: {photos: Photo[], point: EarthPoint}[]): boolean {
     this.currentPhotos = photosWithPosition;
     let changed = false;
     for (const w of this.wayPoints) {
@@ -339,11 +343,10 @@ export class TrailWaypoints {
     return changed;
   }
 
-  private getPhotos(photosWithPosition: {photos: Photo[], point: L.LatLngExpression}[], pos: L.LatLngExpression): Photo[] {
+  private getPhotos(photosWithPosition: {photos: Photo[], point: EarthPoint}[], pos: EarthPoint): Photo[] {
     const result: Photo[] = [];
-    const position = L.latLng(pos);
     for (const p of photosWithPosition) {
-      if (position.distanceTo(p.point) <= 25)
+      if (distance(pos, p.point) <= 25)
         result.push(...p.photos);
     }
     return result;

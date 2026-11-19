@@ -1,5 +1,5 @@
 import { BehaviorSubject, combineLatest, filter, map, Observable, Subscription, switchMap, tap } from 'rxjs';
-import { MAP_ELEMENT_LAYERS, MapElement, MapElementPosition, MapElementsLayer } from './map-element';
+import { AnyMapElement, MAP_ELEMENT_LAYERS, MapElementPosition, MapElementsLayer } from './map-element';
 import { Injector, NgZone } from '@angular/core';
 import { MapRenderer } from './impl/map-renderer';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
@@ -8,7 +8,7 @@ import { collectionCache } from '@trailence/utils/rxjs/collection-cache';
 
 export interface MapElementsSource {
   id: string;
-  elements$: Observable<MapElement[]>;
+  elements$: Observable<AnyMapElement[]>;
 }
 
 export class MapElementsRenderer {
@@ -35,12 +35,12 @@ export class MapElementsRenderer {
             map(primitives => ({renderer, primitives: primitives.flat()})),
           )
         ),
-        debounceTimeExtended(0, 100, 100, (p, n) => p.renderer !== n.renderer),
+        debounceTimeExtended(0, 10, 100, (p, n) => p.renderer !== n.renderer),
       ).subscribe(r => this.render(r.renderer, r.primitives))
     );
   }
 
-  public get elements$(): Observable<MapElement[]> { return this._currentElements$; }
+  public get elements$(): Observable<AnyMapElement[]> { return this._currentElements$; }
 
   private readonly subscription: Subscription;
 
@@ -68,13 +68,13 @@ export class MapElementsRenderer {
     this.sources$.next(sources);
   }
 
-  private _currentPrimitives: MapPrimitive<any, any>[] = [];
-  private readonly _currentElements$ = new BehaviorSubject<MapElement[]>([]);
-  private render(renderer: MapRenderer, elements: {element: MapElement, position: MapElementPosition, primitives: MapPrimitive<any, any>[]}[]): void {
+  private _currentPrimitives: MapPrimitive<any, any, any>[] = [];
+  private readonly _currentElements$ = new BehaviorSubject<AnyMapElement[]>([]);
+  private render(renderer: MapRenderer, elements: {element: AnyMapElement, position: MapElementPosition, primitives: MapPrimitive<any, any, any>[]}[]): void {
     const sortedElements = sortMapElements(elements, MAP_ELEMENT_LAYERS);
 
     const primitives = sortedElements.flatMap(e => elements.find(re => re.element === e)!.primitives);
-    const primitivesPresent: MapPrimitive<any, any>[] = [];
+    const primitivesPresent: MapPrimitive<any, any, any>[] = [];
     for (const currentPrimitive of this._currentPrimitives) {
       if (primitives.includes(currentPrimitive)) {
         primitivesPresent.push(currentPrimitive);
@@ -104,9 +104,9 @@ export class MapElementsRenderer {
 }
 
 function sortMapElements( // NOSONAR
-  elements: { element: MapElement; position: MapElementPosition }[],
+  elements: { element: AnyMapElement; position: MapElementPosition }[],
   layers: MapElementsLayer[],
-): MapElement[] {
+): AnyMapElement[] {
   type Entry = (typeof elements)[number];
 
   interface LayerGroup {
@@ -153,7 +153,7 @@ function sortMapElements( // NOSONAR
     (a, b) => a.zIndex - b.zIndex || a.firstIndex - b.firstIndex,
   );
 
-  const result: MapElement[] = [];
+  const result: AnyMapElement[] = [];
 
   for (const group of groups) {
     const entries = group.entries;

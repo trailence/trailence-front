@@ -12,6 +12,7 @@ export class AddFreePoints extends AddPointsTool {
   private anchorMapClickSubscription?: Subscription;
 
   override enableAddPoints(ctx: AddPointsContext): void {
+    /* TODO refacto
     ctx.map.addToMap(this.anchor.marker);
     this.anchorMapOverSubscription = ctx.map.mouseOver.subscribe(pos => {
       this.anchor.marker.setLatLng(pos);
@@ -20,11 +21,11 @@ export class AddFreePoints extends AddPointsTool {
       ctx.addPoints([{
         pos,
       }])
-    });
+    });*/
   }
 
   override disableAddPoints(): void {
-    this.anchor.marker.remove();
+    //TODO refacto this.anchor.marker.remove();
     this.anchorMapOverSubscription?.unsubscribe();
     this.anchorMapOverSubscription = undefined;
     this.anchorMapClickSubscription?.unsubscribe();

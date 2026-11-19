@@ -8,7 +8,6 @@ import { Point2D } from '@trailence/utils/geometry-utils';
 import { SvgBoundsOptions, SvgBoundsPrimitive } from '../primitives/svg';
 import { IconOptions, IconPrimitive } from '../primitives/icon';
 import { MapEvents } from '../map-events';
-import { AbstractComponent } from '@trailence/utils/component-utils';
 import { HtmlMarkerOptions, HtmlMarkerPrimitive } from '../primitives/html-marker';
 
 export type MapRendererType = 'leaflet' | 'maplibre';
@@ -33,23 +32,24 @@ export abstract class MapRenderer {
 
   public abstract invalidateSize(): void;
 
-  protected primitives: MapPrimitive<any, MapRenderer>[] = [];
+  protected primitives: MapPrimitive<any, MapRenderer, any>[] = [];
 
-  public add(primitive: MapPrimitive<any, MapRenderer>): void {
+  public add(primitive: MapPrimitive<any, MapRenderer, any>): void {
     if (this.primitives.includes(primitive)) throw new Error('Already on map');
     this.primitives.push(primitive);
     primitive.addToMap(this);
   }
-  public remove(primitive: MapPrimitive<any, MapRenderer>): void {
+  public remove(primitive: MapPrimitive<any, MapRenderer, any>): void {
     const index = this.primitives.indexOf(primitive);
     if (index < 0) return;
     this.primitives.splice(index, 1);
     primitive.removeFromMap(this);
   }
 
-  public abstract bringToFront(primitive: MapPrimitive<any, MapRenderer>): void;
+  public abstract bringToFront(primitive: MapPrimitive<any, MapRenderer, any>): void;
 
   public abstract goTo(center: EarthPoint, zoom: number | undefined, flying: boolean): void;
+  public abstract ensurePointVisible(point: EarthPoint, flying: boolean): void;
 
   public abstract getBounds(): EarthBBox | undefined;
   public abstract fitBounds(bounds: EarthBBox, flying: boolean): this;
@@ -61,11 +61,11 @@ export abstract class MapRenderer {
   public abstract setBearing(bearing: number, animate: boolean): void;
   public abstract setPitch(pitch: number, animate: number | undefined): void;
 
-  public abstract createCircle(id: string, position: EarthPoint, options: CircleOptions): Circle<any>;
-  public abstract createPolyline(id: string, positions: EarthPoint[][], options: PolylineOptions): Polyline<any>;
-  public abstract createSvgBounds(id: string, bounds: EarthBBox, svg: string | SVGSVGElement, options: SvgBoundsOptions): SvgBoundsPrimitive<any>;
-  public abstract createIcon(id: string, position: EarthPoint, options: IconOptions): IconPrimitive<any>;
-  public abstract createHtmlMarker(id: string, position: EarthPoint, options: HtmlMarkerOptions): HtmlMarkerPrimitive<any>;
+  public abstract createCircle(id: string, position: EarthPoint, options: CircleOptions): Circle<any, any>;
+  public abstract createPolyline(id: string, positions: EarthPoint[][], options: PolylineOptions): Polyline<any, any>;
+  public abstract createSvgBounds(id: string, bounds: EarthBBox, svg: string | SVGSVGElement, options: SvgBoundsOptions): SvgBoundsPrimitive<any, any>;
+  public abstract createIcon(id: string, position: EarthPoint, options: IconOptions): IconPrimitive<any, any>;
+  public abstract createHtmlMarker(id: string, position: EarthPoint, options: HtmlMarkerOptions): HtmlMarkerPrimitive<any, any>;
 
   public abstract getViewportSize(): Point2D | undefined;
   public abstract projectToViewport(point: EarthPoint): Point2D;

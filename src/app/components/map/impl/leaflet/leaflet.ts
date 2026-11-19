@@ -117,8 +117,8 @@ export class Leaflet extends MapRenderer {
     return this.map;
   }
 
-  public override bringToFront(primitive: MapPrimitive<any, MapRenderer>): void {
-    const layer = (primitive as unknown as LeafletPrimitive).getLayer();
+  public override bringToFront(primitive: MapPrimitive<any, MapRenderer, any>): void {
+    const layer = (primitive as unknown as LeafletPrimitive<any, any>).getLayer();
     if (!layer) return;
     const fct = (layer as any)['bringToFront'];
     if (typeof fct === 'function') (layer as any)['bringToFront']();
@@ -137,6 +137,13 @@ export class Leaflet extends MapRenderer {
   public override goTo(center: EarthPoint, zoom: number | undefined, flying: boolean): void {
     if (flying) this.map?.flyTo(center, zoom);
     else this.map?.setView(center, zoom);
+  }
+
+  public override ensurePointVisible(point: EarthPoint, flying: boolean): void {
+    this.map?.panInside(point, {
+      padding: [75, 75],
+      animate: flying,
+    });
   }
 
   public override getMinZoom(): number {
@@ -168,11 +175,11 @@ export class Leaflet extends MapRenderer {
     return new LeafletSvgBounds(id, bounds, svg, options);
   }
 
-  public override createIcon(id: string, position: EarthPoint, options: IconOptions): IconPrimitive<any> {
+  public override createIcon(id: string, position: EarthPoint, options: IconOptions): IconPrimitive<any, any> {
     return new LeafletIcon(id, position, options);
   }
 
-  public override createHtmlMarker(id: string, position: EarthPoint, options: HtmlMarkerOptions): HtmlMarkerPrimitive<any> {
+  public override createHtmlMarker(id: string, position: EarthPoint, options: HtmlMarkerOptions): HtmlMarkerPrimitive<any, any> {
     return new LeafletHtmlMarker(id, position, options);
   }
 

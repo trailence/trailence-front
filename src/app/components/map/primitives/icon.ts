@@ -10,6 +10,6 @@ export interface IconOptions {
   rotateOnMouseOver?: boolean;
 }
 
-export abstract class IconPrimitive<R extends MapRenderer> extends MapPrimitiveSinglePosition<IconOptions, R> {
+export abstract class IconPrimitive<R extends MapRenderer, P extends IconPrimitive<R,P>> extends MapPrimitiveSinglePosition<IconOptions, R, P> {
 
 }

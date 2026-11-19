@@ -510,12 +510,14 @@
       } @else if (bottomSheetTab.startsWith('live-group-')) {
         @let group = getOpenedLiveGroup();
         @if (group) {
+          <!-- TODO refacto
           <app-live-group
             [group]="group"
             orientation="horizontal"
             [mapComponent$]="map$"
             style="width: 100%; height: 100%;"
           ></app-live-group>
+          -->
         }
       }
     </div>
@@ -590,11 +592,9 @@
         #map
         mapId="trail-{{trail1?.owner || recording?.trail?.owner}}-{{trail1?.uuid || recording?.trail?.uuid}}{{trail2 ? '-' + trail2.owner + '-' + trail2.uuid : ''}}"
         [elements$]="mapElements$"
-        [autoFollowLocation]="true"
+        [options]="mapOptions"
         [downloadMapTrail]="trail1 && !trail2 ? trail1 : undefined"
-        (mouseOverPoint)="mouseOverPointOnMap($event)"
-        (mouseClickPoint)="mouseClickOnMap($event)"
-        [rightTools]="mapToolbarRightItems"
+        [tools$]="mapTools$"
         [ngClass]="{'large-top-controls': toolsEnabled && isSmall && !positionningOnMap$.value}"
       >
         <div class="map-top-controls right">

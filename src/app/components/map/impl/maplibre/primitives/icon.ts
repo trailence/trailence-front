@@ -4,11 +4,15 @@ import { MapLibrePrimitive } from './primitive';
 import { Marker, PositionAnchor } from 'maplibre-gl';
 import { MapLibrePrimitiveEvents } from './events';
 import { samePoint } from '@trailence/utils/geometry-utils';
+import { EarthPoint } from '@trailence/utils/latlng';
 
-export class MapLibreIcon extends IconPrimitive<MapLibre> implements MapLibrePrimitive {
+export class MapLibreIcon extends IconPrimitive<MapLibre, MapLibreIcon> implements MapLibrePrimitive {
+
+  constructor(id: string, position: EarthPoint, options: IconOptions) {
+    super(id, position, options, new MapLibrePrimitiveEvents<IconOptions, MapLibreIcon>());
+  }
 
   private marker?: Marker;
-  public readonly events: MapLibrePrimitiveEvents<IconOptions, MapLibreIcon> = new MapLibrePrimitiveEvents<IconOptions, MapLibreIcon>();
 
   protected override addPrimitiveToMap(renderer: MapLibre): void {
     this.marker = new Marker({

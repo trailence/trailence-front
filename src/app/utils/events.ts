@@ -22,6 +22,11 @@ export class AppEvent<E> {
     return () => this.removeListener(listener);
   }
 
+  public addListenerIfAbsent(listener: AppEventListener<E>): (() => void) | undefined {
+    if (this._listeners.includes(listener)) return undefined;
+    return this.addListener(listener);
+  }
+
   public removeListener(listener: AppEventListener<E>): void {
     const index = this._listeners.indexOf(listener);
     if (index < 0) return;

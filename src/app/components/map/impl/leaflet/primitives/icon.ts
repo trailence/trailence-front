@@ -5,18 +5,24 @@ import * as L from 'leaflet';
 import { LeafletPrimitiveEvents } from './events';
 import { MapPointerEvent } from '@trailence/components/map/map-events';
 import { samePoint } from '@trailence/utils/geometry-utils';
+import { EarthPoint } from '@trailence/utils/latlng';
 
-export class LeafletIcon extends IconPrimitive<Leaflet> implements LeafletPrimitive {
+export class LeafletIcon extends IconPrimitive<Leaflet, LeafletIcon> implements LeafletPrimitive<IconOptions, LeafletIcon> {
+
+  constructor(id: string, position: EarthPoint, options: IconOptions) {
+    super(id, position, options, new LeafletPrimitiveEvents<IconOptions, LeafletIcon>(
+      () => this,
+      () => this.marker?.options?.interactive === true,
+      () => {
+        if (!this.marker) return;
+        this.marker.options.interactive = true; // TODO check if working
+      },
+    ));
+  }
+
+  public get leafletEvents(): LeafletPrimitiveEvents<IconOptions, LeafletIcon> { return this.events as LeafletPrimitiveEvents<IconOptions, LeafletIcon>; }
 
   private marker?: L.Marker;
-  public override readonly events: LeafletPrimitiveEvents<IconOptions, LeafletIcon> = new LeafletPrimitiveEvents<IconOptions, LeafletIcon>(
-    this,
-    () => this.marker?.options?.interactive === true,
-    () => {
-      if (!this.marker) return;
-      this.marker.options.interactive = true; // TODO check if working
-    },
-  );
 
   protected override addPrimitiveToMap(renderer: Leaflet): void {
     if (this.options.rotateOnMouseOver) this.addRotateListener();
@@ -24,7 +30,7 @@ export class LeafletIcon extends IconPrimitive<Leaflet> implements LeafletPrimit
       this.position,
       {
         icon: this.buildIcon(),
-        interactive: this.events.isInteractive(),
+        interactive: this.leafletEvents.isInteractive(),
       }
     );
     this.marker.addTo(renderer.getLeafletMap()!);

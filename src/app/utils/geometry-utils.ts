@@ -48,3 +48,7 @@ export function extendBBox2D(b1: BBox2D, b2: BBox2D): BBox2D {
     maxY: Math.max(b1.maxY, b2.maxY),
   };
 }
+
+export function bbox2DSize(bbox: BBox2D): Point2D {
+  return {x: bbox.maxX - bbox.minX, y: bbox.maxY - bbox.minY};
+}

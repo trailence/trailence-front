@@ -2,7 +2,6 @@ import { Track } from '@trailence/model/track';
 import { InteractiveToolContext, TrackEditTool, TrackEditToolContext } from '../../tool.interface';
 import { Segment } from '@trailence/model/segment';
 import { PointDescriptor } from '@trailence/model/point-descriptor';
-import { MapAnchor } from '@trailence/components/map/markers/map-anchor';
 import { MapComponent } from '@trailence/components/map/map.component';
 import { Injector } from '@angular/core';
 import { GeoService } from '@trailence/services/geolocation/geo.service';
@@ -34,7 +33,7 @@ export abstract class AddPointsTool implements TrackEditTool {
           .setIcon('stop')
           .setAction(() => {
             this.disableAddPoints(true);
-            iCtx.map.removeFromMap(this.anchor.marker);
+            //TODO refacto iCtx.map.removeFromMap(this.anchor.marker);
             iCtx.close();
           }),
       ],
@@ -49,7 +48,7 @@ export abstract class AddPointsTool implements TrackEditTool {
     );
   }
 
-  protected anchor: MapAnchor = new MapAnchor({lat: 0, lng: 0}, '#0000d0', '+', undefined, '#ffffff', '#0000d0', undefined, false, false);
+  //TODO refacto protected anchor: MapAnchor = new MapAnchor({lat: 0, lng: 0}, '#0000d0', '+', undefined, '#ffffff', '#0000d0', undefined, false, false);
 
   private continueAddPoints(injector: Injector, iCtx: InteractiveToolContext, track: Track, segmentIndex: number, isForward: boolean): void {
     const that = this; // NOSONAR

@@ -57,7 +57,7 @@ export function createMyGeoLocationCursor(injector: Injector): GeoLocationCursor
   return new GeoLocationCursor('my-geolocation', position$);
 }
 
-export class GeoLocationCursor extends MapElement<GeoLocationCursor> {
+export class GeoLocationCursor extends MapElement<null> {
 
   constructor(
     id: string,
@@ -68,8 +68,8 @@ export class GeoLocationCursor extends MapElement<GeoLocationCursor> {
 
   public override get fitBounds$(): Observable<EarthBBox | undefined> { return this.state$.pipe(map(state => state ? earthBBox(state.position, state.position) : undefined)); }
 
-  protected override createPrimitives$(renderer: MapRenderer): Observable<MapPrimitive<any, any>[]> {
-    let circle: Circle<any> | undefined = undefined;
+  protected override createPrimitives$(renderer: MapRenderer): Observable<{primitive: MapPrimitive<any, any, any>, eventBinding: null}[]> {
+    let circle: Circle<any, any> | undefined = undefined;
     return this.state$.pipe(
       map(state => {
         if (state) {
@@ -89,7 +89,7 @@ export class GeoLocationCursor extends MapElement<GeoLocationCursor> {
         } else if (circle) {
           circle = undefined;
         }
-        return circle ? [circle] : [];
+        return circle ? [{primitive: circle, eventBinding: null}] : [];
       }),
     );
   }

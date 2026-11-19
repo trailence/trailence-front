@@ -3,15 +3,21 @@ import { LeafletPrimitive } from './primitive';
 import * as L from 'leaflet';
 import { LeafletPrimitiveEvents } from './events';
 import { HtmlMarkerOptions, HtmlMarkerPrimitive } from '@trailence/components/map/primitives/html-marker';
+import { EarthPoint } from '@trailence/utils/latlng';
 
-export class LeafletHtmlMarker extends HtmlMarkerPrimitive<Leaflet> implements LeafletPrimitive {
+export class LeafletHtmlMarker extends HtmlMarkerPrimitive<Leaflet, LeafletHtmlMarker> implements LeafletPrimitive<HtmlMarkerOptions, LeafletHtmlMarker> {
+
+  constructor(id: string, position: EarthPoint, options: HtmlMarkerOptions) {
+    super(id, position, options, new LeafletPrimitiveEvents<HtmlMarkerOptions, LeafletHtmlMarker>(
+      () => this,
+      () => false, // TODO
+      () => {}, // TODO
+    ));
+  }
+
+  public get leafletEvents(): LeafletPrimitiveEvents<HtmlMarkerOptions, LeafletHtmlMarker> { return this.events as LeafletPrimitiveEvents<HtmlMarkerOptions, LeafletHtmlMarker>; }
 
   private tooltip?: L.Tooltip;
-  public override readonly events: LeafletPrimitiveEvents<HtmlMarkerOptions, LeafletHtmlMarker> = new LeafletPrimitiveEvents<HtmlMarkerOptions, LeafletHtmlMarker>(
-    this,
-    () => false, // TODO
-    () => {}, // TODO
-  );
 
   protected override addPrimitiveToMap(renderer: Leaflet): void {
     this.tooltip = L.tooltip({
