@@ -22,6 +22,7 @@ export const MAP_TRACKS_LAYER = 'tracks';
 export const MAP_SELECTED_TRACK_LAYER = 'selected-track';
 export const MAP_WAYS_LAYER = 'ways';
 export const MAP_POIS_LAYER = 'pois';
+export const MAP_PHOTOS_LAYER = 'photos';
 export const MAP_WAYPOINTS_LAYER = 'waypoints';
 export const MAP_GEOLOCATION_LAYER = 'geolocation';
 export const MAP_SELECTION_INDICATORS_LAYER = 'selection-indicators';
@@ -44,8 +45,12 @@ export const MAP_ELEMENT_LAYERS: MapElementsLayer[] = [
     zIndex: 150,
   },
   {
-    name: MAP_WAYPOINTS_LAYER,
+    name: MAP_PHOTOS_LAYER,
     zIndex: 200,
+  },
+  {
+    name: MAP_WAYPOINTS_LAYER,
+    zIndex: 300,
   },
   {
     name: MAP_GEOLOCATION_LAYER,

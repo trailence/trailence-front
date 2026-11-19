@@ -63,7 +63,6 @@ export class Leaflet extends MapRenderer {
     map.on('zoom', () => this.mapState.zoom = map.getZoom());
     map.on('zoomanim', e => this.mapState.zoom = e.zoom);
     map.on('click', e => {
-      console.log('map click', e)
       this.events.click.trigger(() => LeafletUtils.toMapPointerEvent(this, e));
     });
     map.on('touchrotate', e => {

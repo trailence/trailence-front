@@ -77,13 +77,17 @@ import { getLogger } from '@trailence/utils/console';
 import { getActivityIcon } from '@trailence/model/dto/trail-activity';
 import { getLoopTypeIcon } from '@trailence/model/dto/trail-loop-type';
 import { MapTrackPath } from '../map/elements/map-track-path';
-import { bboxPadRatio, EarthPoint, extendBBox, samePositionRound } from '@trailence/utils/latlng';
+import { bboxPadRatio, distance, EarthPoint, extendBBox, projectEarthPointForZoom, samePositionRound } from '@trailence/utils/latlng';
 import { MapTrackAnchors } from '../map/elements/map-track-anchors';
 import { Color } from '@trailence/utils/color';
 import { MapTrackMarkedTrails } from '../map/elements/map-track-marked-trails';
 import { MapTool, MapToolGroup } from '../map/map-tool';
 import { MapPointerEvent } from '../map/map-events';
 import { AppEventListener } from '@trailence/utils/events';
+import { MapPhoto } from '../map/elements/map-photo';
+import { WorkerService } from '@trailence/worker/web-app';
+import { ApiError } from '@trailence/services/http/api-error';
+import { distance2d } from '@trailence/utils/geometry-utils';
 
 const logger = getLogger('trail.component');
 
@@ -294,12 +298,14 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   mapTracks$ = new BehaviorSubject<MapTrackPath[]>([]);
   mapTracksAnchors$ = new BehaviorSubject<MapTrackAnchors[]>([]);
   mapTracksMarkedTrails$ = new BehaviorSubject<MapTrackMarkedTrails[]>([]);
+  mapPhotos$ = new BehaviorSubject<MapPhoto[]>([]);
 
   mapElements$: Observable<AnyMapElement[]> = combineLatest([
     this.mapTracks$,
     this.mapTracksAnchors$,
     this.publicTrailsAroundMapTracks$,
     this.mapTracksMarkedTrails$,
+    this.mapPhotos$,
   ]).pipe(
     debounceTime(1),
     map(elements => [...elements.flat(), this.hover.mapCursors, this.selection.mapSelectedPoint]),
@@ -1272,11 +1278,10 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   }
 
   private listenForPhotosOnMap(): void {
-    /* TODO refacto
-    if (!this.trail1$ || !this.traceRecorder.recording) return;
-    let photosOnMap = new Map<string, L.Marker>();
+    if (!this.trail1$ && !this.traceRecorder.recording) return;
+    let photosOnMap = new Map<string, MapPhoto>();
     const photosByKey = new Map<string, Photo[]>();
-    const dateToPoint = new Map<string, {tzOffset?: number, cache: Map<number, L.LatLngLiteral | null>}>();
+    const dateToPoint = new Map<string, {tzOffset?: number, cache: Map<number, EarthPoint | null>}>();
     const getTrack = (trail: Trail) =>
       this.showOriginal$.pipe(
         switchMap(showOriginal => showOriginal ? trail.originalTrackUuid$ : trail.currentTrackUuid$),
@@ -1319,7 +1324,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
                 let found = false;
                 for (let j = 0; j < i; ++j) {
                   const p = photosWithPoint[j].point;
-                  if (L.latLng(p).distanceTo(point) < 15) {
+                  if (distance(p, point) < 15) {
                     photosWithPoint[j].photos.push(...photosWithPoint[i].photos);
                     found = true;
                     break;
@@ -1335,18 +1340,18 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             switchMap(photosWithPoint => combineLatest([of(photosWithPoint), mapZoom$])),
             debounceTimeExtended(0, 100, 3),
             switchMap(([photosWithPoint, zoom]) => {
-              this.photosHavingPosition = photosWithPoint;
+              this.photosHavingPosition$.next(photosWithPoint);
               this.trailsWaypoints.updatePhotos(photosWithPoint);
               if (photosWithPoint.length === 0 || !showPhotos) return of([]);
-              const markers$: Observable<{key: string, marker: L.Marker} | undefined | null>[] = [];
+              const markers$: Observable<{key: string, marker: MapPhoto} | undefined | null>[] = [];
               photosByKey.clear();
-              let photosGroups: {photos: Photo[], point: L.LatLngExpression}[];
+              let photosGroups: {photos: Photo[], point: EarthPoint}[];
               if (zoom === undefined) photosGroups = photosWithPoint;
               else {
                 photosGroups = [];
                 for (const p of photosWithPoint) {
-                  const point = L.CRS.EPSG3857.latLngToPoint(p.point, zoom);
-                  const nearGroup = photosGroups.find(pg => L.CRS.EPSG3857.latLngToPoint(pg.point, zoom).distanceTo(point) < 35);
+                  const point = projectEarthPointForZoom(p.point, zoom);
+                  const nearGroup = photosGroups.find(pg => distance2d(projectEarthPointForZoom(pg.point, zoom), point) < 35);
                   if (nearGroup)
                     nearGroup.photos.push(...p.photos);
                   else
@@ -1381,21 +1386,15 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           }).then(t => t.present());
           canDisplayError = false;
         }
-        const alreadyOnMap: string[] = [];
-        for (const[key,marker] of photosOnMap) {
-          if (ok.some(p => p.key === key))
-            alreadyOnMap.push(key);
-          else
-            this.map.removeFromMap(marker);
-        }
+        const photos: MapPhoto[] = [];
         photosOnMap.clear();
         for (const element of ok) {
           photosOnMap.set(element.key, element.marker);
-          if (!alreadyOnMap.includes(element.key)) this.map.addToMap(element.marker);
+          photos.push(element.marker);
         }
-        this.changesDetection.detectChanges();
+        this.mapPhotos$.next(photos);
       }, true
-    );*/
+    );
   }
 
   private getPhotosWithPosition(photos: Photo[], trail: Trail, getTrack: () => Observable<Track | null>, dateToPoint: Map<string, {tzOffset?: number, cache: Map<number, EarthPoint | null>}>) {
@@ -1438,14 +1437,13 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     return result;
   }
 
-  /* TODO refacto
-  private createPhotoMarker(point: EarthPoint, photos: Photo[], photosByKey: Map<string, Photo[]>, key: string, withError: boolean = true): Observable<{key: string, marker: L.Marker} | undefined | null> {
+  private createPhotoMarker(point: EarthPoint, photos: Photo[], photosByKey: Map<string, Photo[]>, key: string, withError: boolean = true): Observable<{key: string, marker: MapPhoto} | undefined | null> {
     return this.photoService.getFile$(photos[0]).pipe(
       switchMap(blob => this.injector.get(WorkerService).convertToJpeg(blob, 75, 75, 0.7)),
       switchMap(jpeg => from(new BinaryContent(jpeg.blob).toBase64()).pipe(
         map(base64 => {
-          const marker = MapPhoto.create(point, 'data:image/jpeg;base64,' + base64, jpeg.width, jpeg.height, photos.length > 1 ? '' + photos.length : undefined);
-          marker.addEventListener('click', () => {
+          const marker = new MapPhoto(IdGenerator.generateId(), point, 'data:image/jpeg;base64,' + base64, {x: jpeg.width, y: jpeg.height}, photos.length > 1 ? '' + photos.length : undefined);
+          marker.events.click.addListener(() => {
             void this.photoService.openSliderPopup(photosByKey.get(key)!, 0);
           });
           return {key, marker};
@@ -1465,7 +1463,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         return of(null);
       })
     );
-  }*/
+  }
 
   remaining$ = new BehaviorSubject<RemainingData | undefined>(undefined);
 

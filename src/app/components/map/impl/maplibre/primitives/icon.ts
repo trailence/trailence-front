@@ -22,7 +22,13 @@ export class MapLibreIcon extends IconPrimitive<MapLibre, MapLibreIcon> implemen
     });
     this.marker.setLngLat(this.position);
     this.marker.addTo(renderer.getMaplibreMap()!);
-    // TODO click and rotate
+    this.marker.on('click', e => this.events.click.trigger({primitive: this, pointerEvent: {
+      renderer,
+      nativeEvent: e.originalEvent,
+      viewportPoint: {x: 0, y: 0}, // TODO
+      geographicPoint: {lat: 0, lng: 0}, // TODO
+    }}));
+    // TODO hover and rotate
   }
 
   private buildSvg(): HTMLElement {
