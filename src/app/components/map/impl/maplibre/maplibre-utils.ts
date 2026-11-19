@@ -1,5 +1,7 @@
 import { distance, EarthBBox } from '@trailence/utils/latlng';
-import { LngLatBounds, MapLibreMap } from 'maplibre-gl';
+import { LngLatBounds, MapLibreMap, MapMouseEvent } from 'maplibre-gl';
+import { MapLibre } from './maplibre';
+import { MapPointerEvent } from '../../map-events';
 
 export class MapLibreUtils {
 
@@ -27,6 +29,15 @@ export class MapLibreUtils {
 
   public static toMapLibreBounds(bounds: EarthBBox): LngLatBounds {
     return new LngLatBounds([bounds.minlng, bounds.minlat, bounds.maxlng, bounds.maxlat]);
+  }
+
+  public static toMapPointerEvent(renderer: MapLibre, e: MapMouseEvent): MapPointerEvent {
+    return {
+      renderer,
+      geographicPoint: e.lngLat,
+      viewportPoint: e.point,
+      nativeEvent: e.originalEvent,
+    };
   }
 
 }

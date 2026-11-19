@@ -7,6 +7,7 @@ import { collectionCache } from '@trailence/utils/rxjs/collection-cache';
 import { HtmlMarkerPrimitive } from '../primitives/html-marker';
 import { OfflineMapService } from '@trailence/services/map/offline-map.service';
 import { IdGenerator } from '@trailence/utils/component-utils';
+import { EarthPoint } from '@trailence/utils/latlng';
 
 export class PoisMapElement extends MapElement<POI> {
 
@@ -29,27 +30,34 @@ export class PoisMapElement extends MapElement<POI> {
 
   private createPoi(renderer: MapRenderer, poi: POI): Observable<{primitive: HtmlMarkerPrimitive<MapRenderer, any>, eventBinding: POI}> {
     return renderer.getInjector().get(OfflineMapService).getPoiIcon$(poi.type).pipe(
-      map(icon => {
-        const id = this.id + '$poi$' + IdGenerator.generateId();
-        const container = document.createElement('DIV');
-        container.className = 'poi-container';
-        container.appendChild(icon);
-        if (poi.text) {
-          const span = document.createElement('SPAN');
-          span.innerText = poi.text;
-          container.appendChild(span);
-        }
-        return {primitive:
-          renderer.createHtmlMarker(id, poi.pos, {
-            html: container,
-            className: 'poi',
-            opacity: 0.75,
-            anchorPos: 'left',
-          }),
-          eventBinding: poi,
-        };
-      })
+      map(icon => ({
+        primitive: PoisMapElement.createPoiMarker(
+          renderer,
+          this.id + '$poi$' + IdGenerator.generateId(),
+          icon,
+          poi.pos,
+          poi.text,
+        ),
+        eventBinding: poi,
+      })),
     );
+  }
+
+  public static createPoiMarker(renderer: MapRenderer, id: string, icon: SVGSVGElement, position: EarthPoint, text: string | undefined): HtmlMarkerPrimitive<MapRenderer, any> {
+    const container = document.createElement('DIV');
+    container.className = 'poi-container';
+    container.appendChild(icon);
+    if (text) {
+      const span = document.createElement('SPAN');
+      span.innerText = text;
+      container.appendChild(span);
+    }
+    return renderer.createHtmlMarker(id, position, {
+      html: container,
+      className: 'poi',
+      opacity: 0.75,
+      anchorPos: 'left',
+    });
   }
 
 }

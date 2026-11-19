@@ -18,6 +18,7 @@ export class MapLibreIcon extends IconPrimitive<MapLibre, MapLibreIcon> implemen
     this.marker = new Marker({
       element: this.buildSvg(),
       anchor: this.buildAnchor(),
+      opacity: this.options.opacity,
     });
     this.marker.setLngLat(this.position);
     this.marker.addTo(renderer.getMaplibreMap()!);
@@ -59,6 +60,10 @@ export class MapLibreIcon extends IconPrimitive<MapLibre, MapLibreIcon> implemen
     if (this.options.icon !== previous.icon || !samePoint(this.options.iconRenderSize, previous.iconRenderSize || this.options.iconAnchor !== previous.iconAnchor)) {
       this.removePrimitiveFromMap(renderer);
       this.addPrimitiveToMap(renderer);
+    } else {
+      if ((this.options.opacity ?? 1) !== (previous.opacity ?? 1)) {
+        this.marker.setOpacity(this.options.opacity);
+      }
     }
   }
 

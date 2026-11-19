@@ -103,7 +103,7 @@ export class MapLibre extends MapRenderer {
       map.on('pitch', () => {
         this.mapState.pitch3d = map.getPitch();
       });
-      map.on('click', e => this.events.click.trigger(() => this.toMapPointerEvent(e)));
+      map.on('click', e => this.events.click.trigger(() => MapLibreUtils.toMapPointerEvent(this, e)));
       map.on('style.load', e => {
         if (transitionFrom2d) {
           setTimeout(() => map.flyTo({pitch: this.mapState.pitch3d, essential: true, duration: 1000}), 1000);
@@ -260,14 +260,6 @@ export class MapLibre extends MapRenderer {
   public override getPointWithOffset(point: EarthPoint): EarthPoint {
     // TODO
     return point;
-  }
-
-  private toMapPointerEvent(e: MapMouseEvent): MapPointerEvent {
-    return {
-      renderer: this,
-      geographicPoint: e.lngLat,
-      viewportPoint: e.point,
-    };
   }
 
   private _loopListeners?: (() => void)[];

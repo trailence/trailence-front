@@ -15,7 +15,7 @@ export class LeafletIcon extends IconPrimitive<Leaflet, LeafletIcon> implements 
       () => this.marker?.options?.interactive === true,
       () => {
         if (!this.marker) return;
-        this.marker.options.interactive = true; // TODO check if working
+        this.marker.options.interactive = true;
       },
     ));
   }
@@ -31,6 +31,7 @@ export class LeafletIcon extends IconPrimitive<Leaflet, LeafletIcon> implements 
       {
         icon: this.buildIcon(),
         interactive: this.leafletEvents.isInteractive(),
+        opacity: this.options.opacity,
       }
     );
     this.marker.addTo(renderer.getLeafletMap()!);
@@ -78,6 +79,9 @@ export class LeafletIcon extends IconPrimitive<Leaflet, LeafletIcon> implements 
 
     if (this.options.icon !== previous.icon || !samePoint(this.options.iconRenderSize, previous.iconRenderSize || this.options.iconAnchor !== previous.iconAnchor)) {
       this.marker.setIcon(this.buildIcon());
+    }
+    if ((this.options.opacity ?? 1) !== (previous.opacity ?? 1)) {
+      this.marker.setOpacity(this.options.opacity ?? 1);
     }
 
     if (this.options.rotateOnMouseOver === true) this.addRotateListener();

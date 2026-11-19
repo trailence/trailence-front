@@ -62,12 +62,26 @@ export class Leaflet extends MapRenderer {
     map.on('move', () => this.mapState.center = map.getCenter());
     map.on('zoom', () => this.mapState.zoom = map.getZoom());
     map.on('zoomanim', e => this.mapState.zoom = e.zoom);
-    map.on('click', e => this.events.click.trigger(() => this.toMapPointerEvent(e)));
+    map.on('click', e => {
+      console.log('map click', e)
+      this.events.click.trigger(() => LeafletUtils.toMapPointerEvent(this, e));
+    });
     map.on('touchrotate', e => {
       this.mapState.rotateMode = RotateMode.CUSTOM;
       this.mapState.bearing = (e as any).touchRotateBearing;
     });
     map.on('rotate', e => this.mapState.bearing = (e as any).theta);
+    // leaflet does not trigger mouseout correctly to the layers => handle it manually
+    let currentLayersHover: L.Layer[] = [];
+    map.on('mousemove', e => {
+      const layers: L.Layer[] = (e.originalEvent as any)['_layerCatch'] ?? [];
+      for (const previousLayer of currentLayersHover) {
+        if (!layers.includes(previousLayer)) {
+          previousLayer.fireEvent('mouseout');
+        }
+      }
+      currentLayersHover = layers;
+    });
 
     let currentLayer = layer.name;
     this.subscriptions.add(this.mapState.tilesName$.subscribe(layerName => {
@@ -117,11 +131,17 @@ export class Leaflet extends MapRenderer {
     return this.map;
   }
 
-  public override bringToFront(primitive: MapPrimitive<any, MapRenderer, any>): void {
+  public override bringToFront(primitive: MapPrimitive<any, MapRenderer, any>, index: number): void {
     const layer = (primitive as unknown as LeafletPrimitive<any, any>).getLayer();
     if (!layer) return;
-    const fct = (layer as any)['bringToFront'];
-    if (typeof fct === 'function') (layer as any)['bringToFront']();
+    let fct = (layer as any)['bringToFront'];
+    if (typeof fct === 'function') {
+      try { (layer as any)['bringToFront'](); } catch (e) {}
+    }
+    fct = (layer as any)['setZIndexOffset']
+    if (typeof fct === 'function') {
+      try { (layer as any)['setZIndexOffset'](index); } catch (e) {}
+    }
   }
 
   public override getBounds(): EarthBBox | undefined {
@@ -234,14 +254,6 @@ export class Leaflet extends MapRenderer {
     }
     if (val >= min && val <= max) return val;
     return latitude;
-  }
-
-  private toMapPointerEvent(e: L.LeafletMouseEvent): MapPointerEvent {
-    return {
-      renderer: this,
-      geographicPoint: e.latlng,
-      viewportPoint: e.containerPoint,
-    };
   }
 
 }

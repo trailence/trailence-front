@@ -81,13 +81,11 @@ export class TrailsWaypoints {
   }
 
   private updateGuidepostsShown(): void {
-    /* TODO refacto
     if (this.canShowGuidepostsOnMap()) {
-      for (const t of this.trails) t.mapTrack.showGuideposts(t.showGuideposts);
+      for (const t of this.trails) t.mapTrackAnchors.showGuideposts = t.showGuideposts;
     } else {
-      for (const t of this.trails) t.mapTrack.showGuideposts(false);
+      for (const t of this.trails) t.mapTrackAnchors.showGuideposts = false;
     }
-      */
   }
 
   public isShowingAllBreaks(): boolean {
@@ -175,7 +173,7 @@ export class TrailsWaypoints {
     }
     this._highlightedWayPoint = wp;
     this._highlightedWayPointFromClick = click;
-    // TODO refacto if (trail) trail.mapTrack.highlightWayPoint(wp);
+    if (trail) trail.mapTrackAnchors.highlightWayPoint(wp);
   }
 
   private waypointClick(wp: TrackWayPoint, trail: TrailWaypoints | undefined): void {
@@ -206,7 +204,7 @@ export class TrailsWaypoints {
       if (this.selection.selectedWayPoint$.value === WayPointFromTrack.from(wp)?.wayPoint)
         this.selection.selectedWayPoint$.next(undefined);
       const trail = this.trails.find(t => t.wayPoints.some(w => w.waypoint === wp));
-      // TODO refacto if (trail) trail.mapTrack.unhighlightWayPoint(wp);
+      if (trail) trail.mapTrackAnchors.unhighlightWayPoint(wp);
       if (trail && wp.elements.length === 1) {
         const e = wp.elements[0]!;
         if (e instanceof OsmWayIntersection) {

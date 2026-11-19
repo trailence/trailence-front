@@ -36,4 +36,5 @@ export interface MapEvent {
 export interface MapPointerEvent extends MapEvent {
   viewportPoint: Point2D;
   geographicPoint: EarthPoint;
+  nativeEvent: MouseEvent;
 }

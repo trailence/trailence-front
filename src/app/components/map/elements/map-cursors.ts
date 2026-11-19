@@ -36,7 +36,7 @@ export class MapCursors extends MapElement<null> {
     this._cursors$.next([]);
   }
 
-  protected override createPrimitives$(renderer: MapRenderer): Observable<{ primitive: MapPrimitive<any, MapRenderer, any>; eventBinding: null; }[]> {
+  protected override createPrimitives$(renderer: MapRenderer): Observable<{ primitive: MapPrimitive<any, MapRenderer, any>; eventBinding: undefined; }[]> {
     let circles: Circle<any, any>[] = [];
     return this._cursors$.pipe(
       debounceTime(1),
@@ -60,7 +60,7 @@ export class MapCursors extends MapElement<null> {
           }
         }
         circles = newCircles;
-        return newCircles.map(primitive => ({primitive, eventBinding: null}));
+        return newCircles.map(primitive => ({primitive, eventBinding: undefined}));
       })
     );
   }

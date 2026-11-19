@@ -32,11 +32,11 @@ export class MapRendererInitializer {
           const pitch = mapState.pitch3d;
           currentMap.setPitch(0, 900);
           setTimeout(() => {
-            this.launchInit(currentMap, map$);
+            this.launchInit(currentMap, map$, expectedType);
             mapState.pitch3d = pitch;
           }, 1000);
         } else {
-          this.launchInit(currentMap, map$);
+          setTimeout(() => this.launchInit(currentMap, map$, expectedType), 0);
         }
       });
     });
@@ -51,35 +51,59 @@ export class MapRendererInitializer {
     this.subscription.unsubscribe();
   }
 
-  private launchInit(currentMap: MapRenderer | undefined, map$: BehaviorSubject<MapRenderer | undefined>): void {
-    currentMap?.destroy();
-    setTimeout(() => {
-      void this.init(0, currentMap)
-      .then(newMap => {
-        this.initializing$.next(false);
-        if (!newMap) return;
-        map$.next(newMap);
-      });
-    }, 0);
+  private launchInit(currentMap: MapRenderer | undefined, map$: BehaviorSubject<MapRenderer | undefined>, type: MapRendererType): void {
+    void this.init(0, currentMap, type)
+    .then(newMap => {
+      this.initializing$.next(false);
+      if (!newMap) return;
+      map$.next(newMap);
+    });
   }
 
-  private async init(trial: number, previous: MapRenderer | undefined): Promise<MapRenderer | undefined> {
+  private async init(trial: number, previous: MapRenderer | undefined, type: MapRendererType): Promise<MapRenderer | undefined> {
     if (this.destroyed || !this.component.visible) return undefined;
-    const container = document.getElementById(this.containerId);
+    const container = document.getElementById(this.containerId + '-' + type);
+    if (container) container.style.display = 'block';
     if (!container?.clientHeight) {
       return new Promise(resolve => {
-        setTimeout(() => this.init(trial + 1, previous).then(resolve), trial < 10 ? trial * 10 : 250);
+        setTimeout(() => this.init(trial + 1, previous, type).then(resolve), trial < 10 ? trial * 10 : 250);
       });
     }
-    return this.mapState.is3d ?
-        import('./maplibre/maplibre')
-        .then(module => new module.MapLibre(this.injector, this.containerId, this.mapState, this.events))
-        .then(maplibre => maplibre.init(this.component, previous !== undefined).then(() => maplibre))
-      :
-        import('./leaflet/leaflet')
-        .then(module => new module.Leaflet(this.injector, this.containerId, this.mapState, this.events))
-        .then(leaflet => leaflet.init().then(() => leaflet))
-      ;
+    const previousContainer = previous ? document.getElementById(this.containerId + '-' + previous.type) : undefined;
+    if (previousContainer) previousContainer.style.zIndex = '10000';
+    container.style.zIndex = '';
+    if (previous) container.style.opacity = '0.01';
+    const switchType = () => {
+      if (previous) {
+        setTimeout(() => {
+          if (previousContainer) {
+            previousContainer.style.zIndex = '';
+            previousContainer.style.opacity = '0.01';
+          }
+          container.style.opacity = '1';
+          setTimeout(() => {
+            previous.destroy();
+            if (previousContainer) previousContainer.style.display = 'none';
+          }, 125);
+        }, 100);
+      }
+    };
+    switch (type) {
+      case 'leaflet':
+        return import('./leaflet/leaflet')
+          .then(module => new module.Leaflet(this.injector, this.containerId + '-leaflet', this.mapState, this.events))
+          .then(leaflet => leaflet.init().then(() => {
+            switchType();
+            return leaflet;
+          }));
+      case 'maplibre':
+        return import('./maplibre/maplibre')
+          .then(module => new module.MapLibre(this.injector, this.containerId + '-maplibre', this.mapState, this.events))
+          .then(maplibre => maplibre.init(this.component, previous !== undefined).then(() => {
+            switchType();
+            return maplibre;
+          }));
+    }
   }
 
 }

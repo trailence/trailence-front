@@ -1,5 +1,7 @@
 import { EarthBBox } from '@trailence/utils/latlng';
 import * as L from 'leaflet';
+import { MapRenderer } from '../map-renderer';
+import { MapPointerEvent } from '../../map-events';
 
 export class LeafletUtils {
 
@@ -14,5 +16,14 @@ export class LeafletUtils {
       minlng: bounds.getWest(),
       maxlng: bounds.getEast(),
     }
+  }
+
+  public static toMapPointerEvent(renderer: MapRenderer, e: L.LeafletMouseEvent): MapPointerEvent {
+    return {
+      renderer,
+      geographicPoint: e.latlng,
+      viewportPoint: e.containerPoint,
+      nativeEvent: e.originalEvent,
+    };
   }
 }

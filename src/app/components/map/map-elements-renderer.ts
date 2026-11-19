@@ -82,12 +82,12 @@ export class MapElementsRenderer {
         renderer.remove(currentPrimitive);
       }
     }
+    let index = 1;
     for (const primitive of primitives) {
-      if (primitivesPresent.includes(primitive)) {
-        renderer.bringToFront(primitive);
-      } else {
+      if (!primitivesPresent.includes(primitive)) {
         renderer.add(primitive);
       }
+      renderer.bringToFront(primitive, index++);
     }
     const newElements = elements.map(e => e.element);
     for (const element of this._currentElements$.value)

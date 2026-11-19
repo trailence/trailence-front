@@ -121,7 +121,7 @@ export class MapTrackPath extends MapElement<Track | SimplifiedTrackSnapshot> {
     this._arrows = [];
   }
 
-  protected override createPrimitives$(renderer: MapRenderer): Observable<{primitive: MapPrimitive<any,any,any>, eventBinding: Track | SimplifiedTrackSnapshot}[]> {
+  protected override createPrimitives$(renderer: MapRenderer): Observable<{primitive: MapPrimitive<any,any,any>, eventBinding: Track | SimplifiedTrackSnapshot | undefined}[]> {
     this.reset();
     const points$: Observable<EarthPoint[][]> = this.track instanceof Track ?
       this.track.segments$.pipe(
@@ -167,7 +167,15 @@ export class MapTrackPath extends MapElement<Track | SimplifiedTrackSnapshot> {
         return this._arrows;
       }),
     );
-    return combineLatest([path$, arrows$]).pipe(map(elements => elements.flat().map(primitive => ({primitive, eventBinding: this.track}))));
+    return combineLatest([path$, arrows$]).pipe(
+      map(([paths, arrows]) => {
+        const result: {primitive: MapPrimitive<any,any,any>, eventBinding: Track | SimplifiedTrackSnapshot | undefined}[] = new Array(paths.length + arrows.length);
+        let index = 0;
+        for (const primitive of paths) result[index++] = {primitive, eventBinding: this.track};
+        for (const primitive of arrows) result[index++] = {primitive, eventBinding: undefined};
+        return result;
+      }),
+    );
   }
 
   private buildPath(renderer: MapRenderer, points: EarthPoint[][]): Polyline<any,any> {

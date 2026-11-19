@@ -16,6 +16,8 @@ export abstract class MapPrimitive<O, R extends MapRenderer, P extends MapPrimit
     this.options = {...options};
   }
 
+  public data: any = undefined;
+
   // --- Options ---
 
   protected options: O;

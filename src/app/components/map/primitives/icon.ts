@@ -7,6 +7,7 @@ export interface IconOptions {
   iconOriginalSize: Point2D;
   iconRenderSize: Point2D;
   iconAnchor: 'center' | 'top-left' | 'top-right' | 'top-center' | 'bottom-left' | 'bottom-right' | 'bottom-center' | 'right-center' | 'left-center';
+  opacity?: number;
   rotateOnMouseOver?: boolean;
 }
 

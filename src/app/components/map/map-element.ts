@@ -101,7 +101,7 @@ export abstract class MapElement<E> extends AnyMapElement {
         return this.createPrimitives$(renderer).pipe(
           map(primitivesAndBinding => {
             const removed: MapPrimitive<any, MapRenderer, any>[] = [...previousPrimitives];
-            const added: {primitive: MapPrimitive<any, MapRenderer, any>, eventBinding: E}[] = [];
+            const added: {primitive: MapPrimitive<any, MapRenderer, any>, eventBinding: E | undefined}[] = [];
             const newList: MapPrimitive<any, MapRenderer, any>[] = [];
             for (const p of primitivesAndBinding) {
               const existing = Arrays.removeFirst(removed, p.primitive);
@@ -109,7 +109,7 @@ export abstract class MapElement<E> extends AnyMapElement {
               newList.push(p.primitive);
             }
             for (const p of removed) this.unbind(p);
-            for (const p of added) this.bind(p.primitive, p.eventBinding);
+            for (const p of added) if (p.eventBinding !== undefined) this.bind(p.primitive, p.eventBinding);
             return newList;
           })
         );
@@ -118,7 +118,7 @@ export abstract class MapElement<E> extends AnyMapElement {
     return this._primitives.asObservable();
   }
 
-  protected abstract createPrimitives$(renderer: MapRenderer): Observable<{primitive: MapPrimitive<any, MapRenderer, any>, eventBinding: E}[]>;
+  protected abstract createPrimitives$(renderer: MapRenderer): Observable<{primitive: MapPrimitive<any, MapRenderer, any>, eventBinding: E | undefined}[]>;
 
   private bind(primitive: MapPrimitive<any, MapRenderer, any>, eventBinding: E): void {
     this.events.click.bind(primitive.events.click, event => ({mapElement: this, element: eventBinding, pointerEvent: event.pointerEvent}));

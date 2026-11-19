@@ -3,7 +3,6 @@ import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
 import { PointReference } from '@trailence/model/point-reference';
 import { EarthPoint } from '@trailence/utils/latlng';
 import { MapCursors } from '../map/elements/map-cursors';
-import { MAP_GEOLOCATION_LAYER } from '../map/map-element';
 
 export class TrailHoverCursor {
 

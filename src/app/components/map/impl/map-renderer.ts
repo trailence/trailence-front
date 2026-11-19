@@ -46,7 +46,7 @@ export abstract class MapRenderer {
     primitive.removeFromMap(this);
   }
 
-  public abstract bringToFront(primitive: MapPrimitive<any, MapRenderer, any>): void;
+  public abstract bringToFront(primitive: MapPrimitive<any, MapRenderer, any>, index: number): void;
 
   public abstract goTo(center: EarthPoint, zoom: number | undefined, flying: boolean): void;
   public abstract ensurePointVisible(point: EarthPoint, flying: boolean): void;
