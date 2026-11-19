@@ -5,6 +5,9 @@ import { MapRenderer } from './impl/map-renderer';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
 import { MapPrimitive } from './primitives/primitive';
 import { collectionCache } from '@trailence/utils/rxjs/collection-cache';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('map-elements-renderer');
 
 export interface MapElementsSource {
   id: string;
@@ -79,15 +82,22 @@ export class MapElementsRenderer {
       if (primitives.includes(currentPrimitive)) {
         primitivesPresent.push(currentPrimitive);
       } else {
-        renderer.remove(currentPrimitive);
+        try { renderer.remove(currentPrimitive); }
+        catch (e) {
+          logger.error('error removing primitive', currentPrimitive, e);
+        }
       }
     }
     let index = 1;
     for (const primitive of primitives) {
-      if (!primitivesPresent.includes(primitive)) {
-        renderer.add(primitive);
+      try {
+        if (!primitivesPresent.includes(primitive)) {
+          renderer.add(primitive);
+        }
+        renderer.bringToFront(primitive, index++);
+      } catch (e) {
+        logger.error('error rendering primitive', primitive, e);
       }
-      renderer.bringToFront(primitive, index++);
     }
     const newElements = elements.map(e => e.element);
     for (const element of this._currentElements$.value)

@@ -288,6 +288,14 @@ class Breaks {
   }
 }
 
+function applyMarkerOptions(marker: HtmlMarkerPrimitive<MapRenderer, any>, wp: TrackWayPoint, highlighted: TrackWayPoint[]) {
+  const opacity = highlighted.length === 0 || highlighted.includes(wp) ? 1 : 0.5;
+  const options = marker.getOptions();
+  options.opacity = opacity;
+  marker.setOptions(options);
+  marker.data = wp;
+}
+
 class Guideposts {
   private markers: {marker: HtmlMarkerPrimitive<MapRenderer, any>, text: string, position: EarthPoint}[] = [];
 
@@ -309,10 +317,12 @@ class Guideposts {
           marker.marker.setPosition(position)
           marker.position = position;
         }
+        applyMarkerOptions(marker.marker, wp, highlighted);
         newMarkers.push(marker);
         icons.push({primitive: marker.marker, eventBinding: wp});
       } else {
         const marker = PoisMapElement.createPoiMarker(renderer, IdGenerator.generateId(id + '$guidepost$'), svg.cloneNode(true) as SVGSVGElement, position, text);
+        applyMarkerOptions(marker, wp, highlighted);
         newMarkers.push({marker, text, position});
         icons.push({primitive: marker, eventBinding: wp});
       }

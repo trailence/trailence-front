@@ -4,6 +4,9 @@ import { NetworkService } from '@trailence/services/network/network.service';
 import { AddProtocolResponseData, GetResourceResponse, MapLibreMap, RasterDEMSourceSpecification, RasterDEMTileSource, RequestParameters } from 'maplibre-gl';
 import { filter, Observable, Subscription, switchMap } from 'rxjs';
 import { HILLS_LAYER, HILLS_SOURCE, RASTER_SOURCE, TERRAIN_SOURCE } from './maplibre';
+import { getLogger } from '@trailence/utils/console';
+
+const logger = getLogger('maplibre-protocol');
 
 export class MapLibreTrailenceProtocol {
 
@@ -32,11 +35,15 @@ export class MapLibreTrailenceProtocol {
       ).subscribe(() => {
         map.networkSubscription?.unsubscribe();
         map.networkSubscription = undefined;
+        try {
         map.maplibre.refreshTiles(RASTER_SOURCE);
         // https://github.com/maplibre/maplibre-gl-js/pull/8796
         // https://github.com/maplibre/maplibre-gl-js/pull/8872
         map.maplibre.refreshTiles(HILLS_SOURCE);
         map.maplibre.refreshTiles(TERRAIN_SOURCE);
+        } catch (e) {
+          logger.error('error refreshing tiles', e);
+        }
         /*
         map.maplibre.removeLayer(HILLS_LAYER);
         map.maplibre.setTerrain(null);

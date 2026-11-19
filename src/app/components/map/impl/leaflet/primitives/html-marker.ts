@@ -51,7 +51,8 @@ export class LeafletHtmlMarker extends HtmlMarkerPrimitive<Leaflet, LeafletHtmlM
 
   protected override applyNewOptions(renderer: Leaflet, previous: HtmlMarkerOptions): void {
     if (!this.tooltip) return;
-    // TODO
+    if ((this.options.opacity ?? 1) !== (previous.opacity ?? 1))
+      this.tooltip.setOpacity(this.options.opacity ?? 1);
   }
 
   getLayer(): L.Layer | undefined {

@@ -47,7 +47,8 @@ export class MapLibreHtmlMarker extends HtmlMarkerPrimitive<MapLibre, MapLibreHt
 
   protected override applyNewOptions(renderer: MapLibre, previous: HtmlMarkerOptions): void {
     if (!this.marker) return;
-    // TODO
+    if ((this.options.opacity ?? 1) !== (previous.opacity ?? 1))
+      this.marker.setOpacity(this.options.opacity);
   }
 
   getLayersIds(): string[] {
