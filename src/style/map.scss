@@ -152,7 +152,6 @@ app-map, div.map-full-screen {
     border: 1px solid rgba(0, 0, 0, 0.5);
     background-color: rgba(0, 0, 0, 0.15);
     border-radius: 3px;
-    position: relative;
     display: inline-block;
     line-height: 0;
 
@@ -188,28 +187,18 @@ app-map, div.map-full-screen {
     }
   }
 
-  div.leaflet-popup.marked-trails-popup {
-    div.leaflet-popup-content {
-      margin: 3px 20px 3px 5px;
-    }
+  div.leaflet-popup.marked-trails-popup div.leaflet-popup-content, div.malibregl-popup.marked-trails-popup div.maplibre-gl-popup-content {
+    margin: 3px 20px 3px 5px;
   }
-  svg.position-circle-marker {
-    z-index: 1000;
+  div.maplibregl-popup, button.maplibregl-popup-close-button {
+    color: black;
+  }
+  div.maplibregl-popup-content {
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-bottom: 2px;
   }
 
-}
-
-.leaflet-pane.leaflet-marker-pane {
-  .leaflet-marker-icon.highlighted {
-    width: 50px !important;
-    height: 50px !important;
-    margin-left: -25px !important;
-    margin-top: -50px !important;
-    z-index: 1000 !important;
-  }
-  .leaflet-marker-icon.semi-transparent {
-    opacity: 0.5;
-  }
 }
 
 .maplibregl-map div.maplibregl-marker.html-marker {

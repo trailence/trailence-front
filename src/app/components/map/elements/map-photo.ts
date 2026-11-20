@@ -32,10 +32,9 @@ export class MapPhoto extends MapElement<null> {
       this.id,
       this.position,
       {
-        icon: MapPhoto.createSvgIconWithImage('#8080C0', this.photoUrl, this.photoSize.x, this.photoSize.y, this.badge),
+        icon: {svgString: MapPhoto.createSvgIconWithImage('#8080C0', this.photoUrl, this.photoSize.x, this.photoSize.y, this.badge)},
         iconAnchor: 'bottom-center',
-        iconOriginalSize: {x: this.photoSize.x, y: this.photoSize.y + 15},
-        iconRenderSize: {x: this.photoSize.x, y: this.photoSize.y + 15},
+        iconSize: {x: this.photoSize.x, y: this.photoSize.y + 15},
       }
     )
   }

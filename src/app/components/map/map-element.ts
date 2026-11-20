@@ -24,6 +24,7 @@ export const MAP_WAYS_LAYER = 'ways';
 export const MAP_POIS_LAYER = 'pois';
 export const MAP_PHOTOS_LAYER = 'photos';
 export const MAP_WAYPOINTS_LAYER = 'waypoints';
+export const MAP_MARKED_TRAILS_LAYER = 'marked-trails';
 export const MAP_GEOLOCATION_LAYER = 'geolocation';
 export const MAP_SELECTION_INDICATORS_LAYER = 'selection-indicators';
 
@@ -51,6 +52,10 @@ export const MAP_ELEMENT_LAYERS: MapElementsLayer[] = [
   {
     name: MAP_WAYPOINTS_LAYER,
     zIndex: 300,
+  },
+  {
+    name: MAP_MARKED_TRAILS_LAYER,
+    zIndex: 400,
   },
   {
     name: MAP_GEOLOCATION_LAYER,
@@ -123,6 +128,12 @@ export abstract class MapElement<E> extends AnyMapElement {
     return this._primitives.asObservable();
   }
 
+  /**
+   * Create primitives with event binding.
+   * When eventBinding is undefined, it means it will never be interactive:
+   * for example a map track path returns primitive for the path and primitives for the arrows along the path.
+   * When the path becomes interactive (listeners present), the arrows must never be interactive so they will have eventBinding set to undefined.
+   */
   protected abstract createPrimitives$(renderer: MapRenderer): Observable<{primitive: MapPrimitive<any, MapRenderer, any>, eventBinding: E | undefined}[]>;
 
   private bind(primitive: MapPrimitive<any, MapRenderer, any>, eventBinding: E): void {

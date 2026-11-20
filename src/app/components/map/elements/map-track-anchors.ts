@@ -151,7 +151,7 @@ function applyIconOptions(icon: IconPrimitive<MapRenderer, any>, wp: TrackWayPoi
   const size = highlighted.includes(wp) ? Math.floor(MAP_ANCHOR_RENDER_SIZE * 1.2) : MAP_ANCHOR_RENDER_SIZE;
   const options = icon.getOptions();
   options.opacity = opacity;
-  options.iconRenderSize = {x: size, y: size};
+  options.iconSize = {x: size, y: size};
   icon.setOptions(options);
   icon.data = wp;
 }

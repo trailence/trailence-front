@@ -91,7 +91,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   private readonly tracksAndBubbles$ = new BehaviorSubject<AnyMapElement[]>([]);
   private readonly highlightedTrailAnchors$ = new BehaviorSubject<MapSimplifiedTrackAnchors | undefined>(undefined);
-  mapElements$ = combineLatest([this.tracksAndBubbles$, this.highlightedTrailAnchors$]).pipe(
+  mapElements$ = (combineLatest([this.tracksAndBubbles$, this.highlightedTrailAnchors$]) as Observable<[AnyMapElement[], MapSimplifiedTrackAnchors | undefined]>).pipe(
     map(([elements, anchors]) => {
       if (!anchors) return elements;
       return [...elements, anchors];

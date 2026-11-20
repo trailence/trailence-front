@@ -1,8 +1,8 @@
 import { BBox2D, Point2D } from './geometry-utils';
 
 export const EARTH_RADIUS = 6371000; // meters
-const DEG_TO_RAD = Math.PI / 180;
-const RAD_TO_DEG = 180 / Math.PI;
+export const DEG_TO_RAD = Math.PI / 180;
+export const RAD_TO_DEG = 180 / Math.PI;
 
 export type EarthPoint = {lat: number, lng: number, ele?: number};
 export type EarthBBox = {

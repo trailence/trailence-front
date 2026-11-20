@@ -5,7 +5,7 @@ import * as L from 'leaflet';
 import { LeafletPrimitiveEvents } from './events';
 import { MapPointerEvent } from '@trailence/components/map/map-events';
 import { samePoint } from '@trailence/utils/geometry-utils';
-import { EarthPoint } from '@trailence/utils/latlng';
+import { DEG_TO_RAD, EarthPoint } from '@trailence/utils/latlng';
 
 export class LeafletIcon extends IconPrimitive<Leaflet, LeafletIcon> implements LeafletPrimitive<IconOptions, LeafletIcon> {
 
@@ -26,40 +26,57 @@ export class LeafletIcon extends IconPrimitive<Leaflet, LeafletIcon> implements 
 
   protected override addPrimitiveToMap(renderer: Leaflet): void {
     if (this.options.rotateOnMouseOver) this.addRotateListener();
+    const additionalOptions: any = {};
+    if (this.options.rotationWithMapDeg !== undefined) {
+      additionalOptions.rotation = this.options.rotationWithMapDeg * DEG_TO_RAD;
+      additionalOptions.rotateWithView = true;
+    }
     this.marker = L.marker(
       this.position,
       {
         icon: this.buildIcon(),
-        interactive: this.leafletEvents.isInteractive(),
+        interactive: this.leafletEvents.isInteractive() || !!this.options.popup,
         opacity: this.options.opacity,
+        ...additionalOptions,
       }
     );
+    if (this.options.popup) {
+      this.marker.bindPopup(this.options.popup.content, {className: this.options.popup.className});
+    }
     this.marker.addTo(renderer.getLeafletMap()!);
   }
 
   private buildIcon() {
-    return L.icon({
-      iconUrl: this.buildIconUrl(),
-      iconSize: [this.options.iconRenderSize.x, this.options.iconRenderSize.y],
+    if ('svg' in this.options.icon || 'svgString' in this.options.icon)
+      return L.icon({
+        iconUrl: this.buildIconUrl(this.options.icon),
+        iconSize: [this.options.iconSize.x, this.options.iconSize.y],
+        iconAnchor: this.buildAnchor(),
+        className: this.options.className,
+      });
+    return L.divIcon({
+      html: 'html' in this.options.icon ? this.options.icon.html : this.options.icon.htmlString,
+      iconSize: [this.options.iconSize.x, this.options.iconSize.y],
       iconAnchor: this.buildAnchor(),
+      className: this.options.className,
     });
   }
 
-  private buildIconUrl(): string {
-    return 'data:image/svg+xml;utf8,' + encodeURIComponent(typeof this.options.icon === 'string' ? this.options.icon : this.options.icon.outerHTML);
+  private buildIconUrl(icon: {svg: SVGSVGElement} | {svgString: string}): string {
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent('svgString' in icon ? icon.svgString : icon.svg.outerHTML);
   }
 
   private buildAnchor(): [number, number] {
     switch (this.options.iconAnchor) {
-      case 'center': return [this.options.iconRenderSize.x / 2, this.options.iconRenderSize.y / 2];
+      case 'center': return [this.options.iconSize.x / 2, this.options.iconSize.y / 2];
       case 'top-left': return [0, 0];
-      case 'top-right': return [this.options.iconRenderSize.x - 1, 0];
-      case 'top-center': return [this.options.iconRenderSize.x / 2, 0];
-      case 'bottom-left': return [0, this.options.iconRenderSize.y - 1];
-      case 'bottom-right': return [this.options.iconRenderSize.x - 1, this.options.iconRenderSize.y - 1];
-      case 'bottom-center': return [this.options.iconRenderSize.x / 2, this.options.iconRenderSize.y - 1];
-      case 'right-center': return [0, this.options.iconRenderSize.y / 2];
-      case 'left-center': return [this.options.iconRenderSize.x - 1, this.options.iconRenderSize.y / 2];
+      case 'top-right': return [this.options.iconSize.x - 1, 0];
+      case 'top-center': return [this.options.iconSize.x / 2, 0];
+      case 'bottom-left': return [0, this.options.iconSize.y - 1];
+      case 'bottom-right': return [this.options.iconSize.x - 1, this.options.iconSize.y - 1];
+      case 'bottom-center': return [this.options.iconSize.x / 2, this.options.iconSize.y - 1];
+      case 'right-center': return [0, this.options.iconSize.y / 2];
+      case 'left-center': return [this.options.iconSize.x - 1, this.options.iconSize.y / 2];
     }
   }
 
@@ -77,7 +94,7 @@ export class LeafletIcon extends IconPrimitive<Leaflet, LeafletIcon> implements 
   protected override applyNewOptions(renderer: Leaflet, previous: IconOptions): void {
     if (!this.marker) return;
 
-    if (this.options.icon !== previous.icon || !samePoint(this.options.iconRenderSize, previous.iconRenderSize || this.options.iconAnchor !== previous.iconAnchor)) {
+    if (this.options.icon !== previous.icon || !samePoint(this.options.iconSize, previous.iconSize) || this.options.iconAnchor !== previous.iconAnchor) {
       this.marker.setIcon(this.buildIcon());
     }
     if ((this.options.opacity ?? 1) !== (previous.opacity ?? 1)) {

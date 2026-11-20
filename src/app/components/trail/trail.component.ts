@@ -80,7 +80,7 @@ import { MapTrackPath } from '../map/elements/map-track-path';
 import { bboxPadRatio, distance, EarthPoint, extendBBox, projectEarthPointForZoom, samePositionRound } from '@trailence/utils/latlng';
 import { MapTrackAnchors } from '../map/elements/map-track-anchors';
 import { Color } from '@trailence/utils/color';
-import { MapTrackMarkedTrails } from '../map/elements/map-track-marked-trails';
+import { buildMapMarkedTrails, MapTrackMarkedTrails } from '../map/elements/map-track-marked-trails';
 import { MapTool, MapToolGroup } from '../map/map-tool';
 import { MapPointerEvent } from '../map/map-events';
 import { AppEventListener } from '@trailence/utils/events';
@@ -157,7 +157,7 @@ interface TrailTracks {
   mapTrackPath: MapTrackPath | undefined;
   osmTrack: Track | undefined;
   osmMapTrackPath: MapTrackPath | undefined;
-  osmMarkedTrails: MapTrackMarkedTrails[] | undefined;
+  osmMarkedTrails: MapTrackMarkedTrails | undefined;
 }
 
 @Component({
@@ -914,7 +914,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
 
         mapTracks.push(...publicTrailsAround, ...this.highlightedMapTrackSections);
 
-        const markedTrails = trail1.osmMarkedTrails && !trail2.trail && showMapMarkedTrails ? trail1.osmMarkedTrails : [];
+        const markedTrails = trail1.osmMarkedTrails && !trail2.trail && showMapMarkedTrails ? [trail1.osmMarkedTrails] : [];
 
         this.trailsWaypoints.update([
           {trail: trail1.trail, track: toolsModifiedTrack || toolsBaseTrack || trail1.track, recording: false, mapTrack: toolsModifiedMapTrack || toolsBaseMapTrack || trail1.mapTrackPath, mapTrackAnchors: toolsModifiedAnchors || toolsBaseAnchors || trail1Anchors},
@@ -967,12 +967,9 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
                     this.hasOsmTrack = !!osm;
                     return this.showOsmTrack$.pipe(
                       map(showOsm => {
-                        let osmMarkedTrails: MapTrackMarkedTrails[] | undefined = undefined;
+                        let osmMarkedTrails: MapTrackMarkedTrails | undefined = undefined;
                         if (osm) {
-                          /* TODO refacto
-                          const trails = buildMapMarkedTrails(this.injector, track, osm);
-                          if (trails.length > 0) osmMarkedTrails = trails;
-                          */
+                          osmMarkedTrails = buildMapMarkedTrails(this.injector, track, osm);
                         }
                         this.hasMapMarkedTrails = !!osmMarkedTrails;
                         if (!osm || !showOsm) return {trail, track, mapTrackPath, osmTrack: undefined, osmMapTrackPath: undefined, osmMarkedTrails};

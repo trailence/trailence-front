@@ -3,12 +3,14 @@ import { MapRenderer } from '../impl/map-renderer';
 import { MapPrimitiveSinglePosition } from './primitive';
 
 export interface IconOptions {
-  icon: string | SVGSVGElement;
-  iconOriginalSize: Point2D;
-  iconRenderSize: Point2D;
+  icon: {svg: SVGSVGElement} | {svgString: string} | {html: HTMLElement} | {htmlString: string};
+  iconSize: Point2D;
   iconAnchor: 'center' | 'top-left' | 'top-right' | 'top-center' | 'bottom-left' | 'bottom-right' | 'bottom-center' | 'right-center' | 'left-center';
   opacity?: number;
   rotateOnMouseOver?: boolean;
+  className?: string;
+  rotationWithMapDeg?: number;
+  popup?: {content: HTMLElement | string, className?: string};
 }
 
 export abstract class IconPrimitive<R extends MapRenderer, P extends IconPrimitive<R,P>> extends MapPrimitiveSinglePosition<IconOptions, R, P> {

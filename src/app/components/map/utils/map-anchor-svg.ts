@@ -30,8 +30,6 @@ export function createMapAnchorDataUrl(
   return 'data:image/svg+xml;base64,' + btoa(createMapAchorSvgString(borderColor, text, textColor, fillColor, fillColor2));
 }
 
-export const MAP_ANCHOR_SVG_SIZE = 800;
-
 export function createMapAchorSvgString(
   borderColor: string = '#000000',
   text: string = '',
