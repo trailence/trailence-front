@@ -153,6 +153,7 @@ export class MapLibre extends MapRenderer {
     this.subscriptions.unsubscribe();
     TRAILENCE_PROTOCOL.unregisterMap(this._id);
     this.map?.remove();
+    this.map = undefined;
   }
 
   public override invalidateSize(): void {

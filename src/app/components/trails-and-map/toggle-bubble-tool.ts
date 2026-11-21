@@ -1,9 +1,9 @@
 import { BehaviorSubject, combineLatest, EMPTY, from, map, Observable, of, switchMap } from 'rxjs';
 import { MapTool } from '../map/map-tool';
-import { AnyMapElement, MapElement } from '../map/map-element';
+import { AnyMapElement } from '../map/map-element';
 import { Trail } from '@trailence/model/trail';
 import { MapBubble } from '../map/elements/map-bubble';
-import { EventEmitter, Injector } from '@angular/core';
+import { Injector } from '@angular/core';
 import { MapComponent } from '../map/map.component';
 import { MenuItem } from '../menus/menu-item';
 import { observableWithCache } from '@trailence/utils/rxjs/observable-with-cache';
@@ -12,13 +12,12 @@ import { TrailService } from '@trailence/services/database/trail.service';
 import { SimplifiedTrackSnapshot, trackBoundsToEarthBBox, TrackMetadataSnapshot } from '@trailence/model/snapshots';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { getLogger } from '@trailence/utils/console';
-import { MapTrackPath } from '../map/elements/map-track-path';
 import { PRIMARY_TRACK_COLOR } from '../trail/trail-colors';
 import { Color } from '@trailence/utils/color';
 import { MapElementsToolGroup } from '../map/tools/map-elements-tools';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
-import { MapPointerEvent } from '../map/map-events';
 import { defaultOnTimeout } from '@trailence/utils/rxjs/default-on-timeout';
+import { MapSimplifiedTracksPath, TrailAndSimplifiedTrack } from '../map/elements/map-simplified-tracks-path';
 
 const logger = getLogger('trails-and-map');
 
@@ -40,8 +39,6 @@ export class ToggleBubblesTool implements MapTool {
   private readonly showBubbles$ = new BehaviorSubject<boolean>(false);
   private _hasBubbles = false;
 
-  clickOnTrail = new EventEmitter<{mapTrack: MapTrackPath, event: MapPointerEvent}>();
-
   getMapElements$(): Observable<AnyMapElement[]> {
     const trailService = this.injector.get(TrailService);
     return observableWithCache<AnyMapElement[], Cache>(
@@ -60,10 +57,6 @@ export class ToggleBubblesTool implements MapTool {
           ),
           (t1, t2) => t1.trackUuid === t2.trackUuid && t1.trail.owner === t2.trail.owner,
         ),
-        simplifiedTrackToMapElements: new CollectionObservableCache<{trail: Trail, track: SimplifiedTrackSnapshot | null}, MapTrackPath | null>(
-          t => of(this.buildMapTrackPathFromSimplifiedTrack(t.trail, t.track)),
-          (t1, t2) => t1.trail.uuid === t2.trail.uuid && t1.trail.owner === t2.trail.owner && t1.track === t2.track,
-        ),
         trailToTrackMetadata: new CollectionObservableCache<{trail: Trail, trackUuid: string}, {trail: Trail, track: TrackMetadataSnapshot | null}>(
           t => trailService.getTrackMetadata$(t.trail, t.trackUuid).pipe(
             filterDefined(),
@@ -79,7 +72,6 @@ export class ToggleBubblesTool implements MapTool {
       cache => {
         cache.trailToTrackUuid.destroy();
         cache.trailToSimplifiedTrack.destroy();
-        cache.simplifiedTrackToMapElements.destroy();
         cache.trailToTrackMetadata.destroy();
       },
       cache => combineLatest([
@@ -126,8 +118,7 @@ export class ToggleBubblesTool implements MapTool {
           return cache.trailToTrackUuid.combineLatest(trails).pipe(
             switchMap(trails => cache.trailToSimplifiedTrack.combineLatest(trails)),
             debounceTimeExtended(0, 10),
-            switchMap(tracks => cache.simplifiedTrackToMapElements.combineLatest(tracks)),
-            map(elements => elements.filter(e => !!e)),
+            map(tracks => [new MapSimplifiedTracksPath('tracks', tracks.filter(t => !!t.track) as TrailAndSimplifiedTrack[], TRACK_COLOR, 2)]),
           );
         }),
       )
@@ -137,13 +128,6 @@ export class ToggleBubblesTool implements MapTool {
   private setActivable(activable: boolean): void {
     if (this.activable$.value !== activable)
       this.activable$.next(activable);
-  }
-
-  private buildMapTrackPathFromSimplifiedTrack(trail: Trail, track: SimplifiedTrackSnapshot | null): MapTrackPath | null {
-    if (track === null) return null;
-    const mapTrack = new MapTrackPath(trail, track, TRACK_COLOR, false, 2, undefined);
-    mapTrack.events.click.addListener(event => this.clickOnTrail.emit({mapTrack: event.mapElement, event: event.pointerEvent}));
-    return mapTrack;
   }
 
   private buildBubblesFromTracks(tracks: {trail: Trail, track: TrackMetadataSnapshot | null}[]): Observable<MapBubble[]> {
@@ -243,6 +227,5 @@ export class ToggleBubblesTool implements MapTool {
 interface Cache {
   trailToTrackUuid: CollectionObservableCache<Trail, {trail: Trail, trackUuid: string}>;
   trailToSimplifiedTrack: CollectionObservableCache<{trail: Trail, trackUuid: string}, {trail: Trail, track: SimplifiedTrackSnapshot | null}>;
-  simplifiedTrackToMapElements: CollectionObservableCache<{trail: Trail, track: SimplifiedTrackSnapshot | null},  MapTrackPath | null>;
   trailToTrackMetadata: CollectionObservableCache<{trail: Trail, trackUuid: string}, {trail: Trail, track: TrackMetadataSnapshot | null}>;
 }

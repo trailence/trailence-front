@@ -3,7 +3,7 @@ import { MenuItem } from '@trailence/components/menus/menu-item';
 import { combineLatest, debounceTime, distinctUntilChanged, map, Observable, switchMap, tap } from 'rxjs';
 import { MapTool, MapToolGroup } from '../map-tool';
 import { MapComponent } from '../map.component';
-import { bboxFromList, EarthBBox, sameOptionalBbox } from '@trailence/utils/latlng';
+import { bboxFromList, bboxPadRatio, EarthBBox, sameOptionalBbox } from '@trailence/utils/latlng';
 import { MapStateHistoryEntry, MapStateHistoryService } from '@trailence/services/map/map-state-history.service';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { combineLatestSafe } from '@trailence/utils/rxjs/combineLatestSafe';
@@ -32,6 +32,7 @@ export class FitBoundsTool implements MapTool {
       distinctUntilChanged(sameOptionalBbox),
       map(bbox => {
         bounds = bbox;
+        if (bounds) bounds = bboxPadRatio(bounds, 0.05);
         item.setDisabled(bbox === undefined);
         return item;
       })

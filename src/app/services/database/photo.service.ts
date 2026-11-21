@@ -458,17 +458,17 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> implements StoreWithCleanin
     return (requests.length === 0 ? of([]) : zip(requests).pipe(defaultIfEmpty([])));
   }
 
-  protected override readyToSave(entity: Photo): boolean {
+  protected override readyToSave(entity: Photo, action: 'create' | 'update'): boolean {
     return false; // need asynchronous way
   }
 
-  protected override readyToSave$(entity: Photo): Observable<boolean> {
+  protected override readyToSave$(entity: Photo, action: 'create' | 'update'): Observable<boolean> {
     const trailReady$ = this.trails.getTrail$(entity.trailUuid, entity.owner).pipe(map(trail => !!trail?.isSavedOnServerAndNotDeletedLocally()));
-    const fileReady$ = this.files.isStored$(entity.owner, 'photo', entity.uuid);
+    const fileReady$ = action == 'create' ? this.files.isStored$(entity.owner, 'photo', entity.uuid) : of(true);
     return combineLatest([trailReady$, fileReady$]).pipe(
       map(readiness => {
         const ready = !readiness.includes(false);
-        if (!ready) logger.debug('Photo', entity.owner, entity.uuid, entity.index, 'not ready', readiness);
+        if (!ready) logger.debug('Photo', entity.owner, entity.uuid, entity.index, entity.version, 'not ready', readiness);
         return ready;
       })
     );

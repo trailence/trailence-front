@@ -2,7 +2,7 @@ import { Component, ElementRef, Input, SimpleChanges } from '@angular/core';
 import { AbstractComponent, IdGenerator } from '@trailence/utils/component-utils';
 import { MapState, RotateMode } from './map-state';
 import { MapRendererInitializer } from './impl/map-renderer-initializer';
-import { BehaviorSubject, firstValueFrom, Observable, of } from 'rxjs';
+import { BehaviorSubject, catchError, debounceTime, filter, first, firstValueFrom, map, Observable, of, switchMap, timeout } from 'rxjs';
 import { MapRenderer } from './impl/map-renderer';
 import { AnyMapElement, MapElement } from './map-element';
 import { MapElementsRenderer } from './map-elements-renderer';
@@ -12,12 +12,13 @@ import { MapTools } from './map-tools';
 import { MapStateHistoryService } from '@trailence/services/map/map-state-history.service';
 import { CenterMapOnMyPositionTool, GeolocationToolGroup, ShowMyGeolocationTool } from './tools/geolocation-tools';
 import { TraceRecorderService } from '@trailence/services/trace-recorder/trace-recorder.service';
-import { projectEarthBBoxForZoom, unprojectToEarthBBoxForZoom } from '@trailence/utils/latlng';
+import { bboxPadRatio, extendBBox, projectEarthBBoxForZoom, unprojectToEarthBBoxForZoom } from '@trailence/utils/latlng';
 import { bbox2DContainsBBox2D, bbox2DPadding, extendBBox2D } from '@trailence/utils/geometry-utils';
 import { MapEvents } from './map-events';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { Trail } from '@trailence/model/trail';
 import { MapLayersService } from '@trailence/services/map/map-layers.service';
+import { combineLatestSafe } from '@trailence/utils/rxjs/combineLatestSafe';
 
 export interface MapOptions {
   geoLocationDisabled?: boolean;
@@ -88,6 +89,7 @@ export class MapComponent extends AbstractComponent {
     this._mapInit = new MapRendererInitializer(this.injector, this._containerId, this._state, this, this.events, this._map$);
     this.injector.get(MapStateHistoryService).register(this._state, this.visible$);
     this._tools.init(this.whenVisible, this.tools$, this.injector, this, toolsGroups, tools);
+    this.initState();
   }
 
   protected override destroyComponent(): void {
@@ -162,6 +164,32 @@ export class MapComponent extends AbstractComponent {
 
   public toggleFullScreen(): void {
     if (this._fullscreen$.value) this.exitFullScreen(); else this.enterFullScreen();
+  }
+
+  private initState(): void {
+    // if the map state stays at pos {0, 0} and zoom 2, default to elements fitBounds, or user location
+    this._elementsRenderer.elements$.pipe(
+      debounceTime(500),
+      filter(elements => elements.length > 0),
+      switchMap(elements => combineLatestSafe(elements.map(e => e.fitBounds$))),
+      map(bounds => bounds.filter(b => !!b)),
+      filter(bounds => bounds.length > 0),
+      timeout({first: 3000}),
+      catchError(() => of([])),
+      first(),
+    ).subscribe(bounds => {
+      if (this._state?.center?.lat === 0 && this._state?.center?.lng === 0 && this._state?.zoom === 2) {
+        if (bounds.length > 0) {
+          let b = bounds[0];
+          for (let i = 1; i < bounds.length; ++i) b = extendBBox(b, bounds[i]);
+          b = bboxPadRatio(b, 0.1);
+          this._map$.value?.fitBounds(b, false);
+        } else {
+          // user location
+          // TODO refacto
+        }
+      }
+    });
   }
 
 }

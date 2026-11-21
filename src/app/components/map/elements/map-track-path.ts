@@ -1,6 +1,5 @@
 import { Track } from '@trailence/model/track';
 import { MAP_TRACKS_LAYER, MapElement } from '../map-element';
-import { SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
 import { Trail } from '@trailence/model/trail';
 import { BehaviorSubject, combineLatest, map, Observable, of, switchMap } from 'rxjs';
 import { MapRenderer } from '../impl/map-renderer';
@@ -12,13 +11,12 @@ import { distance, EarthBBox, EarthPoint } from '@trailence/utils/latlng';
 import { MapPrimitive } from '../primitives/primitive';
 import { getGradeRange, gradeColors } from '@trailence/components/trail-graph/grade-values';
 import { distance2d, Point2D } from '@trailence/utils/geometry-utils';
-import { CachedValue } from '@trailence/utils/cached-value';
 
-export class MapTrackPath extends MapElement<Track | SimplifiedTrackSnapshot> {
+export class MapTrackPath extends MapElement<Track> {
 
   constructor(
     public readonly trail: Trail | undefined,
-    public readonly track: Track | SimplifiedTrackSnapshot,
+    public readonly track: Track,
     color: Color,
     eleColors: boolean = false,
     weight: number = 3,
@@ -88,28 +86,8 @@ export class MapTrackPath extends MapElement<Track | SimplifiedTrackSnapshot> {
   }
 
   public get fitBounds$(): Observable<EarthBBox | undefined> {
-    if (this.track instanceof Track) return this.track.metadata.bounds$;
-    return new Observable(subscriber => {
-      subscriber.next(this._boundsFromSimplifiedTrackCache.get());
-      subscriber.complete();
-    });
+    return this.track.metadata.bounds$;
   }
-  public getBoundsFromSimplifiedTrack(): EarthBBox | undefined {
-    return this._boundsFromSimplifiedTrackCache.get();
-  }
-  private readonly _boundsFromSimplifiedTrackCache = new CachedValue<EarthBBox | undefined>(
-    () => {
-      let minlat, maxlat, minlng, maxlng;
-      for (const pt of (this.track as SimplifiedTrackSnapshot).points) {
-        if (minlat === undefined || pt.lat < minlat) minlat = pt.lat;
-        if (maxlat === undefined || pt.lat > maxlat) maxlat = pt.lat;
-        if (minlng === undefined || pt.lng < minlng) minlng = pt.lng;
-        if (maxlng === undefined || pt.lng > maxlng) maxlng = pt.lng;
-      }
-      if (minlat === undefined) return undefined;
-      return {minlat, maxlat: maxlat!, minlng: minlng!, maxlng: maxlng!};
-    }
-  );
 
   public override destroy(): void {
     this.reset();
@@ -121,15 +99,14 @@ export class MapTrackPath extends MapElement<Track | SimplifiedTrackSnapshot> {
     this._arrows = [];
   }
 
-  protected override createPrimitives$(renderer: MapRenderer): Observable<{primitive: MapPrimitive<any,any,any>, eventBinding: Track | SimplifiedTrackSnapshot | undefined}[]> {
+  protected override createPrimitives$(renderer: MapRenderer): Observable<{primitive: MapPrimitive<any,any,any>, eventBinding: Track | undefined}[]> {
     this.reset();
-    const points$: Observable<EarthPoint[][]> = this.track instanceof Track ?
+    const points$: Observable<EarthPoint[][]> =
       this.track.segments$.pipe(
         switchMap(segments => combineLatestSafe(segments.map(s => s.points$))),
         debounceTimeExtended(0, 100, 100),
         map(segments => segments.map(points => points.map(p =>({lat: p.pos.lat, lng: p.pos.lng, ele: p.ele})))),
-      ) :
-      of([this.track.points]);
+      );
     const path$ = combineLatest([
       points$,
       this._eleColors$,
@@ -169,7 +146,7 @@ export class MapTrackPath extends MapElement<Track | SimplifiedTrackSnapshot> {
     );
     return combineLatest([path$, arrows$]).pipe(
       map(([paths, arrows]) => {
-        const result: {primitive: MapPrimitive<any,any,any>, eventBinding: Track | SimplifiedTrackSnapshot | undefined}[] = new Array(paths.length + arrows.length);
+        const result: {primitive: MapPrimitive<any,any,any>, eventBinding: Track | undefined}[] = new Array(paths.length + arrows.length);
         let index = 0;
         for (const primitive of paths) result[index++] = {primitive, eventBinding: this.track};
         for (const primitive of arrows) result[index++] = {primitive, eventBinding: undefined};

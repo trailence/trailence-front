@@ -255,8 +255,8 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
     const toCreate = this._createdLocally.filter(item$ => !!item$.value).map(item$ => item$.value!).filter(item => this._errors.canProcess(this.getKey(item), true));
     if (toCreate.length === 0) return of(undefined);
     this.syncStep('create local new items to server');
-    const ready = toCreate.filter(entity => this.readyToSave(entity));
-    const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toCreate)
+    const ready = toCreate.filter(entity => this.readyToSave(entity, 'create'));
+    const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toCreate, 'create')
     return ready$.pipe(
       switchMap(readyEntities => {
         if (readyEntities.length === 0) {
@@ -323,8 +323,8 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
     if (toUpdate.length === 0) return of(undefined);
     this.syncStep('send local updates to server');
     const entities = this._store.value.filter(item$ => item$.value && toUpdate.includes(this.getKey(item$.value))).map(item$ => item$.value!);
-    const ready = entities.filter(entity => this.readyToSave(entity));
-    const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(entities)
+    const ready = entities.filter(entity => this.readyToSave(entity, 'update'));
+    const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(entities, 'update')
     return ready$.pipe(
       switchMap(readyEntities => {
         if (readyEntities.length === 0) {

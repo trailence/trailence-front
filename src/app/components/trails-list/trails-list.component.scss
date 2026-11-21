@@ -70,7 +70,8 @@ app-toolbar {
     border: 1px solid var(--ion-item-background);
     &.highlighted {
       background: linear-gradient(to bottom, var(--ion-item-background-gradient-color) 0, rgba(var(--ion-color-medium-rgb), 0.33) 20px);
-      border: 1px solid rgba(var(--ion-color-medium-rgb), 0.33);
+      outline: 1px solid rgba(var(--ion-color-medium-rgb), 0.33);
+      border: 1px solid rgba(var(--ion-color-tertiary-rgb), 0.5);
     }
   }
 

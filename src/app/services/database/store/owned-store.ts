@@ -315,8 +315,8 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
       canCreate.splice(this.maxItemsToCreateBySync, canCreate.length - this.maxItemsToCreateBySync);
     }
     const toCreate = canCreate.map(item$ => item$.value!).filter(item => this._locks.startSync(item.uuid + '#' + item.owner));
-    const ready = toCreate.filter(entity => this.readyToSave(entity));
-    const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toCreate)
+    const ready = toCreate.filter(entity => this.readyToSave(entity, 'create'));
+    const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toCreate, 'create')
     return ready$.pipe(
       switchMap(readyEntities => {
         const notReady = toCreate.filter(item => !readyEntities.some(entity => entity.uuid === item.uuid && entity.owner === item.owner));
@@ -416,8 +416,8 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
       ) as ENTITY[];
     if (toUpdate.length === 0) return of(undefined);
     this.syncStep('send local updates to server');
-    const ready = toUpdate.filter(entity => this.readyToSave(entity));
-    const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toUpdate)
+    const ready = toUpdate.filter(entity => this.readyToSave(entity, 'update'));
+    const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toUpdate, 'update')
     return ready$.pipe(
       switchMap(readyEntities => {
         const notReady = toUpdate.filter(item => !readyEntities.some(entity => entity.uuid === item.uuid && entity.owner === item.owner));

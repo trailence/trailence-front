@@ -2396,6 +2396,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
 
   highlightedMapTrackSections: MapTrackPath[] = [];
   highlightSections(event: {track: Track, sections: TrackSection[]} | null): void {
+    /* TODO refacto
     const sizeBefore = this.mapTracks$.value.length;
     Arrays.removeAll(this.mapTracks$.value, this.highlightedMapTrackSections);
     let changed = this.mapTracks$.value.length != sizeBefore;
@@ -2406,8 +2407,10 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     }
     if (changed) this.mapTracks$.next(this.mapTracks$.value);
     if (event && changed) this.setTab('map');
+    */
   }
 
+  /* TODO refacto
   private buildMapTrack(track: Track, section: TrackSection, sectionIndex: number): MapTrackPath {
     const sectionTrack: SimplifiedTrackSnapshot = { owner: track.owner, uuid: track.uuid + '$' + sectionIndex, points: [] };
     for (let si = section.start.segmentIndex; si <= section.end.segmentIndex; ++si) {
@@ -2421,6 +2424,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     }
     const mt = new MapTrackPath(undefined, sectionTrack, new Color(255, 255, 0));
     return mt;
-  }
+  } */
 
 }

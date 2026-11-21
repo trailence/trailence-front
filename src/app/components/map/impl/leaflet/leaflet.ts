@@ -41,7 +41,7 @@ export class Leaflet extends MapRenderer {
 
     this.map = L.map(this.containerId, {
       center: this.mapState.center,
-      zoom: Math.floor(this.mapState.zoom),
+      zoom: this.mapState.zoom,
       layers: [createLeafletLayer(layer), ...overlays.map(o => createLeafletLayer(o))],
       zoomControl: false,
       worldCopyJump: true,

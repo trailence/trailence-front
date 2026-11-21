@@ -77,8 +77,8 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   protected abstract isQuotaReached(): boolean;
 
-  protected abstract readyToSave(entity: STORE_ITEM): boolean;
-  protected abstract readyToSave$(entity: STORE_ITEM): Observable<boolean>;
+  protected abstract readyToSave(entity: STORE_ITEM, action: 'create' | 'update'): boolean;
+  protected abstract readyToSave$(entity: STORE_ITEM, action: 'create' | 'update'): Observable<boolean>;
   protected abstract createdLocallyCanBeRemoved(entity: STORE_ITEM): Observable<boolean>;
 
   protected abstract isDeletedLocally(item: DB_ITEM): boolean;
@@ -311,10 +311,10 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     void this.operations.push(description, operation);
   }
 
-  protected waitReadyWithTimeout(entities: STORE_ITEM[]): Observable<STORE_ITEM[]> {
+  protected waitReadyWithTimeout(entities: STORE_ITEM[], action: 'create' | 'update'): Observable<STORE_ITEM[]> {
     if (entities.length === 0) return of([]);
     return combineLatest(
-      entities.map(entity => this.readyToSave$(entity).pipe(
+      entities.map(entity => this.readyToSave$(entity, action).pipe(
         filter(ready => ready),
         timeout({ first: 5000, with: () => of(false) })
       ))
