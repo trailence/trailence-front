@@ -15,7 +15,7 @@ export abstract class AbstractComponent<S> implements OnInit, OnDestroy, OnChang
   protected _children$ = new BehaviorSubject<AbstractComponent<any>[]>([]);
   protected _visible$ = new BehaviorSubject<boolean>(false);
   protected whenVisible: Resubscribeables;
-  protected whenAlive = new Subscriptions();
+  public whenAlive = new Subscriptions();
   protected byState = new Subscriptions();
   protected byStateAndVisible: Resubscribeables;
   protected ngZone: NgZone;
@@ -31,7 +31,7 @@ export abstract class AbstractComponent<S> implements OnInit, OnDestroy, OnChang
   public get visible(): boolean { return this._visible$.value; }
 
   constructor(
-    protected readonly injector: Injector,
+    public readonly injector: Injector,
   ) {
     this.ngZone = injector.get(NgZone);
     this.byStateAndVisible = new Resubscribeables(this.ngZone);

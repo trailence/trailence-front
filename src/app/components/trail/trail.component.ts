@@ -160,6 +160,15 @@ interface TrailTracks {
   osmMarkedTrails: MapTrackMarkedTrails | undefined;
 }
 
+interface IModerationTools {
+  readonly mapElements$: Observable<AnyMapElement[]>;
+  readonly toolbarItems$: Observable<MenuItem[]>;
+  readonly trail: Trail;
+  readonly compareWithTrail$: Observable<Trail | undefined>;
+  readonly showTextHtml: boolean;
+  readonly currentPublicTrailUuid: string | undefined;
+}
+
 @Component({
     selector: 'app-trail',
     templateUrl: './trail.component.html',
@@ -226,6 +235,7 @@ export class TrailComponent extends AbstractComponent<{trail1: Observable<Trail 
   showMapMarkedTrails$ = new BehaviorSubject<boolean>(false);
   showTrackWithElevationColors = false;
   canShowTrackWithElevationColors = false;
+  moderationTools$ = new BehaviorSubject<IModerationTools | undefined>(undefined);
 
   get trail1WithInfo(): TrailWithInfo | null { return this.trail1WithInfo$.value; }
   get trail2WithInfo(): TrailWithInfo | null { return this.trail2WithInfo$.value; }
@@ -275,12 +285,8 @@ export class TrailComponent extends AbstractComponent<{trail1: Observable<Trail 
   comparison: number | undefined = undefined;
   isPublication = false;
   publicationChecklist?: PublicationChecklist;
-  currentPublicTrailUuid?: string;
-  isShowPublicTrailsAround = false;
-  publicTrailsAroundMapTracks$ = new BehaviorSubject<MapTrackPath[]>([]);
   canTakePhoto = false;
   publishedTrail?: Trail;
-  showTextHtml = false;
 
   loopTypeIcon = getLoopTypeIcon;
   activityIcon = getActivityIcon;
@@ -305,7 +311,7 @@ export class TrailComponent extends AbstractComponent<{trail1: Observable<Trail 
   mapElements$: Observable<AnyMapElement[]> = combineLatest([
     this.mapTracks$,
     this.mapTracksAnchors$,
-    this.publicTrailsAroundMapTracks$,
+    this.moderationTools$.pipe(switchMap(tools => tools ? tools.mapElements$ : of([]))),
     this.mapTracksMarkedTrails$,
     this.mapPhotos$,
     this.highlightedMapTrackSections$,
@@ -340,25 +346,8 @@ export class TrailComponent extends AbstractComponent<{trail1: Observable<Trail 
       .setVisible(() => !this.trail2 && !!this.publicationChecklist)
       .setBadgeTopRight(() => ({ text: this.publicationChecklist?.nbUnchecked === 0 ? '✔' : '' + this.publicationChecklist?.nbChecked, color: 'success', fill: true }))
       .setBadgeTopLeft(() => this.publicationChecklist?.nbUnchecked ? ({ text: '' + this.publicationChecklist?.nbUnchecked, color: 'warning', fill: true }) : undefined)
-      .setAction(() => this.openChecklist()),
-    new MenuItem().setIcon('compare').setI18nLabel('publications.compare_current')
-      .setVisible(() => !!this.currentPublicTrailUuid && !this.trail2 && !this.isShowPublicTrailsAround)
-      .setAction(() => this.compareToPublicTrail()),
-    new MenuItem().setIcon('compare').setI18nLabel('publications.exit_compare_current')
-      .setVisible(() => !!this.currentPublicTrailUuid && !!this.trail2)
-      .setAction(() => this.exitCompareToPublicTrail()),
-    new MenuItem().setIcon('privacy').setI18nLabel('publications.check_public_trails_around')
-      .setVisible(() => this.trail1?.fromModeration && !this.trail2 && !this.isShowPublicTrailsAround)
-      .setAction(() => this.showPublicTrailsAround()),
-    new MenuItem().setIcon('privacy').setI18nLabel('publications.exit_check_public_trails_around')
-      .setVisible(() => this.isShowPublicTrailsAround)
-      .setAction(() => this.hidePublicTrailsAround()),
-    new MenuItem().setIcon('text').setI18nLabel('publications.show_html_text')
-      .setVisible(() => this.trail1?.fromModeration && !this.showTextHtml)
-      .setAction(() => { this.showTextHtml = true; this.toolbarItems = [...this.toolbarItems]; this.changesDetection.detectChanges(); }),
-    new MenuItem().setIcon('text').setI18nLabel('publications.exit_show_html_text')
-      .setVisible(() => this.trail1?.fromModeration && this.showTextHtml)
-      .setAction(() => { this.showTextHtml = false; this.toolbarItems = [...this.toolbarItems]; this.changesDetection.detectChanges(); }),
+      .setAction(() => this.openChecklist())
+      .setData('moderation-after'),
     new MenuItem().setIcon('web').setI18nLabel('publications.publish')
       .setVisible(() => (this.trail1?.fromModeration || (!!this.publicationChecklist && !this.trail2)))
       .setDisabled(() =>
@@ -366,7 +355,8 @@ export class TrailComponent extends AbstractComponent<{trail1: Observable<Trail 
         (!!this.trail1?.fromModeration && !this._translationsReady)
       )
       .setTextColor('success')
-      .setAction(() => this.publish()),
+      .setAction(() => this.publish())
+      .setData('moderation-before'),
     new MenuItem().setIcon('cross').setI18nLabel('publications.moderation.reject')
       .setVisible(() => this.trail1?.fromModeration)
       .setTextColor('danger')
@@ -603,18 +593,6 @@ export class TrailComponent extends AbstractComponent<{trail1: Observable<Trail 
     this.listenForCollections();
     this.listenForSource();
     this.listenForCommentsCount();
-    const publicTrackListener: AppEventListener<{mapElement: MapTrackPath, element: Track | SimplifiedTrackSnapshot, pointerEvent: MapPointerEvent}> = (event) => {
-      window.open(environment.baseUrl + '/trail/trailence/' + event.mapElement.trail!.uuid, '_blank');
-    };
-    this.whenAlive.add(
-      this.publicTrailsAroundMapTracks$.subscribe(
-        tracks => {
-          for (const track of tracks) {
-            track.events.click.addListenerIfAbsent(publicTrackListener);
-          }
-        }
-      )
-    );
     const trackHoverListener: AppEventListener<{mapElement: MapTrackPath, element: Track | SimplifiedTrackSnapshot, pointerEvent: MapPointerEvent | undefined}> = (event) => {
       if (event.pointerEvent === undefined) {
         this.hover.mouseOverPointOnMap();
@@ -634,6 +612,18 @@ export class TrailComponent extends AbstractComponent<{trail1: Observable<Trail 
         }
       )
     );
+    this.whenVisible.subscribe(
+      this.moderationTools$.pipe(
+        switchMap(tools => tools ? tools.toolbarItems$ : of([])),
+      ),
+      tools => {
+        const start = this.toolbarItems.findIndex(i => i.data === 'moderation-after');
+        const end = this.toolbarItems.findIndex(i => i.data === 'moderation-before');
+        this.toolbarItems.splice(start + 1, end - start - 1, ...tools);
+        this.toolbarItems = [...this.toolbarItems];
+        this.changesDetection.detectChanges();
+      }
+    )
   }
 
 
@@ -665,7 +655,7 @@ export class TrailComponent extends AbstractComponent<{trail1: Observable<Trail 
     this.mine = false;
     this.photos = undefined;
     this.comparison = undefined;
-    this.currentPublicTrailUuid = undefined;
+    this.moderationTools$.next(undefined);
     this.tracks$.next([]);
     this.mapTracks$.next([]);
     this.mapTracksAnchors$.next([]);
@@ -688,7 +678,6 @@ export class TrailComponent extends AbstractComponent<{trail1: Observable<Trail 
     this.listenForPhotosOnMap();
     this.listenForRecordingUpdates();
     this.listenForPublished();
-    this.listenCurrentPublic();
     this.listenForLiveGroups();
   }
 
@@ -761,7 +750,10 @@ export class TrailComponent extends AbstractComponent<{trail1: Observable<Trail 
     this.byStateAndVisible.subscribe(
       combineLatest([
         this.trail$(this.trail1$, true),
-        this.trail$(this.trail2$, false),
+        this.moderationTools$.pipe(
+          switchMap(tools => tools ? tools.compareWithTrail$ : of(undefined)),
+          switchMap(trail2 => trail2 ? this.trail$(of(trail2), false) : this.trail$(this.trail2$, false)),
+        ),
         recording$,
         this.toolsBaseTrack$,
         this.toolsModifiedTrack$,
@@ -773,6 +765,12 @@ export class TrailComponent extends AbstractComponent<{trail1: Observable<Trail 
         debounceTime(1)
       ),
       ([trail1, trail2, recordingWithTrack, toolsBaseTrack, toolsModifiedTrack, selectionTracks, zoomOnSelection, hideBaseTrack, showMapMarkedTrails]) => { // NOSONAR
+        if (trail1?.trail?.fromModeration && (!trail2.trail || (trail2.trail.owner === 'trailence' && trail2.trail.uuid === this.moderationTools$.value?.currentPublicTrailUuid)) && trail1.track) {
+          if (this.moderationTools$.value?.trail !== trail1.trail)
+            void import('./moderation-tools').then(m => this.moderationTools$.next(new m.ModerationTools(this, trail1.trail!, trail1.track!)));
+        } else if (this.moderationTools$.value) {
+          this.moderationTools$.next(undefined);
+        }
         this.canShowTrackWithElevationColors = !!trail1.track && !trail2.trail;
         if (this.trail1 !== trail1.trail) {
           if (this._lock) {
@@ -1144,23 +1142,6 @@ export class TrailComponent extends AbstractComponent<{trail1: Observable<Trail 
       ),
       (publicTrail) => {
         this.publishedTrail = publicTrail ?? undefined;
-        this.changesDetection.detectChanges();
-      }
-    );
-  }
-
-  private listenCurrentPublic(): void {
-    if (!this.trail1$) return;
-    this.byStateAndVisible.subscribe(
-      this.trail1$.pipe(
-        filterDefined(),
-        filter(t => t.fromModeration && !!t.publishedFromUuid),
-        switchMap(t => this.injector.get(ModerationService).getPublicUuid(t.publishedFromUuid!, t.owner)), // NOSONAR
-        take(1),
-      ),
-      uuid => {
-        this.currentPublicTrailUuid = uuid;
-        this.toolbarItems = [...this.toolbarItems];
         this.changesDetection.detectChanges();
       }
     );
@@ -2311,37 +2292,11 @@ export class TrailComponent extends AbstractComponent<{trail1: Observable<Trail 
     });
   }
 
-  private async compareToPublicTrail() {
-    const trailence = this.injector.get(FetchSourceService).getTrailence();
-    const trail = await trailence?.getTrail(this.currentPublicTrailUuid!);
-    if (trail)
-      (this.trail2$ as BehaviorSubject<Trail | null>).next(trail);
-  }
-
-  private exitCompareToPublicTrail() {
-    (this.trail2$ as BehaviorSubject<Trail | null>).next(null);
-  }
-
   private _translationsReady = false;
   translationsReadyChanged(ready: boolean): void {
     this._translationsReady = ready;
     this.toolbarItems = [...this.toolbarItems];
     this.changesDetection.detectChanges();
-  }
-
-  showPublicTrailsAround(): void {
-    this.isShowPublicTrailsAround = true;
-    void import('./check-public-trails-around')
-    .then(m => m.checkPublicTrailsAround(this.injector, this.tracks$.value[0], (tracks) => {
-      if (this.isShowPublicTrailsAround) this.publicTrailsAroundMapTracks$.next(tracks);
-    }));
-    this.toolbarItems = [...this.toolbarItems];
-    this.changesDetection.detectChanges();
-  }
-
-  hidePublicTrailsAround(): void {
-    this.isShowPublicTrailsAround = false;
-    this.publicTrailsAroundMapTracks$.next([]);
   }
 
   highlightSections(event: {track: Track, sections: TrackSection[]} | null): void {

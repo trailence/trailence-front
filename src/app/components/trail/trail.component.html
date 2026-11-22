@@ -2,6 +2,7 @@
 <div class="top-container {{displayMode}} tab-{{tab}} {{ bottomSheetOpen ? 'bottom-sheet-open bottom-sheet-' + bottomSheetTab : 'bottom-sheet-closed' }}"
   [ngStyle]="{'--bottom-sheet-tab-content-height': bottomSheetCustomHeight && bottomSheetOpen ? bottomSheetCustomHeight : undefined}"
 >
+  @let showTextHtml = trail1?.fromModeration ? !!(moderationTools$ | async)?.showTextHtml : false;
   @if (tracks$ | async; as tracks) {
     @if (!isSmall || tab === 'details') {
       <div class="trail-details">
