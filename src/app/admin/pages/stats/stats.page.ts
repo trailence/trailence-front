@@ -19,7 +19,7 @@ import { CollapsableSectionComponent } from '@trailence/components/collapsable-s
     CollapsableSectionComponent,
   ]
 })
-export class AdminStatsPage extends AbstractPage {
+export class AdminStatsPage extends AbstractPage<undefined> {
 
   config$ = new BehaviorSubject<AdminStatsConfig>({
     type: AdminStatsType.NB_USERS,
@@ -39,6 +39,9 @@ export class AdminStatsPage extends AbstractPage {
     super(injector);
     this.graphProvider = new AdminStatsBuilder(injector);
   }
+
+  protected override getComponentState(): undefined { return undefined; }
+  protected override onComponentStateChanged(): void {}
 
   setType(type: any): void {
     if (!this.types.includes(type)) return;

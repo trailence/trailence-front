@@ -13,7 +13,7 @@ export class MapRendererInitializer {
     private readonly injector: Injector,
     private readonly containerId: string,
     private readonly mapState: MapState,
-    private readonly component: AbstractComponent,
+    private readonly component: AbstractComponent<any>,
     private readonly events: MapEvents,
     map$: BehaviorSubject<MapRenderer | undefined>,
   ) {

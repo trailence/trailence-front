@@ -28,7 +28,7 @@ const logger = getLogger('contact.page');
     IonInput, IonTextarea, IonSelect, IonSelectOption, IonButton, IonIcon, IonCheckbox,
   ]
 })
-export class ContactPage extends PublicPage {
+export class ContactPage extends PublicPage<undefined> {
 
   constructor(
     public readonly i18n: I18nService,
@@ -57,6 +57,9 @@ export class ContactPage extends PublicPage {
   captchaInit = false;
   includeData = false;
   data = '';
+
+  protected override getComponentState(): undefined { return undefined; }
+  protected override onComponentStateChanged(): void {}
 
   protected override initComponent(): void {
     this.init();

@@ -26,6 +26,8 @@ import { getLogger } from '@trailence/utils/console';
 
 const logger = getLogger('trail.page');
 
+type State = {owner?: string, uuid?: string, owner2?: string, uuid2?: string};
+
 @Component({
   selector: 'app-trail-page',
   templateUrl: './trail.page.html',
@@ -36,7 +38,7 @@ const logger = getLogger('trail.page');
     TrailComponent,
   ]
 })
-export class TrailPage extends AbstractPage {
+export class TrailPage extends AbstractPage<State> {
 
   @Input() trailOwner?: string;
   @Input() trailId?: string;
@@ -149,7 +151,7 @@ export class TrailPage extends AbstractPage {
     return this.injector.get(ShareService).getSharesFromTrailSharedWithMe(trail.uuid, trail.owner).pipe(map(list => list.map(s => s.name).join(', ')))
   }
 
-  protected override getComponentState() {
+  protected override getComponentState(): State {
     return {
       owner: this.trailOwner,
       uuid: this.trailId,
@@ -158,15 +160,15 @@ export class TrailPage extends AbstractPage {
     }
   }
 
-  protected override onComponentStateChanged(previousState: any, newState: any): void {
+  protected override onComponentStateChanged(_: State, newState: State): void {
     this.menu = [];
     if (newState.owner && newState.uuid) {
       this.byStateAndVisible.subscribe(
         this.injector.get(AuthService).userChanged$.pipe(
           switchMap(() => combineLatest([
             this.trailType === 'moderation' ?
-              this.injector.get(ModerationService).getTrail$(newState.uuid, newState.owner) :
-              this.trailService.getTrail$(newState.uuid, newState.owner),
+              this.injector.get(ModerationService).getTrail$(newState.uuid!, newState.owner!) :
+              this.trailService.getTrail$(newState.uuid!, newState.owner!),
             newState.owner2 && newState.uuid2 ?
               this.trailService.getTrail$(newState.uuid2, newState.owner2) :
               of(null)
@@ -177,7 +179,7 @@ export class TrailPage extends AbstractPage {
               this.trailService.storeLoadedAndServerUpdates$(),
               this.visible$,
               this.injector.get(NetworkService).server$,
-              this.trailService.getTrail$(newState.uuid, newState.owner).pipe(
+              this.trailService.getTrail$(newState.uuid!, newState.owner!).pipe(
                 firstTimeout<Trail | null>(item => !!item, 5000, () => null),
               ),
             ]).pipe(

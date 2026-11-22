@@ -38,7 +38,7 @@ const logger = getLogger('login.page');
         NgStyle,
     ]
 })
-export class LoginPage extends PublicPage {
+export class LoginPage extends PublicPage<undefined> {
 
   email = '';
   password = '';
@@ -82,6 +82,9 @@ export class LoginPage extends PublicPage {
       void this.injector.get(NavController).navigateRoot(this.returnUrl);
     });
   }
+
+  protected override getComponentState(): undefined { return undefined; }
+  protected override onComponentStateChanged(): void {}
 
   onSubmit(): void {
     if (this.canSignin()) this.signin();

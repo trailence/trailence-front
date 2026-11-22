@@ -3,15 +3,16 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { Resubscribeables, Subscriptions } from './rxjs/subscription-utils';
 import { Arrays } from './arrays';
 import { ChangesDetection } from './angular-helpers';
+import { ObjectUtils } from './object-utils';
 
 @Component({
     changeDetection: ChangeDetectionStrategy.Eager,
     template: '',
 })
-export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges {
+export abstract class AbstractComponent<S> implements OnInit, OnDestroy, OnChanges {
 
-  protected _parent?: AbstractComponent;
-  protected _children$ = new BehaviorSubject<AbstractComponent[]>([]);
+  protected _parent?: AbstractComponent<any>;
+  protected _children$ = new BehaviorSubject<AbstractComponent<any>[]>([]);
   protected _visible$ = new BehaviorSubject<boolean>(false);
   protected whenVisible: Resubscribeables;
   protected whenAlive = new Subscriptions();
@@ -21,7 +22,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
   public changesDetection: ChangesDetection;
 
   private _isInit = false;
-  private _currentState: any = undefined;
+  private _currentState: S | undefined = undefined;
 
   private _initializing = true;
   public get initializing() { return this._initializing; }
@@ -45,10 +46,10 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
   protected initComponent(): void {} // NOSONAR
   protected destroyComponent(): void {} // NOSONAR
 
-  protected getComponentState(): any {} // NOSONAR
-  protected onComponentStateChanged(previousState: any, newState: any): void {};
+  protected abstract getComponentState(): S | undefined;
+  protected abstract onComponentStateChanged(previousState: S | undefined, newState: S | undefined): void;
 
-  protected getChildVisibility(child: AbstractComponent): boolean | undefined {
+  protected getChildVisibility(child: AbstractComponent<any>): boolean | undefined {
     return undefined;
   }
 
@@ -160,34 +161,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
 
   private _checkComponentState(): void { // NOSONAR
     const state = this.getComponentState();
-    let needRefresh = false;
-    if (this._currentState === undefined) {
-      if (state !== undefined) {
-        needRefresh = true;
-      }
-    } else if (state === undefined) {
-      needRefresh = true;
-    } else {
-      const currentKeys = Object.getOwnPropertyNames(this._currentState);
-      const newKeys = Object.getOwnPropertyNames(state);
-      if (Arrays.sameContent(currentKeys, newKeys)) {
-        for (const key of currentKeys) {
-          if (state[key] !== this._currentState[key]) {
-            needRefresh = true;
-            break;
-          }
-        }
-      } else {
-        needRefresh = true;
-      }
-      for (const key in this._currentState) {
-        if (state[key] !== this._currentState[key]) {
-          needRefresh = true;
-          break;
-        }
-      }
-    }
-
+    const needRefresh = !ObjectUtils.sameContent(this._currentState, state);
     if (needRefresh) {
       this.byState.unsubscribe();
       this.byStateAndVisible.stop();
@@ -207,7 +181,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
 
 }
 
-export abstract class AbstractPage extends AbstractComponent {
+export abstract class AbstractPage<S> extends AbstractComponent<S> {
 
   ionViewWillEnter(): void {
     this.setVisible(true);

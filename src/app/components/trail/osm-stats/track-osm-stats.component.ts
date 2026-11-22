@@ -28,7 +28,7 @@ interface Stats {
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [NgTemplateOutlet, NgClass, ProgressBarComponent, IonSpinner, I18nPipe]
 })
-export class TrackOsmStatsComponent extends AbstractComponent {
+export class TrackOsmStatsComponent extends AbstractComponent<Track | undefined> {
 
   @Input() track?: Track;
   @Output() trackSectionsHighlighted = new EventEmitter<{track: Track, sections: TrackSection[]} | null>();
@@ -45,11 +45,11 @@ export class TrackOsmStatsComponent extends AbstractComponent {
     super(injector);
   }
 
-  protected override getComponentState() {
+  protected override getComponentState(): Track | undefined {
     return this.track;
   }
 
-  protected override onComponentStateChanged(previousState: any, newState: any): void {
+  protected override onComponentStateChanged(): void {
     this.loading = true;
     this.message = undefined;
     this.byStateAndVisible.subscribe(

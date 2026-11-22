@@ -20,7 +20,7 @@ import { GraphBuilder } from './graph-builder';
     GraphComponent,
   ]
 })
-export class StatsComponent extends AbstractComponent {
+export class StatsComponent extends AbstractComponent<undefined> {
 
   config?: StatsConfig;
   resetChart = true;
@@ -36,6 +36,9 @@ export class StatsComponent extends AbstractComponent {
   ) {
     super(injector);
   }
+
+  protected override getComponentState(): undefined { return undefined; }
+  protected override onComponentStateChanged(): void {}
 
   protected override initComponent(): void {
     this.whenVisible.subscribe(

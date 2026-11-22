@@ -70,6 +70,13 @@ interface TrailWithInfo {
   nbPhotos: number;
 }
 
+type ComponentState = {
+  trails$?: List<Observable<Trail | null>>,
+  collectionUuid?: string,
+  map?: MapComponent,
+  listId: string,
+};
+
 @Component({
   selector: 'app-trails-list',
   templateUrl: './trails-list.component.html',
@@ -88,7 +95,7 @@ interface TrailWithInfo {
     NgTemplateOutlet,
   ]
 })
-export class TrailsListComponent extends AbstractComponent {
+export class TrailsListComponent extends AbstractComponent<ComponentState> {
 
   @Input() trails$?: List<Observable<Trail | null>>;
   @Input() collectionUuid?: string;
@@ -234,7 +241,7 @@ export class TrailsListComponent extends AbstractComponent {
     });
   }
 
-  protected override getComponentState() {
+  protected override getComponentState(): ComponentState {
     return {
       trails$: this.trails$,
       collectionUuid: this.collectionUuid,
@@ -243,7 +250,7 @@ export class TrailsListComponent extends AbstractComponent {
     }
   }
 
-  protected override onComponentStateChanged(previousState: any, newState: any): void {
+  protected override onComponentStateChanged(previousState: ComponentState | undefined, newState: ComponentState | undefined): void {
     if (newState?.listId !== previousState?.listId)
       this.loadState();
 

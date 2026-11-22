@@ -13,7 +13,7 @@ const logger = getLogger('public.page');
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonRouterOutlet]
 })
-export class PublicPageRoute extends AbstractPage {
+export class PublicPageRoute extends AbstractPage<undefined> {
 
   override ionViewWillEnter(): void {
     if (this.visible) this._propagateVisible(true);
@@ -37,6 +37,9 @@ export class PublicPageRoute extends AbstractPage {
     }
   }
 
+  protected override getComponentState(): undefined { return undefined; }
+  protected override onComponentStateChanged(): void {}
+
 }
 
 @Component({
@@ -53,12 +56,12 @@ export class PublicPageWithoutLang {
 
   ionViewWillEnter(): void {
     logger.debug('Public page without language => redirecting to path with language');
-    this.navController.navigateRoot('/' + this.prefs.preferences.lang + this.router.url);
+    void this.navController.navigateRoot('/' + this.prefs.preferences.lang + this.router.url);
   }
 
 }
 
-export abstract class PublicPage extends AbstractPage {
+export abstract class PublicPage<S> extends AbstractPage<S> {
 
   constructor(
     injector: Injector,

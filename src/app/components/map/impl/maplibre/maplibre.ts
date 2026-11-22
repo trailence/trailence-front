@@ -47,7 +47,7 @@ export class MapLibre extends MapRenderer {
 
   public getMaplibreMap(): MapLibreMap | undefined { return this.map; }
 
-  public async init(mapComponent: AbstractComponent, transitionFrom2d: boolean) {
+  public async init(mapComponent: AbstractComponent<any>, transitionFrom2d: boolean) {
     this.injector.get(AssetsService).loadCss(assetsDependencies['maplibre-gl-css']);
     const layersService = this.injector.get(MapLayersService);
     if (this.mapState.zoom < 2) this.mapState.zoom = 2;

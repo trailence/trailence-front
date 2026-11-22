@@ -39,14 +39,14 @@ export class LinkPage {
     let token = globalThis.location.pathname;
     if (!token.startsWith('/link/')) {
       logger.warn('Invalid link', token);
-      this.router.navigateByUrl('/');
+      void this.router.navigateByUrl('/');
       return;
     }
     token = decodeURIComponent(token.substring(6));
     const i = token.indexOf('.');
     if (i <= 0) {
       logger.warn('Invalid token', token);
-      this.router.navigateByUrl('/');
+      void this.router.navigateByUrl('/');
       return;
     }
     try {
@@ -54,7 +54,7 @@ export class LinkPage {
       const payload = JSON.parse(json);
       if (!payload) {
         logger.warn('Invalid token payload', token);
-        this.router.navigateByUrl('/');
+        void this.router.navigateByUrl('/');
         return;
       }
       logger.info('payload', payload);
@@ -113,7 +113,7 @@ export class LinkPage {
           error: error => {
             logger.error(error);
             if (error instanceof ApiError && error.httpCode === 403) {
-              this.router.navigateByUrl('/login?email=' + encodeURIComponent(payload.email));
+              void this.router.navigateByUrl('/login?email=' + encodeURIComponent(payload.email));
             }
             this.message = this.i18n.texts.pages.link.share.error;
             this.inprogress = false;
@@ -122,7 +122,7 @@ export class LinkPage {
       }
     } catch (e) {
       logger.error('Error decoding token', token, e);
-      this.router.navigateByUrl('/');
+      void this.router.navigateByUrl('/');
       return;
     }
   }

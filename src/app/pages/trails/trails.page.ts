@@ -42,9 +42,10 @@ import { NULL_UUID } from '@trailence/utils/string-utils';
 import { Filters } from '@trailence/services/preferences/preferences';
 import { getLogger } from '@trailence/utils/console';
 import { MapBubble } from '@trailence/components/map/elements/map-bubble';
-import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
 
 const logger = getLogger('trails.page');
+
+type State = {type?: string, id?: string, from?: string};
 
 @Component({
   selector: 'app-trails-page',
@@ -59,7 +60,7 @@ const logger = getLogger('trails.page');
     ContributionsBadgesComponent,
   ]
 })
-export class TrailsPage extends AbstractPage {
+export class TrailsPage extends AbstractPage<State> {
 
   @Input() trailsType?: string;
   @Input() trailsId?: string;
@@ -103,7 +104,7 @@ export class TrailsPage extends AbstractPage {
     );
   }
 
-  protected override getComponentState() {
+  protected override getComponentState(): State {
     return {
       type: this.trailsType,
       id: this.trailsId,
@@ -111,7 +112,7 @@ export class TrailsPage extends AbstractPage {
     }
   }
 
-  protected override onComponentStateChanged(previousState: any, newState: any): void {
+  protected override onComponentStateChanged(_: State, newState: State): void {
     if (newState.type === 'collection' && newState.id === 'my_trails') {
       this.byStateAndVisible.subscribe(this.injector.get(TrailCollectionService).getMyTrails$(),
         myTrails => this.ngZone.run(() => this.injector.get(NavController).navigateRoot('/trails/collection/' + myTrails.uuid))
@@ -121,14 +122,14 @@ export class TrailsPage extends AbstractPage {
     this.reset();
     if (!newState.type) return;
     switch (newState.type) {
-      case 'collection': this.initCollection(newState.id); break;
-      case 'share': this.initShare(newState.id, newState.from); break;
+      case 'collection': if (newState.id) this.initCollection(newState.id); break;
+      case 'share': if (newState.id && newState.from) this.initShare(newState.id, newState.from); break;
       case 'search': this.initSearch(); break;
       case 'all-collections': this.initAllCollections(); break;
       case 'moderation': this.initModeration(); break;
       case 'my-publications': this.initMyPublications(); break;
       case 'my-selection': this.initMySelection(); break;
-      case 'user-public': this.initUserPublic(newState.id); break;
+      case 'user-public': if (newState.id) this.initUserPublic(newState.id); break;
       default: void this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/'));
     }
   }
@@ -547,7 +548,7 @@ export class TrailsPage extends AbstractPage {
         switchMap(([loaded, visible, connected, item]) => {
           if (item === null && (!connected || (loaded && visible))) {
             logger.warn('Item not found, redirecting to home');
-            this.ngZone.run(() => this.injector.get(NavController).navigateRoot('/'));
+            void this.ngZone.run(() => this.injector.get(NavController).navigateRoot('/'));
           }
           return EMPTY;
         })

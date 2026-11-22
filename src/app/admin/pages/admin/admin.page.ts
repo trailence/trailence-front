@@ -18,7 +18,7 @@ import { MessagesService } from '../../services/messages.service';
     IonRouterOutlet, IonSegment, IonSegmentButton,
   ]
 })
-export class AdminPage extends AbstractPage {
+export class AdminPage extends AbstractPage<undefined> {
 
   ready = false;
   unreadMessagesCount?: number;
@@ -32,6 +32,9 @@ export class AdminPage extends AbstractPage {
   ) {
     super(injector);
   }
+
+  protected override getComponentState(): undefined { return undefined; }
+  protected override onComponentStateChanged(): void {}
 
   protected override initComponent(): void {
     this.i18nAdmin.ready$.subscribe(r => {
@@ -51,6 +54,6 @@ export class AdminPage extends AbstractPage {
   }
 
   goToPage(page: any): void {
-    this.router.navigateByUrl('/admin/' + page);
+    void this.router.navigateByUrl('/admin/' + page);
   }
 }

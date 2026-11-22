@@ -83,7 +83,7 @@ interface State {
       TrailGraphComponent,
     ]
 })
-export class TrailOverviewComponent extends AbstractComponent {
+export class TrailOverviewComponent extends AbstractComponent<State> {
 
   @Input() trail?: Trail;
   @Input() refreshMode: 'live' | 'snapshot' = 'snapshot';
@@ -181,7 +181,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     changeDetector.detach();
   }
 
-  protected override getComponentState() {
+  protected override getComponentState(): State {
     return {
       trail: this.trail,
       trackSnapshot: this.trackSnapshot,
@@ -191,14 +191,14 @@ export class TrailOverviewComponent extends AbstractComponent {
       photoEnabled: this.photoEnabled,
       smallMapEnabled: this.smallMapEnabled,
       elevationProfile: this.elevationProfile,
-    } as State;
+    };
   }
 
   protected override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
     if (changes['selected'] || changes['enableShowOnMap'] || changes['hideMenu'] || changes['photoCanBeOnLeft'] || changes['maxWidth']) this.changesDetection.detectChanges();
   }
 
-  protected override onComponentStateChanged(previousState: any, newState: any): void { // NOSONAR
+  protected override onComponentStateChanged(previousState: State | undefined, newState: State | undefined): void { // NOSONAR
     this.reset(previousState, newState);
     if (!this.trail) {
       this.removeTrackMetadata();

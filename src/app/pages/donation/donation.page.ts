@@ -30,7 +30,7 @@ interface Goal {
     NgStyle,
   ]
 })
-export class DonationPage extends PublicPage {
+export class DonationPage extends PublicPage<undefined> {
 
   constructor(
     injector: Injector,
@@ -44,6 +44,9 @@ export class DonationPage extends PublicPage {
 
   goals: Goal[] = [];
   private _refreshTimeout: any;
+
+  protected override getComponentState(): undefined { return undefined; }
+  protected override onComponentStateChanged(): void {}
 
   protected override initComponent(): void {
     this.whenVisible.subscribe(this.network.server$, available => {

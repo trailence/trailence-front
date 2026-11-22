@@ -12,7 +12,7 @@ import { PreferencesService } from '@trailence/services/preferences/preferences.
     HeaderComponent,
   ]
 })
-export class InstallApkPage extends PublicPage {
+export class InstallApkPage extends PublicPage<undefined> {
 
   constructor(
     public readonly i18n: I18nService,
@@ -21,6 +21,9 @@ export class InstallApkPage extends PublicPage {
   ) {
     super(injector);
   }
+
+  protected override getComponentState(): undefined { return undefined; }
+  protected override onComponentStateChanged(): void {}
 
   langUpToDown(): string {
     switch (this.prefs.preferences.lang) {

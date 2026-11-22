@@ -37,8 +37,10 @@ export class ObjectUtils {
     if (Array.isArray(o1)) return Array.isArray(o2) && Arrays.sameContent(o1, o2, (e1, e2) => ObjectUtils.sameContent(e1, e2));
     if (Array.isArray(o2)) return false;
     if (typeof o1 === 'object' && typeof o2 === 'object') {
-      if (!Arrays.sameContent(Object.keys(o1), Object.keys(o2))) return false;
-      for (const key of Object.keys(o1)) {
+      const keys1 = Object.getOwnPropertyNames(o1);
+      const keys2 = Object.getOwnPropertyNames(o2);
+      if (!Arrays.sameContent(keys1, keys2)) return false;
+      for (const key of keys1) {
         if (!this.sameContent(o1[key], o2[key])) return false;
       }
       return true;

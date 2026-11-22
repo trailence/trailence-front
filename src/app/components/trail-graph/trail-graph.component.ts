@@ -31,6 +31,8 @@ C.Chart.register(C.LinearScale, C.LineController, C.PointElement, C.LineElement,
 
 export type GraphType = 'elevation' | 'speed';
 
+type GraphState = {track1: Track, track2?: Track, selectable: boolean, graphType: GraphType};
+
 @Component({
   selector: 'app-trail-graph',
   templateUrl: './trail-graph.component.html',
@@ -41,7 +43,7 @@ export type GraphType = 'elevation' | 'speed';
     NgStyle,
   ]
 })
-export class TrailGraphComponent extends AbstractComponent {
+export class TrailGraphComponent extends AbstractComponent<GraphState> {
 
   @Input() track1!: Track;
   @Input() track2?: Track;
@@ -93,7 +95,7 @@ export class TrailGraphComponent extends AbstractComponent {
     injector.get(ElementRef).nativeElement.addEventListener('mouseout', () => this.pointHover.emit([]));
   }
 
-  protected override getComponentState() {
+  protected override getComponentState(): GraphState {
     return {
       track1: this.track1,
       track2: this.track2,
@@ -102,7 +104,7 @@ export class TrailGraphComponent extends AbstractComponent {
     }
   }
 
-  protected override onComponentStateChanged(previousState: any, newState: any): void {
+  protected override onComponentStateChanged(): void {
     this.resetChart();
   }
 

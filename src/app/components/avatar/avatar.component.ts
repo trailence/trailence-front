@@ -2,13 +2,22 @@ import { Component, ElementRef, Injector, Input, ChangeDetectionStrategy } from 
 import { AvatarService } from '@trailence/services/avatar/avatar.service';
 import { AbstractComponent } from '@trailence/utils/component-utils';
 
+type State = {
+  uuid?: string;
+  blob?: Blob;
+  name?: string;
+  url?: string;
+  anonymous: boolean;
+  me: boolean;
+};
+
 @Component({
   selector: 'app-avatar',
   template: ``,
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [],
 })
-export class AvatarComponent extends AbstractComponent {
+export class AvatarComponent extends AbstractComponent<State> {
 
   @Input() uuid?: string;
   @Input() blob?: Blob;
@@ -26,11 +35,11 @@ export class AvatarComponent extends AbstractComponent {
     super(injector);
   }
 
-  protected override getComponentState() {
-    return {uuid: this.uuid, blob: this.blob, name: this.name, anonymous: this.anonymous, me: this.me};
+  protected override getComponentState(): State {
+    return {uuid: this.uuid, blob: this.blob, name: this.name, url: this.url, anonymous: this.anonymous, me: this.me};
   }
 
-  protected override onComponentStateChanged(previousState: any, newState: any): void {
+  protected override onComponentStateChanged(): void {
     while (this.element.nativeElement.children.length > 0) this.element.nativeElement.children.item(0).remove();
     if (this.blob) {
       this.element.nativeElement.appendChild(this.avatarService.generateFromBlob(this.blob));

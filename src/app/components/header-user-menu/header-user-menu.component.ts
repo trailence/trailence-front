@@ -27,7 +27,7 @@ import { AvailableLocales } from '@trailence/services/i18n/available-locales';
     ContributionsBadgesComponent,
 ]
 })
-export class HeaderUserMenuComponent extends AbstractComponent {
+export class HeaderUserMenuComponent extends AbstractComponent<undefined> {
 
   status?: string;
   lastSync?: number;
@@ -66,6 +66,9 @@ export class HeaderUserMenuComponent extends AbstractComponent {
     if (platform.is('capacitor'))
       this.webUrl = environment.baseUrl;
   }
+
+  protected override getComponentState(): undefined { return undefined; }
+  protected override onComponentStateChanged(): void {}
 
   transferEvent(event: any, target: any): void {
     target.el.dispatchEvent(new MouseEvent('click', {

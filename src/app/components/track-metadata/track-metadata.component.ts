@@ -66,6 +66,8 @@ export interface TrackMetadataConfig {
   showSpeed: boolean;
 }
 
+type State = { track: TrackType, track2: TrackType };
+
 @Component({
     selector: 'app-track-metadata',
     templateUrl: './track-metadata.component.html',
@@ -73,7 +75,7 @@ export interface TrackMetadataConfig {
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: []
 })
-export class TrackMetadataComponent extends AbstractComponent {
+export class TrackMetadataComponent extends AbstractComponent<State> {
 
   @Input() track?: Track | TrackMetadataSnapshot;
   @Input() track2?: Track | TrackMetadataSnapshot;
@@ -339,16 +341,16 @@ export class TrackMetadataComponent extends AbstractComponent {
     if (container) container.style.display = shown ? '' : 'none';
   }
 
-  protected override getComponentState(): any {
+  protected override getComponentState(): State {
     return {
       track: this.track,
       track2: this.track2,
     }
   }
 
-  protected override onComponentStateChanged(previousState: any, newState: any): void {
-    if (newState?.track !== previousState?.track) this.track$.next(newState.track);
-    if (newState?.track2 !== previousState?.track2) this.track2$.next(newState.track2);
+  protected override onComponentStateChanged(previousState: State | undefined, newState: State | undefined): void {
+    if (newState && newState?.track !== previousState?.track) this.track$.next(newState.track);
+    if (newState && newState?.track2 !== previousState?.track2) this.track2$.next(newState.track2);
   }
 
 }

@@ -12,7 +12,7 @@ import { AbstractPage } from '@trailence/utils/component-utils';
     HeaderComponent, StatsComponent
   ]
 })
-export class StatsPage extends AbstractPage {
+export class StatsPage extends AbstractPage<undefined> {
 
   constructor(
     public readonly i18n: I18nService,
@@ -20,5 +20,8 @@ export class StatsPage extends AbstractPage {
   ) {
     super(injector);
   }
+
+  protected override getComponentState(): undefined { return undefined; }
+  protected override onComponentStateChanged(): void {}
 
 }

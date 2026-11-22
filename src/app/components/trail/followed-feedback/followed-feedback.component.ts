@@ -21,8 +21,8 @@ import { Router } from '@angular/router';
     I18nPipe,
   ]
 })
-export class FollowedFeedbackComponent extends AbstractComponent {
-  @Input() trail!: Trail;
+export class FollowedFeedbackComponent extends AbstractComponent<string> {
+  @Input() trail?: Trail;
 
   myFeedback?: MyFeedback;
   canLeaveFeedback = false;
@@ -38,15 +38,16 @@ export class FollowedFeedbackComponent extends AbstractComponent {
     super(injector);
   }
 
-  protected override getComponentState() {
-    return {trail: this.trail};
+  protected override getComponentState(): string | undefined {
+    const url = this.trail?.followedUrl;
+    if (!url?.startsWith(environment.baseUrl + '/trail/trailence/')) return undefined;
+    return url;
   }
 
-  protected override onComponentStateChanged(): void {
+  protected override onComponentStateChanged(_: string | undefined, url: string | undefined): void {
     this.myFeedback = undefined;
     this.canLeaveFeedback = false;
-    const url = this.trail.followedUrl;
-    if (!url?.startsWith(environment.baseUrl + '/trail/trailence/')) return;
+    if (!url) return;
     const followed = url.substring(environment.baseUrl.length + 17);
     this.byStateAndVisible.subscribe(
       combineLatest([this.authService.userChanged$, this.network.server$]).pipe(
@@ -62,7 +63,7 @@ export class FollowedFeedbackComponent extends AbstractComponent {
     );
     this.byStateAndVisible.subscribe(
       this.authService.userChanged$.pipe(
-        filter(auth => !!auth && auth.email === this.trail.owner && !auth.isAnonymous),
+        filter(auth => !!auth && auth.email === this.trail?.owner && !auth.isAnonymous),
         switchMap(() => this.fetchSourceService.getTrailence$()),
         switchMap(trailence => trailence.ready$.pipe(
           filter(Boolean),
@@ -77,7 +78,9 @@ export class FollowedFeedbackComponent extends AbstractComponent {
   }
 
   rateThisTrail(): void {
-    void this.injector.get(Router).navigate([this.trail.followedUrl!.substring(environment.baseUrl.length)], {fragment: 'rate'});
+    const url = this.getComponentState();
+    if (!url) return;
+    void this.injector.get(Router).navigate([url.substring(environment.baseUrl.length)], {fragment: 'rate'});
   }
 
 }

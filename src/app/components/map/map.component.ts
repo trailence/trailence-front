@@ -4,7 +4,7 @@ import { MapState, RotateMode } from './map-state';
 import { MapRendererInitializer } from './impl/map-renderer-initializer';
 import { BehaviorSubject, catchError, debounceTime, filter, first, firstValueFrom, map, Observable, of, switchMap, timeout } from 'rxjs';
 import { MapRenderer } from './impl/map-renderer';
-import { AnyMapElement, MapElement } from './map-element';
+import { AnyMapElement } from './map-element';
 import { MapElementsRenderer } from './map-elements-renderer';
 import { createMyGeoLocationCursor } from './elements/geo-location-cursor';
 import { MapTool, MapToolGroup } from './map-tool';
@@ -34,7 +34,7 @@ export interface MapOptions {
     ToolbarComponent,
   ],
 })
-export class MapComponent extends AbstractComponent {
+export class MapComponent extends AbstractComponent<undefined> {
 
   @Input() mapId?: string;
   @Input() elements$?: Observable<AnyMapElement[]>;
@@ -60,6 +60,9 @@ export class MapComponent extends AbstractComponent {
   public get fullscreen$(): Observable<boolean> { return this._fullscreen$; }
 
   public get mapElements$(): Observable<AnyMapElement[]> { return this._elementsRenderer.elements$; }
+
+  protected override getComponentState(): undefined { return undefined; }
+  protected override onComponentStateChanged(): void {}
 
   protected override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
     if (changes['elements$']) {

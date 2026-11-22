@@ -193,7 +193,7 @@ interface TrailTracks {
         FollowedFeedbackComponent,
     ]
 })
-export class TrailComponent extends AbstractComponent implements AfterContentChecked {
+export class TrailComponent extends AbstractComponent<{trail1: Observable<Trail | null> | undefined, trail2: Observable<Trail | null> | undefined}> implements AfterContentChecked {
 
   @Input() trail1$?: Observable<Trail | null>;
   @Input() trail2$?: Observable<Trail | null>;
@@ -1635,7 +1635,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     }
   }
 
-  protected override getChildVisibility(child: AbstractComponent): boolean | undefined {
+  protected override getChildVisibility(child: AbstractComponent<any>): boolean | undefined {
     if (child instanceof MapComponent) return this.tab === 'map';
     if (child instanceof TrailGraphComponent)
       return this.tab === 'map' && (this.bottomSheetTab === 'elevation' || this.bottomSheetTab === 'speed');

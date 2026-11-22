@@ -33,7 +33,7 @@ import { AppDownload } from '@trailence/services/update/common';
       LangPickerComponent,
     ]
 })
-export class HeaderComponent extends AbstractComponent {
+export class HeaderComponent extends AbstractComponent<string> {
 
   @Input() title = '';
   @Input() title2?: string;
@@ -121,11 +121,11 @@ export class HeaderComponent extends AbstractComponent {
     }, 2000);
   }
 
-  protected override getComponentState() {
+  protected override getComponentState(): string {
     return this.title;
   }
 
-  protected override onComponentStateChanged(previousState: any, newState: any): void {
+  protected override onComponentStateChanged(): void {
     this.byStateAndVisible.subscribe(of(true), () => {
       const head = document.getElementsByTagName('head')[0];
       const title = head.getElementsByTagName('title')[0];

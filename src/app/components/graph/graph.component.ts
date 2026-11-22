@@ -9,6 +9,8 @@ import { NgStyle } from '@angular/common';
 import { GraphConfig, GraphConfigSource, GraphProvider } from './graph-config';
 import { ObserverHelper } from '@trailence/utils/observer-helper';
 
+type State = {source?: GraphConfigSource<any>, provider?: GraphProvider<any>};
+
 @Component({
   selector: 'app-graph',
   templateUrl: './graph.component.html',
@@ -20,7 +22,7 @@ import { ObserverHelper } from '@trailence/utils/observer-helper';
     NgStyle,
   ]
 })
-export class GraphComponent extends AbstractComponent {
+export class GraphComponent extends AbstractComponent<State> {
 
   @Input() source?: GraphConfigSource<any>;
   @Input() provider?: GraphProvider<any>;
@@ -45,13 +47,13 @@ export class GraphComponent extends AbstractComponent {
     changeDetector.detach();
   }
 
-  protected override getComponentState() {
+  protected override getComponentState(): State {
     return {source: this.source, provider: this.provider};
   }
 
   private _init = false;
 
-  protected override onComponentStateChanged(previousState: any, newState: any): void {
+  protected override onComponentStateChanged(): void {
     if (!this.provider || !this.source) return;
     this._init = true;
     this.byStateAndVisible.subscribe(

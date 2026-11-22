@@ -404,7 +404,7 @@
           }
         }
 
-        @if (trail1) {
+        @if (trail1 && !trail2 && !recording) {
           <app-trail-followed-feedback [trail]="trail1"></app-trail-followed-feedback>
         }
 

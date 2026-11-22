@@ -25,7 +25,7 @@ import { NetworkService } from '@trailence/services/network/network.service';
     TrailOverviewComponent,
   ]
 })
-export class HomePage extends PublicPage implements AfterContentChecked {
+export class HomePage extends PublicPage<undefined> implements AfterContentChecked {
 
   ssUrl = environment.assetsUrl + '/home-ss/ss.3';
   year = new Date().getFullYear();
@@ -44,6 +44,9 @@ export class HomePage extends PublicPage implements AfterContentChecked {
     super(injector);
     this.isAndroidApp = platform.is('capacitor');
   }
+
+  protected override getComponentState(): undefined { return undefined; }
+  protected override onComponentStateChanged(): void {}
 
   private readonly io = new IntersectionObserver(es => {
     es.forEach(e => {

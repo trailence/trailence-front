@@ -32,7 +32,7 @@ const logger = getLogger('register.page');
     InputPasswordComponent,
   ]
 })
-export class RegisterPage extends PublicPage {
+export class RegisterPage extends PublicPage<undefined> {
 
   connected = false;
   inprogress = false;
@@ -62,6 +62,9 @@ export class RegisterPage extends PublicPage {
       changeDetector.markForCheck();
     });
   }
+
+  protected override getComponentState(): undefined { return undefined; }
+  protected override onComponentStateChanged(): void {}
 
   protected override initComponent(): void {
     this.initCaptcha();

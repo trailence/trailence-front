@@ -48,12 +48,15 @@ import { HttpClient } from '@angular/common/http';
     HeaderComponent
   ]
 })
-export class PrivacyPolicyPage extends PublicPage {
+export class PrivacyPolicyPage extends PublicPage<undefined> {
 
   title = '';
   page?: string;
 
   constructor(injector: Injector) { super(injector); }
+
+  protected override getComponentState(): undefined { return undefined; }
+  protected override onComponentStateChanged(): void {}
 
   protected override initComponent(): void {
     this.whenVisible.subscribe(

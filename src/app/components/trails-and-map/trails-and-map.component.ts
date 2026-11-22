@@ -20,7 +20,7 @@ import { TrackMetadataConfig } from '../track-metadata/track-metadata.component'
 import { AsyncPipe } from '@angular/common';
 import { HIGHLIGHTED_TRACK_COLOR, PRIMARY_TRACK_COLOR, PRIMARY_TRACK_COLOR_DONE } from '../trail/trail-colors';
 import { MapComponent, MapOptions } from '../map/map.component';
-import { AnyMapElement, MAP_SELECTED_TRACK_LAYER, MAP_TRACKS_LAYER } from '../map/map-element';
+import { AnyMapElement, MAP_SELECTED_TRACK_LAYER } from '../map/map-element';
 import { MapBubble } from '../map/elements/map-bubble';
 import { MapTool, MapToolGroup } from '../map/map-tool';
 import { ToggleBubblesTool } from './toggle-bubble-tool';
@@ -35,6 +35,14 @@ import { MapSimplifiedTrackAnchors } from '../map/elements/map-simplified-track-
 import { MapSimplifiedTracksPath, TrailAndSimplifiedTrack } from '../map/elements/map-simplified-tracks-path';
 
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
+
+type State = {
+  trails$?: List<Observable<Trail | null>>,
+  bubbles$?: Observable<MapBubble[]>,
+  mapTopToolbar$?: Observable<MenuItem[]>,
+  enableSearchPlace: boolean,
+  type?: string,
+};
 
 @Component({
     selector: 'app-trails-and-map',
@@ -51,7 +59,7 @@ const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
       AsyncPipe,
     ]
 })
-export class TrailsAndMapComponent extends AbstractComponent {
+export class TrailsAndMapComponent extends AbstractComponent<State> {
 
   @Input() viewId!: string;
 
@@ -146,13 +154,13 @@ export class TrailsAndMapComponent extends AbstractComponent {
   mapReady = false;
   private mapTrailsReceived = false;
 
-  protected override getComponentState() {
+  protected override getComponentState(): State{
     return { trails$: this.trails$, bubbles$: this.bubbles$, mapTopToolbar$: this.mapTopToolbar$, enableSearchPlace: this.enableSearchPlace, type: this.type }
   }
 
   private mapTopToolbarSubscription?: Subscription;
 
-  protected override onComponentStateChanged(previousState: any, newState: any): void {
+  protected override onComponentStateChanged(previousState: State | undefined): void {
     this.tracksAndBubblesTool.setStateKey(this.type !== 'search' ? LOCALSTORAGE_KEY_BUBBLES + '.' + this.viewId : undefined);
 
     if (previousState?.trails$ === undefined && this.trails$?.size === 0) {
@@ -293,7 +301,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     };
   }
 
-  protected override getChildVisibility(child: AbstractComponent): boolean | undefined {
+  protected override getChildVisibility(child: AbstractComponent<any>): boolean | undefined {
     if (child instanceof MapComponent) return !this.isSmall || this.tab === 'map';
     if (child instanceof TrailsListComponent) return !this.isSmall || this.tab !== 'map';
     if (child instanceof TrailOverviewComponent) return this.isSmall;
