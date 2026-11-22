@@ -12,7 +12,7 @@ import { filterItemsDefined } from '@trailence/utils/rxjs/filter-defined';
 import { DelayedTable } from '@trailence/utils/delayed-table';
 import { AuthService } from '../auth/auth.service';
 import { SimplifiedPoint, SimplifiedTrackSnapshot, TrackMetadataSnapshot } from '@trailence/model/snapshots';
-import { debounceTime, filter, first, firstValueFrom, from, switchMap } from 'rxjs';
+import { BehaviorSubject, debounceTime, filter, first, firstValueFrom, from, switchMap } from 'rxjs';
 import { OfflineMapService } from '../map/offline-map.service';
 import { WorkerService } from '@trailence/worker/web-app';
 import { CleanupService } from '../database/cleanup/cleanup.service';
@@ -62,6 +62,7 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
   protected tableFullTracks!: DelayedTable<TrackDto, string>;
   protected tableSimplifiedTracks!: DelayedTable<SimplifiedTrackDto, string>;
   protected tableMetadata!: DelayedTable<TrackMetadataSnapshot, string>;
+  public readonly ready$ = new BehaviorSubject<boolean>(false);
 
   private openDb(name: string): void {
     if (this.db?.name === name) return;
@@ -85,7 +86,8 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
       name: 'Plugin ' + this.name,
       every: 3 * 24 * 60 * 60 * 1000,
       execute: () => this.clean(),
-    })
+    });
+    this.ready$.next(true);
   }
 
   public override getTrail(uuid: string): Promise<Trail | null> {

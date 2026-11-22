@@ -25,6 +25,7 @@ export class LinkPlugin extends FetchSourcePlugin {
     super(injector, undefined);
   }
 
+  public readonly ready$ = new BehaviorSubject<boolean>(true);
   public readonly canFetchFromUrl = true;
 
   public override canFetchTrailInfoByUrl(url: string): boolean {

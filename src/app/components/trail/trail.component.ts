@@ -1,5 +1,5 @@
 import { AfterContentChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
-import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, distinctUntilChanged, filter, first, firstValueFrom, from, map, of, skip, switchMap, take, takeWhile, tap, timer } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, distinctUntilChanged, filter, first, firstValueFrom, from, map, of, skip, switchMap, take, tap, timer } from 'rxjs';
 import { Trail } from '@trailence/model/trail';
 import { AbstractComponent, IdGenerator } from '@trailence/utils/component-utils';
 import { MapComponent, MapOptions } from '../map/map.component';
@@ -42,7 +42,6 @@ import { TrailCollection } from '@trailence/model/trail-collection';
 import { PublicationChecklist } from './publication-checklist/checklist';
 import { ModerationService } from '@trailence/services/moderation/moderation.service';
 import { environment } from '@env/environment';
-import { FeedbackService, MyFeedback } from '@trailence/services/feedback/feedback.service';
 import { RateAndCommentsComponent } from './rate-and-comments/rate-and-comments.component';
 import { TrailInfo } from '@trailence/services/fetch-source/fetch-source.interfaces';
 import { NetworkService } from '@trailence/services/network/network.service';
@@ -89,6 +88,8 @@ import { WorkerService } from '@trailence/worker/web-app';
 import { ApiError } from '@trailence/services/http/api-error';
 import { distance2d } from '@trailence/utils/geometry-utils';
 import { MapSimplifiedTracksPath } from '../map/elements/map-simplified-tracks-path';
+import { FollowedFeedbackComponent } from './followed-feedback/followed-feedback.component';
+import { FeedbackService } from '@trailence/services/feedback/feedback.service';
 
 const logger = getLogger('trail.component');
 
@@ -101,7 +102,6 @@ interface TrailSource {
   externalSafeUrl?: SafeUrl;
   sourceString?: string;
   info?: TrailInfo;
-  followedInfo?: TrailInfo;
   publishedFromTrail?: Trail;
 }
 
@@ -190,6 +190,7 @@ interface TrailTracks {
         AvatarComponent,
         ContributionsBadgesComponent,
         TrackOsmStatsComponent,
+        FollowedFeedbackComponent,
     ]
 })
 export class TrailComponent extends AbstractComponent implements AfterContentChecked {
@@ -217,7 +218,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   graphTrack1?: Track;
   graphTrack2?: Track;
   graphZoomButtonPosition = new BehaviorSubject<{x: number, y: number} | undefined>(undefined);
-  myFeedback$ = new BehaviorSubject<MyFeedback | undefined>(undefined);
   trailsForPhotoPopup: Observable<Trail | null>[] = [];
   currentLang: string;
   liveGroups$ = new BehaviorSubject<LiveGroupDto[]>([]);
@@ -687,7 +687,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this.listenForPhotos();
     this.listenForPhotosOnMap();
     this.listenForRecordingUpdates();
-    this.listenMyFeedback();
     this.listenForPublished();
     this.listenCurrentPublic();
     this.listenForLiveGroups();
@@ -1031,7 +1030,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             if (plugin && source.externalUrl && plugin.externalUrlAllowedInFrame)
               source.externalSafeUrl = this.injector.get(DomSanitizer).bypassSecurityTrustResourceUrl(source.externalUrl); // NOSONAR
           }
-          const followedTrail$ = this.getFollowedTrailInfo(trailWithInfo.trail);
           const info$ = trailWithInfo.trail.owner.includes('@') ? of(null) : this.injector.get(FetchSourceService).getTrailInfo$(trailWithInfo.trail.owner, trailWithInfo.trail.uuid);
           const infoAndPublishedFrom$ = info$.pipe(
             switchMap(info => {
@@ -1042,15 +1040,13 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           return combineLatest([
             this.getSourceString(trailWithInfo.trail),
             infoAndPublishedFrom$,
-            followedTrail$,
           ]).pipe(
-            map(([sourceString, [info, originalTrail], followedInfo]) => {
+            map(([sourceString, [info, originalTrail]]) => {
               if ((source.externalAppName !== 'Trailence' && source?.externalUrl && !source.externalUrl.startsWith('http')) ||
                   (!source.externalUrl && info?.externalUrl))
                 source.externalUrl = info?.externalUrl;
               source.sourceString = sourceString;
               source.info = info ?? undefined;
-              source.followedInfo = followedInfo ?? undefined;
               source.publishedFromTrail = originalTrail ?? undefined;
               return {trailWithInfo, source};
             })
@@ -1063,17 +1059,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         this.changesDetection.detectChanges();
       }
     );
-  }
-
-  private getFollowedTrailInfo(trail: Trail): Observable<TrailInfo | null> {
-    const url = trail.followedUrl;
-    if (!url) return of(null);
-    const plugin = this.injector.get(FetchSourceService).getPluginBySource(url);
-    if (plugin?.owner === 'trailence')
-      return this.injector.get(FetchSourceService).getTrailence$().pipe(
-        switchMap(p => p ? from(p.fetchTrailInfoByUrl(url)) : of(null)),
-      );
-    return of(null);
   }
 
   private getSourceString(trail: Trail): Observable<string | undefined> { // NOSONAR
@@ -1141,32 +1126,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         const notNull = strings.filter(s => !!s);
         return notNull.length === 1 ? notNull[0].translate$(this.i18n) : new CompositeI18nString(notNull).translate$(this.i18n)
       })
-    );
-  }
-
-  private listenMyFeedback(): void {
-    this.byStateAndVisible.subscribe(
-      combineLatest([this.trail1$ ?? of(null), this.trail2$ ?? of(null), this.traceRecorder.current$, this.auth.userChanged$]).pipe(
-        switchMap(([trail1, trail2, recording, auth]) => {
-          if (!trail2 && !recording && trail1?.followedUrl?.startsWith(environment.baseUrl + '/trail/trailence/') && auth && !auth.isAnonymous) {
-            return this.injector.get(NetworkService).server$.pipe(
-              switchMap(connected => {
-                if (!connected) return of(null);
-                return this.injector.get(FeedbackService).getMyFeedback(trail1.followedUrl!.substring(environment.baseUrl.length + 17));
-              }),
-              takeWhile(v => !v, true),
-            );
-          }
-          return of(null);
-        })
-      ),
-      myFeedback => {
-        const newValue = myFeedback ?? undefined;
-        if (newValue !== this.myFeedback$.value) {
-          this.myFeedback$.next(newValue);
-          this.changesDetection.detectChanges();
-        }
-      }
     );
   }
 
@@ -2139,13 +2098,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         if ((p as any).presented) p.dismiss(); // NOSONAR
       }, 10000);
     });
-  }
-
-  rateThisTrail(): void {
-    if (this.trail1WithInfo?.source?.externalUrl?.startsWith(environment.baseUrl + '/trail/trailence/'))
-      void this.injector.get(Router).navigate([this.trail1WithInfo?.source.externalUrl.substring(environment.baseUrl.length)], {fragment: 'rate'});
-    else if (this.trail1?.followedUrl?.startsWith(environment.baseUrl + '/trail/trailence/'))
-      void this.injector.get(Router).navigate([this.trail1.followedUrl.substring(environment.baseUrl.length)], {fragment: 'rate'});
   }
 
   private async openChecklist() {

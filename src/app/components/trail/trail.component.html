@@ -404,38 +404,8 @@
           }
         }
 
-        @if ((myFeedback$ | async); as myFeedback) {
-          @if (myFeedback.rateDate !== undefined) {
-            @if (myFeedback.latestCommentDate !== undefined) {
-              @if (i18n.timestampToDateString(myFeedback.latestCommentDate) === i18n.timestampToDateString(myFeedback.rateDate)) {
-                <div class="my-feedback">
-                  🙏 {{ 'pages.trail.my_feedback.you_leave_a_rate_and_a_comment_same_date' | i18nString:myFeedback.rate:i18n.timestampToDateString(myFeedback.rateDate) }}
-                </div>
-              } @else {
-                <div class="my-feedback">
-                  🙏 {{ 'pages.trail.my_feedback.you_leave_a_rate_and_a_comment_different_date' | i18nString:myFeedback.rate:i18n.timestampToDateString(myFeedback.rateDate):i18n.timestampToDateString(myFeedback.latestCommentDate) }}
-                </div>
-              }
-            } @else {
-              <div class="my-feedback">
-                🙏 {{ 'pages.trail.my_feedback.you_leave_a_rate' | i18nString:myFeedback.rate:i18n.timestampToDateString(myFeedback.rateDate) }}
-              </div>
-            }
-          } @else {
-            @if (myFeedback.latestCommentDate !== undefined) {
-              <div class="my-feedback">
-                {{ 'pages.trail.my_feedback.you_leave_a_comment' | i18nString:myFeedback.rate:i18n.timestampToDateString(myFeedback.latestCommentDate) }}
-              </div>
-            }
-            @if (trail1WithInfo?.source && !trail1WithInfo?.source?.followedInfo?.itsMine && mine) {
-              <div class="leave-feedback">
-                <div>{{ i18n.texts.pages.trail.my_feedback.invite_to_rate_title }}</div>
-                <ion-button shape="round" size="small" (click)="rateThisTrail()">
-                  {{ i18n.texts.pages.trail.my_feedback.invite_to_rate_button }}
-                </ion-button>
-              </div>
-            }
-          }
+        @if (trail1) {
+          <app-trail-followed-feedback [trail]="trail1"></app-trail-followed-feedback>
         }
 
         @if (!trail2) {

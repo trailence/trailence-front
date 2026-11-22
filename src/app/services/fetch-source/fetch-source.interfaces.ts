@@ -28,6 +28,7 @@ export abstract class FetchSourcePlugin {
 
   protected readonly sanitizer: DomSanitizer;
   protected readonly _allowed$: BehaviorSubject<boolean>;
+  public abstract readonly ready$: BehaviorSubject<boolean>;
   public get allowed$(): Observable<boolean> { return this._allowed$; }
   public get allowed(): boolean { return this._allowed$.value; }
 

@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { FetchSourcePlugin, SearchResult, TrailInfo } from './fetch-source.interfaces';
 import { Trail } from '@trailence/model/trail';
-import { BehaviorSubject, catchError, combineLatest, debounceTime, EMPTY, filter, from, map, merge, Observable, of, Subscriber, switchMap, take } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, debounceTime, EMPTY, filter, first, from, map, merge, Observable, of, Subscriber, switchMap, take } from 'rxjs';
 import { Track } from '@trailence/model/track';
 import { Photo } from '@trailence/model/photo';
 import { firstTimeout } from '@trailence/utils/rxjs/first-timeout';
@@ -13,6 +13,7 @@ import { ApiError } from '../http/api-error';
 import { TrailencePlugin } from './trailence.plugin';
 import { getLogger } from '@trailence/utils/console';
 import { EarthBBox } from '@trailence/utils/latlng';
+import { combineLatestSafe } from '@trailence/utils/rxjs/combineLatestSafe';
 
 const logger = getLogger('fetch-source.service');
 
@@ -42,8 +43,14 @@ export class FetchSourceService {
         if (!newPlugins.some(pi => pi.name === p.name)) newPlugins.push(p);
       }
       this.plugins$.next(newPlugins);
-      this.ready$.next(true);
       logger.info('Fetch plugins loaded', newPlugins.map(p => p.name));
+      combineLatestSafe(newPlugins.map(p => p.ready$)).pipe(
+        filter(ready => ready.every(Boolean)),
+        first(),
+      ).subscribe(() => {
+        this.ready$.next(true);
+        logger.info('Fetch plugins ready', newPlugins.map(p => p.name));
+      })
     });
   }
 
