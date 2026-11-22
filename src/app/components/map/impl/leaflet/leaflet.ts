@@ -133,13 +133,14 @@ export class Leaflet extends MapRenderer {
   public override bringToFront(primitive: MapPrimitive<any, MapRenderer, any>, index: number): void {
     const layer = (primitive as unknown as LeafletPrimitive<any, any>).getLayer();
     if (!layer) return;
+
     let fct = (layer as any)['bringToFront'];
     if (typeof fct === 'function') {
       try { (layer as any)['bringToFront'](); } catch (e) {}
     }
     fct = (layer as any)['setZIndexOffset']
     if (typeof fct === 'function') {
-      try { (layer as any)['setZIndexOffset'](index); } catch (e) {}
+      try { (layer as any)['setZIndexOffset'](1000 + index * 1000); } catch (e) {}
     }
   }
 

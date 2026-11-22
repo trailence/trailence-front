@@ -1,7 +1,7 @@
 import { MAP_TRACKS_LAYER, MapElement } from '../map-element';
 import { SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
 import { Trail } from '@trailence/model/trail';
-import { Observable, of } from 'rxjs';
+import { BehaviorSubject, map, Observable, of } from 'rxjs';
 import { MapRenderer } from '../impl/map-renderer';
 import { Color } from '@trailence/utils/color';
 import { Polyline } from '../primitives/polyline';
@@ -9,24 +9,37 @@ import { EarthBBox, extendBBox } from '@trailence/utils/latlng';
 import { MapPrimitive } from '../primitives/primitive';
 import { CachedValue } from '@trailence/utils/cached-value';
 
-export type TrailAndSimplifiedTrack = {trail: Trail, track: SimplifiedTrackSnapshot};
+export type TrailAndSimplifiedTrack = {trail?: Trail, track: SimplifiedTrackSnapshot};
 
 export class MapSimplifiedTracksPath extends MapElement<null> {
 
   constructor(
     id: string,
-    public readonly tracks: TrailAndSimplifiedTrack[],
+    tracks: TrailAndSimplifiedTrack[],
     color: Color,
     weight: number = 3,
   ) {
     super(id, {layer: MAP_TRACKS_LAYER});
     this._color = color;
     this._weight = weight;
+    this._tracks = new BehaviorSubject(tracks);
   }
 
+  private readonly _tracks: BehaviorSubject<TrailAndSimplifiedTrack[]>;
   private _color: Color;
   private _weight: number;
   private _polyline: Polyline<any, any> | undefined;
+
+  public get tracks() { return this._tracks.value; }
+  public set tracks(value: TrailAndSimplifiedTrack[]) {
+    this._boundsCache.invalidate();
+    const keysToRemove: SimplifiedTrackSnapshot[] = [];
+    for (const key of this._trackBoundsCache.keys()) {
+      if (!value.some(t => t.track === key)) keysToRemove.push(key);
+    }
+    for (const key of keysToRemove) this._trackBoundsCache.delete(key);
+    this._tracks.next(value);
+  }
 
   public get color(): Color { return this._color; }
   public set color(value: Color) {
@@ -44,7 +57,12 @@ export class MapSimplifiedTracksPath extends MapElement<null> {
   public set weight(value: number) {
     if (value === this._weight) return;
     this._weight = value;
-    // TODO update primitives
+    if (this._polyline) {
+      this._polyline.setOptions({
+        color: this._color,
+        width: this._weight
+      });
+    }
   }
 
   public get fitBounds$(): Observable<EarthBBox | undefined> {
@@ -56,7 +74,7 @@ export class MapSimplifiedTracksPath extends MapElement<null> {
   private readonly _boundsCache = new CachedValue<EarthBBox | undefined>(
     () => {
       let bounds: EarthBBox | undefined;
-      for (const trailAndTrack of this.tracks) {
+      for (const trailAndTrack of this._tracks.value) {
         const b = this.getSimplifiedTrackBounds(trailAndTrack.track);
         if (b) {
           if (!bounds) bounds = b;
@@ -93,15 +111,23 @@ export class MapSimplifiedTracksPath extends MapElement<null> {
   }
 
   protected override createPrimitives$(renderer: MapRenderer): Observable<{primitive: MapPrimitive<any,any,any>, eventBinding: undefined}[]> {
-    this._polyline = renderer.createPolyline(
-      this.id,
-      this.tracks.map(t => t.track.points),
-      {
-        color: this._color,
-        width: this._weight,
-      }
+    return this._tracks.pipe(
+      map(tracks => {
+        if (this._polyline?.getRenderer() === renderer) {
+          this._polyline.setPositions(tracks.map(t => t.track.points));
+        } else {
+          this._polyline = renderer.createPolyline(
+            this.id,
+            tracks.map(t => t.track.points),
+            {
+              color: this._color,
+              width: this._weight,
+            }
+          );
+        }
+        return [{primitive: this._polyline, eventBinding: undefined}];
+      }),
     );
-    return of([{primitive: this._polyline, eventBinding: undefined}]);
   }
 
 }

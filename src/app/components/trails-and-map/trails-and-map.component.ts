@@ -328,7 +328,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     for (const element of this.tracksAndBubbles$.value) {
       if (element instanceof MapSimplifiedTracksPath) {
         element.color = Color.parse(trail ? PRIMARY_TRACK_COLOR_DONE : PRIMARY_TRACK_COLOR);
-        if (trail) trailAndTrack = element.tracks.find(e => e.trail.uuid === trail.uuid && e.trail.owner === trail.owner);
+        if (trail) trailAndTrack = element.tracks.find(e => e.trail?.uuid === trail.uuid && e.trail.owner === trail.owner);
       }
     }
     if (trailAndTrack) {
@@ -374,7 +374,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
           }
         }
         if (bestDistance !== undefined)
-          close.push({...trailAndTrack, distance: bestDistance});
+          close.push({trail: trailAndTrack.trail!, track: trailAndTrack.track, distance: bestDistance});
       }
     }
     if (close.length === 0) {

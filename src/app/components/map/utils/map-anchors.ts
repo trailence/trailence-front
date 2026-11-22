@@ -6,36 +6,36 @@ import { Color } from '@trailence/utils/color';
 
 export const MAP_ANCHOR_RENDER_SIZE = 40;
 
-export function createDAIcon(id: string, renderer: MapRenderer, position: EarthPoint, texts: any): IconPrimitive<MapRenderer, any> {
-  return renderer.createIcon(id, position, getDAIconOptions(texts));
+export function createDAIcon(id: string, renderer: MapRenderer, position: EarthPoint, texts: any, borderColor: Color | undefined): IconPrimitive<MapRenderer, any> {
+  return renderer.createIcon(id, position, getDAIconOptions(texts, borderColor));
 }
-export function getDAIconOptions(texts: any): IconOptions {
+export function getDAIconOptions(texts: any, borderColor: Color | undefined): IconOptions {
   return {
-    icon: {svgString: createMapAchorSvgString(anchorDABorderColor, texts.way_points.DA, anchorDATextColor, anchorDepartureFillColor, anchorArrivalFillColor)},
+    icon: {svgString: createMapAchorSvgString(borderColor?.toString() ?? anchorDABorderColor, texts.way_points.DA, anchorDATextColor, anchorDepartureFillColor, anchorArrivalFillColor)},
     iconSize: {x: MAP_ANCHOR_RENDER_SIZE, y: MAP_ANCHOR_RENDER_SIZE},
     iconAnchor: 'bottom-center',
     rotateOnMouseOver: true,
   };
 }
 
-export function createDIcon(id: string, renderer: MapRenderer, position: EarthPoint, texts: any): IconPrimitive<MapRenderer, any> {
-  return renderer.createIcon(id, position, getDIconOptions(texts));
+export function createDIcon(id: string, renderer: MapRenderer, position: EarthPoint, texts: any, borderColor: Color | undefined): IconPrimitive<MapRenderer, any> {
+  return renderer.createIcon(id, position, getDIconOptions(texts, borderColor));
 }
-export function getDIconOptions(texts: any): IconOptions {
+export function getDIconOptions(texts: any, borderColor: Color | undefined): IconOptions {
   return {
-    icon: {svgString: createMapAchorSvgString(anchorDepartureBorderColor, texts.way_points.D, anchorDepartureTextColor, anchorDepartureFillColor)},
+    icon: {svgString: createMapAchorSvgString(borderColor?.toString() ?? anchorDepartureBorderColor, texts.way_points.D, anchorDepartureTextColor, anchorDepartureFillColor)},
     iconSize: {x: MAP_ANCHOR_RENDER_SIZE, y: MAP_ANCHOR_RENDER_SIZE},
     iconAnchor: 'bottom-center',
     rotateOnMouseOver: true,
   };
 }
 
-export function createAIcon(id: string, renderer: MapRenderer, position: EarthPoint, texts: any): IconPrimitive<MapRenderer, any> {
-  return renderer.createIcon(id, position, getAIconOptions(texts));
+export function createAIcon(id: string, renderer: MapRenderer, position: EarthPoint, texts: any, borderColor: Color | undefined): IconPrimitive<MapRenderer, any> {
+  return renderer.createIcon(id, position, getAIconOptions(texts, borderColor));
 }
-export function getAIconOptions(texts: any): IconOptions {
+export function getAIconOptions(texts: any, borderColor: Color | undefined): IconOptions {
   return {
-    icon: {svgString: createMapAchorSvgString(anchorArrivalBorderColor, texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor)},
+    icon: {svgString: createMapAchorSvgString(borderColor?.toString() ?? anchorArrivalBorderColor, texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor)},
     iconSize: {x: MAP_ANCHOR_RENDER_SIZE, y: MAP_ANCHOR_RENDER_SIZE},
     iconAnchor: 'bottom-center',
     rotateOnMouseOver: true,

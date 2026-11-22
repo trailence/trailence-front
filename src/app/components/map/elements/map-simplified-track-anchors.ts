@@ -27,11 +27,11 @@ export class MapSimplifiedTrackAnchors extends MapElement<{point: EarthPoint, is
     return this.i18n.texts$.pipe(
       map(texts => {
         if (isDA) {
-          return [{primitive: createDAIcon(this.id + '$DA', renderer, departurePoint, texts), eventBinding: {point: departurePoint, isDeparture: true, isArrival: true}}];
+          return [{primitive: createDAIcon(this.id + '$DA', renderer, departurePoint, texts, undefined), eventBinding: {point: departurePoint, isDeparture: true, isArrival: true}}];
         }
         return [
-          {primitive: createDIcon(this.id + '$D', renderer, departurePoint, texts), eventBinding: {point: departurePoint, isDeparture: true, isArrival: false}},
-          {primitive: createAIcon(this.id + '$A', renderer, arrivalPoint, texts), eventBinding: {point: arrivalPoint, isDeparture: false, isArrival: true}},
+          {primitive: createDIcon(this.id + '$D', renderer, departurePoint, texts, undefined), eventBinding: {point: departurePoint, isDeparture: true, isArrival: false}},
+          {primitive: createAIcon(this.id + '$A', renderer, arrivalPoint, texts, undefined), eventBinding: {point: arrivalPoint, isDeparture: false, isArrival: true}},
         ];
       })
     );

@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, Injector, ChangeDetectionStrategy } from 
 import { IonApp, IonRouterOutlet, IonContent, IonMenu } from '@ionic/angular';
 import { MenuComponent } from './components/menus/global-menu/menu.component';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
-import { BehaviorSubject, catchError, combineLatest, filter, first, from, map, of, switchMap, tap, timeout } from 'rxjs';
+import { BehaviorSubject, combineLatest, filter, first, from, map, of, switchMap, tap } from 'rxjs';
 import { filterDefined } from './utils/rxjs/filter-defined';
 import { NetworkService } from './services/network/network.service';
 import { I18nService } from './services/i18n/i18n.service';
@@ -12,6 +12,7 @@ import { PlatformService } from './services/platform/platform.service';
 import { AuthService } from './services/auth/auth.service';
 import { QuotaService } from './services/auth/quota.service';
 import { getLogger } from './utils/console';
+import { defaultOnTimeout } from './utils/rxjs/default-on-timeout';
 
 const logger = getLogger('STARTUP');
 
@@ -21,7 +22,7 @@ let progressElement = document.getElementById('startup_progress');
 let progress = 1;
 function addProgress(add: number): void {
   progress += add;
-  if (!progressElement) progressElement = document.getElementById('startup_progress');
+  progressElement ??= document.getElementById('startup_progress');
   if (!progressElement) return;
   progressElement.style.width = progress + '%';
 }
@@ -108,18 +109,16 @@ export class AppComponent {
         combineLatest([
           auth.auth$,
           from(this.loadServices()).pipe(
-            timeout(10000),
-            catchError(e => {
-              logger.error('Error loading services', e);
-              return of(true);
-            })
+            defaultOnTimeout(10000, () => {
+              logger.warn('Loading services not yet done after 10s');
+              return true;
+            }),
           ),
           this._ready$.pipe(
-            timeout(10000),
-            catchError(e => {
-              logger.error('Error waiting services', e);
-              return of(true);
-            })
+            defaultOnTimeout(10000, () => {
+              logger.warn('Still waiting services after 10s');
+              return true;
+            }),
           ),
         ]).pipe(
           filter(([a, l, r]) => !a || (l && r)),

@@ -24,7 +24,7 @@ export class MapTrackAnchors extends MapElement<TrackWayPoint> {
     public readonly track: Track,
     private readonly i18n: I18nService,
     neverShowArrival: boolean = false,
-    showDepartueAndArrival: boolean = false,
+    showDepartueAndArrival: Color | undefined = undefined,
     showWayPoints: Color | undefined = undefined,
     showBreaks: Color | undefined = undefined,
     showGuideposts: boolean = false,
@@ -38,7 +38,7 @@ export class MapTrackAnchors extends MapElement<TrackWayPoint> {
   }
 
   private readonly _neverShowArrival: BehaviorSubject<boolean>; // in case of recording
-  private readonly _showDepartureAndArrivals: BehaviorSubject<boolean>;
+  private readonly _showDepartureAndArrivals: BehaviorSubject<Color | undefined>;
   private readonly _showWayPoints: BehaviorSubject<Color | undefined>;
   private readonly _showBreaks: BehaviorSubject<Color | undefined>;
   private readonly _showGuideposts: BehaviorSubject<boolean>;
@@ -162,7 +162,7 @@ class DA {
   private da?: IconPrimitive<MapRenderer, any>;
   private texts: any = {};
 
-  update(id: string, renderer: MapRenderer, waypoints: TrackWayPoint[], highlighted: TrackWayPoint[], showDA: boolean, hideArrival: boolean, texts: any, icons: {primitive: MapPrimitive<any, MapRenderer, any>, eventBinding: TrackWayPoint}[]): void {
+  update(id: string, renderer: MapRenderer, waypoints: TrackWayPoint[], highlighted: TrackWayPoint[], showDA: Color | undefined, hideArrival: boolean, texts: any, icons: {primitive: MapPrimitive<any, MapRenderer, any>, eventBinding: TrackWayPoint}[]): void {
     if (!showDA) {
       this.d = this.a = this.da = undefined;
       return;
@@ -177,9 +177,9 @@ class DA {
             this.d = this.a = undefined;
             if (this.da) {
               this.da.setPosition(wpt.getPosition());
-              if (texts !== this.texts) this.da.setOptions(getDAIconOptions(texts));
+              if (texts !== this.texts) this.da.setOptions(getDAIconOptions(texts, showDA));
             } else {
-              this.da = createDAIcon(id + '$DA', renderer, wpt.getPosition(), texts);
+              this.da = createDAIcon(id + '$DA', renderer, wpt.getPosition(), texts, showDA);
             }
             applyIconOptions(this.da, wp, highlighted);
             this.texts = texts;
@@ -190,20 +190,20 @@ class DA {
             departureFound = true;
             if (this.d) {
               this.d.setPosition(wpt.getPosition());
-              if (texts !== this.texts) this.d.setOptions(getDIconOptions(texts));
+              if (texts !== this.texts) this.d.setOptions(getDIconOptions(texts, showDA));
             } else {
-              this.d = createDIcon(id + '$D', renderer, wpt.getPosition(), texts);
+              this.d = createDIcon(id + '$D', renderer, wpt.getPosition(), texts, showDA);
             }
             applyIconOptions(this.d, wp, highlighted);
             icons.push({primitive: this.d, eventBinding: wp});
           }
-        } else if (wpt.isArrival && !arrivalFound) {
+        } else if (wpt.isArrival && !arrivalFound && !hideArrival) {
           arrivalFound = true;
           if (this.a) {
             this.a.setPosition(wpt.getPosition());
-            if (texts !== this.texts) this.a.setOptions(getAIconOptions(texts));
+            if (texts !== this.texts) this.a.setOptions(getAIconOptions(texts, showDA));
           } else {
-            this.a = createAIcon(id + '$A', renderer, wpt.getPosition(), texts);
+            this.a = createAIcon(id + '$A', renderer, wpt.getPosition(), texts, showDA);
           }
           applyIconOptions(this.a, wp, highlighted);
           icons.push({primitive: this.a, eventBinding: wp});
