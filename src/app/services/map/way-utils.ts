@@ -1,32 +1,41 @@
 import { Arrays } from '@trailence/utils/arrays';
 import { Way } from './way';
-import * as L from 'leaflet';
+import { ClosestMatch, EarthPoint, findClosestPointOnPath } from '@trailence/utils/latlng';
 
 export class WayUtils {
 
-  public static getMatchingWays(pos: L.LatLngLiteral, ways: Way[], maxDistance: number = 2.5): Way[] {
-    const matching: Way[] = [];
-    const p = L.latLng(pos.lat, pos.lng);
-    const pPt = L.point(pos.lat, pos.lng);
+  public static getClosestPointsOnWays(pos: EarthPoint, ways: Way[], maxDistance: number = 2.5): {way: Way, closest: ClosestMatch}[] {
+    const result: {way: Way, closest: ClosestMatch}[] = [];
     for (const way of ways) {
-      if (way.points.some(pt => p.distanceTo(pt) <= maxDistance)) {
+      const closest = findClosestPointOnPath(way.points, pos, maxDistance);
+      if (closest) result.push({way, closest});
+    }
+    return result;
+  }
+  /*
+  public static getMatchingWays(pos: EarthPoint, ways: Way[], maxDistance: number = 2.5): Way[] {
+    const matching: Way[] = [];
+    for (const way of ways) {
+      if (way.points.some(pt => distance(pos, pt) <= maxDistance)) {
         matching.push(way);
       } else {
-        let p1 = L.point(way.points[0].lat, way.points[0].lng);
-        for (let i = 1; i < way.points.length - 1; ++i) {
-          let p2 = L.point(way.points[i].lat, way.points[i].lng);
-          const distance = L.LineUtil.pointToSegmentDistance(pPt, p1, p2);
-          if (p.distanceTo({lat: pos.lat + distance, lng: pos.lng}) <= maxDistance) {
-            matching.push(way);
-            break;
-          }
-          p1 = p2;
-        }
+        const match = findClosestPointOnPath(way.points, pos, maxDistance);
+        if (match) matching.push(way);
       }
     }
     return matching;
-  }
+  }*/
 
+  public static findClosestWayPoint(pos: EarthPoint, ways: Way[], maxDistance: number = 2.5): {way: Way, match: ClosestMatch} | undefined {
+    let best: {way: Way, match: ClosestMatch} | undefined = undefined;
+    for (const way of ways) {
+      const match = findClosestPointOnPath(way.points, pos, maxDistance);
+      if (!match) continue;
+      if (match.distanceMeters === 0) return {way, match};
+      if (!best || match.distanceMeters < best.match.distanceMeters) best = {way, match};
+    }
+    return best;
+  }
 
   public static mergeWays(ways: Way[], mergePredicate: (way1: Way, way2: Way) => boolean): Way[] {
     if (ways.length < 2) return ways;

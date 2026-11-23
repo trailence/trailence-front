@@ -40,7 +40,7 @@ export abstract class MapPrimitive<O, R extends MapRenderer, P extends MapPrimit
     if (this.renderer !== undefined) throw new Error('Primitive already on map');
     this.renderer = renderer;
     this.addPrimitiveToMap(renderer);
-    this.events.addedToMap.trigger({primitive: this as unknown as P, renderer});
+    this.events.addedToMap.trigger(() => ({primitive: this as unknown as P, renderer}));
   }
   protected abstract addPrimitiveToMap(renderer: R): void;
 
@@ -49,7 +49,7 @@ export abstract class MapPrimitive<O, R extends MapRenderer, P extends MapPrimit
     if (renderer !== this.renderer) return;
     this.removePrimitiveFromMap(renderer);
     this.events.addedToMap.cancelLatest();
-    this.events.removedFromMap.trigger({primitive: this as unknown as P, renderer: this.renderer});
+    this.events.removedFromMap.trigger(() => ({primitive: this as unknown as P, renderer}));
     this.renderer = undefined;
   }
   protected abstract removePrimitiveFromMap(renderer: R): void;

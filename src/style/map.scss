@@ -254,6 +254,7 @@ body.dark-map {
   --map-contrast-color: #FFFFFF;
   --way-forbidden-color: #B03030FF;
   --way-permissive-color: #D09000FF;
+  --way-default-color: #0000FFFF;
 
   .leaflet-layer, .leaflet-control, .maplibregl-canvas {
     filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
@@ -321,6 +322,7 @@ body:not(.dark-map) {
   --map-contrast-color: #000000;
   --way-forbidden-color: #B03030FF;
   --way-permissive-color: #D0A000FF;
+  --way-default-color: #0000FFFF;
 
   ion-spinner.map-loading {
     color: black;

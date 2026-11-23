@@ -80,6 +80,7 @@ export class Leaflet extends MapRenderer {
         }
       }
       currentLayersHover = layers;
+      this.events.mousePosition.trigger(() => LeafletUtils.toMapPointerEvent(this, e));
     });
 
     let currentLayer = layer.name;

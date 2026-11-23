@@ -1,8 +1,6 @@
-import { BehaviorSubject, combineLatest, first, map, of, switchMap } from 'rxjs';
-import { MapTrack } from '@trailence/components/map/track/map-track';
+import { BehaviorSubject, combineLatest, first, map, Observable, of, switchMap } from 'rxjs';
 import { Track } from '@trailence/model/track';
 import { Trail } from '@trailence/model/trail';
-import { TrailPlannerPage } from './trail-planner.page';
 import { MapComponent } from '@trailence/components/map/map.component';
 import { ChangeDetectorRef, Injector } from '@angular/core';
 import { TrackService } from '@trailence/services/database/track.service';
@@ -14,7 +12,11 @@ import { TrailCollection } from '@trailence/model/trail-collection';
 import { Share } from '@trailence/model/share';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { TrailCollectionType } from '@trailence/model/dto/trail-collection';
-import { TrackMetadataSnapshot } from '@trailence/model/snapshots';
+import { trackBoundsToEarthBBox, TrackMetadataSnapshot } from '@trailence/model/snapshots';
+import { MapSimplifiedTracksPath } from '@trailence/components/map/elements/map-simplified-tracks-path';
+import { AnyMapElement, MAP_SELECTED_TRACK_LAYER } from '@trailence/components/map/map-element';
+import { bboxOverlaps, bboxPadRatio, EarthBBox, isPointInBBox } from '@trailence/utils/latlng';
+import { Color } from '@trailence/utils/color';
 
 const TRAIL_MAPTRACK_DEFAULT_COLOR = '#FF000080';
 const TRAIL_MAPTRACK_HIGHLIGHTED_COLOR = '#FF00FFFF';
@@ -25,17 +27,24 @@ export class Trails {
   public searchingTrails = false;
 
   public list: {trail: Trail; track: Track; collectionName: string; meta: TrackMetadataSnapshot}[] = [];
-  public trailsMapTracks$ = new BehaviorSubject<MapTrack[]>([]);
   public highlightedTrail?: Trail;
+  private readonly trailsTracks$ = new BehaviorSubject<MapSimplifiedTracksPath | undefined>(undefined);
+  private readonly highlightedTrack$ = new BehaviorSubject<MapSimplifiedTracksPath | undefined>(undefined);
+  public readonly mapElement$: Observable<AnyMapElement[]> = combineLatest([this.trailsTracks$, this.highlightedTrack$]).pipe(
+    map(([e1, e2]) => {
+      const list: AnyMapElement[] = [];
+      if (e1) list.push(e1);
+      if (e2) list.push(e2);
+      return list;
+    }),
+  );
 
-  private readonly map: MapComponent;
   private readonly changeDetector: ChangeDetectorRef;
 
   constructor(
     private readonly injector: Injector,
-    private readonly planner: TrailPlannerPage,
+    private readonly getMap: () => MapComponent | undefined,
   ) {
-    this.map = planner.map!;
     this.changeDetector = injector.get(ChangeDetectorRef);
   }
 
@@ -50,14 +59,18 @@ export class Trails {
 
   private updateTrails(): void {
     this.list = [];
-    this.trailsMapTracks$.next([]);
+    this.trailsTracks$.next(undefined);
+    this.highlightedTrack$.next(undefined);
     const previouslyHighlighted = this.highlightedTrail;
     this.highlightedTrail = undefined;
-    if (!this.showTrails || !this.map.getState()) return;
+    const renderer = this.getMap()?.renderer;
+    if (!this.showTrails || !renderer) return;
+    let bounds = renderer.getBounds();
+    if (!bounds) return;
+    bounds = bboxPadRatio(bounds, -0.05);
     this.searchingTrails = true;
-    const bounds = this.map.getBounds()!.pad(-0.05);
     this.injector.get(TrackService).getAllMetadata$().pipe(
-      collection$items(meta => !!meta.bounds && bounds.overlaps(meta.bounds)),
+      collection$items(meta => !!meta.bounds && bboxOverlaps(bounds, trackBoundsToEarthBBox(meta.bounds))),
       first(),
       switchMap(metaList =>
         this.injector.get(TrailService).getAll$().pipe(
@@ -93,15 +106,25 @@ export class Trails {
         if (l2 > 0) return 1;
         return 0;
       });
-      this.trailsMapTracks$.next(list.map(t => new MapTrack(t.trail, t.track, TRAIL_MAPTRACK_DEFAULT_COLOR, 1, false, this.injector.get(I18nService))));
-      const hl = previouslyHighlighted ? list.find(e => e.trail.owner === previouslyHighlighted.owner && e.trail.uuid === previouslyHighlighted.uuid) : undefined;
-      if (hl) this.toggleHighlightTrail(hl.trail);
+      if (list.length > 0) {
+        const simplified = list.map(t => ({
+          trail: t.trail,
+          track: {
+            owner: t.trail.owner,
+            uuid: t.track.uuid,
+            points: t.track.getAllPositions(),
+          },
+        }));
+        this.trailsTracks$.next(new MapSimplifiedTracksPath('trail-planner-tracks', simplified, Color.parse(TRAIL_MAPTRACK_DEFAULT_COLOR)));
+        const hl = previouslyHighlighted ? list.find(e => e.trail.owner === previouslyHighlighted.owner && e.trail.uuid === previouslyHighlighted.uuid) : undefined;
+        if (hl) this.toggleHighlightTrail(hl.trail);
+      }
       this.changeDetector.detectChanges();
     });
   }
 
   private computeTrailsWithCollectionName( // NOSONAR
-    collections: TrailCollection[], shares: Share[], trails: Trail[], tracks: Track[], metaList: TrackMetadataSnapshot[], bounds: L.LatLngBounds
+    collections: TrailCollection[], shares: Share[], trails: Trail[], tracks: Track[], metaList: TrackMetadataSnapshot[], bounds: EarthBBox
   ): {trail: Trail; track: Track; collectionName: string; meta: TrackMetadataSnapshot}[] {
     const result: {trail: Trail; track: Track; collectionName: string; meta: TrackMetadataSnapshot}[] = [];
     for (const track of tracks) {
@@ -109,7 +132,7 @@ export class Trails {
       if (!trail)  continue;
       const meta = metaList.find(m => m.uuid === trail.currentTrackUuid && m.owner === trail.owner);
       if (!meta) continue;
-      if (!track.forEachPosition(pos => bounds.contains(pos))) continue;
+      if (!track.forEachPosition(pos => isPointInBBox(pos, bounds))) continue;
       const collection = collections.find(col => col.uuid === trail.collectionUuid && col.owner === trail.owner);
       if (collection) {
         const collectionName = collection.name.length === 0 && collection.type === TrailCollectionType.MY_TRAILS ? this.injector.get(I18nService).texts.my_trails : collection.name;
@@ -125,17 +148,22 @@ export class Trails {
   }
 
   toggleHighlightTrail(trail: Trail): void {
-    let mapTrack = this.highlightedTrail ? this.trailsMapTracks$.value.find(t => t.trail === this.highlightedTrail) : undefined;
-    if (mapTrack) mapTrack.color = TRAIL_MAPTRACK_DEFAULT_COLOR;
     if (this.highlightedTrail === trail) {
       this.highlightedTrail = undefined;
     } else {
       this.highlightedTrail = trail;
     }
-    mapTrack = this.highlightedTrail ? this.trailsMapTracks$.value.find(t => t.trail === this.highlightedTrail) : undefined;
-    if (mapTrack) {
-      mapTrack.color = TRAIL_MAPTRACK_HIGHLIGHTED_COLOR;
-      mapTrack.bringToFront();
+    const t = this.highlightedTrail ? this.trailsTracks$.value?.tracks?.find(trailAndTrack => trailAndTrack.trail === this.highlightedTrail) : undefined;
+    if (!t) {
+      if (this.highlightedTrack$.value) this.highlightedTrack$.next(undefined);
+    } else if (this.highlightedTrack$.value?.tracks?.at(0)?.trail !== trail) {
+      const mapElement = new MapSimplifiedTracksPath(
+        'trail-planner-highlighted-track',
+        [t],
+        Color.parse(TRAIL_MAPTRACK_HIGHLIGHTED_COLOR),
+      );
+      mapElement.setPositionOnMap({layer: MAP_SELECTED_TRACK_LAYER});
+      this.highlightedTrack$.next(mapElement);
     }
     this.changeDetector.detectChanges();
   }

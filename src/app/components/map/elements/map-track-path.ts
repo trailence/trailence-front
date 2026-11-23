@@ -112,6 +112,18 @@ export class MapTrackPath extends MapElement<Track> {
       this._eleColors$,
     ]).pipe(
       map(([points, eleColors]) => {
+        let hasPoints = false;
+        for (const segment of points) {
+          if (segment.length > 0) {
+            hasPoints = true;
+            break;
+          }
+        }
+        if (!hasPoints) {
+          this._pathMonoColor = undefined;
+          this._pathEleColors = undefined;
+          return [];
+        }
         if (eleColors) {
           if (this._pathMonoColor) {
             this._pathMonoColor = undefined;

@@ -104,6 +104,7 @@ export class MapLibre extends MapRenderer {
         this.mapState.pitch3d = map.getPitch();
       });
       map.on('click', e => this.events.click.trigger(() => MapLibreUtils.toMapPointerEvent(this, e)));
+      map.on('mousemove', e => this.events.mousePosition.trigger(() => MapLibreUtils.toMapPointerEvent(this, e)));
       map.on('style.load', e => {
         if (transitionFrom2d) {
           setTimeout(() => map.flyTo({pitch: this.mapState.pitch3d, essential: true, duration: 1000}), 1000);

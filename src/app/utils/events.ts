@@ -1,3 +1,5 @@
+import { Observable } from 'rxjs';
+
 export type AppEventListener<E> = (event: E) => any;
 
 interface AppEventBinding<S, T> {
@@ -15,7 +17,7 @@ export class AppEvent<E> {
     this._listeners.push(listener);
     if (this._listeners.length === 1 && this._bound.length > 0) {
       for (const binding of this._bound) {
-        binding.sourceTearDown = binding.source.addListener(srcEvent => this.trigger(binding.mapper(srcEvent)));
+        binding.sourceTearDown = binding.source.addListener(srcEvent => this.trigger(() => binding.mapper(srcEvent)));
       }
       this._triggerListenersChanged(true);
     }
@@ -40,10 +42,11 @@ export class AppEvent<E> {
     }
   }
 
-  public trigger(event: E): void {
+  public trigger(event: () => E): void {
     if (this._listeners.length === 0) return;
     const listeners = [...this._listeners];
-    for (const listener of listeners) listener(event);
+    const e = event();
+    for (const listener of listeners) listener(e);
   }
 
   public hasListeners(): boolean {
@@ -64,7 +67,7 @@ export class AppEvent<E> {
     const binding: AppEventBinding<T, E> = {source, mapper};
     this._bound.push(binding);
     if (this._listeners.length > 0) {
-      binding.sourceTearDown = source.addListener(srcEvent => this.trigger(mapper(srcEvent)));
+      binding.sourceTearDown = source.addListener(srcEvent => this.trigger(() => mapper(srcEvent)));
     }
   }
 
@@ -75,20 +78,26 @@ export class AppEvent<E> {
     binding.sourceTearDown?.();
   }
 
+  public asObservable(): Observable<E> {
+    return new Observable<E>(subscriber => {
+      return this.addListener(e => subscriber.next(e));
+    });
+  }
+
 }
 
 export class ReplayAppEvent<E> extends AppEvent<E> {
 
-  private _latest?: E;
+  private _latest?: () => E;
 
-  public override trigger(event: E): void {
+  public override trigger(event: () => E): void {
     this._latest = event;
     super.trigger(event);
   }
 
   public override addListener(listener: AppEventListener<E>): () => void {
     const tearDown = super.addListener(listener);
-    if (this._latest) listener(this._latest);
+    if (this._latest) listener(this._latest());
     return tearDown;
   }
 

@@ -167,6 +167,7 @@ interface IModerationTools {
   readonly compareWithTrail$: Observable<Trail | undefined>;
   readonly showTextHtml: boolean;
   readonly currentPublicTrailUuid: string | undefined;
+  translationsReadyChanged: (ready: boolean) => void;
 }
 
 @Component({
@@ -254,21 +255,13 @@ export class TrailComponent extends AbstractComponent<{trail1: Observable<Trail 
 
   map$ = new BehaviorSubject<MapComponent | undefined>(undefined);
   @ViewChild(MapComponent)
-  set map(child: MapComponent | undefined) {
-    this.map$.next(child);
-  }
-  get map() {
-    return this.map$.value;
-  }
+  set map(child: MapComponent | undefined) { this.map$.next(child); }
+  get map() { return this.map$.value; }
 
   graph$ = new BehaviorSubject<TrailGraphComponent | undefined>(undefined);
   @ViewChild(TrailGraphComponent)
-  set graph(child: TrailGraphComponent | undefined) {
-    this.graph$.next(child ?? undefined);
-  }
-  get graph() {
-    return this.graph$.value;
-  }
+  set graph(child: TrailGraphComponent | undefined) { this.graph$.next(child ?? undefined); }
+  get graph() { return this.graph$.value; }
 
   displayMode = 'loading';
   bottomSheetOpen = true;
@@ -349,18 +342,11 @@ export class TrailComponent extends AbstractComponent<{trail1: Observable<Trail 
       .setAction(() => this.openChecklist())
       .setData('moderation-after'),
     new MenuItem().setIcon('web').setI18nLabel('publications.publish')
-      .setVisible(() => (this.trail1?.fromModeration || (!!this.publicationChecklist && !this.trail2)))
-      .setDisabled(() =>
-        (!this.trail1?.fromModeration && this.publicationChecklist?.nbUnchecked !== 0) ||
-        (!!this.trail1?.fromModeration && !this._translationsReady)
-      )
+      .setVisible(() => !!this.publicationChecklist && !this.trail2)
+      .setDisabled(() => this.publicationChecklist?.nbUnchecked !== 0)
       .setTextColor('success')
       .setAction(() => this.publish())
       .setData('moderation-before'),
-    new MenuItem().setIcon('cross').setI18nLabel('publications.moderation.reject')
-      .setVisible(() => this.trail1?.fromModeration)
-      .setTextColor('danger')
-      .setAction(() => this.rejectPublication()),
     new MenuItem().setIcon('undo').setI18nLabel('publications.reject_to_draft')
       .setVisible(() => !!this.trail1 && !this.trail2 && this.trail1WithInfo?.collection?.type === TrailCollectionType.PUB_REJECT)
       .setTextColor('success')
@@ -2102,8 +2088,8 @@ export class TrailComponent extends AbstractComponent<{trail1: Observable<Trail 
   private async publish() {
     const confirm = await this.injector.get(AlertController).create({
       header: this.i18n.texts.publications.publish,
-      message: this.trail1?.fromModeration ? this.i18n.texts.publications.moderation.publish_confirmation : this.i18n.texts.publications.publish_confirmation,
-      inputs: this.trail1?.fromModeration ? [] : [{
+      message: this.i18n.texts.publications.publish_confirmation,
+      inputs: [{
         type: 'textarea',
         placeholder: this.i18n.texts.publications.publish_message_placeholder,
         attributes: {
@@ -2131,68 +2117,13 @@ export class TrailComponent extends AbstractComponent<{trail1: Observable<Trail 
     await confirm.present();
     const result = await confirm.onDidDismiss();
     if (result.role !== 'confirm') return;
-
-    if (this.trail1?.fromModeration) {
-      const trail = this.trail1;
-      const service = this.injector.get(ModerationService);
-      combineLatest([
-        service.getFullTrack$(trail.uuid, trail.owner, trail.currentTrackUuid).pipe(first()),
-        service.getPhotos$(trail.owner, trail.uuid).pipe(first()),
-      ]).subscribe(([track, photos]) => {
-        void service.validateAndPublish(trail, track, photos, (ok) => {
-          if (ok)
-            void this.injector.get(Router).navigateByUrl('/trails/moderation');
-        });
-      });
-    } else {
-      this.publicationChecklist?.delete();
-      const trail = this.trail1!
-      const fromCollection = this.injector.get(TrailCollectionService).getCollection(trail.collectionUuid, trail.owner)!;
-      const toCollection = (await firstValueFrom(this.injector.get(TrailCollectionService).getOrCreatePublicationSubmit()))!;
-      const copyModule = await import('../../services/functions/copy-trails');
-      copyModule.moveTrailsTo(this.injector, [trail], fromCollection, toCollection, t => t.publicationMessageFromAuthor = result.data, true);
-      void this.injector.get(Router).navigateByUrl('/trails/collection/' + this.trail1WithInfo!.collection!.uuid + '/' + this.trail1WithInfo!.collection!.owner);
-    }
-  }
-
-  private async rejectPublication() {
-    const confirm = await this.injector.get(AlertController).create({
-      header: this.i18n.texts.publications.moderation.reject,
-      inputs: [{
-        type: 'textarea',
-        placeholder: this.i18n.texts.publications.reject_message_placeholder,
-        attributes: {
-          maxlength: 50000,
-          counter: true,
-        }
-      }],
-      buttons: [
-        {
-          text: this.i18n.texts.buttons.confirm,
-          role: 'confirm',
-          handler: (result) => {
-            const message = result[0].trim();
-            if (message.length > 10)
-              void this.injector.get(AlertController).dismiss(message, 'confirm');
-            return false;
-          }
-        }, {
-          text: this.i18n.texts.buttons.cancel,
-          role: 'cancel',
-          handler: () => {
-            void this.injector.get(AlertController).dismiss(false, 'cancel');
-          }
-        }
-      ]
-    });
-    await confirm.present();
-    const result = await confirm.onDidDismiss();
-    if (result.role !== 'confirm') return;
-
-    const trail = this.trail1!;
-    const service = this.injector.get(ModerationService);
-    service.reject(trail, result.data as string, this.photos);
-    void this.injector.get(Router).navigateByUrl('/trails/moderation');
+    this.publicationChecklist?.delete();
+    const trail = this.trail1!
+    const fromCollection = this.injector.get(TrailCollectionService).getCollection(trail.collectionUuid, trail.owner)!;
+    const toCollection = (await firstValueFrom(this.injector.get(TrailCollectionService).getOrCreatePublicationSubmit()))!;
+    const copyModule = await import('../../services/functions/copy-trails');
+    copyModule.moveTrailsTo(this.injector, [trail], fromCollection, toCollection, t => t.publicationMessageFromAuthor = result.data, true);
+    void this.injector.get(Router).navigateByUrl('/trails/collection/' + this.trail1WithInfo!.collection!.uuid + '/' + this.trail1WithInfo!.collection!.owner);
   }
 
   private async rejectToDraft() {
@@ -2290,13 +2221,6 @@ export class TrailComponent extends AbstractComponent<{trail1: Observable<Trail 
         this.injector.get(ErrorService).addNetworkError(e, 'publications.remove_publication_error', []);
       }
     });
-  }
-
-  private _translationsReady = false;
-  translationsReadyChanged(ready: boolean): void {
-    this._translationsReady = ready;
-    this.toolbarItems = [...this.toolbarItems];
-    this.changesDetection.detectChanges();
   }
 
   highlightSections(event: {track: Track, sections: TrackSection[]} | null): void {

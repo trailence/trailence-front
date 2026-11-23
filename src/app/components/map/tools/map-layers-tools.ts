@@ -1,4 +1,4 @@
-import { ElementRef, Injector } from '@angular/core';
+import { Injector } from '@angular/core';
 import { MapTool, MapToolGroup } from '../map-tool';
 import { MapComponent } from '../map.component';
 import { BehaviorSubject, combineLatest, distinctUntilChanged, EMPTY, map, Observable, of, switchMap, tap } from 'rxjs';
@@ -6,13 +6,12 @@ import { MenuItem } from '@trailence/components/menus/menu-item';
 import { ModalController } from '@ionic/angular';
 import { countMapAdditionsOptions, hasForbiddenWaysEnabled, hasPermissiveWaysEnabled, hasPoisEnabled, MapAdditionsOptions, MapAdditionsService } from '@trailence/services/map/map-additions.service';
 import { debounceTimeExtended } from '@trailence/utils/rxjs/debounce-time-extended';
-import { AnyMapElement, MapElement } from '../map-element';
+import { AnyMapElement } from '../map-element';
 import { Subscriptions } from '@trailence/utils/rxjs/subscription-utils';
 import { PoisMapElement } from '../elements/pois';
 import { POI } from '@trailence/services/map/poi';
 import { Way, WayPermission } from '@trailence/services/map/way';
-import { WaysMapElement } from '../elements/ways';
-import { Color } from '@trailence/utils/color';
+import { WaysColor, WaysMapElement } from '../elements/ways';
 
 export const MapLayersToolsGroup: MapToolGroup = {
   id: 'map-layers',
@@ -100,8 +99,9 @@ export class MapAdditionsTool implements MapTool {
         permissiveWays = new WaysMapElement(
           'map-additions-permissive-ways',
           new BehaviorSubject<Way[]>(ways),
-          Color.fromCssVariable('--way-permissive-color', injector.get(ElementRef).nativeElement).setAlpha(0.75),
-          3, [4, 2],
+          WaysColor.PERMISSIVE,
+          0.75,
+          3,
         );
         updateElements();
       }
@@ -118,8 +118,9 @@ export class MapAdditionsTool implements MapTool {
         forbiddenWays = new WaysMapElement(
           'map-additions-forbidden-ways',
           new BehaviorSubject<Way[]>(ways),
-          Color.fromCssVariable('--way-forbidden-color', injector.get(ElementRef).nativeElement).setAlpha(0.75),
-          3, [4, 2],
+          WaysColor.FORBIDDEN,
+          0.75,
+          3,
         );
         updateElements();
       }
@@ -229,7 +230,7 @@ export class MapAdditionsTool implements MapTool {
                     setForbiddenWays(forbiddenWays);
                     item.setSpinner(undefined);
                     item$.next(item);
-                    // TODO partial
+                    // TODO refacto partial
                   }),
                 );
               }),

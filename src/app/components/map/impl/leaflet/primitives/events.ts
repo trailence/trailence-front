@@ -53,7 +53,7 @@ export class LeafletPrimitiveEvents<O, P extends MapPrimitive<O, Leaflet, P> & L
     if (!layer) return;
     const listener = (event: L.LeafletMouseEvent) => {
       const primitive = this.getPrimitive();
-      this.click.trigger({primitive, pointerEvent: LeafletUtils.toMapPointerEvent(primitive.getRenderer()!, event)});
+      this.click.trigger(() => ({primitive, pointerEvent: LeafletUtils.toMapPointerEvent(primitive.getRenderer()!, event)}));
     };
     this._leafletClick = {layer, listener};
     layer.on('click', listener);
@@ -82,12 +82,12 @@ export class LeafletPrimitiveEvents<O, P extends MapPrimitive<O, Leaflet, P> & L
         (event.originalEvent as any)._layerCatch = [layer];
       }
       const primitive = this.getPrimitive();
-      this.hover.trigger({primitive, pointerEvent: LeafletUtils.toMapPointerEvent(primitive.getRenderer()!, event)});
+      this.hover.trigger(() => ({primitive, pointerEvent: LeafletUtils.toMapPointerEvent(primitive.getRenderer()!, event)}));
     };
     const outListener = (event: L.LeafletMouseEvent) => {
       if (!isHover) return;
       isHover = false;
-      this.hover.trigger({primitive: this.getPrimitive(), pointerEvent: undefined});
+      this.hover.trigger(() => ({primitive: this.getPrimitive(), pointerEvent: undefined}));
     };
     this._leafletHover = {layer, hoverListener, outListener};
     layer.on('mouseout', outListener);

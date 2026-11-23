@@ -183,8 +183,11 @@
                   }
                 }
                 @if (trail1.fromModeration && tracks.length > 0) {
-                  @defer {
-                    <app-moderation-translations [trail]="trail1" [track]="tracks[0]" (translationsReady)="translationsReadyChanged($event)"></app-moderation-translations>
+                  @let moderation = moderationTools$ | async;
+                  @if (moderation) {
+                    @defer {
+                      <app-moderation-translations [trail]="trail1" [track]="tracks[0]" (translationsReady)="moderation.translationsReadyChanged($event)"></app-moderation-translations>
+                    }
                   }
                 }
               </div>
