@@ -101,11 +101,11 @@ export const appAuthRoutes: Routes = [
   {
     path: 'myaccount',
     loadComponent: () => import('../../pages/myaccount/myaccount.page').then(m => m.MyaccountPage)
-  },/* TODO refacto
+  },
   {
     path: 'trail-planner',
     loadComponent: () => import('../../pages/trail-planner/trail-planner.page').then(m => m.TrailPlannerPage)
-  },*/
+  },
   {
     path: 'notifications',
     loadComponent: () => import('../../pages/notifications/notifications.page').then(m => m.NotificationsPage)

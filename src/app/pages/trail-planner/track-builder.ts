@@ -1,8 +1,6 @@
 import { Injector } from '@angular/core';
-import { BehaviorSubject, first, Observable, Subscription, switchMap } from 'rxjs';
+import { BehaviorSubject, first, Observable, Subscription } from 'rxjs';
 import { MapComponent } from '@trailence/components/map/map.component';
-import { Point } from '@trailence/model/point';
-import { PointDescriptor } from '@trailence/model/point-descriptor';
 import { Track } from '@trailence/model/track';
 import { Trail } from '@trailence/model/trail';
 import { AuthService } from '@trailence/services/auth/auth.service';
@@ -10,15 +8,11 @@ import { TrackService } from '@trailence/services/database/track.service';
 import { TrailService } from '@trailence/services/database/trail.service';
 import { PreferencesService } from '@trailence/services/preferences/preferences.service';
 import { TrackEditionService } from '@trailence/services/track-edition/track-edition.service';
-import { Arrays } from '@trailence/utils/arrays';
 import { TrailPlannerPage } from './trail-planner.page';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
-import { TrackUtils } from '@trailence/utils/track-utils';
 import { GeoService } from '@trailence/services/geolocation/geo.service';
-import { TrackDto } from '@trailence/model/dto/track';
 import { TrailSourceType } from '@trailence/model/dto/trail';
-import { WayUtils } from '@trailence/services/map/way-utils';
-import { SimplifiedPoint, SimplifiedTrackSnapshot } from '@trailence/model/snapshots';
+import { WaysGraph, WaysPath, WayUtils } from '@trailence/services/map/way-utils';
 import { OfflineMapService } from '@trailence/services/map/offline-map.service';
 import { Way, WayPermission } from '@trailence/services/map/way';
 import { WorkerService } from '@trailence/worker/web-app';
@@ -33,6 +27,9 @@ import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { WaysColor, WaysMapElement } from '@trailence/components/map/elements/ways';
 import { PRIMARY_TRACK_COLOR } from '@trailence/components/trail/trail-colors';
 import { EarthPoint } from '@trailence/utils/latlng';
+import { MapRenderer } from '@trailence/components/map/impl/map-renderer';
+import { AddPointAnchor } from '@trailence/components/map/elements/add-point-anchor';
+import { AnyMapElement } from '@trailence/components/map/map-element';
 
 const logger = getLogger('track-builder');
 
@@ -48,24 +45,18 @@ interface TrackPoint {
 export class TrackBuilder {
 
   private ways: Way[] = [];
-  private readonly possibleWaysFromCursor = {
-    normal: new BehaviorSubject<Way[]>([]),
-    permissive: new BehaviorSubject<Way[]>([]),
-    forbidden: new BehaviorSubject<Way[]>([]),
+  private readonly graph = new WaysGraph();
+  public readonly waysToCursor = {
+    normal: new BehaviorSubject<{points: EarthPoint[]}[]>([]),
+    permissive: new BehaviorSubject<{points: EarthPoint[]}[]>([]),
+    forbidden: new BehaviorSubject<{points: EarthPoint[]}[]>([]),
   };
-  private readonly possibleWaysFromLastWayPoint = {
-    normal: new BehaviorSubject<Way[]>([]),
-    permissive: new BehaviorSubject<Way[]>([]),
-    forbidden: new BehaviorSubject<Way[]>([]),
-  };
-  private highlightedWays: MapTrack[] = [];
-  public waysMapElements = [
-    new WaysMapElement('possible-from-cursor-normal', this.possibleWaysFromCursor.normal, WaysColor.NORMAL, 0.5, 3),
-    new WaysMapElement('possible-from-cursor-permissive', this.possibleWaysFromCursor.permissive, WaysColor.PERMISSIVE, 0.5, 3),
-    new WaysMapElement('possible-from-cursor-forbidden', this.possibleWaysFromCursor.forbidden, WaysColor.FORBIDDEN, 0.5, 3),
-    new WaysMapElement('possible-from-last-normal', this.possibleWaysFromLastWayPoint.normal, WaysColor.NORMAL, 0.75, 3),
-    new WaysMapElement('possible-from-last-permissive', this.possibleWaysFromLastWayPoint.permissive, WaysColor.PERMISSIVE, 0.75, 3),
-    new WaysMapElement('possible-from-last-forbidden', this.possibleWaysFromLastWayPoint.forbidden, WaysColor.FORBIDDEN, 0.75, 3),
+  private readonly addPointAnchor = new AddPointAnchor();
+  public readonly waysMapElements: AnyMapElement[] = [
+    new WaysMapElement('ways-to-cursor-normal', this.waysToCursor.normal, WaysColor.NORMAL, 0.5, 3),
+    new WaysMapElement('ways-to-cursor-permissive', this.waysToCursor.permissive, WaysColor.PERMISSIVE, 0.5, 3),
+    new WaysMapElement('ways-to-cursor-forbidden', this.waysToCursor.forbidden, WaysColor.FORBIDDEN, 0.5, 3),
+    this.addPointAnchor,
   ];
 
   public track?: Track;
@@ -97,15 +88,20 @@ export class TrackBuilder {
     );
   }
 
-  start(): void {
-    this.track = new Track({owner: this.injector.get(AuthService).email}, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService), this.injector.get(TrackComputedDataCacheService), this.injector.get(NetworkService));
+  private mapElementFromTrack(): void {
+    if (!this.track) return;
     const color = Color.parse(PRIMARY_TRACK_COLOR).setAlpha(0.5);
     this.trackMapElements$.next([
       new MapTrackPath(undefined, this.track, color, false, 3, PATH_ARROWS_DEFAULT_COLOR),
       new MapTrackAnchors(this.track, this.injector.get(I18nService), false, color, undefined, undefined, undefined),
     ]);
+  }
+
+  start(): void {
+    this.track = new Track({owner: this.injector.get(AuthService).email}, false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService), this.injector.get(TrackComputedDataCacheService), this.injector.get(NetworkService));
+    this.mapElementFromTrack();
     this.enablePutAnchor();
-    this.updateWays();
+    this.updateWaysFromMapState();
     this.saveToLocalStorage();
     this.estimatedTime = 0;
     this.hasElevation = false;
@@ -119,7 +115,7 @@ export class TrackBuilder {
 
   resume(): void {
     this.enablePutAnchor();
-    this.updateWays();
+    this.updateWaysFromMapState();
   }
 
   reset(): void {
@@ -130,7 +126,7 @@ export class TrackBuilder {
     this.cancelWays();
     this.trackMapElements$.next(undefined);
     this.track = undefined;
-    this.points = [];
+    this.trackPoints = [];
     this.estimatedTime = 0;
     this.hasElevation = false;
     this.deleteFromLocalStorage();
@@ -157,17 +153,16 @@ export class TrackBuilder {
   }
 
   undo(): void {
-    if (this.points.length === 0) return;
-    if (this.points.length === 1) {
-      this.points = [];
+    if (this.trackPoints.length === 0) return;
+    if (this.trackPoints.length === 1) {
+      this.trackPoints = [];
       this.start();
     } else {
       if (!this.track) return;
-      this.track.lastSegment.removeMany(this.points.at(-1)!);
-      this.points.splice(-1, 1);
-      this.updateCurrentMapTrack();
-      const matching = WayUtils.getMatchingWays(this.getLastPoint()!.pos, this.ways, MATCHING_MAX_DISTANCE);
-      this.updateWaysFromLastAnchor(matching);
+      const nbRemoved = this.trackPoints.splice(-1, 1)[0].length;
+      const points = this.track.lastSegment.points;
+      this.track.lastSegment.removeMany(points.slice(points.length - nbRemoved));
+      if (this.putAnchors) this.refreshWaysToMouse(this.map?.renderer, undefined);
       this.hasElevation = this.track.forEachPoint(p => p.ele !== undefined) ?? false;
     }
     this.planner.changesDetection.detectChanges();
@@ -178,7 +173,7 @@ export class TrackBuilder {
   }
 
   public mapChanged() {
-    this.updateWays();
+    this.updateWaysFromMapState();
   }
 
   private getWayColor(way?: Way): WaysColor {
@@ -203,77 +198,110 @@ export class TrackBuilder {
     return WaysColor.NORMAL;
   }
 
-  private setHighlightedWays(tracks: MapTrack[]): void {
-    if (Arrays.sameContent(this.highlightedWays, tracks)) return;
-    for (const t of this.highlightedWays) t.color = this.getWayColor(t.data?.element);
-    this.highlightedWays = tracks;
-    for (const t of this.highlightedWays) {
-      t.color = WAY_MAPTRACK_HIGHLIGHTED_COLOR;
-      t.bringToFront();
-    }
-  }
-
-
   private anchorMapOverSubscription?: Subscription;
   private anchorMapClickSubscription?: Subscription;
-  private _addAnchor?: MapAnchor;
 
   private enablePutAnchor(): void {
     this.disableFreeAnchor();
     this.putAnchors = true;
-    this._addAnchor = this.createAnchor({lat: 0, lng: 0}, '+', false);
+    this._latestMousePosition = undefined;
     const map = this.map;
     if (!map) return;
     this.anchorMapOverSubscription = map.events.mousePosition.asObservable().subscribe(mouseEvent => {
-      const zoom = map.renderer?.mapState?.zoom;
-      if (!zoom || zoom < this.planner.minZoom) {
-        this.possibleWaysFromCursor.normal.next([]);
-        this.possibleWaysFromCursor.permissive.next([]);
-        this.possibleWaysFromCursor.forbidden.next([]);
-        this.possibleWaysFromLastAnchor.normal.next([]);
-        this.possibleWaysFromLastAnchor.permissive.next([]);
-        this.possibleWaysFromLastAnchor.forbidden.next([]);
-        this.map.removeFromMap(this._addAnchor!.marker);
-        this.planner.changesDetection.detectChanges();
-        return;
-      }
-      const ref = this.getEligiblePoint(refs);
-      if (ref?.ref?.point) {
-        const pos = ref.ref.position!;
-        this._addAnchor!.marker.setLatLng(pos);
-        this.map.addToMap(this._addAnchor!.marker);
-
-        const matchingWays = WayUtils.getMatchingWays(pos, this.ways, MATCHING_MAX_DISTANCE);
-        const matchingMapTracks = this.getMatchingMapTracksIn(pos, [...this.possibleWaysFromLastAnchor$.value, ...this.possibleWaysFromCursor$.value]);
-        const missingWays = matchingWays.filter(way => !matchingMapTracks.some(mt => mt.data.element === way));
-        // new possible ways from cursor = matchingMapTracks present in current possible ways + missingWays
-        const newPossibleWaysFromCursor = this.possibleWaysFromCursor$.value.filter(t => matchingMapTracks.includes(t));
-        for (const missing of missingWays)
-          newPossibleWaysFromCursor.push(this.wayToMapTrack(missing));
-        // map tracks = current - current additional + new additional
-        this.possibleWaysFromCursor$.next(newPossibleWaysFromCursor);
-
-        this.setHighlightedWays(matchingMapTracks.filter(t => !newPossibleWaysFromCursor.includes(t)));
-      } else {
-        this.map.removeFromMap(this._addAnchor!.marker);
-        this.setHighlightedWays([]);
-        this.possibleWaysFromCursor$.next([]);
-      }
-      this.planner.changesDetection.detectChanges();
+      this.refreshWaysToMouse(mouseEvent.renderer, mouseEvent.geographicPoint);
     });
     this.anchorMapClickSubscription = map.events.click.asObservable().subscribe(mouseEvent => {
       const zoom = map.renderer?.mapState?.zoom;
       if (!zoom || zoom < this.planner.minZoom) return;
-      const lastPoint = this.getLastPoint();
-      if (!lastPoint) {
-        const closest = WayUtils.findClosestWayPoint(mouseEvent.geographicPoint, this.ways, MATCHING_MAX_DISTANCE);
-        if (!closest) return;
-        this.firstPoint({pos: closest.match.point, free: false});
+      this.createWayAnchorPoint(mouseEvent.geographicPoint);
+    });
+  }
+
+  private _latestMousePosition: EarthPoint | undefined = undefined;
+  private refreshWaysToMouse(renderer: MapRenderer | undefined, mousePosition: EarthPoint | undefined): void {
+    const mousePos = mousePosition ?? this._latestMousePosition;
+    const zoom = renderer?.mapState?.zoom;
+    const closest = zoom && zoom >= this.planner.minZoom && mousePos ? WayUtils.findClosestWayPoint(mousePos, this.ways, MATCHING_MAX_DISTANCE) : undefined;
+    if (!closest) {
+      this.addPointAnchor.position = undefined;
+      this.setWaysToCursor(undefined);
+      this.planner.changesDetection.detectChanges();
+      return;
+    }
+    const lastPoint = this.getLastPoint();
+    if (lastPoint) {
+      const path = this.getPathToGoTo(lastPoint, closest.match.point);
+      if (!path) {
+        this.addPointAnchor.position = undefined;
+        this.setWaysToCursor(undefined);
+        this.planner.changesDetection.detectChanges();
         return;
       }
-      const points = this.getBestWayToGoFrom(lastPoint, mouseEvent.geographicPoint);
-      this.appendPoints(points);
-    });
+      this.addPointAnchor.position = closest.match.point;
+      this.setWaysToCursor(path);
+    } else {
+      this.addPointAnchor.position = closest.match.point;
+    }
+    this.planner.changesDetection.detectChanges();
+  }
+
+  private createWayAnchorPoint(position: EarthPoint): void {
+    const closest = WayUtils.findClosestWayPoint(position, this.ways, MATCHING_MAX_DISTANCE);
+    if (!closest) return;
+
+    const lastPoint = this.getLastPoint();
+    if (!lastPoint) {
+      this.firstPoint({pos: closest.match.point, free: false});
+      return;
+    }
+    const path = this.getPathToGoTo(lastPoint, closest.match.point);
+    if (!path) return;
+    const newPoints: TrackPoint[] = [
+      ...path.startingFreePoints.map(pos => ({pos, free: true})),
+      ...path.waysPath.map(wp => ({pos: wp.point, free: false})),
+    ];
+    this.appendPoints(newPoints);
+  }
+
+  private setWaysToCursor(path: WaysPath | undefined): void {
+    let normal: {points: EarthPoint[]}[] = [];
+    let permissive: {points: EarthPoint[]}[] = [];
+    let forbidden: {points: EarthPoint[]}[] = [];
+    if (path) {
+      if (path.startingFreePoints.length > 0) {
+        normal.push({points: path.startingFreePoints});
+      }
+      let current: {color: WaysColor, way: {points: EarthPoint[]}} | undefined;
+      const pushCurrent = (c: {color: WaysColor, way: {points: EarthPoint[]}}) => {
+        switch (c.color) {
+          case WaysColor.NORMAL: normal.push(c.way); break;
+          case WaysColor.PERMISSIVE: permissive.push(c.way); break;
+          case WaysColor.FORBIDDEN: forbidden.push(c.way); break;
+        }
+      };
+      for (const w of path.waysPath) {
+        const color = this.getWayColor(w.way);
+        if (!current) {
+          current = {color, way: {points: [w.point]}};
+        } else if (current.color === color) {
+          current.way.points.push(w.point);
+        } else {
+          pushCurrent(current);
+          current = {color, way: {points: [w.point]}};
+        }
+      }
+      if (current) pushCurrent(current);
+    }
+    const update = (newValue: {points: EarthPoint[]}[], current$: BehaviorSubject<{points: EarthPoint[]}[]>) => {
+      if (newValue.length === 0) {
+        if (current$.value.length > 0) current$.next([]);
+      } else {
+        current$.next(newValue);
+      }
+    };
+    update(normal, this.waysToCursor.normal);
+    update(permissive, this.waysToCursor.permissive);
+    update(forbidden, this.waysToCursor.forbidden);
   }
 
   private disablePutAnchors(): void {
@@ -281,12 +309,10 @@ export class TrackBuilder {
     this.anchorMapOverSubscription = undefined;
     this.anchorMapClickSubscription?.unsubscribe();
     this.anchorMapClickSubscription = undefined;
+    this._latestMousePosition = undefined;
     this.putAnchors = false;
-    if (this._addAnchor) {
-      this.map.removeFromMap(this._addAnchor.marker);
-      this._addAnchor = undefined;
-    }
-    this.highlightedWays = [];
+    this.addPointAnchor.position = undefined;
+    this.setWaysToCursor(undefined);
   }
 
   enableFreeAnchor(): void {
@@ -294,13 +320,18 @@ export class TrackBuilder {
     this.disablePutAnchors();
     this.cancelWays();
     this.putFreeAnchor = true;
-    this._addAnchor = this.createAnchor({lat: 0, lng: 0}, '+', false);
-    this.map.addToMap(this._addAnchor.marker);
-    this.anchorMapOverSubscription = this.map.mouseOver.subscribe(pos => {
-      this._addAnchor!.marker.setLatLng(pos);
+    this.addPointAnchor.position = undefined;
+    const map = this.map;
+    if (!map) return;
+    this.anchorMapOverSubscription = map.events.mousePosition.asObservable().subscribe(mouseEvent => {
+      this.addPointAnchor.position = mouseEvent.geographicPoint;
     });
-    this.anchorMapClickSubscription = this.map.mouseClick.subscribe(pos => {
-      this.newPoint(pos, undefined);
+    this.anchorMapClickSubscription = map.events.click.asObservable().subscribe(mouseEvent => {
+      if (!this.getLastPoint()) {
+        this.firstPoint({pos: mouseEvent.geographicPoint, free: true});
+      } else {
+        this.appendPoints([{pos: mouseEvent.geographicPoint, free: true}]);
+      }
     });
   }
 
@@ -310,10 +341,7 @@ export class TrackBuilder {
     this.anchorMapClickSubscription?.unsubscribe();
     this.anchorMapClickSubscription = undefined;
     this.putFreeAnchor = false;
-    if (this._addAnchor) {
-      this.map.removeFromMap(this._addAnchor.marker);
-      this._addAnchor = undefined;
-    }
+    this.addPointAnchor.position = undefined;
   }
 
   backToNonFreeAnchors(): void {
@@ -321,67 +349,15 @@ export class TrackBuilder {
     this.resume();
   }
 
-  private getBestWayToGoFrom(previous: TrackPoint, newPos: EarthPoint): TrackPoint[] {
-    if (previous.free) {
-      const closest = WayUtils.findClosestWayPoint(newPos, this.ways, MATCHING_MAX_DISTANCE);
-      if (!closest) return [];
-      return [{pos: closest.match.point, free: false}];
+  private getPathToGoTo(lastPoint: TrackPoint, target: EarthPoint): WaysPath | undefined {
+    if (lastPoint.free) {
+      // TODO threshold should be different i guess
+      return this.graph.getShortestPathFromFreePoint(lastPoint.pos, target, MATCHING_MAX_DISTANCE);
+    } else {
+      const points = this.graph.getShortestPath(lastPoint.pos, target);
+      if (!points) return undefined;
+      return { startingFreePoints: [], waysPath: points };
     }
-    const ways = [...this.possibleWaysFromLastWayPoint.normal.value, ...this.possibleWaysFromLastWayPoint.permissive.value, ...this.possibleWaysFromLastWayPoint.forbidden.value];
-    const linkToPrevious = WayUtils.getClosestPointsOnWays(previous.pos, ways, MATCHING_MAX_DISTANCE);
-    let best: {distance: number, points: EarthPoint[]} | undefined = undefined;
-    for (const link of linkToPrevious) {
-      const newPoints = this.getPointsToGoTo(previous.pos, newPos, link.way.points);
-      if (newPoints.length === 0) continue;
-      const d = TrackUtils.distanceBetweenLatLng(newPoints, 0, newPoints.length - 1);
-      if (!best || d < best.distance) best = {distance: d, points: newPoints};
-    }
-    if (best) return best.points.map(pos => ({pos, free: false}));
-    return [];
-  }
-
-  /*
-  private getEligiblePoint(pos: EarthPoint): {point: EarthPoint | undefined, using: Way | undefined} | undefined {
-    const previousPos = this.getLastPoint();
-    const ways = [...this.possibleWaysFromLastAnchor.normal.value, ...this.possibleWaysFromLastAnchor.permissive.value, ...this.possibleWaysFromLastAnchor.forbidden.value];
-    if (!previousPos) {
-      const closest = WayUtils.findClosestWayPoint(pos, ways);
-      return {point: closest?.match?.point, using: undefined};
-    }
-    const linkToPrevious = WayUtils.getClosestPointsOnWays(previousPos.pos, ways, MATCHING_MAX_DISTANCE);
-    for (const link of linkToPrevious) {
-      const from = link.closest.point;
-      const newPoints = this.getPointsToGoTo(previousPos.pos, pos, link.way.points);
-      const d = TrackUtils.distanceBetween(newPoints, 0, newPoints.length - 1);
-    }
-
-    const previousPosMapTracks = this.getMatchingMapTracksIn(previousPos.pos, this.possibleWaysFromLastAnchor$.value);
-    const linkToPrevious = refs.filter(r => r.point !== undefined && previousPosMapTracks.includes(r.track)).sort(MapTrackPointReference.distanceComparator);
-    let best: {ref: MapTrackPointReference, using: MapTrack | undefined} | undefined = undefined;
-    let bestWays: Way[] = [];
-    let bestDistance = -1;
-    for (const ref of linkToPrevious) {
-      const matching = this.getMatchingMapTracksIn(ref.position!, previousPosMapTracks); // NOSONAR
-      if (matching.length === 1) {
-        const newPoints = this.getPointsToGoTo(previousPos.pos, ref.position!, (matching[0].track as SimplifiedTrackSnapshot).points);
-        const distance = TrackUtils.distanceBetween(newPoints, 0, newPoints.length - 1);
-        const ways = WayUtils.getMatchingWays(ref.position!, this.ways, MATCHING_MAX_DISTANCE); // NOSONAR
-        if (best === undefined || (ways.length > bestWays.length && Arrays.includesAll(ways, bestWays)) || (ways.length === bestWays.length && distance < bestDistance && matching[0] !== best.using)) {
-          best = {ref, using: matching[0]};
-          bestWays = ways;
-          bestDistance = distance;
-        }
-      }
-    }
-    if (!best && linkToPrevious.length === 0 && this.points.at(-1)?.length === 1) {
-      // seems to be a free point
-      return {ref: MapTrackPointReference.closest(refs), using: undefined};
-    }
-    return best;
-  }*/
-
-  private createAnchor(pos: L.LatLngLiteral, text: string, canRotate: boolean): MapAnchor {
-    return new MapAnchor(pos, '#d00000', text, undefined, '#ffffff', '#d00000', undefined, canRotate, false);
   }
 
   private firstPoint(point: TrackPoint): void {
@@ -399,94 +375,18 @@ export class TrackBuilder {
   }
 
   private trackPointAdded(): void {
-    const lastPoint = this.getLastPoint();
-    if (!lastPoint) return;
-    if (lastPoint.free) {
-      this.possibleWaysFromLastWayPoint.normal.next([]);
-      this.possibleWaysFromLastWayPoint.permissive.next([]);
-      this.possibleWaysFromLastWayPoint.forbidden.next([]);
-    } else {
-      const matching = WayUtils.getClosestPointsOnWays(lastPoint.pos, this.ways, MATCHING_MAX_DISTANCE);
-      this.possibleWaysFromLastWayPoint.normal.next(matching.filter(m => this.getWayColor(m.way) === WaysColor.NORMAL).map(m => m.way));
-      this.possibleWaysFromLastWayPoint.permissive.next(matching.filter(m => this.getWayColor(m.way) === WaysColor.PERMISSIVE).map(m => m.way));
-      this.possibleWaysFromLastWayPoint.forbidden.next(matching.filter(m => this.getWayColor(m.way) === WaysColor.FORBIDDEN).map(m => m.way));
-    }
-    this.updateCurrentMapTrack();
+    this.fillElevation();
     this.saveToLocalStorage();
+    this.addPointAnchor.position = undefined;
+    this.setWaysToCursor(undefined);
     this.planner.changesDetection.detectChanges();
   }
 
-  /*
-  private newPoint(pos: EarthPoint, using: Way | undefined): void {
-    const previousPos = this.getLastPoint();
-    if (!previousPos) {
-      // first point
-      const segment = this.track!.newSegment();
-      this.points.push([ segment.append({pos}) ]);
-    } else if (using) {
-      this.goTo(previousPos.pos, pos, using.points);
-    } else {
-      // free point
-      this.points.push([ this.track!.lastSegment.append({pos}) ]);
-    }
-    const matching = WayUtils.getClosestPointsOnWays(pos, this.ways, MATCHING_MAX_DISTANCE).map(w => w.way);
-    this.updateWaysFromLastAnchor(matching);
-    this.updateCurrentMapTrack();
-    this.saveToLocalStorage();
-    this.planner.changesDetection.detectChanges();
-  }*/
-
-    /*
-  private goTo(from: EarthPoint, to: EarthPoint, points: EarthPoint[]): void {
-    const newPoints = this.getPointsToGoTo(from, to, points);
-    if (newPoints.length > 0)
-      this.points.push(this.track!.lastSegment.appendMany(newPoints));
-  }*/
-
-  private getPointsToGoTo(from: EarthPoint, to: EarthPoint, points: EarthPoint[]): EarthPoint[] {
-    const fromIndexes = TrackUtils.findClosestPoints(from, points, MATCHING_MAX_DISTANCE);
-    if (fromIndexes.length === 0) return [];
-    const toIndexes = TrackUtils.findClosestPoints(to, points, MATCHING_MAX_DISTANCE);
-    if (toIndexes.length === 0) return [];
-    let fromIndex = 0;
-    let toIndex = 0;
-    let distance = -1;
-    for (const fromI of fromIndexes) {
-      for (const toI of toIndexes) {
-        const d = TrackUtils.distanceBetweenLatLng(points, Math.min(fromI, toI), Math.max(fromI, toI));
-        if (distance === -1 || d < distance) {
-          fromIndex = fromI;
-          toIndex = toI;
-          distance = d;
-        }
-      }
-    }
-    const increment = fromIndex < toIndex ? 1 : -1;
-    const result: EarthPoint[] = [];
-    for (let i = fromIndex + increment; i != toIndex + increment; i = i + increment) {
-      result.push(points[i]);
-    }
-    return result;
-  }
-
-
-  private updateWaysFromService(ways: Way[]): void {
-    this.ways = ways;
-    const previousPos = this.getLastPoint();
-    if (previousPos) {
-      const matching = WayUtils.getMatchingWays(previousPos.pos, this.ways, MATCHING_MAX_DISTANCE);
-      if (matching.length === 0)
-        this.updateWaysFromLastAnchor(this.ways);
-      else
-        this.updateWaysFromLastAnchor(matching);
-    } else {
-      this.updateWaysFromLastAnchor(this.ways);
-    }
-  }
+  // --- ways from map ---
 
   public searchingWays = false;
 
-  private updateWays(): void {
+  private updateWaysFromMapState(): void {
     const renderer = this.map?.renderer;
     if (!this.putAnchors || !renderer) return;
     if (renderer.mapState.zoom < this.planner.minZoom) {
@@ -496,7 +396,7 @@ export class TrackBuilder {
     this.searchingWays = true;
     const bounds = renderer.getBounds();
     if (!bounds) {
-      setTimeout(() => this.updateWays(), 100);
+      setTimeout(() => this.updateWaysFromMapState(), 100);
       return;
     }
     this.injector.get(OfflineMapService)
@@ -507,18 +407,22 @@ export class TrackBuilder {
       });
   }
 
-  private cancelWays(): void {
-    this.ways = [];
-    this.possibleWaysFromCursor.normal.next([]);
-    this.possibleWaysFromCursor.permissive.next([]);
-    this.possibleWaysFromCursor.forbidden.next([]);
-    this.possibleWaysFromLastAnchor.normal.next([]);
-    this.possibleWaysFromLastAnchor.permissive.next([]);
-    this.possibleWaysFromLastAnchor.forbidden.next([]);
-    this.highlightedWays = [];
+  private updateWaysFromService(ways: Way[]): void {
+    this.ways = ways;
+    this.graph.setWays(ways);
+    if (this.putAnchors) this.refreshWaysToMouse(this.map?.renderer, undefined);
   }
 
-  private updateCurrentMapTrack(): void {
+  private cancelWays(): void {
+    this.ways = [];
+    this.graph.setWays([]);
+    this.addPointAnchor.position = undefined;
+    this.setWaysToCursor(undefined);
+  }
+
+  // --- elevation ---
+
+  private fillElevation(): void {
     this.getElevation().subscribe(() => {
       this.saveToLocalStorage();
       this.estimatedTime = this.track!.computed.timeEstimationSnapshot.total;
@@ -532,6 +436,8 @@ export class TrackBuilder {
     return this.injector.get(GeoService).fillTrackElevation(this.track!);
   }
 
+  // --- local storage ---
+
   private loadFromLocalStorage(): void {
     const str = localStorage.getItem(this.getLocalStorageKey());
     if (!str) return;
@@ -543,7 +449,7 @@ export class TrackBuilder {
       for (const p of points) if (!p['pos'] || typeof p['pos']['lat'] !== 'number' || typeof p['pos']['lng'] !== 'number' || typeof p['free'] !== 'boolean') return;
       this.track = new Track(json['track'], false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService), this.injector.get(TrackComputedDataCacheService), this.injector.get(NetworkService));
       this.trackPoints = points;
-      this.updateCurrentMapTrack();
+      this.mapElementFromTrack();
     } catch (e) {
       logger.warn('Error loading trail planner local storage', e, str);
     }

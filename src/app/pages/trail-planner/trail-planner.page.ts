@@ -1,8 +1,7 @@
 import { Component, Injector, ViewChild, ChangeDetectionStrategy } from '@angular/core';
-import { combineLatest, debounceTime, first, map, Observable, of, switchMap } from 'rxjs';
+import { combineLatest, debounceTime, first, map, Observable, switchMap } from 'rxjs';
 import { HeaderComponent } from '@trailence/components/header/header.component';
-import { MapState } from '@trailence/components/map/map-state';
-import { MapComponent } from '@trailence/components/map/map.component';
+import { MapComponent, MapOptions } from '@trailence/components/map/map.component';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { AbstractPage } from '@trailence/utils/component-utils';
 import { IonButton, IonIcon, IonToggle, IonLabel, IonModal, IonHeader, IonToolbar, IonTitle, IonContent, IonFooter, IonButtons,
@@ -17,7 +16,7 @@ import { Router } from '@angular/router';
 import { TrailGraphComponent } from '@trailence/components/trail-graph/trail-graph.component';
 import { filterDefined } from '@trailence/utils/rxjs/filter-defined';
 import { TrailOverviewCondensedComponent } from '@trailence/components/trail-overview/condensed/trail-overview-condensed.component';
-import { TrackBuilder, WAY_MAPTRACK_FORBIDDEN_COLOR, WAY_MAPTRACK_PERMISSIVE_COLOR } from './track-builder';
+import { TrackBuilder } from './track-builder';
 import { Trails } from './trails';
 import { TrailHoverCursor } from '@trailence/components/trail/hover-cursor';
 import { GraphPointReference } from '@trailence/components/trail-graph/graph-events';
@@ -50,25 +49,26 @@ export class TrailPlannerPage extends AbstractPage<undefined> {
   readonly trackBuilder = new TrackBuilder(this.injector, this);
   readonly trails = new Trails(this.injector, () => this.map);
 
-  readonly mapElements$: Observable<AnyMapElement> = combineLatest([
+  readonly mapElements$: Observable<AnyMapElement[]> = combineLatest([
     this.trails.mapElement$,
     this.trackBuilder.trackMapElements$,
-    this.trackBuilder.possibleWaysFromLastAnchor$,
-    this.trackBuilder.possibleWaysFromCursor$,
   ]).pipe(
         debounceTime(10),
-        map(([currentTrack, list1, list2, list3]) => {
-          const all = [...list1, ...list2, ...list3];
-          if (currentTrack) all.push(currentTrack);
-          this.updateLegend();
+        map(([trails, track]) => {
+          const all = [...trails, ...this.trackBuilder.waysMapElements];
+          if (track) all.push(...track);
           this.toolbar?.refresh();
           return all;
         })
       );
 
-
   readonly minZoom = 14;
 
+  mapOptions: MapOptions = {
+    geoLocationDisabled: true,
+    autoFollowMyPosition: false,
+    disableToggleShowPosition: true,
+  };
   map?: MapComponent;
   @ViewChild(TrailGraphComponent) graph?: TrailGraphComponent;
 
@@ -108,7 +108,7 @@ export class TrailPlannerPage extends AbstractPage<undefined> {
     new MenuItem(),
     new MenuItem().setIcon('undo').setI18nLabel('pages.trailplanner.undo')
       .setVisible(() => !!this.trackBuilder.track)
-      .setDisabled(() => this.trackBuilder.points.length === 0)
+      .setDisabled(() => this.trackBuilder.trackPoints.length === 0)
       .setAction(() => { this.trackBuilder.undo(); this.toolbar?.refresh(); }),
     new MenuItem().setIcon('reset').setI18nLabel('pages.trailplanner.reset').setTextColor('danger')
       .setVisible(() => !!this.trackBuilder.track)
@@ -117,7 +117,7 @@ export class TrailPlannerPage extends AbstractPage<undefined> {
     new MenuItem(),
     new MenuItem().setIcon('save').setI18nLabel('buttons.save').setTextColor('success')
       .setVisible(() => !!this.trackBuilder.track)
-      .setDisabled(() => this.trackBuilder.points.length < 2)
+      .setDisabled(() => this.trackBuilder.trackPoints.length < 2)
       .setAction(() => this.openSaveModal())
   ];
 
@@ -141,6 +141,10 @@ export class TrailPlannerPage extends AbstractPage<undefined> {
     ));
     this.connected$ = combineLatest([networkService.internet$, networkService.server$]).pipe(map(([i,s]) => i && !!s));
     this.whenVisible.subscribe(browser.resize$, size => this.updateSize(size.width, size.height));
+    this.whenVisible.subscribe(
+      combineLatest([this.trackBuilder.waysToCursor.permissive, this.trackBuilder.waysToCursor.forbidden]),
+      () => this.updateLegend(),
+    );
   }
 
   protected override getComponentState(): undefined { return undefined; }
@@ -206,7 +210,7 @@ export class TrailPlannerPage extends AbstractPage<undefined> {
   }
 
   openSaveModal(): void {
-    if (this.trackBuilder.points.length < 2) return;
+    if (this.trackBuilder.trackPoints.length < 2) return;
     void this.saveModal?.present();
   }
 
@@ -242,33 +246,24 @@ export class TrailPlannerPage extends AbstractPage<undefined> {
   private updateLegend(): void {
     const legend = document.getElementById('trail-planner-legend');
     if (!legend) return;
-    const hasPermissive = !!this.trackBuilder.possibleWaysFromCursor$.value.find(t => t.color === WAY_MAPTRACK_PERMISSIVE_COLOR) ||
-                          !!this.trackBuilder.possibleWaysFromLastAnchor$.value.find(t => t.color === WAY_MAPTRACK_PERMISSIVE_COLOR);
-    const hasForbidden = !!this.trackBuilder.possibleWaysFromCursor$.value.find(t => t.color === WAY_MAPTRACK_FORBIDDEN_COLOR) ||
-                          !!this.trackBuilder.possibleWaysFromLastAnchor$.value.find(t => t.color === WAY_MAPTRACK_FORBIDDEN_COLOR);
+    const hasPermissive = this.trackBuilder.waysToCursor.permissive.value.length > 0;
+    const hasForbidden = this.trackBuilder.waysToCursor.forbidden.value.length > 0;
     let html = '';
+    // TODO refacto with dash
     if (hasPermissive)
-      html += '<div style="display: flex; flex-direction: row; align-items: center; padding: 4px"><div style="height: 0; width: 25px; margin-right: 10px; border-bottom: 3px solid ' + WAY_MAPTRACK_PERMISSIVE_COLOR + '"></div><div>' + this.i18n.texts.pages.trailplanner.legend.permissive + '</div></div>';
+      html += '<div style="display: flex; flex-direction: row; align-items: center; padding: 4px"><div style="height: 0; width: 25px; margin-right: 10px; border-bottom: 3px solid var(--way-permissive-color)"></div><div>' + this.i18n.texts.pages.trailplanner.legend.permissive + '</div></div>';
     if (hasForbidden)
-      html += '<div style="display: flex; flex-direction: row; align-items: center; padding: 4px"><div style="height: 0; width: 25px; margin-right: 10px; border-bottom: 3px solid ' + WAY_MAPTRACK_FORBIDDEN_COLOR + '"></div><div>' + this.i18n.texts.pages.trailplanner.legend.forbidden + '</div></div>';
+      html += '<div style="display: flex; flex-direction: row; align-items: center; padding: 4px"><div style="height: 0; width: 25px; margin-right: 10px; border-bottom: 3px solid var(--way-forbidden-color)"></div><div>' + this.i18n.texts.pages.trailplanner.legend.forbidden + '</div></div>';
     legend.innerHTML = html;
     this.changesDetection.detectChanges();
   }
 
-  mapClickPoint(event: MapTrackPointReference[]): void {
-    const closest = MapTrackPointReference.closest(event);
-    if (closest?.track.trail && this.trails.list.find(t => t.trail === closest.track.trail)) {
-      this.trails.toggleHighlightTrail(closest.track.trail);
-    } else if (this.trails?.highlightedTrail) {
-      this.trails.toggleHighlightTrail(this.trails.highlightedTrail);
-    }
-  }
-
+  /* TODO refacto
   mouseOverPointOnMap(event: MapTrackPointReference[]) {
     const closest = MapTrackPointReference.closest(event);
     if (closest?.track && closest.track === this.trackBuilder.currentMapTrack$.value)
       this.hover.mouseOverPointOnMap(closest);
-  }
+  }*/
 
   graphPointHover(references: GraphPointReference[]) {
     this.hover.graphPointHover(references);

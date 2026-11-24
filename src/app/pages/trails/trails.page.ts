@@ -348,7 +348,7 @@ export class TrailsPage extends AbstractPage<State> {
           this.title = title;
           this.changesDetection.detectChanges();
         }
-        if (!ObjectUtils.sameContent(this.userProfile, result.userProfile)) {
+        if (!ObjectUtils.sameContent(this.userProfile, result.userProfile, 1)) {
           this.userProfile = result.userProfile;
           this.changesDetection.detectChanges();
         }

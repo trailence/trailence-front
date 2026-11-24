@@ -38,7 +38,7 @@ export class MapComponent extends AbstractComponent<undefined> {
 
   @Input() mapId?: string;
   @Input() elements$?: Observable<AnyMapElement[]>;
-  @Input() options!: MapOptions;
+  @Input() options: MapOptions = {};
   @Input() tools$?: Observable<{groups?: MapToolGroup[], tools?: MapTool[]}>;
 
   @Input() downloadMapTrail?: Trail;

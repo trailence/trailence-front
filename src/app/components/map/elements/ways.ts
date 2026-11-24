@@ -1,6 +1,5 @@
 import { map, Observable, of, switchMap } from 'rxjs';
 import { MAP_WAYS_LAYER, MapElement } from '../map-element';
-import { Way } from '@trailence/services/map/way';
 import { Color } from '@trailence/utils/color';
 import { MapRenderer } from '../impl/map-renderer';
 import { MapPrimitive } from '../primitives/primitive';
@@ -19,7 +18,7 @@ export class WaysMapElement extends MapElement<null> {
 
   constructor(
     id: string,
-    public readonly ways$: Observable<Way[]>,
+    public readonly ways$: Observable<{points: EarthPoint[]}[]>,
     public readonly color: WaysColor,
     public readonly opacity: number,
     public readonly width: number = 3,

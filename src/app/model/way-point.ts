@@ -38,11 +38,11 @@ export class WayPoint {
 
   public get nameTranslations(): {[lang: string]: string} | undefined { return this._nameTranslations.value; }
   public get nameTranslations$(): Observable<{[lang: string]: string} | undefined> { return this._nameTranslations; }
-  public set nameTranslations(value: {[lang: string]: string} | undefined) { if (!ObjectUtils.sameContent(this._nameTranslations.value, value)) this._nameTranslations.next(value ? {...value} : undefined); }
+  public set nameTranslations(value: {[lang: string]: string} | undefined) { if (!ObjectUtils.sameContent(this._nameTranslations.value, value, 1)) this._nameTranslations.next(value ? {...value} : undefined); }
 
   public get descriptionTranslations(): {[lang: string]: string} | undefined { return this._descriptionTranslations.value; }
   public get descriptionTranslations$(): Observable<{[lang: string]: string} | undefined> { return this._descriptionTranslations; }
-  public set descriptionTranslations(value: {[lang: string]: string} | undefined) { if (!ObjectUtils.sameContent(this._descriptionTranslations.value, value)) this._descriptionTranslations.next(value ? {...value} : undefined); }
+  public set descriptionTranslations(value: {[lang: string]: string} | undefined) { if (!ObjectUtils.sameContent(this._descriptionTranslations.value, value, 1)) this._descriptionTranslations.next(value ? {...value} : undefined); }
 
   public get changes$(): Observable<string> {
     return merge(
@@ -75,8 +75,8 @@ export class WayPoint {
     return this._name.value === other._name.value &&
       this._description.value === other._description.value &&
       pointsAreEqual(this._point, other._point) &&
-      ObjectUtils.sameContent(this._nameTranslations.value, other._nameTranslations.value) &&
-      ObjectUtils.sameContent(this._descriptionTranslations.value, other._descriptionTranslations.value);
+      ObjectUtils.sameContent(this._nameTranslations.value, other._nameTranslations.value, 1) &&
+      ObjectUtils.sameContent(this._descriptionTranslations.value, other._descriptionTranslations.value, 1);
   }
 
 }
