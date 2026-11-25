@@ -1,0 +1,1825 @@
+{
+  "tools": {
+    "filters": "フィルター",
+    "import": "インポート",
+    "import_gpx_description": "GPX ファイルをインポート",
+    "importing": "インポート中",
+    "sort": "並べ替え",
+    "more": "その他",
+    "display": "表示",
+    "display_detailed": "詳細（写真つき）",
+    "display_detailed_small_map": "詳細（地図つき）",
+    "display_detailed_elevation": "詳細（標高つき）",
+    "display_condensed": "コンパクト",
+    "search_text": "名前で検索"
+  },
+  "pages": {
+    "home": {
+      "menu_label": "ホーム",
+      "hero": {
+        "h1": "ルートを計画・記録・整理・共有。",
+        "sub": "ハイキングの相棒であり、GPS 軌跡の管理ツール。あらゆるアウトドアアクティビティに対応。",
+        "chips": [
+          "無料",
+          "オープンソース",
+          "トラッキングなし",
+          "広告なし",
+          "Web + Android"
+        ]
+      },
+      "try_now_button": "今すぐ試す",
+      "try_note": "アカウント不要。すぐに試せます。",
+      "download_app_button": "アプリをダウンロード",
+      "features": {
+        "eyebrow": "Trailence でできること",
+        "h2": "道から、共有まで。",
+        "on_field": {
+          "h3": "フィールドで",
+          "text": "軌跡を記録し、既存のルートをたどり、進行方向の案内とリアルタイムのデータ（累積標高・距離・残り時間）で道を外れずに進めます。撮った写真はそのままルートに追加されます。オフライン地図と印刷にも対応。"
+        },
+        "organize": {
+          "h3": "整理",
+          "text": "ルートをコレクションにまとめ、タグを付け、並べ替えや絞り込みで何でもすぐに見つけられます。編集・比較し、ライブラリを自分の好きなように管理できます。"
+        },
+        "analyze": {
+          "h3": "分析",
+          "text": "詳細な標高グラフ、ルートの説明、通過地点、推定所要時間、休憩、道のマーキング、道の特徴。事前に外出を計画し、帰ってから振り返るために。"
+        },
+        "enrich": {
+          "h3": "充実と共有",
+          "text": "写真を添付して、地図上で見つけられます。ルートを友だちと共有したり、コミュニティに公開したり、GPX 形式でインポート・エクスポートしたり、外出用に印刷したりできます。"
+        },
+        "and_more": {
+          "h3": "さらにたくさん",
+          "lead": "地図での下調べから思い出の振り返りまで、アウトドアのすべてを1つのアプリでカバー。",
+          "features": [
+            "オフライン地図",
+            "IGN、OSM などのベースマップ…",
+            "GPX のインポート / エクスポート",
+            "ルートの印刷",
+            "位置情報付き写真",
+            "標高グラフ",
+            "タグとコレクション",
+            "検索とフィルター",
+            "リアルタイム位置共有",
+            "通過地点",
+            "Web ↔ Android 同期",
+            "共有とリンク",
+            "推定所要時間",
+            "道のマーキング",
+            "トレイルマーク",
+            "路面と道の種類",
+            "距離と残り時間",
+            "ルートの作成",
+            "地図の回転",
+            "軌跡エディター"
+          ]
+        }
+      },
+      "manifesto": {
+        "eyebrow": "Trailence の独自性",
+        "h2": "あなたのルート、あなたの軌跡、あなたのデータ。",
+        "block1": {
+          "h3": "オープン・無料・共有",
+          "text": "Apache-2.0 ライセンスの監査可能なコード。隠しごとは一切なく、確認も貢献もできます。Trailence は今後もオープンソースで無料のまま——「プレミアム」アカウントはありません。誰でも充実させられる、オープンなルートデータベース。"
+        },
+        "block2": {
+          "h3": "広告なし・トラッキングなし",
+          "text": "広告なし、追跡ツールなし、転売もしません。私たちはあなたのデータで生計を立てるのではなく、それを守ります。そしてデータはあなたのものです。いつでもエクスポートしたり、すべて削除したりできます。"
+        },
+        "block3": {
+          "h3": "あなたのデータを、どこでも",
+          "text": "1つのアカウントで、ルートを Web と Android の間で同期。どこにいても、すべての端末で見つけられます。"
+        }
+      },
+      "community": {
+        "eyebrow": "オープンなデータベース",
+        "h2": "オープンで、きちんと説明された、質の高いルートデータベース——構築中です。",
+        "text": "ロックされた著作権も、空の情報もありません。説明と検証がされた本物のルートです。小さく始まり、あなたとともに成長します——<b>本当にオープンな初のルートデータベースを、一緒に築きましょう。</b>",
+        "search_route_button": "ルートを検索",
+        "search_route_button_sub": "アカウント不要。"
+      },
+      "join": {
+        "h2": "始めてみませんか？",
+        "text": "無料アカウントを作成して、Web と Android のすべての端末で軌跡を見つけましょう。",
+        "create_account_button": "アカウントを作成",
+        "login_button": "ログイン",
+        "email_privacy": "メールアドレスは、登録の確認とパスワードの再設定<b>のみ</b>に使用されます。ニュースレターの送信や第三者への提供は一切行いません。"
+      },
+      "footer": {
+        "slogan": "アウトドアの相棒であり、GPS 軌跡の管理ツール。オープンソースで無料。",
+        "resources": {
+          "title": "リソース",
+          "search_route": "ルートを検索",
+          "contribute": "支援",
+          "contact": "お問い合わせ",
+          "github": "ソースコード（GitHub）"
+        },
+        "download": "ダウンロード",
+        "or_use_web": "…または、何もインストールせずに Web 版を利用。",
+        "privacy_policy": "プライバシーポリシー"
+      }
+    },
+    "installApk": {
+      "title": "Android アプリ",
+      "stores": {
+        "intro": "Trailence は、次のいずれかのストアからインストールできます：",
+        "else1": "これらのストアを利用できない（または利用したくない）場合は、APK ファイルから Trailence をインストールできます。",
+        "else2": "インストール後、更新が利用可能になると Trailence がお知らせします。インストールを選ぶと、Trailence が新しいバージョンを自動的にダウンロードしてインストールします。最初のインストール手順をすべてやり直す必要はありません。",
+        "else3": "Trailence を手動でインストールするには、次の手順に従ってください："
+      },
+      "download": "インストールファイルをダウンロード",
+      "meta_description": "Trailence の Android アプリをインストールする手順",
+      "steps": [
+        {
+          "beforeImg": "下のような画面が表示される場合があります",
+          "afterImg": "ダウンロードを確認し、ファイルを開きます"
+        }, {
+          "beforeImg": "この方法でアプリをインストールするのが初めての場合、下のような警告が表示されることがあります",
+          "afterImg": "設定を開いてインストールを許可します"
+        }, {
+          "beforeImg": "すると、画面が表示されます",
+          "afterImg": "「この提供元のアプリを許可」をタップします"
+        }, {
+          "beforeImg": "次に、インストールを確認する画面が表示されます",
+          "afterImg": "「インストール」をタップします"
+        }, {
+          "beforeImg": "すると、下のような画面が表示されます",
+          "afterImg": "画面中央の「詳細」をタップします"
+        }, {
+          "beforeImg": "すると、画面に「スキャンせずにインストール」ボタンが表示されます",
+          "afterImg": "それをタップするか、必要に応じてスキャンを選ぶこともできます"
+        }, {
+          "beforeImg": "これで、アプリがインストールされました",
+          "afterImg": ""
+        }
+      ]
+    },
+    "login": {
+      "meta_description": "Trailence アカウントへのログイン",
+      "title": "ログイン",
+      "email": "メールアドレス",
+      "password": "パスワード",
+      "signin_button": "ログイン",
+      "offline": "Trailence にログインするには、インターネットに接続してください",
+      "incorrect_message": "メールアドレスまたはパスワードが正しくありません",
+      "error_message": "認証エラーが発生しました。もう一度お試しください",
+      "captcha_message": "複数回の試行があったため、ロボットでないことを確認する必要があります",
+      "locked_message": "アカウントがロックされました。「パスワードをお忘れですか？」ボタンをご利用ください",
+      "forgot_password": "パスワードをお忘れですか？",
+      "create_account": "アカウントを作成",
+      "try_without_account": "アカウントなしで試す",
+      "reset_password": {
+        "title": "パスワードの再設定",
+        "email": "メールアドレス",
+        "new_password1": "新しいパスワード",
+        "new_password2": "新しいパスワード（確認）",
+        "verification_code_explaination": "6桁のコードをメールアドレスに送信しました。下に入力してください",
+        "in_progress": "パスワードを変更中…",
+        "error": "エラーが発生しました。前に戻ってもう一度お試しください",
+        "errors": {
+          "email": "有効なメールアドレスを入力してください",
+          "password": "8文字以上で入力してください",
+          "passwordsDontMatch": "パスワードが一致しません",
+          "mail_already_sent": "このアカウントへのリクエストは、10分以内にすでに行われています。",
+          "mail_error": "エラーが発生しました。もう一度お試しください。"
+        }
+      },
+      "signing_in": "ログイン中…",
+      "downloading_data": "データを読み込み中…"
+    },
+    "register": {
+      "meta_description": "Trailence でアカウントを作成",
+      "title": "アカウントを作成",
+      "offline": "Trailence でアカウントを作成するには、インターネットに接続してください",
+      "step1": "情報を入力",
+      "email": "メールアドレス",
+      "password1": "パスワード",
+      "password2": "パスワード（確認）",
+      "step2": "メールアドレスの確認",
+      "code_text": "6桁の確認コードをメールで送信しました。下に入力してください",
+      "step3": "アカウントを作成しました",
+      "connection": "ログイン中…",
+      "continue": "続ける",
+      "back": "戻る",
+      "errors": {
+        "network": "エラーが発生しました。もう一度お試しください",
+        "passwordsDontMatch": "パスワードが一致しません",
+        "invalidEmail": "有効なメールアドレスを入力してください"
+      }
+    },
+    "trails": {
+      "collection": "コレクション",
+      "share_from": "共有元",
+      "your_share": "自分の共有",
+      "shared_collection": "共有コレクション",
+      "shared_collection_by": "{{1}} さんが共有したコレクション",
+      "edit_filters_popup_title": "ルートを絞り込み",
+      "edit_sort_popup_title": "ルートを並べ替え",
+      "missing_trails_because_offline": "オフラインのため、一部のルートを表示できません",
+      "sorts": {
+        "trail_date": "ルートの日付",
+        "creation_date": "Trailence での作成日",
+        "update_date": "Trailence での最終更新日",
+        "distance": "距離",
+        "duration": "所要時間",
+        "estimatedDuration": "推定所要時間",
+        "positive_elevation": "累積標高（登り）",
+        "negative_elevation": "累積標高（下り）",
+        "highest_altitude": "最高地点",
+        "lowest_altitude": "最低地点",
+        "rating": "評価"
+      },
+      "filters": {
+        "duration": "所要時間",
+        "estimatedDuration": "推定所要時間",
+        "distance": "距離",
+        "positive_elevation": "累積標高（登り）",
+        "negative_elevation": "累積標高（下り）",
+        "altitude": "標高",
+        "activity": "アクティビティ",
+        "select_activities_button": "タップして選択",
+        "tags": "タグ",
+        "rate": "評価",
+        "onlyVisibleOnMap": "地図に表示されているルートのみをリストに表示",
+        "onlyWithPhotos": "写真があるルートのみ",
+        "reset_button": "すべてのフィルターを解除",
+        "preset": "保存したフィルター",
+        "load": "読み込み",
+        "save": "保存",
+        "remove": "削除",
+        "save_new": "新しいフィルター…",
+        "no_saved_filter": "保存されたフィルターはありません",
+        "save_title": "フィルターを保存",
+        "save_name": "フィルター名",
+        "enum_or": "または"
+      },
+      "tabs": {
+        "list": "リスト",
+        "map": "地図"
+      },
+      "open_trail": "開く",
+      "empty_list": {
+        "collection": "このコレクションにはまだルートがありません",
+        "share": "この共有にはルートがありません",
+        "filter": "フィルターに一致するルートはありません",
+        "filter_search": "この範囲でフィルターに一致するルートはありません",
+        "filter_search_enlarge_button": "検索範囲を広げる",
+        "all_collections": "まだルートがありません",
+        "my_selection": "お気に入りにルートがありません",
+        "search": "この範囲でルートが見つかりませんでした。",
+        "launch_search": "地図を動かして、ルートを検索したい範囲まで移動し、「この範囲で検索」をタップしてください。",
+        "only_bubbles": "地図を拡大して「この範囲で検索」をタップするか、バブルを直接タップして利用可能なルートを確認してください。"
+      },
+      "search_trail_placeholder": "ルートを検索",
+      "actions": {
+        "share_global": "共有を作成",
+        "share_trail": "共有を作成",
+        "share_trails": "これらのルートで共有を作成",
+        "delete_confirm_single": {
+          "title": "ルートを削除",
+          "message": "「{{}}」を削除してもよろしいですか？",
+          "yes": "はい、削除",
+          "no": "いいえ、残す"
+        },
+        "delete_confirm_multiple": {
+          "title": "{{}}件のルートを削除",
+          "message": "これら{{}}件のルートを削除してもよろしいですか？",
+          "yes": "はい、削除",
+          "no": "いいえ、残す"
+        },
+        "deleting_trails": "削除中",
+        "move_to_collection": "移動…",
+        "copy_to_collection": "コピー…",
+        "new_collection": "新しいコレクション…",
+        "copying": "コピー中",
+        "moving": "移動中",
+        "edit_collection": "名前変更",
+        "export": "エクスポート",
+        "export_collection": "コレクションをエクスポート",
+        "open_gpx": "別のアプリで GPX を開く",
+        "prepare": "準備",
+        "modify": "編集",
+        "share_section": "共有",
+        "rename": "タイトル",
+        "edit_date": "日付",
+        "rename_popup": {
+          "title": "ルート名を変更",
+          "name": "名前"
+        },
+        "edit_location": "場所",
+        "edit_activity": "アクティビティ",
+        "copy_photos_alert": {
+          "title": "写真のコピー",
+          "message_singular": "コピーしたルートには写真が含まれています。写真もコピーしますか？",
+          "message_plural": "コピーしたルートには写真が含まれています。写真もコピーしますか？"
+        },
+        "copying_photos": "写真をコピー中",
+        "copy_photo_error": "写真 {{1}} のコピーに失敗しました",
+        "add_to_my_selection": "お気に入りに追加",
+        "remove_from_my_selection": "お気に入りから外す",
+        "copy_link": "リンクをコピー",
+        "share_link": "リンクを共有",
+        "create_link": "公開リンクを作成",
+        "edit_link": "公開リンク"
+      },
+      "tags": {
+        "menu_item": "タグ",
+        "collection_menu_item": "タグを編集",
+        "popup": {
+          "title_trail": "ルートのタグ",
+          "title_trails": "ルートのタグ",
+          "title_collection": "コレクションのタグ",
+          "add_tag_label": "新しいタグ",
+          "confirm_delete": {
+            "title": "タグを削除",
+            "message": "このタグを削除してもよろしいですか？現在{{1}}件のルートで使用されています",
+            "yes": "はい、削除",
+            "no": "いいえ、残す"
+          }
+        }
+      },
+      "search": {
+        "sources": "ソース",
+        "searching": "検索中",
+        "error": "検索に失敗しました",
+        "needs_zoom": "地図が広すぎます。もっと拡大してください",
+        "too_much_results": "結果が多すぎます",
+        "search_in_this_area": "この範囲で検索",
+        "clear_search_results": "結果をクリア"
+      }
+    },
+    "trail": {
+      "title_compare": "比較",
+      "title_compare_and": "と",
+      "tabs": {
+        "details": "詳細",
+        "map": "地図",
+        "photos": "写真",
+        "waypoints": "通過地点",
+        "comments": "レビュー"
+      },
+      "show_original": "元の軌跡を表示",
+      "show_osm": "既知の道に沿ってルートを表示",
+      "show_breaks": "休憩を表示",
+      "show_guideposts": "道標を表示",
+      "show_intersections": "分岐を表示",
+      "map_elements": {
+        "photos": "写真",
+        "breaks": "休憩",
+        "guideposts": "道標",
+        "waypoints": "通過地点",
+        "marked_trails": "登山道のマーキング",
+        "elevation_colors": "ルート上の標高グラフの色"
+      },
+      "reverse_way": "逆方向",
+      "open_in_app": "次のアプリで開く：",
+      "open_in_trailence": "元のルートを表示",
+      "actions": {
+        "open": "ルートを開く",
+        "go_to_departure": "出発地点へ移動",
+        "download_map": "地図をダウンロード",
+        "compare": "比較",
+        "compare_with": "別のルートと比較…",
+        "compare_with_explanation": "このルートを別のルートと比較するには、もう一方のルートのメニューを開き、「このルートと比較」をタップしてください。",
+        "compare_with_this_one": "このルートと比較",
+        "merge_trails": "これらのルートを結合",
+        "merged_trail_name": "結合したルート"
+      },
+      "no_tag_message": "このルートにはタグがありません",
+      "no_photo_message": "このルートには写真がありません",
+      "photo_no_description": "説明",
+      "take_photo": "写真を撮る",
+      "comparison_message": "これらのルートの類似度は{{1}}%です",
+      "propose_to_publish": {
+        "be_the_first": "この範囲にはまだルートがありません。最初のルートを共有して、コミュニティに貢献しましょう 🙏",
+        "improve_region": "この範囲はルートが不足しています。自分のルートを共有して、コミュニティに貢献しましょう 🙏",
+        "participate_region": "この範囲にはまだルートが少ししかありません。自分のルートを共有して、コミュニティに貢献しましょう 🙏"
+      },
+      "sections": {
+        "description": {
+          "placeholder": "ここに説明を入力"
+        },
+        "waypoints": {
+          "title": "通過地点"
+        },
+        "comments": {
+          "title": "レビュー",
+          "you": "自分",
+          "rate": {
+            "global": "平均評価：",
+            "global_on_nb": "（{{1}}件のレビューに基づく）",
+            "no_rate": "まだ評価はありません",
+            "yours": "自分の評価：",
+            "write_a_review": "⭐ このルートを評価してコメント",
+            "change_rate_or_review": "評価を変更またはコメントを追加",
+            "modal": {
+              "title": "評価してコメント",
+              "rate_title": "評価を付ける",
+              "comment_title": "コメントを残す",
+              "comment_advise": {
+                "header": "コメントする前に、いくつかのルールとヒントを：",
+                "items": [
+                  "ルート全体の感想を簡単に共有しましょう。",
+                  "難所があれば触れてください。",
+                  "特に注意が必要な箇所を知らせてください。",
+                  "コミュニティのために、気に入った点や気に入らなかった点も気軽に書いてください。",
+                  "礼儀正しく敬意を持って：侮辱的・攻撃的・差別的な表現は禁止です。"
+                ],
+                "footer": "🙏 ご協力ありがとうございます！"
+              },
+              "send_error": "レビューの送信に失敗しました"
+            }
+          },
+          "delete_comment_confirmation": {
+            "title": "コメントを削除",
+            "message": "このコメントを削除してもよろしいですか？"
+          },
+          "delete_reply_confirmation": {
+            "title": "返信を削除",
+            "message": "この返信を削除してもよろしいですか？"
+          },
+          "reply": "返信",
+          "reply_placeholder": "ここに返信を入力",
+          "reply_send_error": "返信の送信に失敗しました",
+          "load_more_comments": "コメントをもっと見る",
+          "has_done_this_trail": "このルートをたどりました ✅",
+          "filter_has_done_this_trail": "このルートをたどった人を含める",
+          "show_reviews_with_rate": "適用中の絞り込み：評価{{1}}/5",
+          "not_authenticated": "レビューを見るにはログインしてください",
+          "not_connected": "レビューを取得するにはインターネット接続が必要です"
+        }
+      },
+      "remaining_metadata_title": "残り",
+      "created_in_trailence_on": "Trailence での作成日：",
+      "last_update_on": "最終更新日：",
+      "published_by": "公開者：",
+      "published__by": "公開者：",
+      "published_on": "公開日：",
+      "published__on": "公開日：",
+      "published_from": "出典：",
+      "select_photo_position": "写真がルート上のどこで撮影されたかを選択してください",
+      "source": {
+        "trailence_recorder": "Trailence で記録した軌跡",
+        "trailence_planner": "Trailence で計画したルート",
+        "with_date": "（{{1}}）",
+        "with_owner": "（作成者：{{1}}）",
+        "file_import": "ファイル「{{1}}」からインポート",
+        "file_import_unknown": "ファイルからインポート",
+        "external": "{{1}} で見つかりました",
+        "following": "（:*:{{1}}:*:{{2}}:*:をたどって）",
+        "following_a_deleted_track": "（削除済みのルートをたどって）",
+        "initially_found_on": "（最初に :*:{{1}}:*:{{2}}:*: で見つかりました）",
+        "following_found_on": "（:*:{{1}}:*:{{2}}:*: で見つかったルートをたどって）",
+        "source_url": "出典：",
+        "source_advise": "💡 最新の情報を得るため、ルートをたどる前に出典を確認することをおすすめします。",
+        "add_source_url": "出典を追加（リンク）"
+      },
+      "my_feedback": {
+        "you_leave_a_rate": "{{2}}にこのルートを{{1}}/5で評価しました",
+        "you_leave_a_comment": "{{1}}にこのルートへのコメントを残しました",
+        "you_leave_a_rate_and_a_comment_same_date": "{{2}}にこのルートを{{1}}/5で評価し、コメントしました",
+        "you_leave_a_rate_and_a_comment_different_date": "{{2}}にこのルートを{{1}}/5で評価し、{{3}}にコメントしました",
+        "invite_to_rate_title": "🙏 コミュニティに参加しましょう！",
+        "invite_to_rate_button": "⭐ このルートを評価"
+      }
+    },
+    "collection_form": {
+      "title": "コレクション",
+      "collection_name": "名前",
+      "shared": {
+        "toggle_label": "共有コレクション",
+        "explanation": "このコレクションを共有しているユーザーは、項目の編集・追加・削除ができますが、コレクション自体を削除することはできません。",
+        "explanation_anonymous": "共有コレクションはアカウントなしでは利用できません。",
+        "by": "共有者"
+      }
+    },
+    "location_popup": {
+      "title": "ルートの場所",
+      "location": "場所",
+      "search_from_departure": "出発地点をもとに場所を提案",
+      "radius": "半径",
+      "search": "検索"
+    },
+    "import_gpx_popup": {
+      "title": "新しいルートのインポート",
+      "message": "ファイル「{{1}}」をインポートするコレクションを選択してください"
+    },
+    "import_tags_popup": {
+      "title_import": "タグのインポート",
+      "title_copy": "タグのコピー",
+      "message_import": "インポートしたファイルから次のタグが見つかりました",
+      "message_copy": "コピーしたルートに次のタグが付いています",
+      "tag": "タグ",
+      "status": "状態",
+      "status_exists": "既存",
+      "status_does_not_exist": "未作成",
+      "message2": "これらのタグをどうしますか？",
+      "import_existing_only": "既存のタグのみインポート",
+      "import_and_create": "不足分を作成してすべてのタグをインポート",
+      "import_all": "すべてインポート",
+      "ignore_all_import": "タグをインポートしない",
+      "copy_existing_only": "既存のタグのみコピー",
+      "copy_and_create": "不足分を作成してすべてのタグをコピー",
+      "copy_all": "すべてコピー",
+      "ignore_all_copy": "タグをコピーしない"
+    },
+    "import_from_sources": {
+      "title": "データのインポート",
+      "message1": "次のソースが見つかりました：",
+      "message2": "これらのソースから追加データのインポートを試しますか？",
+      "message_internet": "これらのソースからインポートするには、インターネットに接続する必要があります"
+    },
+    "share_popup": {
+      "title": "共有",
+      "type": {
+        "question": "何を共有しますか？",
+        "collection": "コレクション全体",
+        "tags": "タグ",
+        "explanation": {
+          "collection": "コレクション内のすべてのルートが共有されます。コレクション内のルートを追加・削除・編集すると、共有は自動的に更新されます。",
+          "tags": "（次の手順で）選択したタグが付いたコレクション内のルートのみが共有されます。選択したタグを新しいルートに付けると、自動的に共有に含まれます。同様に、ルートからタグを外すと、共有が更新されます。"
+        }
+      },
+      "tags": {
+        "question": "どのタグ？"
+      },
+      "name": "共有に名前を付けてください",
+      "name_info": "この名前は、自分と共有相手に表示されます",
+      "who_question": "誰と共有しますか？（最大20人）",
+      "includePhotos": "ルートと一緒に写真も共有",
+      "photos_info": "共有したルートに紐づく写真は、共有相手に表示されます",
+      "email_info": "共有を知らせるメールが相手に送信されます",
+      "language": "メールはどの言語で送信しますか？",
+      "share_description": {
+        "COLLECTION": "コレクション「{{1}}」全体を共有",
+        "TRAIL": "{{1}}件のルートを共有",
+        "TAGS": "次のタグを共有：{{1}}"
+      }
+    },
+    "trail_link": {
+      "title": "公開リンク",
+      "explanation": "このリンクを持っている人は誰でも、ルートとその通過地点・写真を閲覧できます。<br/>ただし、タグとコレクションは表示されません。<br/>ルートへの変更は自動的に反映されます。",
+      "offline": "リンクを生成するには、インターネットに接続してください",
+      "anonymous": "この機能はアカウントなしでは利用できません。",
+      "waiting": "リンクを作成中…",
+      "copy": "コピー",
+      "copied": "リンクをクリップボードにコピーしました",
+      "share": "共有",
+      "share_title": "Trailence 公開リンク",
+      "delete": {
+        "title": "公開リンクを削除",
+        "message": "このリンクを削除してもよろしいですか？"
+      }
+    },
+    "find_duplicates": {
+      "title": "類似ルートを検索",
+      "menu_label": "類似ルートを検索",
+      "option_inside_collection": "コレクション「{{1}}」の中で",
+      "option_between_collections": "コレクション「{{1}}」のルートと比較するコレクション：",
+      "option_all": "全コレクションの全ルートの間で",
+      "threshold": "最低類似度",
+      "end_message": "検索終了"
+    },
+    "preferences": {
+      "title": "設定",
+      "display_section_title": "表示",
+      "language": "言語",
+      "theme": "テーマ",
+      "themes": {
+        "light": "ライト",
+        "dark": "ダーク",
+        "system": "システム設定に従う"
+      },
+      "larger_touch_targets": "タッチ領域を拡大",
+      "larger_texts": "文字を大きく",
+      "distance_unit": "距離の単位",
+      "distance_units": {
+        "meters": "メートル / キロメートル",
+        "imperial": "フィート / マイル"
+      },
+      "elevation_units_long": {
+        "meters": "メートル",
+        "imperial": "フィート"
+      },
+      "date_format": "日付の形式",
+      "time_format": "時刻の形式",
+      "appearance_and_privacy": "外観とプライバシー",
+      "alias": "公開時の表示方法",
+      "alias_explaination": "ルートを公開したり、公開ルートにコメントを残したりする際、匿名のままにするか、好きな名前を表示するかを選べます。名前を選ぶ場合は、侮辱的・攻撃的・差別的な表現を含まないようにしてください。",
+      "anonymous": "匿名",
+      "alias_name": "名前を表示",
+      "avatar": "プロフィール写真",
+      "avatar_pending": "承認待ちの写真",
+      "create_avatar": "プロフィール写真を追加",
+      "delete_avatar_error": "プロフィール写真の削除に失敗しました",
+      "avatar_public": "一般公開の写真",
+      "avatar_private": "非公開の写真（自分だけが閲覧可能）",
+      "trace_recorder": "軌跡の記録",
+      "traceMinMeters": "記録する各地点間の最小距離",
+      "traceMinMeters_explaination": "値が小さすぎると、GPS の誤差により軌跡の品質が低下することがあります。<br/>値が大きすぎても、直線が長くなり、やはり品質が低下することがあります。<br/>また、距離が小さいほど記録される地点が多くなり、記録中のバッテリー消費に影響することも考慮してください。<br/>適切なバランスとして、5〜15メートル（約16〜50フィート）の値をおすすめします。",
+      "traceMinMillis": "記録する各地点間の最小時間",
+      "traceMinMillis_explaination": "記録する地点の数を減らしてバッテリー消費を抑えたい場合は、各地点間の最小時間を長く設定できます。<br/>各地点間の最小距離も考慮されるため、新しい地点を記録するには、最小距離と最小時間の両方に達する必要があります。<br/>2〜5秒の値をおすすめします。",
+      "elevation_calibration": "標高",
+      "elevation_calibration_explaination": "GPS が記録する標高は、実際の値とずれていることがよくあります。<br/>ここでは、適用する差分を指定して調整できます。<br/>たとえば、GPS が常に実際の標高より約{{1}}{{2}}高く表示される場合は、<b>-{{1}}</b> と入力できます。<br/>端末ごとに異なるため、設定は端末ごとに行います。",
+      "elevation_calibration_this_device": "この端末",
+      "offline_map": "オフライン地図",
+      "offlineMapMaxKeepDays": "ダウンロードした地図の有効日数",
+      "offlineMapMaxKeepDays_explaination": "地図をオフラインで利用できるようにダウンロードすると、この設定で何日間保持するかが決まります。また、最近ダウンロードした地図要素を再ダウンロードせずに済むため、ダウンロード時間を節約できます。",
+      "offline_maps": {
+        "title": "ダウンロード済みの地図",
+        "items": "項目数",
+        "size": "サイズ",
+        "remove_all": "すべて削除"
+      },
+      "more_maps_layers": "地図レイヤーを追加",
+      "photos": "写真",
+      "photos_max_pixels": "写真の最大の幅／高さ",
+      "photos_max_pixels_explaination": "写真を追加したときに、最大サイズより大きい場合は自動的に縮小されます。",
+      "photos_max_quality": "写真の品質（%）",
+      "photos_max_quality_explaination": "写真は自動的に JPEG 形式に変換され、この設定で圧縮の品質が決まります。100%は最高品質ですが、圧縮は弱くなります。品質を非常に高く保ちつつ、しっかり圧縮できる90%をおすすめします。",
+      "photos_max_size_kb": "写真ファイルの最大サイズ（KB）",
+      "photos_max_size_kb_explaination": "写真を保存する際、最大ピクセルサイズと最大品質が適用されます。その結果がこの値より大きいファイルになる場合は、このしきい値を下回るまでサイズと品質がわずかに下げられます。",
+      "photos_cache": "ダウンロード済みの写真",
+      "photos_cache_explaination": "写真が表示されると、ダウンロードされて端末にキャッシュされます。これにより、毎回ダウンロードする必要がなくなり、表示が速くなります。また、オフラインで写真を表示できるようにもなります。写真付きのルートをたどる予定で、外出中にオフラインで写真を表示したい場合は、ネットワークがあるうちにあらかじめ表示しておくと、オフラインでも利用できるようになります。",
+      "photos_cache_total": "ファイルの合計サイズ",
+      "photos_cache_expired": "期限切れファイルのサイズ",
+      "photos_cache_remove_all": "すべて削除",
+      "photos_cache_remove_expired": "期限切れファイルを削除",
+      "photos_cache_max_days": "ダウンロード済み写真の保持（日）",
+      "thunderforest_explaination": "thunderforest.com のアカウントがあれば（無料アカウントも利用可能）、thunderforest.com の地図を追加できます。下に API キーを入力してください",
+      "time_calculation": {
+        "title": "所要時間の計算",
+        "base_speed": "平地での基準速度",
+        "base_speed_explaination": "この速度は所要時間の推定に使われます。累積標高や所要時間に応じて調整されます。初期値は 5 km/h（3.1 mi/h）で、ハイカーの平均的な速度に相当します。",
+        "long_breaks_title": "長い休憩の検出",
+        "long_break_explaination": "ルートの所要時間を表示する際、短い休憩（水分補給や景色を楽しむためなど）と長い休憩（昼食など）を区別しています。<br/><br/>短い休憩は、含めるのが自然なため、表示される所要時間に含まれます。一方、長い休憩が検出されると、その時間は所要時間から差し引かれます。これにより、表示される時間が昼寝の長さに左右されないようにしています 😉。こうして差し引かれた時間は<i>休憩</i>の項目に表示されます。<br/><br/>長い休憩を検出するには、範囲と最小時間の2つのパラメーターを設定できます。設定した最小時間以上その範囲内にとどまった場合、休憩は「長い」と判断されます。",
+        "long_break_minimum_duration": "長い休憩の最小時間",
+        "long_break_maximum_distance": "最大範囲"
+      },
+      "reset_all": "すべて初期値にリセット"
+    },
+    "edit_avatar": {
+      "title": "プロフィール写真",
+      "edit": "写真を編集",
+      "select_file": "ファイルを選択",
+      "is_public": "一般公開",
+      "error_saving": "プロフィール写真の保存に失敗しました"
+    },
+    "myaccount": {
+      "title": "アカウント",
+      "created_at": "登録日",
+      "quotas": {
+        "title": "利用状況",
+        "collections": "コレクション",
+        "trails": "ルート",
+        "tracks-size": "軌跡のストレージ",
+        "tags": "タグ",
+        "trail-tags": "タグ付きルート",
+        "photos": "写真",
+        "photos-size": "写真のストレージ",
+        "shares": "共有"
+      },
+      "devices": "ログイン中の端末",
+      "devices_table": {
+        "connected_since": "ログイン日時",
+        "last_usage": "最終利用日時",
+        "this_device": "この端末",
+        "deleted_at": "削除日",
+        "mobile_app": "モバイルアプリ",
+        "web_app": "Web アプリ",
+        "systems": {
+          "android": "Android",
+          "ios": "iOS",
+          "windows": "Windows"
+        },
+        "browsers": {
+          "chrome": "Google Chrome",
+          "edge": "Microsoft Edge",
+          "firefox": "Mozilla Firefox"
+        }
+      },
+      "not_connected": "ログインしていません",
+      "change_password": {
+        "button": "パスワードを変更",
+        "button_new": "アカウントを作成",
+        "current_password": "現在のパスワード",
+        "new_password1": "新しいパスワード",
+        "new_password2": "新しいパスワード（確認）",
+        "new_password1_new": "パスワード",
+        "new_password2_new": "パスワード（確認）",
+        "verification_code_explaination": "6桁のコードをメールアドレスに送信しました。下に入力してください",
+        "in_progress": "パスワードを変更中…",
+        "error": "エラーが発生しました。前に戻ってもう一度お試しください",
+        "errors": {
+          "current_password": "現在のパスワードを入力してください",
+          "passwordsDontMatch": "パスワードが一致しません",
+          "mail_already_sent": "このアカウントへのリクエストは、10分以内にすでに行われています。",
+          "mail_error": "エラーが発生しました。もう一度お試しください。"
+        }
+      },
+      "delete_me": {
+        "button": "アカウント削除",
+        "button_new": "データ削除",
+        "confirm_message": "Trailence のアカウントとすべてのデータを完全に削除してもよろしいですか？",
+        "code_message": "6桁のコードをメールアドレスに送信しました。下に入力してください",
+        "done": "アカウントとデータを削除しました。"
+      }
+    },
+    "link": {
+      "stop_change_password": {
+        "in_progress": "問題をお知らせいただきありがとうございます。アカウントのパスワード変更リクエストを取り消しています…",
+        "done": "問題をお知らせいただきありがとうございます。アカウントのパスワード変更リクエストをすべて取り消しました。"
+      },
+      "stop_registration": {
+        "in_progress": "問題をお知らせいただきありがとうございます。アカウント作成リクエストを取り消しています…",
+        "done": "問題をお知らせいただきありがとうございます。アカウント作成リクエストを取り消しました。"
+      },
+      "stop_deletion": {
+        "in_progress": "問題をお知らせいただきありがとうございます。アカウント削除リクエストを取り消しています…",
+        "done": "問題をお知らせいただきありがとうございます。アカウント削除リクエストを取り消しました。"
+      },
+      "share": {
+        "in_progress": "共有リンクのデータを読み込んでいます…",
+        "error": "リンクが無効です。このリンクの共有が削除された可能性があります。"
+      }
+    },
+    "trailplanner": {
+      "title": "ルートプランナー",
+      "please_zoom": "通行可能な道を表示して地点を配置するには、少なくとも次のズームレベルまで拡大してください：",
+      "start": "開始",
+      "stop": "一時停止",
+      "reset": "すべてクリア",
+      "resume": "再開",
+      "undo": "元に戻す",
+      "show_routes": "ルートを表示",
+      "show_trails": "自分のルートを表示",
+      "put_free_point": "自由配置",
+      "back_to_non_free_point": "道に沿う",
+      "meta": {
+        "from": "起点",
+        "to": "終点"
+      },
+      "legend": {
+        "permissive": "通行黙認（いつでも閉鎖される可能性があります）",
+        "forbidden": "通行禁止"
+      },
+      "save": {
+        "trail_name": "ルート名",
+        "collection": "保存先のコレクション"
+      },
+      "reset_confirmation": {
+        "title": "すべてクリア",
+        "message": "計画したルートをすべて削除してもよろしいですか？"
+      }
+    },
+    "export_popup": {
+      "which_tracks": "どの軌跡をエクスポートしますか？",
+      "track_original": "元の軌跡",
+      "track_original_explaination": "改善や変更を加えていない、元の軌跡（インポートされたもの、または GPS で記録されたもの）のみ",
+      "track_current": "現在の軌跡",
+      "track_current_explaination": "改善や変更を含む、Trailence 内の現在の軌跡",
+      "track_both": "両方",
+      "track_both_explaination": "両方が同じファイルにエクスポートされます。これにより、2つの軌跡を1つのルートとして Trailence に再インポートでき、バックアップに最適です。ただし、このファイルを他のアプリでインポートすると、正しく開けないことがあります。",
+      "include_photos": "写真を含める",
+      "include_photos_explaination": "写真は ZIP ファイルに含められ、Trailence にインポートできます"
+    },
+    "photos_popup": {
+      "title": "写真",
+      "importing": "インポート中",
+      "add_photos_buttons": "写真を追加",
+      "selected_plural": "枚の写真を選択",
+      "selected_single": "枚の写真を選択",
+      "deleting": "写真を削除中",
+      "position": {
+        "available": "ルート上に配置済み",
+        "not_available": "ルート上に未配置",
+        "clear_title": "写真の位置を削除",
+        "clear_message": "この写真の位置を削除してもよろしいですか？"
+      },
+      "buttons": {
+        "edit": "写真を編集"
+      }
+    },
+    "import_popup": {
+      "title": "インポート",
+      "from_file_title": "GPX または ZIP ファイルから",
+      "from_file_button": "選択…",
+      "from_url_title": "URL から",
+      "url_placeholder": "URL",
+      "unknown_source": "この URL に対応するサポート済みのソースがありません",
+      "fetch_error": "ルートを正しく取得できませんでした",
+      "from_clipboard_title": "クリップボードから",
+      "from_clipboard_button": "クリップボードを読み取る",
+      "nothing_found_in_clipboard": "クリップボードにルートが見つかりませんでした",
+      "button_import": "{{1}} からインポート",
+      "link_source": "Trailence リンク"
+    },
+    "pdf_popup": {
+      "title": "PDF の作成",
+      "menu_label": "PDF を作成",
+      "options": {
+        "model": "テンプレート",
+        "models": {
+          "BIG_MAP": "1ページに大きな地図",
+          "ONE_PAGE": "コンパクト"
+        },
+        "include": {
+          "title": "含める",
+          "description": "ルートの説明",
+          "waypoints": "通過地点",
+          "elevation": "標高グラフ",
+          "qrcode": "リンクの QR コード",
+          "no_qrcode_message": "このルートには公開リンクがありません",
+          "avatar": "プロフィール写真",
+          "avatar_size": {
+            "small": "小サイズ",
+            "large": "大サイズ"
+          },
+          "photo": "写真"
+        },
+        "map_layer": "ベースマップ"
+      },
+      "preview": {
+        "title": "PDF プレビュー"
+      },
+      "progress_message": "PDF を作成中…",
+      "qr_code_link": "Trailence で開く",
+      "download_button": "PDF を保存",
+      "error_downloading_tile": "地図のダウンロードに失敗しました"
+    },
+    "live_group": {
+      "title": "リアルタイム位置共有",
+      "explaination_title": "グループの仕組み",
+      "explaination": "位置共有グループを使うと、アクティビティ中に自分の位置を共有できます。<br/>Trailence のアカウントがなくても、リンクや QR コードから誰でもグループに参加できます。<br/>各メンバーの位置は定期的に記録され、グループの他のメンバーと共有されるため、必要なときに簡単に合流できます。<br/>もちろん、位置共有はネットワークに接続できるときのみ機能します。アクティビティ中はネットワークをオフにしておき、必要なときだけオンにすることもできます。<br/>1週間以上経過したグループは自動的に削除されます。",
+      "group_name": "グループ名",
+      "my_name": "自分の名前 / 表示名",
+      "create_error": "グループの作成に失敗しました",
+      "save_error": "保存に失敗しました",
+      "create_offline": "グループを作成するには、インターネットに接続してください",
+      "save_offline": "グループを編集するには、インターネットに接続してください",
+      "member_not_localized": "位置情報なし",
+      "member_localized": "位置情報あり",
+      "link_button": "リンク",
+      "join_group": "グループに参加",
+      "joining_offline": "グループに参加するには、インターネットに接続してください",
+      "joining_error": "グループへの参加に失敗しました",
+      "stop": "終了",
+      "leave": "退出",
+      "offline": "インターネット接続がありません",
+      "rename_me": "名前",
+      "nb_members_singular": "{{1}}人",
+      "nb_members_plural": "{{1}}人",
+      "updated_at": "更新",
+      "date_from": "開始",
+      "date_to": "終了",
+      "remove_trail_attachment": "ルートとの関連付けを解除",
+      "confirm": {
+        "stop": {
+          "title": "グループを終了",
+          "message": "終了すると、グループは完全に削除されます。<br/>すべてのメンバーは自動的にグループから退出し、リンクは使用できなくなります。<br/><br/>グループを終了してもよろしいですか？"
+        },
+        "leave": {
+          "title": "グループを退出",
+          "message": "グループを退出してもよろしいですか？"
+        }
+      },
+      "no_trail": "グループはどのルートにも関連付けられません。",
+      "no_trail_explaination": "これは、専用の画面でグループを閲覧し、グループのメンバーとその位置のみが表示されるという意味です。一方、グループがルートに関連付けられている場合は、ルートの画面から直接グループを閲覧できます。グループでそのルートをたどる予定がある場合は、こちらのほうがはるかに便利です。<br/><br/>ルートに関連付けたグループを作成するには、ルートを開き、メニューから「位置共有グループを作成」を選択します。<br/>既存のグループを関連付けることもできます。ルートを開き、メニューから「位置共有グループに関連付け」を選択します。",
+      "share_trail": "グループのメンバーとルートを共有",
+      "explaination_trail_restricted_access": "このルートは、自分と共有されたものです。このルートにアクセスできるメンバーのみが閲覧できます。",
+      "explaination_trail_needs_public_link": "このルートを共有したメンバーのみが閲覧できます。すべてのメンバーが閲覧できるようにするには、このルートの公開リンクを作成できます。",
+      "trail_menu": {
+        "attach": "位置共有グループに関連付け",
+        "create": "位置共有グループを作成"
+      },
+      "listening_info_message": "位置共有グループが有効です。ネットワークに接続できるとき、位置が記録され、グループのメンバーと共有されます。",
+      "pause": "記録を一時停止",
+      "resume": "記録を再開",
+      "paused": "記録を一時停止中"
+    },
+    "donation": {
+      "meta_description": "Trailence プロジェクトを支援",
+      "title": "支援",
+      "header": "このプロジェクトへのご支援をご検討いただき、ありがとうございます！",
+      "text": "Trailence は無料・広告なし・オープンソースです。<br/><br/>この状態を維持するために、皆さまのご支援をお願いできればと思います。<br/><br/>私たちは費用とその使い道について透明性を保っています。<br/>&nbsp; - 現在、ホスティング（基本的なサーバー＋ドメイン名）に年間67ユーロを支払っています。<br/>&nbsp; - 100 GB のストレージに20ユーロを支払っています。<br/>&nbsp; - Google Play に掲載するため、Google に25ドルを支払いました。<br/>",
+      "button": "寄付する",
+      "goals": {
+        "goal": "目標額",
+        "raised": "達成額",
+        "thanks": "ありがとうございます！",
+        "descriptions": {
+          "past_costs": "2025年以降の費用をまかなう",
+          "future_costs": "さらに2年分の費用をまかない、継続性を確保する",
+          "increase_capacity": "すべてのユーザーの容量を増やす（ストレージの増加、より多くのユーザーに対応できるサーバー）"
+        }
+      },
+      "developer": {
+        "title": "開発者の方へ",
+        "message": "コードで貢献することもできます。Trailence はオープンソースで、以下で公開されています：",
+        "message2": "特に、iOS 版アプリの開発にご協力いただけると助かります。Ionic を使用しているため、必要なネイティブ機能はわずかです。"
+      },
+      "translations": {
+        "title": "Trailence の翻訳にご協力ください！",
+        "message": "Trailence をさらに多くの言語で利用できるようにしたいと考えています。新しい言語への翻訳や既存の翻訳の改善にご協力いただける方は、お気軽にご連絡ください！"
+      }
+    },
+    "contact": {
+      "meta_description": "お問い合わせフォーム、質問、問題の報告など…",
+      "title": "お問い合わせ",
+      "email": "返信用のメールアドレス",
+      "type": "お問い合わせの種類",
+      "types": {
+        "question": "質問",
+        "bug": "問題を報告",
+        "feature": "改善を提案",
+        "other": "その他"
+      },
+      "message": "メッセージ",
+      "send_button": "送信",
+      "sent": "メッセージを送信しました",
+      "error": "エラーが発生しました。もう一度お試しください",
+      "retry_with_captcha": "ロボットでないことを確認する必要があります。もう一度「送信」をタップしてください",
+      "network_needed": "メッセージを送信するには、インターネットに接続してください",
+      "accept_send_data": "問題解決に役立てるため、アプリの技術データの送信に同意します",
+      "show_data": "このデータを表示",
+      "email_alternative": "メールでもお問い合わせいただけます："
+    },
+    "stats": {
+      "title": "統計情報",
+      "config_title": "設定",
+      "type_title": "統計の対象",
+      "time_unit_title": "集計単位",
+      "source_title": "対象範囲",
+      "filter_title": "対象とするルート",
+      "activity_filter_title": "アクティビティ",
+      "types": {
+        "nb_trails": "ルート数",
+        "distance": "距離",
+        "positive-elevation": "累積標高（登り）",
+        "negative-elevation": "累積標高（下り）",
+        "duration": "所要時間"
+      },
+      "time_units": {
+        "year": "年",
+        "month": "月",
+        "month_of_year": "月（全期間合算）"
+      }
+    },
+    "privacy_policy": {
+      "title": "プライバシーポリシー"
+    },
+    "photo_editor": {
+      "title": "写真の編集",
+      "rotate_clockwise": "右に回転",
+      "rotate_counterclockwise": "左に回転",
+      "crop": "トリミング",
+      "blur": "ぼかし"
+    },
+    "avatar_moderation": {
+      "menu_title": "プロフィール写真",
+      "validate": "承認",
+      "reject": "却下"
+    }
+  },
+  "menu": {
+    "collections": "コレクション",
+    "shared_with_me": "自分と共有",
+    "nothing_shared_with_me": "自分と共有されたルートはありません",
+    "shared_by_me": "自分が共有",
+    "nothing_shared_by_me": "共有しているルートはありません",
+    "my_publications": "公開したルート",
+    "start_trace": "軌跡の記録を開始",
+    "current_trace": "記録中の軌跡",
+    "planner": "ルートを計画",
+    "search_trail": "ルートを探す",
+    "no_share_for_anonymous": "アカウントがないと共有機能は利用できません",
+    "anonymous_account": "アカウントなしでお試し",
+    "help": "ヘルプ",
+    "create_live_group": "位置共有グループを作成",
+    "one_live_group": "進行中の位置共有グループ",
+    "several_live_groups": "進行中の位置共有グループ{{1}}件"
+  },
+  "collection_menu": {
+    "delete_confirm": {
+      "title": "コレクションの削除",
+      "message": "コレクション「{{}}」を削除してもよろしいですか？",
+      "yes": "はい、削除",
+      "no": "いいえ、残す"
+    },
+    "deleting": "コレクションを削除中"
+  },
+  "my_trails": "自分のルート",
+  "all_collections": "すべてのコレクション",
+  "my_selection": "お気に入り",
+  "publications": {
+    "draft_name": "下書き",
+    "submit_name": "審査中",
+    "reject_name": "修正依頼",
+    "my_public_trails_name": "公開済み",
+    "publish": "公開",
+    "publish_confirmation": "このルートの公開を確定すると、ルールを遵守したことを表明し、このルートを公開してよいことを確認したことになります",
+    "publish_message_placeholder": "ルートを審査するモデレーターへメッセージを残したい場合は、ここに入力できます。",
+    "reject_to_draft": "改善",
+    "checklist": "チェックリスト",
+    "modify": "編集",
+    "remove": "削除",
+    "compare_current": "現在の公開版と比較",
+    "exit_compare_current": "比較を終了",
+    "check_public_trails_around": "公開ルートを表示",
+    "exit_check_public_trails_around": "公開ルートを非表示",
+    "show_html_text": "HTML テキスト",
+    "exit_show_html_text": "通常テキスト",
+    "remove_publication_title": "公開ルートを削除",
+    "remove_publication_message": "このルートの削除を希望する理由を入力してください",
+    "remove_publication_sent": "削除依頼を送信しました",
+    "remove_publication_error": "削除依頼の送信に失敗しました",
+    "start_popup": {
+      "header": "Trailence コミュニティへのご貢献、ありがとうございます！",
+      "text_before": "ルートを公開しようとしています。公開すると、すべてのユーザーに表示されます。公開に関する重要な情報は次のとおりです：",
+      "bullets": [
+        {
+          "text": "公開されたルートは、元のルートのコピーになります。つまり、公開するルートに加えた変更は、非公開のまま残る元のルートには反映されません。同様に、後から元のルートを変更しても、公開されたルートには影響しません。"
+        }, {
+          "text": "最初は、ルートは「下書き」の状態になります。これにより、公開前に準備し、元のルートと比べて調整を加えることができます。"
+        }, {
+          "text": "この段階では、チェックリストに沿って、公開前に重要な点を確認できます。たとえば次のような項目です：",
+          "bullets": [
+            {
+              "text": "侮辱的・攻撃的・差別的な表現は固く禁じられています。"
+            }, {
+              "text": "公開したくない個人情報は必ず削除してください。"
+            }, {
+              "text": "人物が識別できる写真は追加しないでください。"
+            }
+          ]
+        }, {
+          "text": "準備ができたら、ルートを提出できます。その後、モデレーターがルールの遵守を確認するために審査することがあります。"
+        }, {
+          "text": "承認されると、コミュニティ全体に公開されます！"
+        }, {
+          "text": "その後、必要に応じていつでも公開を編集したり取り下げたりできます。"
+        }
+      ],
+      "text_after": "ご参加ありがとうございます。公開を楽しんでください！"
+    },
+    "edit_popup": {
+      "title": "公開ルートの編集",
+      "message": "ルートは下書きにコピーされます。編集は初回の公開と同じ流れで、変更後にモデレーターが審査します。この公開を編集してもよろしいですか？"
+    },
+    "checklist_items": {
+      "iam_author": {
+        "title": "著作権と許諾",
+        "description_start": "©️ 公開する情報の作者であること、または Trailence で公開するために作者から明確な許可を得ていることを確認してください。"
+      },
+      "name": {
+        "title": "ルート名",
+        "description_start": "名前は短く、ルートの目的を明確に表すものにしてください。例を挙げます：",
+        "description_bullets": [
+          "<b>尾瀬ヶ原と尾瀬沼</b>：目的が明確で簡潔です。",
+          "<b>燕岳 合戦尾根コース</b>：複数のルートがある場合は、山頂と利用する登山道を示します。",
+          "<b>高尾山から陣馬山への縦走路</b>：必要に応じて、出発地点・到着地点・たどる道を示します。"
+        ]
+      },
+      "description": {
+        "title": "ルートの説明",
+        "description_start": "説明は、ルートで何が待っているかをすぐに理解できる内容にしましょう。次のような情報を含めることを検討してください：",
+        "description_bullets": [
+          "想定される難所（種類と場所）",
+          "見逃せない展望地・見どころ・名所",
+          "道の種類（登山道、幅広の道、車道…）と、必要に応じてその割合の目安",
+          "森林、開けた場所、高所など、どこを通るか",
+          "歩くのに最適な時期に関するアドバイスがあれば",
+          "ルートに変化がある場合は、主な区間の説明（例：森林からの出発、途中の礼拝堂、見晴らしのよい稜線…）",
+          "必要に応じて、駐車場や利用できる水場などの実用的な情報で締めくくりましょう。"
+        ]
+      },
+      "date": {
+        "title": "日付の入力",
+        "set_date": "日付を設定"
+      },
+      "location": {
+        "title": "場所の入力",
+        "set_location": "場所を設定"
+      },
+      "activity": {
+        "title": "アクティビティの種類の入力",
+        "description_start": "ルートの主なアクティビティを選択してください。これにより、他のユーザーが所要時間を正しく理解し、そのアクティビティに適した、実際に通行可能なルートを見つけやすくなります。"
+      },
+      "track": {
+        "title": "軌跡の品質",
+        "description_start": "可能であれば、軌跡の品質を改善してみましょう：",
+        "description_bullets": [
+          "標高の値が不自然な場合は修正してください。",
+          "本来のルートを外れた場合（例：ちょっとした用足し 🤭 など）は、その区間を軌跡から削除してみましょう。"
+        ],
+        "description_end": "👉 そのためには、地図上の「編集」ボタンを使用します。"
+      },
+      "waypoints": {
+        "title": "通過地点",
+        "description_start": "ルートに通過地点を追加することを検討してください：",
+        "description_bullets": [
+          "特定の地点を示すのに使えます：展望地、見どころ、水場など…",
+          "さらに重要なのは、現地でルートが分かりにくい場所（例：分岐点や、登山道の目印が少ない場所）で方向を示せることです。"
+        ],
+        "description_end": "👉 そのためには、地図上の「編集」ボタンを使い、希望の場所を選択して「通過地点」メニューを使用します。"
+      },
+      "photos": {
+        "title": "写真",
+        "description_start": "ルートを歩いてみたくなるような写真を入れることを検討してください：美しい風景、展望地、珍しい場所など…",
+        "description_bullets": [
+          "📍 自動で配置されていない場合は、各写真がルート上に正しく配置されているか確認してください。",
+          "⚠️ 人物が識別できる写真は掲載しないでください。",
+          "🙏 また、許可なく私有地の写真を共有することも避けてください。"
+        ]
+      }
+    },
+    "moderation": {
+      "menu_title": "モデレーション",
+      "menu_trails": "ルート",
+      "menu_comments": "コメント",
+      "menu_remove": "削除依頼",
+      "publishing": "公開中",
+      "error_publishing": "公開に失敗しました",
+      "error_updating_trail": "ルートの更新に失敗しました",
+      "error_translating": "翻訳に失敗しました",
+      "publish_confirmation": "このルートを公開してもよろしいですか？",
+      "reject": "却下",
+      "reject_message_placeholder": "このルートを却下する理由を、ここにメッセージとして記入してください。",
+      "message_from_author": "作者からのメッセージ",
+      "previous_moderator_message": "モデレーターの前回のメッセージ",
+      "moderator_message": "モデレーターのメッセージ",
+      "refresh": "更新",
+      "comments": {
+        "reviewed_button": "承認"
+      }
+    }
+  },
+  "buttons": {
+    "apply": "適用",
+    "cancel": "キャンセル",
+    "confirm": "確認",
+    "create": "作成",
+    "close": "閉じる",
+    "delete": "削除",
+    "download": "ダウンロード",
+    "edit": "編集",
+    "next": "続ける",
+    "ok": "OK",
+    "previous": "戻る",
+    "quit": "終了",
+    "save": "保存",
+    "send": "送信",
+    "start": "開始",
+    "reset": "リセット",
+    "retry": "再試行",
+    "understood": "了解",
+    "undo": "元に戻す",
+    "redo": "やり直す",
+    "yes": "はい",
+    "no": "いいえ"
+  },
+  "order_way": "並び順",
+  "order_asc": "昇順",
+  "order_desc": "降順",
+  "selected_single": "選択済み",
+  "selected_plural": "選択済み",
+  "way_points": {
+    "DA": "S G",
+    "D": "S",
+    "A": "G",
+    "position": "位置",
+    "distance": "距離",
+    "altitude": "標高",
+    "time": "時刻",
+    "duration": "所要時間",
+    "description_placeholder": "説明",
+    "name_placeholder": "名前"
+  },
+  "trailGraph": {
+    "distance": "距離",
+    "elevation": "標高",
+    "time_duration": "時間",
+    "elevation_grade": "勾配",
+    "location": "位置",
+    "precision": "精度",
+    "speed": "速度",
+    "legend_estimated_speed": "推定速度"
+  },
+  "offline_map": {
+    "download_trail": "ルートに対応する地図を、オフラインで利用できるようにダウンロードします",
+    "download_map": "現在表示しているエリアの地図を、オフラインで利用できるようにダウンロードします",
+    "select_layers": "ダウンロードする地図を選択してください",
+    "parameters": "設定",
+    "max_zoom": "ダウンロードする最大ズームレベル",
+    "max_zoom_explaination": "ズームレベルを高くするほど、オフライン時にルート上で拡大できるようになりますが、その分ダウンロード時間が長くなり、端末のストレージ容量も多く必要になります。",
+    "max_zoom_reco": "15〜17の値をおすすめします。15未満では、小さな道をはっきり見るには詳細が不足しがちです。17を超えるとダウンロードサイズが大きくなりますが、ルートをたどるのにそれほどの詳細は通常必要ありません。",
+    "padding": "ダウンロードするエリアを拡張（%）",
+    "padding_explaination_for_trail": "ルートのエリア周辺でダウンロードするエリアの割合（100%はルートのみを意味します）。オフラインモードでルート周辺をより広く見られるようになります。",
+    "padding_explaination_for_map": "現在表示しているエリア周辺でダウンロードするエリアの割合（100%は表示エリアのみを意味します）。オフラインモードで少し広いエリアを見られるようになります。",
+    "percent_done": "ダウンロード済み",
+    "remaining": "件残り",
+    "todo": "件ダウンロード予定",
+    "downloading": {
+      "progress_title": "{{1}} をダウンロード中"
+    }
+  },
+  "layers_popup": {
+    "title": "ベースマップ",
+    "overlays_title": "レイヤーを追加",
+    "regional_title": "国または地域"
+  },
+  "trace_recorder": {
+    "trail_name_start": "ルート",
+    "pause": "一時停止",
+    "resume": "再開",
+    "stop": "終了",
+    "start_this_trail": "ルートを開始",
+    "notif_message": "Trailence で現在地を記録しています",
+    "disclosure_popup": {
+      "title": "位置情報の利用",
+      "message": "Trailence は、アプリが閉じているときや使用していないときでも、ルート中に軌跡を記録できるよう位置情報を収集します。",
+      "button_turnon": "有効にする"
+    },
+    "disabled_popup": {
+      "title": "GPS が無効",
+      "message": "GPS が現在無効になっています。軌跡の記録を開始するには、GPS を有効にしてください。"
+    },
+    "denied_popup": {
+      "title": "位置情報が許可されていません",
+      "message": "Trailence の位置情報が許可されていません。位置情報機能を使用するには、端末の設定で許可してください。"
+    },
+    "confirm_popup": {
+      "resume_message": "ルートを再開してもよろしいですか？",
+      "pause_message": "ルートを一時停止してもよろしいですか？",
+      "stop_message": "ルートを終了してもよろしいですか？"
+    },
+    "saving": "ルートを保存中",
+    "empty_trail": "ルートが空のため、保存されませんでした",
+    "follow_this_trail": "このルートをたどる",
+    "follow_this_trail_confirmation": "ルート「{{1}}」をたどりますか？",
+    "not_native_message": "軌跡の記録には Android アプリの使用をおすすめします。Web アプリを使用すると、GPS の精度が低くなるほか、特にアプリから離れたとき（画面の消灯、ページの切り替え、他のアプリへの切り替えなど）に、ブラウザが GPS 座標の送信を停止して記録が止まることがあります。"
+  },
+  "waiting_for_gps": "GPS 信号を待機中…",
+  "bytes": {
+    "bytes": "バイト",
+    "kb": "KB",
+    "mb": "MB",
+    "gb": "GB"
+  },
+  "duration": {
+    "days": "日",
+    "hours": "時間",
+    "minutes": "分"
+  },
+  "logout": {
+    "title": "ログアウト",
+    "title_anonymous": "お試しモードを終了",
+    "text": "この端末のデータもすべて削除しますか？",
+    "text_info": "データはサーバーに保存されており、次回ログイン時にダウンロードされます。",
+    "text_warning": "削除するとローカルデータが失われます！",
+    "button_delete": "削除",
+    "button_keep": "保持"
+  },
+  "synchro": {
+    "in_progress": "同期中",
+    "offline": "オフライン",
+    "last_sync": "最終同期",
+    "not_yet": "未同期",
+    "local_changes": "ローカルの変更",
+    "yes": "はい",
+    "no": "いいえ",
+    "sync_now": "今すぐ同期",
+    "reset_all": "すべてリセットしてサーバーから再ダウンロード"
+  },
+  "confirm_delete_share": {
+    "title": "共有を削除",
+    "message": "「{{}}」を削除してもよろしいですか？",
+    "yes": "はい、削除",
+    "no": "いいえ、残す"
+  },
+  "search_place": {
+    "placeholder": "場所を検索",
+    "tap_enter": "Enter キー ↵ で検索を開始",
+    "no_result": "結果なし"
+  },
+  "loopType": {
+    "ow": "片道",
+    "lp": "周回",
+    "hl": "半周回",
+    "sl": "小周回",
+    "ob": "往復"
+  },
+  "activities_groups": {
+    "pedestrian": "徒歩",
+    "bike": "自転車",
+    "snow": "雪上",
+    "water": "水上",
+    "others": "その他"
+  },
+  "activity": {
+    "walking": "ウォーキング",
+    "hiking": "ハイキング",
+    "trail": "トレイルランニング",
+    "moutain-biking": "マウンテンバイク",
+    "gravel-biking": "グラベルバイク",
+    "road-biking": "ロードバイク",
+    "snowshoeing": "スノーシュー",
+    "on-water": "ボート",
+    "skiing": "スキー",
+    "running": "ランニング",
+    "horseback-riding": "乗馬",
+    "via-ferrata": "ビア・フェラータ",
+    "rock-climbing": "クライミング",
+    "canoe": "カヌー・カヤック",
+    "unspecified": "未指定"
+  },
+  "tags_filter": {
+    "onlyWithAnyTag": "タグが1つ以上あるルート",
+    "onlyWithoutAnyTag": "タグのないルート",
+    "include_and": "次のタグをすべて持つルート",
+    "include_or": "次のタグのいずれかを持つルート",
+    "exclude": "次のタグをいずれも持たないルート",
+    "all": "すべて",
+    "popup": {
+      "title": "タグで絞り込み"
+    }
+  },
+  "update": {
+    "download_android": "Android アプリをダウンロード",
+    "update_android": "更新を表示",
+    "not_allowed": "自動更新を許可したくない場合は、更新を手動でダウンロードしてインストールできます。",
+    "download_manually": "手動でダウンロード",
+    "updating": "更新中",
+    "downloading": "ダウンロード中",
+    "installing": "更新をインストール中",
+    "release_notes": {
+      "popup": {
+        "updated": "Trailence が更新されました！",
+        "available": "更新が利用可能です！",
+        "news": "新機能",
+        "later": "あとで",
+        "download": "インストール"
+      },
+      "version": "バージョン"
+    }
+  },
+  "metadata": {
+    "collection": "コレクション",
+    "title": "タイトル",
+    "tags": "タグ",
+    "description": "説明",
+    "trail_date": "ルートの日付",
+    "trail_location": "場所",
+    "loop_type": "タイプ",
+    "activity": "アクティビティ",
+    "duration": "所要時間",
+    "distance": "距離",
+    "positiveElevation": "累積標高（登り）",
+    "negativeElevation": "累積標高（下り）",
+    "breaksDuration": "休憩",
+    "estimatedDuration": "推定所要時間",
+    "averageSpeed": "平均速度",
+    "maxSpeed": "最高速度",
+    "highestAltitude": "最高標高",
+    "lowestAltitude": "最低標高",
+    "current_position": "現在地",
+    "current_altitude": "現在の標高",
+    "remaining_time": "残り時間",
+    "remaining_distance": "残りの距離",
+    "remaining_ascent": "残り累積標高（登り）",
+    "remaining_descent": "残り累積標高（下り）"
+  },
+  "synchronizing_your_data": "ルートをダウンロード中",
+  "errors": {
+    "modal_title_singular": "エラー",
+    "modal_title_plural": "エラー",
+    "import": {
+      "file_not_imported": "ファイル「{{1}}」をインポートできませんでした：{{2}}",
+      "not_gpx": "ファイルが GPX 形式でないか、無効です"
+    },
+    "download_offline_map": "地図のダウンロード中に{{1}}件のエラーが発生しました",
+    "stores": {
+      "save_photo": "写真 {{1}} のサーバーへの送信に失敗しました",
+      "save_track": "軌跡のサーバーへの送信に失敗しました",
+      "delete_tracks": "サーバー上の軌跡の削除に失敗しました",
+      "get_track": "サーバーからの軌跡のダウンロードに失敗しました",
+      "save_tracks": "端末への軌跡の保存に失敗しました",
+      "update_track": "サーバー上の軌跡の更新に失敗しました",
+      "create_items": "サーバーでの作成に失敗しました（{{1}}）",
+      "get_updates": "サーバーからの更新の取得に失敗しました（{{1}}）",
+      "send_updates": "サーバーへの更新の送信に失敗しました（{{1}}）",
+      "delete_items": "サーバーでの削除に失敗しました（{{1}}）"
+    },
+    "import_photo": "写真 {{1}} を読み込めません",
+    "invalid_format": "無効またはサポートされていない形式です",
+    "search_places": "場所の検索に失敗しました",
+    "search_routes": "ルートの検索に失敗しました",
+    "password_strength": "パスワードの強度が不十分です",
+    "photos_error_no_network": "ネットに接続されていないか通信圏外のため、一部の写真を表示できません",
+    "photos_error": "一部の写真をダウンロードできませんでした"
+  },
+  "export": {
+    "trail": "ルート",
+    "photo": "写真"
+  },
+  "osm": {
+    "from": "起点",
+    "to": "終点"
+  },
+  "administration": "管理",
+  "quota_error": {
+    "trail_collections": "コレクションの上限を超えています。新しいコレクションはサーバーに保存できません！",
+    "trails": "ルートの上限を超えています。新しいルートはサーバーに保存できません！",
+    "tracks": "軌跡の上限を超えています。新しい軌跡はサーバーに保存できません！",
+    "tags": "タグの上限を超えています。新しいタグはサーバーに保存できません！",
+    "trails_tags": "タグ付きルートの上限を超えています。新しいタグ付きルートはサーバーに保存できません！",
+    "photos": "写真の上限を超えています。新しい写真はサーバーに保存できません！",
+    "shares": "共有の上限を超えています。新しい共有はサーバーに保存できません！"
+  },
+  "quota_reached": {
+    "trail_collections": "コレクションの上限に達しました",
+    "trails": "ルートの上限に達しました",
+    "tracks": "軌跡の上限に達しました",
+    "tags": "タグの上限に達しました",
+    "trails_tags": "タグ付きルートの上限に達しました",
+    "photos": "写真の上限に達しました",
+    "shares": "共有の上限に達しました",
+    "photos_max": "写真の上限は{{1}}枚で、すでに{{2}}枚あります。新たに{{3}}枚追加することはできません",
+    "photos_max_by_trail": "このルートにはすでに{{1}}/{{2}}枚の写真があります。新たに{{3}}枚追加することはできません"
+  },
+  "obsolete_message": {
+    "title": "更新が必要です",
+    "message": "アプリのバージョンが古くなっているため、更新が必要です。このバージョンを使い続けると、変更内容をサーバーに保存できず、失われる可能性があります。"
+  },
+  "downloading_elevation": "標高データをダウンロード中",
+  "track_edit_tools": {
+    "title": "編集",
+    "categories": {
+      "track": "軌跡",
+      "way_point": "通過地点",
+      "elevation": "標高",
+      "path": "道",
+      "selection": "選択",
+      "elevation_provider": "標高データ提供元を使用",
+      "join_departure_and_arrival": "出発地点と到着地点を接続",
+      "improvements": "改善",
+      "set_elevation_on_range": "標高を変更",
+      "time": "時間"
+    },
+    "stop_interactive": "中止",
+    "tools": {
+      "remove_unprobable_elevations": "不自然な標高を調整",
+      "remove_unprobable_points": "不自然な地点を削除",
+      "remove_breaks_moves": "休憩中の移動を削除",
+      "slope_threshold": {
+        "button_label": "標高差のしきい値で平滑化",
+        "elevation_threshold": "標高差のしきい値",
+        "max_distance": "最大距離",
+        "explaination": "平滑化の目的は、GPS の誤差を取り除くことです。<br/>この誤差により、実際にはなだらかに連続した斜面であっても、数メートルの距離で標高が数メートル上下してしまうことがよくあります。<br/>そのため、平滑化は次のように動作します：<ul><li>設定したしきい値の範囲内で、かつ設定した最大距離の範囲内で標高が変化した区間を探します。</li><li>見つかった各区間について、開始地点の標高と終了地点の標高をもとに、連続した斜面へと平滑化します。</li><li>ルートの最高地点や最低地点が失われないように、区間の途中にそのような地点がある場合は、その地点を残すよう区間を狭めます。</li></ul>"
+      },
+      "selection": {
+        "title": "選択",
+        "extend_selection": "選択範囲を拡張…",
+        "close": "選択を閉じる",
+        "select_target_point": "地図または標高グラフ上で地点を選択すると、その地点まで選択範囲を拡張します",
+        "remove_all_next_points": "これより後の地点をすべて削除",
+        "remove_all_previous_points": "これより前の地点をすべて削除",
+        "rectangle": "エリアを選択"
+      },
+      "remove_selection": {
+        "button_single_label": "選択した地点を削除",
+        "button_multiple_label": "選択した区間を削除",
+        "button_single_label_and_join": "選択した地点を削除して軌跡を接続",
+        "button_multiple_label_and_join": "選択した区間を削除して軌跡を接続",
+        "button_single_label_and_open": "選択した地点を削除して軌跡を2つに分割",
+        "button_multiple_label_and_open": "選択した区間を削除して軌跡を2つに分割"
+      },
+      "replace_elevation_with_provider": "標高を置き換え",
+      "improve_elevation_with_provider": "標高を改善",
+      "fill_missing_elevation_with_provider": "欠損した標高を補完",
+      "calibrate_elevation": "標高を補正",
+      "calibrate_elevation_message": "既知の標高は、このルートに記録された標高と平均{{1}} {{2}}の差があります",
+      "arrival_to_departure": "出発地点と同じ場所で終了",
+      "departure_to_arrival": "到着地点と同じ場所から開始",
+      "start_from_arrival": "復路をたどって到着地点に接続し、欠けている始点を作成",
+      "arrival_to_start": "往路をたどって出発地点に接続し、欠けている終点を作成",
+      "back_to_departure": "同じルートをたどって出発地点へ戻る経路を作成",
+      "back_to_original_track": "改善なしで元の軌跡に戻す",
+      "follow-osm-path": "選択範囲を最寄りの OpenStreetMap の道に置き換え",
+      "reverse_way": "逆方向",
+      "remove_time": "時間情報を削除",
+      "link_to_next_segment_with_line": "直線で次の区間に接続",
+      "link_to_next_segment_follow": "道をたどって次の区間に接続",
+      "toggle_show_only_modified_track": {
+        "button_label_hide": "変更後の軌跡（青）のみ表示",
+        "button_label_show": "変更前の軌跡を表示"
+      },
+      "way_points": {
+        "create_waypoint": "通過地点を作成",
+        "remove_waypoint": "通過地点を削除",
+        "edit_waypoint": "通過地点を編集",
+        "move_waypoint": "通過地点を移動",
+        "move_waypoint_index": "順序を変更",
+        "move_waypoint_index_submenu": "指定位置へ移動",
+        "popup": {
+          "title": "通過地点"
+        },
+        "select_new_position": "新しい位置を選択してください",
+        "remove_waypoint_confirmation": "通過地点を削除してもよろしいですか？"
+      },
+      "set_elevation_on_range": {
+        "with_start": "選択した最初の地点の標高を使用",
+        "with_end": "選択した最後の地点の標高を使用",
+        "smoothing": "選択した最初の地点から最後の地点まで平滑化",
+        "manual_value": "固定の標高を手動で入力",
+        "manual_diff": "適用する差分を手動で入力"
+      },
+      "apply_default_improvements": "デフォルトの改善を適用（軌跡の記録時に使われるもの）",
+      "merge_segments": "一時停止と再開の地点を接続",
+      "add_points": {
+        "free": {
+          "title": "自由な地点で補完"
+        },
+        "osm": {
+          "title": "OpenStreetMap の道で補完"
+        }
+      }
+    },
+    "no_modification": "この機能による変更はありませんでした",
+    "close_confirmation": {
+      "title": "軌跡エディターを閉じる",
+      "message": "変更が保存されていません。軌跡エディターを閉じてもよろしいですか？"
+    }
+  },
+  "go_to_position": "この位置へ移動",
+  "datetime_popup": {
+    "time": "時刻",
+    "timezone": "タイムゾーン",
+    "timezone_unspecified": "タイムゾーンなし"
+  },
+  "recompute_metadata": "ルートの推定値を再計算中",
+  "you_are_offline": "オフラインです",
+  "toast_anonymous_account": "アカウントなしでアプリを使用している場合、データはブラウザ内にのみ保存され、ブラウザの空き容量が不足すると自動的に削除されることがあります。データを保存して同期するには、データをエクスポートし、アカウントを作成してから再度インポートしてください。",
+  "notifications": {
+    "menu": {
+      "no_unread": "通知",
+      "unread_single": "未読の通知1件",
+      "unread_plural": "未読の通知{{1}}件"
+    },
+    "load_more": "もっと見る",
+    "error_loading": "通知の読み込みに失敗しました",
+    "none": "現在、通知はありません",
+    "items": {
+      "unknown": "この通知は、このバージョンの Trailence では認識できません",
+      "publications": {
+        "accepted": {
+          "text": "ルート:*:/trail/trailence/{{2}}:*:{{1}}:*:が公開されました！コミュニティへのご貢献、ありがとうございます 🎉"
+        },
+        "rejected": {
+          "text": "ルート:*:/trail/{{3}}/{{2}}:*:{{1}}:*:の公開が却下されました。理由を確認し、必要な改善を行ってください。"
+        }
+      },
+      "shares": {
+        "new_share_with_you": {
+          "text": "{{1}} さんが新しい共有を作成しました：:*:/trails/share/{{3}}/{{1}}:*:{{2}}:*:"
+        },
+        "new_trails_in_share": {
+          "text": "{{1}} さんが共有:*:/trails/share/{{3}}/{{1}}:*:{{4}}:*:に{{2}}件のルートを追加しました"
+        },
+        "shared_collection": {
+          "text": "{{1}} さんが新しい共有コレクションを作成しました：:*:/trails/collection/{{3}}:*:{{2}}:*:"
+        }
+      },
+      "comments": {
+        "someone_leave_a_rate": {
+          "text": "ルート:*:/trail/trailence/{{1}}:*:{{2}}:*:が評価されました"
+        },
+        "someone_leave_a_comment": {
+          "text": "ルート:*:/trail/trailence/{{1}}:*:{{2}}:*:にコメントが投稿されました"
+        },
+        "someone_leave_a_rate_with_comment": {
+          "text": "ルート:*:/trail/trailence/{{1}}:*:{{2}}:*:が評価され、コメントが投稿されました"
+        },
+        "reply": {
+          "text": "ルート:*:/trail/trailence/{{1}}:*:{{2}}:*:のコメントに返信がありました"
+        }
+      },
+      "avatar": {
+        "accepted": {
+          "text": "プロフィール写真が承認されました。"
+        },
+        "rejected": {
+          "text": "プロフィール写真が却下されました。"
+        }
+      }
+    }
+  },
+  "mapAdditions": {
+    "title": "表示 / 非表示",
+    "only_zoom_10": "ズームが10を超えたときのみ表示",
+    "guidepost": "道標",
+    "water": "水場",
+    "toilets": "トイレ",
+    "way_foot": "徒歩",
+    "way_bicycle": "自転車",
+    "way_forbidden": "通行禁止",
+    "way_permissive": "通行黙認",
+    "overlays": {
+      "wmth": "マーキングされた道"
+    },
+    "errors": {
+      "no_net": "オフラインのため、一部の要素を表示できません"
+    }
+  },
+  "relativeDates": {
+    "justNow": "たった今",
+    "secondsAgo": "{{1}}秒前",
+    "minuteAgo": "1分前",
+    "minutesAgo": "{{1}}分前",
+    "ago": "{{1}}前"
+  },
+  "translations": {
+    "translated_from": "翻訳元",
+    "from": {
+      "de": "ドイツ語",
+      "en": "英語",
+      "es": "スペイン語",
+      "fr": "フランス語",
+      "it": "イタリア語",
+      "pt": "ポルトガル語"
+    },
+    "view_original": "原文を表示",
+    "view_translated": "日本語に翻訳",
+    "view_translated_default": "英語に翻訳",
+    "trail_moderation": {
+      "title": "翻訳",
+      "original_language": "使用言語",
+      "needed_translations": "必要な翻訳",
+      "name": "ルート名",
+      "description": "説明"
+    }
+  },
+  "months": [
+    "1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"
+  ],
+  "regions": {
+    "be": "ベルギー",
+    "ch": "スイス",
+    "es": "スペイン",
+    "fi": "フィンランド",
+    "fr": "フランス",
+    "no": "ノルウェー",
+    "se": "スウェーデン",
+    "us": "アメリカ"
+  },
+  "show_more": "もっと見る",
+  "show_less": "折りたたむ",
+  "exit": {
+    "title": "Trailence を終了",
+    "message": "Trailence を終了しますか？"
+  },
+  "help": {
+    "contextual": {
+      "original_trace": "元の軌跡とは、GPS で記録された、またはファイルからインポートされたままの未加工の軌跡です。<p>軌跡を編集しても元の軌跡は常に保持されるため、基準となる元の軌跡からいつでもやり直すことができます。</p><p>手動で編集していない場合でも、Trailence は GPS の誤差を補正するために自動的に改善を適用します。</p>",
+      "show_osm": "軌跡を OpenStreetMap の道に合わせます。",
+      "estimated_duration": "推定所要時間は、平地での基準速度をもとに、累積標高や所要時間に応じて調整し、定期的な短い休憩（約1時間ごとに2〜3分）も考慮して計算されます。<p>初期設定では基準速度は 5 km/h で、ハイカーの平均的な速度に相当します。この速度は設定で変更できます。</p>",
+      "breaks": "休憩時間とは、<i>長い</i>休憩の合計です。この時間はルートの所要時間から差し引かれます。<p><i>短い</i>休憩（水分補給や景色を楽しむためなど）と<i>長い</i>休憩（昼食をとるためなど）を区別しています。</p><p>短い休憩は、含めるのが自然なため、表示されるルートの所要時間に含まれます。一方、長い休憩が検出されると、その時間はルートの所要時間から差し引かれます。これにより、表示される時間が昼寝の長さに左右されないようにしています 😉。こうして差し引かれた時間は<i>休憩</i>の項目に表示されます。</p><p><i>長い</i>休憩とは、{{1}}分以上の休憩です。この時間は設定で変更できます。</p>"
+    }
+  },
+  "password_strength": ["非常に弱い", "弱い", "不十分", "許容範囲", "強い", "非常に強い"],
+  "contributions": {
+    "publications": "ルート",
+    "ratings": "評価",
+    "reviews": "レビュー",
+    "title": "貢献",
+    "levels": {
+      "publications": [
+        "なし",
+        "初めてのルート",
+        "探検家",
+        "発見者",
+        "大探検家",
+        "地図職人",
+        "地図の達人",
+        "山道の伝説"
+      ],
+      "comments": [
+        "なし",
+        "初めてのレビュー",
+        "観察者",
+        "助言者",
+        "コミュニティガイド",
+        "山道の賢者",
+        "メンター",
+        "コミュニティの柱"
+      ],
+      "rates": [
+        "なし",
+        "初めての評価",
+        "評価者",
+        "先駆者",
+        "目利き",
+        "ルートの達人",
+        "信頼の声",
+        "コミュニティの羅針盤"
+      ]
+    }
+  },
+  "open_web_version": "Web 版を表示",
+  "osm_stats": {
+    "title": "ルートの特徴",
+    "attribution": "OpenStreetMap のデータ",
+    "types": {
+      "wayType": {
+        "title": "道の種類",
+        "descriptions": {
+          "unknown": "不明",
+          "others": "その他",
+          "1": "道路・街路…",
+          "2": "小道",
+          "3": "階段",
+          "4": "ビア・フェラータ",
+          "5": "はしご"
+        }
+      },
+      "surface": {
+        "title": "路面",
+        "descriptions": {
+          "unknown": "不明",
+          "others": "その他",
+          "1": "硬い（アスファルト…）",
+          "2": "やや硬い（砂利…）",
+          "5": "柔らかい（土・草…）",
+          "6": "柔らかく歩きにくい（泥・砂…）",
+          "7": "岩・石が多い"
+        }
+      },
+      "hikingDifficulty": {
+        "title": "難易度",
+        "descriptions": {
+          "unknown": "不明",
+          "others": "その他",
+          "1": "非常に易しい",
+          "2": "易しい",
+          "3": "普通",
+          "4": "難しい",
+          "5": "非常に難しい",
+          "6": "通行不可"
+        }
+      },
+      "visibility": {
+        "title": "道の見やすさ",
+        "descriptions": {
+          "unknown": "不明",
+          "others": "その他",
+          "1": "非常に良い",
+          "2": "良い",
+          "3": "普通",
+          "4": "悪い",
+          "5": "見つけにくい",
+          "6": "なし"
+        }
+      }
+    },
+    "messages": {
+      "no_match": "利用できる情報はありません",
+      "partial_data": "一部の情報がダウンロードされていないため、結果は不完全です",
+      "no_data": "ダウンロードされたデータがありません"
+    }
+  },
+  "mapRotate": {
+    "north": "北を上",
+    "heading": "GPS 進行方向",
+    "device": "画面の向き",
+    "custom": "手動",
+    "noDeviceOrientation": "お使いの端末では方位を取得できません"
+  },
+  "alertNoElevation": {
+    "title": "標高データを追加しますか？",
+    "message": "インポートしたルートの中に標高データがないものがあります。標高データ提供元からダウンロードして自動的に追加しますか？"
+  },
+  "mapNotAvailable": "このエリアは以下の地図サービスの対応範囲外です：",
+  "inputEmail": {
+    "defaultLabel": "メールアドレス",
+    "errors": {
+      "required": "メールアドレスを入力してください",
+      "invalidEmail": "有効なメールアドレスを入力してください",
+      "duplicate": "このメールアドレスはすでに追加されています",
+      "atLeastOneEmailIsRequired": "メールアドレスを1件以上入力してください",
+      "cannotAddYourself": "自分自身を追加することはできません"
+    }
+  },
+  "select": {
+    "activities": {
+      "title": "アクティビティ",
+      "or": "または",
+      "all": "すべて"
+    },
+    "loopType": {
+      "title": "ルートのタイプ",
+      "or": "または",
+      "all": "すべて"
+    }
+  }
+}
