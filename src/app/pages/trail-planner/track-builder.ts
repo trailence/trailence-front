@@ -12,7 +12,7 @@ import { TrailPlannerPage } from './trail-planner.page';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
 import { GeoService } from '@trailence/services/geolocation/geo.service';
 import { TrailSourceType } from '@trailence/model/dto/trail';
-import { WaysGraph, WaysPath, WayUtils } from '@trailence/services/map/way-utils';
+import { WayUtils } from '@trailence/services/map/way-utils';
 import { OfflineMapService } from '@trailence/services/map/offline-map.service';
 import { Way, WayPermission } from '@trailence/services/map/way';
 import { WorkerService } from '@trailence/worker/web-app';
@@ -30,22 +30,27 @@ import { EarthPoint } from '@trailence/utils/latlng';
 import { MapRenderer } from '@trailence/components/map/impl/map-renderer';
 import { AddPointAnchor } from '@trailence/components/map/elements/add-point-anchor';
 import { AnyMapElement } from '@trailence/components/map/map-element';
+import { RoutingSession, TrackPoint, WayRoutePoint, WaysHelper } from './ways';
 
 const logger = getLogger('track-builder');
 
-const MATCHING_MAX_DISTANCE = 2.5;
-
 const LOCALSTORAGE_KEY_PREFIX = 'trailence.trail-planner.';
 
-interface TrackPoint {
-  pos: EarthPoint;
-  free: boolean;
+interface TrackHistory {
+  nbPoints: number;
+  latest: TrackPoint;
 }
 
 export class TrackBuilder {
 
   private ways: Way[] = [];
-  private readonly graph = new WaysGraph();
+  private readonly waysHelper = new WaysHelper({
+    snapRadiusMeters: 5,
+    startAccessRadiusMeters: 250,
+    startSnapToleranceMeters: 5,
+    highlightRadiusMeters: 2.5,
+    maxHighlightedWays: 10,
+  });
   public readonly waysToCursor = {
     normal: new BehaviorSubject<{points: EarthPoint[]}[]>([]),
     permissive: new BehaviorSubject<{points: EarthPoint[]}[]>([]),
@@ -64,13 +69,14 @@ export class TrackBuilder {
   public estimatedTime = 0;
   public hasElevation = false;
 
-  public trackPoints: TrackPoint[][] = [];
+  public trackPoints: TrackHistory[] = [];
   public putAnchors = false;
   public putFreeAnchor = false;
 
   private mode: 'foot' | 'bicycle' = 'foot'; // TODO
 
   private map?: MapComponent;
+  private routingSession: RoutingSession | undefined;
 
   constructor(
     private readonly injector: Injector,
@@ -159,17 +165,19 @@ export class TrackBuilder {
       this.start();
     } else {
       if (!this.track) return;
-      const nbRemoved = this.trackPoints.splice(-1, 1)[0].length;
+      const removed = this.trackPoints.splice(-1, 1)[0];
       const points = this.track.lastSegment.points;
-      this.track.lastSegment.removeMany(points.slice(points.length - nbRemoved));
-      if (this.putAnchors) this.refreshWaysToMouse(this.map?.renderer, undefined);
+      this.track.lastSegment.removeMany(points.slice(points.length - removed.nbPoints));
+      if (this.putAnchors) {
+        this.routingSession = this.waysHelper.createRoutingSession(this.getLastPoint()!);
+      }
       this.hasElevation = this.track.forEachPoint(p => p.ele !== undefined) ?? false;
     }
     this.planner.changesDetection.detectChanges();
   }
 
   private getLastPoint(): TrackPoint | undefined {
-    return this.trackPoints.at(-1)?.at(-1);
+    return this.trackPoints.at(-1)?.latest;
   }
 
   public mapChanged() {
@@ -213,64 +221,79 @@ export class TrackBuilder {
     this.anchorMapClickSubscription = map.events.click.asObservable().subscribe(mouseEvent => {
       const zoom = map.renderer?.mapState?.zoom;
       if (!zoom || zoom < this.planner.minZoom) return;
-      this.createWayAnchorPoint(mouseEvent.geographicPoint);
+      if (!this.routingSession) {
+        if (this.getLastPoint()) return;
+        // first point
+        const closest = this.waysHelper.findClosestWayPoint(mouseEvent.geographicPoint);
+        if (!closest) return;
+        this.firstPoint({pos: closest.pos, free: false});
+        return;
+      }
+      const preview = this.routingSession?.preview(mouseEvent.geographicPoint);
+      if (!preview?.snap || !preview.route) return;
+      const routePoints = preview.route.points;
+      const trackPoints = routePoints.map(p => ({pos: p.pos, free: false} as TrackPoint));
+      trackPoints.at(-1)!.network = {
+        wayId: preview.snap.wayId,
+        segmentIndex: preview.snap.segmentIndex,
+        t: preview.snap.t,
+      };
+      this.appendPoints(trackPoints);
     });
   }
 
   private _latestMousePosition: EarthPoint | undefined = undefined;
   private refreshWaysToMouse(renderer: MapRenderer | undefined, mousePosition: EarthPoint | undefined): void {
     const mousePos = mousePosition ?? this._latestMousePosition;
+    if (!mousePos) {
+      this.nothingToGo();
+      return;
+    }
     const zoom = renderer?.mapState?.zoom;
-    const closest = zoom && zoom >= this.planner.minZoom && mousePos ? WayUtils.findClosestWayPoint(mousePos, this.ways, MATCHING_MAX_DISTANCE) : undefined;
-    if (!closest) {
-      this.addPointAnchor.position = undefined;
+    if (!zoom || zoom < this.planner.minZoom) {
+      this.nothingToGo();
+      return;
+    }
+    if (!this.routingSession) {
+      if (this.getLastPoint()) {
+        this.nothingToGo();
+        return;
+      }
+      // first point
+      const closest = this.waysHelper.findClosestWayPoint(mousePos);
+      if (!closest) {
+        this.nothingToGo();
+        return;
+      }
+      this.addPointAnchor.position = closest.pos;
       this.setWaysToCursor(undefined);
+      // TODO clearHighlightedWays();
       this.planner.changesDetection.detectChanges();
       return;
     }
-    const lastPoint = this.getLastPoint();
-    if (lastPoint) {
-      const path = this.getPathToGoTo(lastPoint, closest.match.point);
-      if (!path) {
-        this.addPointAnchor.position = undefined;
-        this.setWaysToCursor(undefined);
-        this.planner.changesDetection.detectChanges();
-        return;
-      }
-      this.addPointAnchor.position = closest.match.point;
-      this.setWaysToCursor(path);
-    } else {
-      this.addPointAnchor.position = closest.match.point;
+    const preview = this.routingSession.preview(mousePos);
+    if (!preview?.snap || !preview.route) {
+      this.nothingToGo();
+      return;
     }
+    this.addPointAnchor.position = preview.snap.pos;
+    this.setWaysToCursor(preview.route.points);
+    // TODO Highlight the nearby OSM ways.
+    //highlightWays(new Set(preview.nearbyWays.map(w => w.wayId)));
+    this.planner.changesDetection.detectChanges();
+  }
+  private nothingToGo(): void {
+    this.addPointAnchor.position = undefined;
+    this.setWaysToCursor(undefined);
+    // TODO clearHighlightedWays();
     this.planner.changesDetection.detectChanges();
   }
 
-  private createWayAnchorPoint(position: EarthPoint): void {
-    const closest = WayUtils.findClosestWayPoint(position, this.ways, MATCHING_MAX_DISTANCE);
-    if (!closest) return;
-
-    const lastPoint = this.getLastPoint();
-    if (!lastPoint) {
-      this.firstPoint({pos: closest.match.point, free: false});
-      return;
-    }
-    const path = this.getPathToGoTo(lastPoint, closest.match.point);
-    if (!path) return;
-    const newPoints: TrackPoint[] = [
-      ...path.startingFreePoints.map(pos => ({pos, free: true})),
-      ...path.waysPath.map(wp => ({pos: wp.point, free: false})),
-    ];
-    this.appendPoints(newPoints);
-  }
-
-  private setWaysToCursor(path: WaysPath | undefined): void {
+  private setWaysToCursor(path: WayRoutePoint[] | undefined): void {
     let normal: {points: EarthPoint[]}[] = [];
     let permissive: {points: EarthPoint[]}[] = [];
     let forbidden: {points: EarthPoint[]}[] = [];
     if (path) {
-      if (path.startingFreePoints.length > 0) {
-        normal.push({points: path.startingFreePoints});
-      }
       let current: {color: WaysColor, way: {points: EarthPoint[]}} | undefined;
       const pushCurrent = (c: {color: WaysColor, way: {points: EarthPoint[]}}) => {
         switch (c.color) {
@@ -279,15 +302,19 @@ export class TrackBuilder {
           case WaysColor.FORBIDDEN: forbidden.push(c.way); break;
         }
       };
-      for (const w of path.waysPath) {
-        const color = this.getWayColor(w.way);
+      for (const pt of path) {
+        let color = WaysColor.NORMAL;
+        if (pt.wayId) {
+          const way = this.waysHelper.wayById.get(pt.wayId);
+          if (way) color = this.getWayColor(way);
+        }
         if (!current) {
-          current = {color, way: {points: [w.point]}};
+          current = {color, way: {points: [pt.pos]}};
         } else if (current.color === color) {
-          current.way.points.push(w.point);
+          current.way.points.push(pt.pos);
         } else {
           pushCurrent(current);
-          current = {color, way: {points: [w.point]}};
+          current = {color, way: {points: [pt.pos]}};
         }
       }
       if (current) pushCurrent(current);
@@ -349,28 +376,17 @@ export class TrackBuilder {
     this.resume();
   }
 
-  private getPathToGoTo(lastPoint: TrackPoint, target: EarthPoint): WaysPath | undefined {
-    if (lastPoint.free) {
-      // TODO threshold should be different i guess
-      return this.graph.getShortestPathFromFreePoint(lastPoint.pos, target, MATCHING_MAX_DISTANCE);
-    } else {
-      const points = this.graph.getShortestPath(lastPoint.pos, target);
-      if (!points) return undefined;
-      return { startingFreePoints: [], waysPath: points };
-    }
-  }
-
   private firstPoint(point: TrackPoint): void {
     const segment = this.track!.newSegment();
     segment.append({pos: point.pos});
-    this.trackPoints.push([point]);
+    this.trackPoints.push({nbPoints: 1, latest: point});
     this.trackPointAdded();
   }
 
   private appendPoints(points: TrackPoint[]): void {
     if (points.length === 0) return;
     this.track!.lastSegment.appendMany(points.map(p => ({pos: p.pos})));
-    this.trackPoints.push(points);
+    this.trackPoints.push({nbPoints: points.length, latest: points.at(-1)!});
     this.trackPointAdded();
   }
 
@@ -379,6 +395,7 @@ export class TrackBuilder {
     this.saveToLocalStorage();
     this.addPointAnchor.position = undefined;
     this.setWaysToCursor(undefined);
+    if (this.putAnchors) this.routingSession = this.waysHelper.createRoutingSession(this.getLastPoint()!);
     this.planner.changesDetection.detectChanges();
   }
 
@@ -394,6 +411,7 @@ export class TrackBuilder {
       return;
     }
     this.searchingWays = true;
+    this.routingSession = undefined;
     const bounds = renderer.getBounds();
     if (!bounds) {
       setTimeout(() => this.updateWaysFromMapState(), 100);
@@ -409,13 +427,19 @@ export class TrackBuilder {
 
   private updateWaysFromService(ways: Way[]): void {
     this.ways = ways;
-    this.graph.setWays(ways);
-    if (this.putAnchors) this.refreshWaysToMouse(this.map?.renderer, undefined);
+    void this.waysHelper.setWays(ways)
+    .then(() => {
+      if (this.putAnchors) {
+        const lastPoint = this.getLastPoint();
+        if (lastPoint) this.routingSession = this.waysHelper.createRoutingSession(lastPoint);
+      }
+      this.refreshWaysToMouse(this.map?.renderer, undefined);
+    });
   }
 
   private cancelWays(): void {
     this.ways = [];
-    this.graph.setWays([]);
+    void this.waysHelper.setWays([]);
     this.addPointAnchor.position = undefined;
     this.setWaysToCursor(undefined);
   }
@@ -438,15 +462,15 @@ export class TrackBuilder {
 
   // --- local storage ---
 
+  private readonly STORAGE_VERSION = '1';
   private loadFromLocalStorage(): void {
     const str = localStorage.getItem(this.getLocalStorageKey());
     if (!str) return;
     try {
       const json = JSON.parse(str);
-      if (!json['track'] || !json['points']) return;
+      if (!json['track'] || !json['points'] || json['STORAGE_VERSION'] !== this.STORAGE_VERSION) return;
       const points = json['points'];
       if (!Array.isArray(points)) return;
-      for (const p of points) if (!p['pos'] || typeof p['pos']['lat'] !== 'number' || typeof p['pos']['lng'] !== 'number' || typeof p['free'] !== 'boolean') return;
       this.track = new Track(json['track'], false, this.injector.get(PreferencesService), this.injector.get(OfflineMapService), this.injector.get(WorkerService), this.injector.get(TrackComputedDataCacheService), this.injector.get(NetworkService));
       this.trackPoints = points;
       this.mapElementFromTrack();
@@ -464,6 +488,7 @@ export class TrackBuilder {
     localStorage.setItem(this.getLocalStorageKey(), JSON.stringify({
       track: this.track.toDto(),
       points: this.trackPoints,
+      STORAGE_VERSION: this.STORAGE_VERSION,
     }));
   }
 

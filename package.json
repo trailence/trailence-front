@@ -56,6 +56,7 @@
     "angular-code-input": "^2.0.0",
     "chart.js": "^4.5.1",
     "dexie": "^4.4.6",
+    "flatbush": "^4.8.0",
     "immutable": "^5.1.9",
     "ionicons": "^8.0.13",
     "jszip": "^3.10.2",
