@@ -63,9 +63,9 @@ export class GeoService {
     return this.fillPointsElevation(segment.points, showProgress, onlyGoodProviders);
   }
 
-  public fillPointsElevation(points: PointDescriptor[], showProgress = false, onlyGoodProviders = false): Observable<any> {
+  public fillPointsElevation(points: PointDescriptor[], showProgress = false, onlyGoodProviders = false): Observable<number> {
     const missing = points.filter(pt => pt.ele === undefined);
-    if (missing.length === 0) return of(true);
+    if (missing.length === 0) return of(0);
     let progress: Progress | undefined = undefined;
     if (showProgress) {
       progress = this.progressService.create(this.i18n.texts.downloading_elevation, missing.length);
@@ -82,16 +82,17 @@ export class GeoService {
         //(pts: Point[], prog?: Progress) => this.fillPointsElevationWithRestrictedApi(pts, (pts2, prog2) => this.getElevationFromOpenTopo(pts2, 'aster30m', prog2), prog),
         (pts: PointDescriptor[], prog?: Progress) => this.fillPointsElevationWithRestrictedApi(pts, (pts2, prog2) => this.getElevationFromOpenElevation(pts2, prog2), prog),
       );
-    const nextProvider: (index: number, pts: PointDescriptor[]) => Observable<any> = (index, pts) =>
+    const nextProvider: (index: number, pts: PointDescriptor[], done: number) => Observable<number> = (index, pts, done) =>
       providers[index](pts, progress).pipe(
         switchMap(() => {
-          if (index === providers.length - 1) return of(false);
           const missing2 = points.filter(pt => pt.ele === undefined);
-          if (missing2.length === 0) return of(true);
-          return nextProvider(index + 1, missing2);
+          const newDone = done + (pts.length - missing2.length);
+          if (missing2.length === 0) return of(newDone);
+          if (index === providers.length - 1) return of(newDone);
+          return nextProvider(index + 1, missing2, newDone);
         })
       );
-    return nextProvider(0, missing).pipe(
+    return nextProvider(0, missing, 0).pipe(
       tap(() => progress?.done()),
     );
   }

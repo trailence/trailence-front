@@ -4,10 +4,10 @@
 >
 
   <div class="map-container">
-    @if (trackBuilder.searchingWays) {
+    @if (searchingWays) {
       <ion-spinner name="dots" class="map-loading"></ion-spinner>
     }
-    <app-map #map mapId="trail-planner" [elements$]="mapElements$" [options]="mapOptions" [ngClass]="{'mouse-pointer': trackBuilder.putAnchors}">
+    <app-map #map mapId="trail-planner" [elements$]="mapElements$" [options]="mapOptions" [ngClass]="{'mouse-pointer': trackBuilder.isActive()}">
       <div class="map-top-controls center">
         @if (connected$ | async) {
           <div style="display: flex; flex-direction: column; align-items: center">

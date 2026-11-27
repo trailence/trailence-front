@@ -1,5 +1,5 @@
 import { Component, Injector, ViewChild, ChangeDetectionStrategy } from '@angular/core';
-import { combineLatest, debounceTime, first, map, Observable, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, debounceTime, filter, first, map, Observable, Subscription, switchMap } from 'rxjs';
 import { HeaderComponent } from '@trailence/components/header/header.component';
 import { MapComponent, MapOptions } from '@trailence/components/map/map.component';
 import { I18nService } from '@trailence/services/i18n/i18n.service';
@@ -28,6 +28,7 @@ import { AsyncPipe, NgClass, NgStyle } from '@angular/common';
 import { AuthService } from '@trailence/services/auth/auth.service';
 import { BrowserService } from '@trailence/services/browser/browser.service';
 import { AnyMapElement } from '@trailence/components/map/map-element';
+import { ADD_POINTS_MIN_ZOOM, AddPoints } from '@trailence/utils/track-add-points/add-points';
 
 @Component({
     selector: 'app-trail-planner',
@@ -49,20 +50,22 @@ export class TrailPlannerPage extends AbstractPage<undefined> {
   readonly trackBuilder = new TrackBuilder(this.injector, this);
   readonly trails = new Trails(this.injector, () => this.map);
 
+  private readonly addPointsMapElements = new BehaviorSubject<AnyMapElement[]>([]);
   readonly mapElements$: Observable<AnyMapElement[]> = combineLatest([
     this.trails.mapElement$,
     this.trackBuilder.trackMapElements$,
+    this.addPointsMapElements,
   ]).pipe(
         debounceTime(10),
-        map(([trails, track]) => {
-          const all = [...trails, ...this.trackBuilder.waysMapElements];
+        map(([trails, track, addPoints]) => {
+          const all = [...trails, ...addPoints];
           if (track) all.push(...track);
-          this.toolbar?.refresh();
+          this.refreshToolbar();
           return all;
         })
       );
 
-  readonly minZoom = 14;
+  readonly minZoom = ADD_POINTS_MIN_ZOOM;
 
   mapOptions: MapOptions = {
     geoLocationDisabled: true,
@@ -83,47 +86,10 @@ export class TrailPlannerPage extends AbstractPage<undefined> {
 
   @ViewChild('saveModal') saveModal?: IonModal;
 
-  @ViewChild('toolbar') toolbar?: ToolbarComponent;
-  tools: MenuItem[] = [
-    new MenuItem().setCustomContentSelector('app-search-place').setVisible(() => !this.trackBuilder.track && !!this.auth.auth && !this.auth.auth.isAnonymous),
-    new MenuItem(),
-    new MenuItem().setIcon('play').setI18nLabel('pages.trailplanner.start').setTextColor('success')
-      .setVisible(() => !this.trackBuilder.track && !!this.map?.renderer && this.map.renderer.mapState.zoom >= this.minZoom)
-      .setAction(() => { this.trackBuilder.start(); this.toolbar?.refresh(); }),
-
-    new MenuItem().setIcon('location').setI18nLabel('pages.trailplanner.put_free_point')
-      .setVisible(() => !!this.trackBuilder.track && !this.trackBuilder.putFreeAnchor)
-      .setDisabled(() => !this.trackBuilder.putAnchors)
-      .setAction(() => { this.trackBuilder.enableFreeAnchor(); this.toolbar?.refresh(); }),
-    new MenuItem().setIcon('location').setI18nLabel('pages.trailplanner.back_to_non_free_point')
-      .setVisible(() => !!this.trackBuilder.track && !!this.trackBuilder.putFreeAnchor)
-      .setAction(() => { this.trackBuilder.backToNonFreeAnchors(); this.toolbar?.refresh(); }),
-    new MenuItem().setIcon('pause').setI18nLabel('pages.trailplanner.stop').setTextColor('secondary')
-      .setVisible(() => !!this.trackBuilder.track && (this.trackBuilder.putAnchors || this.trackBuilder.putFreeAnchor))
-      .setAction(() => { this.trackBuilder.stop(); this.toolbar?.refresh(); }),
-    new MenuItem().setIcon('play').setI18nLabel('pages.trailplanner.resume').setTextColor('success')
-      .setVisible(() => !!this.trackBuilder.track && !this.trackBuilder.putAnchors && !this.trackBuilder.putFreeAnchor && !!this.map?.renderer && this.map.renderer.mapState.zoom >= this.minZoom)
-      .setAction(() => { this.trackBuilder.resume(); this.toolbar?.refresh(); }),
-
-    new MenuItem(),
-    new MenuItem().setIcon('undo').setI18nLabel('pages.trailplanner.undo')
-      .setVisible(() => !!this.trackBuilder.track)
-      .setDisabled(() => this.trackBuilder.trackPoints.length === 0)
-      .setAction(() => { this.trackBuilder.undo(); this.toolbar?.refresh(); }),
-    new MenuItem().setIcon('reset').setI18nLabel('pages.trailplanner.reset').setTextColor('danger')
-      .setVisible(() => !!this.trackBuilder.track)
-      .setAction(() => this.reset()),
-
-    new MenuItem(),
-    new MenuItem().setIcon('save').setI18nLabel('buttons.save').setTextColor('success')
-      .setVisible(() => !!this.trackBuilder.track)
-      .setDisabled(() => this.trackBuilder.trackPoints.length < 2)
-      .setAction(() => this.openSaveModal())
-  ];
-
   connected$: Observable<boolean>;
 
   bothInfoAndElevationFitOnBottom = false;
+  searchingWays = false;
 
   constructor(
     injector: Injector,
@@ -141,10 +107,6 @@ export class TrailPlannerPage extends AbstractPage<undefined> {
     ));
     this.connected$ = combineLatest([networkService.internet$, networkService.server$]).pipe(map(([i,s]) => i && !!s));
     this.whenVisible.subscribe(browser.resize$, size => this.updateSize(size.width, size.height));
-    this.whenVisible.subscribe(
-      combineLatest([this.trackBuilder.waysToCursor.permissive, this.trackBuilder.waysToCursor.forbidden]),
-      () => this.updateLegend(),
-    );
   }
 
   protected override getComponentState(): undefined { return undefined; }
@@ -178,6 +140,62 @@ export class TrailPlannerPage extends AbstractPage<undefined> {
     });
   }
 
+  @ViewChild('toolbar') toolbarComponent?: ToolbarComponent;
+  private readonly startTools: MenuItem[] = [
+    new MenuItem().setCustomContentSelector('app-search-place').setVisible(() => !this.trackBuilder.track && !!this.auth.auth && !this.auth.auth.isAnonymous),
+    new MenuItem(),
+    new MenuItem().setIcon('play').setI18nLabel('pages.trailplanner.start').setTextColor('success')
+      .setVisible(() => !this.trackBuilder.track && !!this.map?.renderer && this.map.renderer.mapState.zoom >= ADD_POINTS_MIN_ZOOM)
+      .setAction(() => { this.start(); }),
+  ];
+  private readonly endTools: MenuItem[] = [
+    new MenuItem(),
+    new MenuItem().setIcon('pause').setI18nLabel('pages.trailplanner.stop').setTextColor('secondary')
+      .setVisible(() => !!this.trackBuilder.track && this.trackBuilder.isActive())
+      .setAction(() => { this.trackBuilder.stop(); this.refreshToolbar(); }),
+    new MenuItem().setIcon('play').setI18nLabel('pages.trailplanner.resume').setTextColor('success')
+      .setVisible(() => !!this.trackBuilder.track && this.trackBuilder.isPaused() && !!this.map?.renderer && this.map.renderer.mapState.zoom >= this.minZoom)
+      .setAction(() => { this.trackBuilder.resume(); this.refreshToolbar(); }),
+    new MenuItem(),
+    new MenuItem().setIcon('reset').setI18nLabel('pages.trailplanner.reset').setTextColor('danger')
+      .setVisible(() => !!this.trackBuilder.track)
+      .setAction(() => this.reset()),
+    new MenuItem().setIcon('save').setI18nLabel('buttons.save').setTextColor('success')
+      .setVisible(() => !!this.trackBuilder.track)
+      .setDisabled(() => !this.trackBuilder.canSave())
+      .setAction(() => this.openSaveModal())
+  ];
+  tools: MenuItem[] = [...this.startTools, ...this.endTools];
+
+  public refreshToolbar(): void {
+    this.tools = [
+      ...this.startTools,
+      ...this.trackBuilder.getToolbarItems(),
+      ...this.endTools,
+    ];
+  }
+
+  private _addPointsSubscription?: Subscription;
+  private _searchingWaysSubscription?: Subscription;
+  private start(): void {
+    if (!this.map) return;
+    const addPoints = this.trackBuilder.start(this.map);
+    this.started(addPoints);
+  }
+
+  started(addPoints: AddPoints): void {
+    this.refreshToolbar();
+    this.addPointsMapElements.next(addPoints.waysMapElements);
+    this._addPointsSubscription = this.visible$.pipe(
+      filter(Boolean),
+      switchMap(() => combineLatest([addPoints.waysToCursor.permissive, addPoints.waysToCursor.forbidden]))
+    ).subscribe(() => this.updateLegend(addPoints));
+    this._searchingWaysSubscription = addPoints.searchingWays$.subscribe(s => {
+      this.searchingWays = s;
+      this.changesDetection.detectChanges();
+    });
+  }
+
   reset(): void {
     void this.injector.get(AlertController).create({
       header: this.i18n.texts.pages.trailplanner.reset_confirmation.title,
@@ -202,15 +220,21 @@ export class TrailPlannerPage extends AbstractPage<undefined> {
   }
 
   private doReset(): void {
+    this._addPointsSubscription?.unsubscribe();
+    this._addPointsSubscription = undefined;
+    this._searchingWaysSubscription?.unsubscribe();
+    this._searchingWaysSubscription = undefined;
+    this.addPointsMapElements.next([]);
     this.trackBuilder.reset();
+    this.searchingWays = false;
     this.trailName = '';
     this.collectionUuid = undefined;
-    this.toolbar?.refresh();
+    this.refreshToolbar();
     this.map?.renderer?.invalidateSize();
+    this.changesDetection.detectChanges();
   }
 
   openSaveModal(): void {
-    if (this.trackBuilder.trackPoints.length < 2) return;
     void this.saveModal?.present();
   }
 
@@ -243,11 +267,11 @@ export class TrailPlannerPage extends AbstractPage<undefined> {
     }
   }
 
-  private updateLegend(): void {
+  private updateLegend(addPoints: AddPoints): void {
     const legend = document.getElementById('trail-planner-legend');
     if (!legend) return;
-    const hasPermissive = this.trackBuilder.waysToCursor.permissive.value.length > 0;
-    const hasForbidden = this.trackBuilder.waysToCursor.forbidden.value.length > 0;
+    const hasPermissive = addPoints.waysToCursor.permissive.value.length > 0;
+    const hasForbidden = addPoints.waysToCursor.forbidden.value.length > 0;
     let html = '';
     // TODO refacto with dash
     if (hasPermissive)

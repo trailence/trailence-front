@@ -18,7 +18,7 @@ import { AnyMapElement, MAP_SELECTED_TRACK_LAYER } from '@trailence/components/m
 import { bboxOverlaps, bboxPadRatio, EarthBBox, isPointInBBox } from '@trailence/utils/latlng';
 import { Color } from '@trailence/utils/color';
 
-const TRAIL_MAPTRACK_DEFAULT_COLOR = '#FF000080';
+const TRAIL_MAPTRACK_DEFAULT_COLOR = '#FF00FF80';
 const TRAIL_MAPTRACK_HIGHLIGHTED_COLOR = '#FF00FFFF';
 
 export class Trails {
